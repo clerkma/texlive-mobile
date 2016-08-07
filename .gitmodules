@@ -1,3 +1,0 @@
-[submodule "src/texlive-source"]
-	path = src/texlive-source
-	url = https://github.com/texlive/texlive-source.git
