@@ -1,0 +1,5 @@
+bstring.o: bstring.c /usr/include/stdc-predef.h c-auto.h
+
+/usr/include/stdc-predef.h:
+
+c-auto.h:

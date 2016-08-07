@@ -1,0 +1,4 @@
+libgd-2.1.1/src/gdtables.o: libgd-2.1.1/src/gdtables.c \
+ /usr/include/stdc-predef.h
+
+/usr/include/stdc-predef.h:

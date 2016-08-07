@@ -1,0 +1,5 @@
+luatexdir/luafontloader/fontforge/fontforge/libff_a-pua.o: \
+ luatexdir/luafontloader/fontforge/fontforge/pua.c \
+ /usr/include/stdc-predef.h
+
+/usr/include/stdc-predef.h:

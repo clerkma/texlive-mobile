@@ -1,0 +1,6 @@
+poppler-src/goo/FixedPoint.o: poppler-src/goo/FixedPoint.cc \
+ /usr/include/stdc-predef.h config.h
+
+/usr/include/stdc-predef.h:
+
+config.h:

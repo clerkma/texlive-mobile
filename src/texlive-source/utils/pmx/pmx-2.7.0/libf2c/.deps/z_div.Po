@@ -1,0 +1,6 @@
+pmx-2.7.0/libf2c/z_div.o: pmx-2.7.0/libf2c/z_div.c \
+ /usr/include/stdc-predef.h pmx-2.7.0/libf2c/f2c.h
+
+/usr/include/stdc-predef.h:
+
+pmx-2.7.0/libf2c/f2c.h:
