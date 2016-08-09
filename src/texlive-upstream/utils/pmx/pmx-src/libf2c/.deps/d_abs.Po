@@ -1,0 +1,6 @@
+pmx-src/libf2c/d_abs.o: pmx-src/libf2c/d_abs.c /usr/include/stdc-predef.h \
+ pmx-src/libf2c/f2c.h
+
+/usr/include/stdc-predef.h:
+
+pmx-src/libf2c/f2c.h:

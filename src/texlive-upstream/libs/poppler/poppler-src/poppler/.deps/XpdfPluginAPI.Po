@@ -1,0 +1,6 @@
+poppler-src/poppler/XpdfPluginAPI.o: poppler-src/poppler/XpdfPluginAPI.cc \
+ /usr/include/stdc-predef.h config.h
+
+/usr/include/stdc-predef.h:
+
+config.h:

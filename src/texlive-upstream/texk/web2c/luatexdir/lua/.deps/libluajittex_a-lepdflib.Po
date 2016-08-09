@@ -1,0 +1,641 @@
+luatexdir/lua/libluajittex_a-lepdflib.o: luatexdir/lua/lepdflib.cc \
+ /usr/include/stdc-predef.h luatexdir/image/epdf.h w2c/config.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/config.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-auto.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-std.h \
+ /usr/include/stdio.h /usr/include/features.h \
+ /usr/include/x86_64-linux-gnu/sys/cdefs.h \
+ /usr/include/x86_64-linux-gnu/bits/wordsize.h \
+ /usr/include/x86_64-linux-gnu/gnu/stubs.h \
+ /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h \
+ /usr/include/x86_64-linux-gnu/bits/types.h \
+ /usr/include/x86_64-linux-gnu/bits/typesizes.h /usr/include/libio.h \
+ /usr/include/_G_config.h /usr/include/wchar.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include/stdarg.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/sys_errlist.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio2.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-unistd.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/systypes.h \
+ /usr/include/x86_64-linux-gnu/sys/types.h /usr/include/time.h \
+ /usr/include/endian.h /usr/include/x86_64-linux-gnu/bits/endian.h \
+ /usr/include/x86_64-linux-gnu/bits/byteswap.h \
+ /usr/include/x86_64-linux-gnu/bits/byteswap-16.h \
+ /usr/include/x86_64-linux-gnu/sys/select.h \
+ /usr/include/x86_64-linux-gnu/bits/select.h \
+ /usr/include/x86_64-linux-gnu/bits/sigset.h \
+ /usr/include/x86_64-linux-gnu/bits/time.h \
+ /usr/include/x86_64-linux-gnu/bits/select2.h \
+ /usr/include/x86_64-linux-gnu/sys/sysmacros.h \
+ /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h /usr/include/unistd.h \
+ /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
+ /usr/include/x86_64-linux-gnu/bits/environments.h \
+ /usr/include/x86_64-linux-gnu/bits/confname.h /usr/include/getopt.h \
+ /usr/include/x86_64-linux-gnu/bits/unistd.h /usr/include/stdlib.h \
+ /usr/include/x86_64-linux-gnu/bits/waitflags.h \
+ /usr/include/x86_64-linux-gnu/bits/waitstatus.h /usr/include/xlocale.h \
+ /usr/include/alloca.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-memstr.h \
+ /usr/include/string.h /usr/include/x86_64-linux-gnu/bits/string3.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-errno.h \
+ /usr/include/errno.h /usr/include/x86_64-linux-gnu/bits/errno.h \
+ /usr/include/linux/errno.h /usr/include/x86_64-linux-gnu/asm/errno.h \
+ /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-minmax.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-limits.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/limits.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/syslimits.h \
+ /usr/include/limits.h /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/local_lim.h \
+ /usr/include/linux/limits.h \
+ /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/xopen_lim.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include/float.h /usr/include/assert.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-proto.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/debug.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/types.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/simpletypes.h \
+ /usr/include/inttypes.h /usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h \
+ /usr/include/stdint.h /usr/include/x86_64-linux-gnu/bits/wchar.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/str-llist.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/hash.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/str-list.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/lib.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/progname.h \
+ w2c/c-auto.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-fopen.h \
+ /usr/include/fcntl.h /usr/include/x86_64-linux-gnu/bits/fcntl.h \
+ /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h \
+ /usr/include/x86_64-linux-gnu/bits/uio.h \
+ /usr/include/x86_64-linux-gnu/bits/stat.h \
+ /usr/include/x86_64-linux-gnu/bits/fcntl2.h /usr/include/math.h \
+ /usr/include/x86_64-linux-gnu/bits/math-vector.h \
+ /usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h \
+ /usr/include/x86_64-linux-gnu/bits/huge_val.h \
+ /usr/include/x86_64-linux-gnu/bits/huge_valf.h \
+ /usr/include/x86_64-linux-gnu/bits/huge_vall.h \
+ /usr/include/x86_64-linux-gnu/bits/inf.h \
+ /usr/include/x86_64-linux-gnu/bits/nan.h \
+ /usr/include/x86_64-linux-gnu/bits/mathdef.h \
+ /usr/include/x86_64-linux-gnu/bits/mathcalls.h \
+ /usr/include/x86_64-linux-gnu/bits/mathinline.h \
+ /home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-ctype.h \
+ /usr/include/ctype.h /usr/include/x86_64-linux-gnu/sys/stat.h \
+ /usr/include/dirent.h /usr/include/x86_64-linux-gnu/bits/dirent.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/poppler-config.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/GooString.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/gtypes.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/gmem.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/gfile.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Object.h \
+ /usr/include/c++/5/set /usr/include/c++/5/bits/stl_tree.h \
+ /usr/include/c++/5/bits/stl_algobase.h \
+ /usr/include/x86_64-linux-gnu/c++/5/bits/c++config.h \
+ /usr/include/x86_64-linux-gnu/c++/5/bits/os_defines.h \
+ /usr/include/x86_64-linux-gnu/c++/5/bits/cpu_defines.h \
+ /usr/include/c++/5/bits/functexcept.h \
+ /usr/include/c++/5/bits/exception_defines.h \
+ /usr/include/c++/5/bits/cpp_type_traits.h \
+ /usr/include/c++/5/ext/type_traits.h \
+ /usr/include/c++/5/ext/numeric_traits.h \
+ /usr/include/c++/5/bits/stl_pair.h /usr/include/c++/5/bits/move.h \
+ /usr/include/c++/5/bits/concept_check.h \
+ /usr/include/c++/5/bits/stl_iterator_base_types.h \
+ /usr/include/c++/5/bits/stl_iterator_base_funcs.h \
+ /usr/include/c++/5/debug/debug.h /usr/include/c++/5/bits/stl_iterator.h \
+ /usr/include/c++/5/bits/ptr_traits.h \
+ /usr/include/c++/5/bits/predefined_ops.h \
+ /usr/include/c++/5/bits/allocator.h \
+ /usr/include/x86_64-linux-gnu/c++/5/bits/c++allocator.h \
+ /usr/include/c++/5/ext/new_allocator.h /usr/include/c++/5/new \
+ /usr/include/c++/5/exception \
+ /usr/include/c++/5/bits/atomic_lockfree_defines.h \
+ /usr/include/c++/5/bits/memoryfwd.h \
+ /usr/include/c++/5/bits/stl_function.h \
+ /usr/include/c++/5/backward/binders.h \
+ /usr/include/c++/5/ext/alloc_traits.h /usr/include/c++/5/bits/stl_set.h \
+ /usr/include/c++/5/bits/stl_multiset.h \
+ /usr/include/c++/5/bits/range_access.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/gtypes.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/gmem.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/GooString.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/GooLikely.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Error.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/poppler-config.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Array.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Object.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/GooMutex.h \
+ /usr/include/pthread.h /usr/include/sched.h \
+ /usr/include/x86_64-linux-gnu/bits/sched.h \
+ /usr/include/x86_64-linux-gnu/bits/timex.h \
+ /usr/include/x86_64-linux-gnu/bits/setjmp.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Dict.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Stream.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Stream.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Gfx.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/GooList.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/GfxState.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Function.h \
+ /usr/include/c++/5/map /usr/include/c++/5/bits/stl_map.h \
+ /usr/include/c++/5/bits/stl_multimap.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/PopplerCache.h \
+ /usr/include/c++/5/vector /usr/include/c++/5/bits/stl_construct.h \
+ /usr/include/c++/5/bits/stl_uninitialized.h \
+ /usr/include/c++/5/bits/stl_vector.h \
+ /usr/include/c++/5/bits/stl_bvector.h /usr/include/c++/5/bits/vector.tcc \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Annot.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Array.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Dict.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/XRef.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Catalog.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/StructTreeRoot.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/StructElement.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/MarkedContentOutputDev.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/OutputDev.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/CharTypes.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/GfxFont.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Link.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Page.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/GfxFont.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/PDFDoc.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/XRef.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Catalog.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Page.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Annot.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Form.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/OptionalContent.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/GlobalParams.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Error.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/FileSpec.h \
+ w2c/c-auto.h luatexdir/image/image.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/libpng/include/png.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/libpng/include/pnglibconf.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/libpng/include/pngconf.h \
+ /usr/include/setjmp.h /usr/include/x86_64-linux-gnu/bits/setjmp2.h \
+ luatexdir/pdf/pdftypes.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/zlib/include/zlib.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/zlib/include/zconf.h \
+ luatexdir/lua/luatex-api.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/luajit/include/lua.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/luajit/include/luaconf.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/luajit/include/lauxlib.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/luajit/include/lua.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/luajit/include/lualib.h \
+ /home/maqiyuan/Desktop/texlive-upstream/libs/luajit/include/luajit.h \
+ luatexdir/utils/avlstuff.h luatexdir/utils/avl.h \
+ luatexdir/luatex-common.h
+
+/usr/include/stdc-predef.h:
+
+luatexdir/image/epdf.h:
+
+w2c/config.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/config.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-auto.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-std.h:
+
+/usr/include/stdio.h:
+
+/usr/include/features.h:
+
+/usr/include/x86_64-linux-gnu/sys/cdefs.h:
+
+/usr/include/x86_64-linux-gnu/bits/wordsize.h:
+
+/usr/include/x86_64-linux-gnu/gnu/stubs.h:
+
+/usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h:
+
+/usr/include/x86_64-linux-gnu/bits/types.h:
+
+/usr/include/x86_64-linux-gnu/bits/typesizes.h:
+
+/usr/include/libio.h:
+
+/usr/include/_G_config.h:
+
+/usr/include/wchar.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/5/include/stdarg.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdio_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/sys_errlist.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdio.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-unistd.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/systypes.h:
+
+/usr/include/x86_64-linux-gnu/sys/types.h:
+
+/usr/include/time.h:
+
+/usr/include/endian.h:
+
+/usr/include/x86_64-linux-gnu/bits/endian.h:
+
+/usr/include/x86_64-linux-gnu/bits/byteswap.h:
+
+/usr/include/x86_64-linux-gnu/bits/byteswap-16.h:
+
+/usr/include/x86_64-linux-gnu/sys/select.h:
+
+/usr/include/x86_64-linux-gnu/bits/select.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigset.h:
+
+/usr/include/x86_64-linux-gnu/bits/time.h:
+
+/usr/include/x86_64-linux-gnu/bits/select2.h:
+
+/usr/include/x86_64-linux-gnu/sys/sysmacros.h:
+
+/usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
+
+/usr/include/unistd.h:
+
+/usr/include/x86_64-linux-gnu/bits/posix_opt.h:
+
+/usr/include/x86_64-linux-gnu/bits/environments.h:
+
+/usr/include/x86_64-linux-gnu/bits/confname.h:
+
+/usr/include/getopt.h:
+
+/usr/include/x86_64-linux-gnu/bits/unistd.h:
+
+/usr/include/stdlib.h:
+
+/usr/include/x86_64-linux-gnu/bits/waitflags.h:
+
+/usr/include/x86_64-linux-gnu/bits/waitstatus.h:
+
+/usr/include/xlocale.h:
+
+/usr/include/alloca.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-memstr.h:
+
+/usr/include/string.h:
+
+/usr/include/x86_64-linux-gnu/bits/string3.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-errno.h:
+
+/usr/include/errno.h:
+
+/usr/include/x86_64-linux-gnu/bits/errno.h:
+
+/usr/include/linux/errno.h:
+
+/usr/include/x86_64-linux-gnu/asm/errno.h:
+
+/usr/include/asm-generic/errno.h:
+
+/usr/include/asm-generic/errno-base.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-minmax.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-limits.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/limits.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/syslimits.h:
+
+/usr/include/limits.h:
+
+/usr/include/x86_64-linux-gnu/bits/posix1_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/local_lim.h:
+
+/usr/include/linux/limits.h:
+
+/usr/include/x86_64-linux-gnu/bits/posix2_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/xopen_lim.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/5/include/float.h:
+
+/usr/include/assert.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-proto.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/debug.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/types.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/simpletypes.h:
+
+/usr/include/inttypes.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h:
+
+/usr/include/stdint.h:
+
+/usr/include/x86_64-linux-gnu/bits/wchar.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/str-llist.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/hash.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/str-list.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/lib.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/progname.h:
+
+w2c/c-auto.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-fopen.h:
+
+/usr/include/fcntl.h:
+
+/usr/include/x86_64-linux-gnu/bits/fcntl.h:
+
+/usr/include/x86_64-linux-gnu/bits/fcntl-linux.h:
+
+/usr/include/x86_64-linux-gnu/bits/uio.h:
+
+/usr/include/x86_64-linux-gnu/bits/stat.h:
+
+/usr/include/x86_64-linux-gnu/bits/fcntl2.h:
+
+/usr/include/math.h:
+
+/usr/include/x86_64-linux-gnu/bits/math-vector.h:
+
+/usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h:
+
+/usr/include/x86_64-linux-gnu/bits/huge_val.h:
+
+/usr/include/x86_64-linux-gnu/bits/huge_valf.h:
+
+/usr/include/x86_64-linux-gnu/bits/huge_vall.h:
+
+/usr/include/x86_64-linux-gnu/bits/inf.h:
+
+/usr/include/x86_64-linux-gnu/bits/nan.h:
+
+/usr/include/x86_64-linux-gnu/bits/mathdef.h:
+
+/usr/include/x86_64-linux-gnu/bits/mathcalls.h:
+
+/usr/include/x86_64-linux-gnu/bits/mathinline.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/texk/kpathsea/c-ctype.h:
+
+/usr/include/ctype.h:
+
+/usr/include/x86_64-linux-gnu/sys/stat.h:
+
+/usr/include/dirent.h:
+
+/usr/include/x86_64-linux-gnu/bits/dirent.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/poppler-config.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/GooString.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/gtypes.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/gmem.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/gfile.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Object.h:
+
+/usr/include/c++/5/set:
+
+/usr/include/c++/5/bits/stl_tree.h:
+
+/usr/include/c++/5/bits/stl_algobase.h:
+
+/usr/include/x86_64-linux-gnu/c++/5/bits/c++config.h:
+
+/usr/include/x86_64-linux-gnu/c++/5/bits/os_defines.h:
+
+/usr/include/x86_64-linux-gnu/c++/5/bits/cpu_defines.h:
+
+/usr/include/c++/5/bits/functexcept.h:
+
+/usr/include/c++/5/bits/exception_defines.h:
+
+/usr/include/c++/5/bits/cpp_type_traits.h:
+
+/usr/include/c++/5/ext/type_traits.h:
+
+/usr/include/c++/5/ext/numeric_traits.h:
+
+/usr/include/c++/5/bits/stl_pair.h:
+
+/usr/include/c++/5/bits/move.h:
+
+/usr/include/c++/5/bits/concept_check.h:
+
+/usr/include/c++/5/bits/stl_iterator_base_types.h:
+
+/usr/include/c++/5/bits/stl_iterator_base_funcs.h:
+
+/usr/include/c++/5/debug/debug.h:
+
+/usr/include/c++/5/bits/stl_iterator.h:
+
+/usr/include/c++/5/bits/ptr_traits.h:
+
+/usr/include/c++/5/bits/predefined_ops.h:
+
+/usr/include/c++/5/bits/allocator.h:
+
+/usr/include/x86_64-linux-gnu/c++/5/bits/c++allocator.h:
+
+/usr/include/c++/5/ext/new_allocator.h:
+
+/usr/include/c++/5/new:
+
+/usr/include/c++/5/exception:
+
+/usr/include/c++/5/bits/atomic_lockfree_defines.h:
+
+/usr/include/c++/5/bits/memoryfwd.h:
+
+/usr/include/c++/5/bits/stl_function.h:
+
+/usr/include/c++/5/backward/binders.h:
+
+/usr/include/c++/5/ext/alloc_traits.h:
+
+/usr/include/c++/5/bits/stl_set.h:
+
+/usr/include/c++/5/bits/stl_multiset.h:
+
+/usr/include/c++/5/bits/range_access.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/gtypes.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/gmem.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/GooString.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/GooLikely.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Error.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/poppler-config.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Array.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Object.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/GooMutex.h:
+
+/usr/include/pthread.h:
+
+/usr/include/sched.h:
+
+/usr/include/x86_64-linux-gnu/bits/sched.h:
+
+/usr/include/x86_64-linux-gnu/bits/timex.h:
+
+/usr/include/x86_64-linux-gnu/bits/setjmp.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Dict.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Stream.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Stream.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Gfx.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/goo/GooList.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/GfxState.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Function.h:
+
+/usr/include/c++/5/map:
+
+/usr/include/c++/5/bits/stl_map.h:
+
+/usr/include/c++/5/bits/stl_multimap.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/PopplerCache.h:
+
+/usr/include/c++/5/vector:
+
+/usr/include/c++/5/bits/stl_construct.h:
+
+/usr/include/c++/5/bits/stl_uninitialized.h:
+
+/usr/include/c++/5/bits/stl_vector.h:
+
+/usr/include/c++/5/bits/stl_bvector.h:
+
+/usr/include/c++/5/bits/vector.tcc:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Annot.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Array.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Dict.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/XRef.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Catalog.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/StructTreeRoot.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/StructElement.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/MarkedContentOutputDev.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/OutputDev.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/CharTypes.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/GfxFont.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Link.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Page.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/GfxFont.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/PDFDoc.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/XRef.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Catalog.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Page.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Annot.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Form.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/OptionalContent.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/GlobalParams.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/Error.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/poppler/include/FileSpec.h:
+
+w2c/c-auto.h:
+
+luatexdir/image/image.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/libpng/include/png.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/libpng/include/pnglibconf.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/libpng/include/pngconf.h:
+
+/usr/include/setjmp.h:
+
+/usr/include/x86_64-linux-gnu/bits/setjmp2.h:
+
+luatexdir/pdf/pdftypes.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/zlib/include/zlib.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/zlib/include/zconf.h:
+
+luatexdir/lua/luatex-api.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/luajit/include/lua.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/luajit/include/luaconf.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/luajit/include/lauxlib.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/luajit/include/lua.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/luajit/include/lualib.h:
+
+/home/maqiyuan/Desktop/texlive-upstream/libs/luajit/include/luajit.h:
+
+luatexdir/utils/avlstuff.h:
+
+luatexdir/utils/avl.h:
+
+luatexdir/luatex-common.h:

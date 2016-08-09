@@ -1,0 +1,3 @@
+/^#ifnokpathsea/,/^#/d
+s/TEXFONTS/TFMFONTS/g
+/^#/d

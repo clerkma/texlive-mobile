@@ -1,0 +1,1 @@
+../potrace-src/src/potracelib.h

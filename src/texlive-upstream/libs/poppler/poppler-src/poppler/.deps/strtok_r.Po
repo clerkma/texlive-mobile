@@ -1,0 +1,4 @@
+poppler-src/poppler/strtok_r.o: poppler-src/poppler/strtok_r.cpp \
+ /usr/include/stdc-predef.h
+
+/usr/include/stdc-predef.h:

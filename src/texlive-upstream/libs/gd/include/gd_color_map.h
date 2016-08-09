@@ -1,0 +1,1 @@
+../libgd-src/src/gd_color_map.h

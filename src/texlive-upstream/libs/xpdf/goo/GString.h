@@ -1,0 +1,1 @@
+../xpdf-src/goo/GString.h

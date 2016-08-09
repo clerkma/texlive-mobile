@@ -1,0 +1,9 @@
+dvisvgm-src/src/CharMapID.o: dvisvgm-src/src/CharMapID.cpp \
+ /usr/include/stdc-predef.h dvisvgm-src/src/CharMapID.h \
+ dvisvgm-src/src/types.h
+
+/usr/include/stdc-predef.h:
+
+dvisvgm-src/src/CharMapID.h:
+
+dvisvgm-src/src/types.h:

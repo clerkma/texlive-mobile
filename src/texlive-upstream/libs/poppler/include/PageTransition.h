@@ -1,0 +1,1 @@
+../poppler-src/poppler/PageTransition.h

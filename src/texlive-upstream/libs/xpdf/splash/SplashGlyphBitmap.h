@@ -1,0 +1,1 @@
+../xpdf-src/splash/SplashGlyphBitmap.h

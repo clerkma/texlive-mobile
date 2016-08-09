@@ -1,0 +1,6 @@
+gui/xaw_bitmaps.o: gui/xaw_bitmaps.c /usr/include/stdc-predef.h \
+ gui/xaw_bitmaps.h
+
+/usr/include/stdc-predef.h:
+
+gui/xaw_bitmaps.h:

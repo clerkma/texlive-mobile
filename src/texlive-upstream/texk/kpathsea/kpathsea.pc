@@ -1,0 +1,11 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib/x86_64-pc-linux-gnu
+includedir=${prefix}/include
+
+Name: kpathsea
+Description: Kpathsea filename lookup library
+Version: 6.2.3/dev
+Libs: -L${libdir} -lkpathsea
+Cflags: -I${libdir} -I${includedir}
+

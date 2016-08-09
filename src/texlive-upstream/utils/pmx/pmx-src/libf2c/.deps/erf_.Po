@@ -1,0 +1,6 @@
+pmx-src/libf2c/erf_.o: pmx-src/libf2c/erf_.c /usr/include/stdc-predef.h \
+ pmx-src/libf2c/f2c.h
+
+/usr/include/stdc-predef.h:
+
+pmx-src/libf2c/f2c.h:

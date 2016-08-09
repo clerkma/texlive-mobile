@@ -1,0 +1,1 @@
+../xpdf-src/fofi/FoFiEncodings.h

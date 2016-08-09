@@ -1,0 +1,12 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib/x86_64-pc-linux-gnu
+includedir=${prefix}/include
+
+Name: LuaJIT for LuaJITTeX
+Description: LuaJIT, modified for use with LuaJITTeX
+Version: 2.1.0-beta2
+Libs: -L${libdir} -ltexluajit
+Libs.private: -ldl -lm 
+Cflags: -I${includedir}/texluajit
+

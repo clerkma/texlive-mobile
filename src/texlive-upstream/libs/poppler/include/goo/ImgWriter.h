@@ -1,0 +1,1 @@
+../../poppler-src/goo/ImgWriter.h

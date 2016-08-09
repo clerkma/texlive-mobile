@@ -1,0 +1,4 @@
+pmx-src/libf2c/f77vers.o: pmx-src/libf2c/f77vers.c \
+ /usr/include/stdc-predef.h
+
+/usr/include/stdc-predef.h:
