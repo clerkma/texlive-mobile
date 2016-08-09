@@ -1,1 +1,0 @@
-../../poppler-src/fofi/FoFiEncodings.h

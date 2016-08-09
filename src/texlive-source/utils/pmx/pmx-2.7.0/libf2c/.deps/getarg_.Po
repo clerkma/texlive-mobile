@@ -1,6 +1,0 @@
-pmx-2.7.0/libf2c/getarg_.o: pmx-2.7.0/libf2c/getarg_.c \
- /usr/include/stdc-predef.h pmx-2.7.0/libf2c/f2c.h
-
-/usr/include/stdc-predef.h:
-
-pmx-2.7.0/libf2c/f2c.h:

@@ -1,8 +1,0 @@
-xpdf-3.04/goo/FixedPoint.o: xpdf-3.04/goo/FixedPoint.cc \
- /usr/include/stdc-predef.h aconf.h aconf2.h
-
-/usr/include/stdc-predef.h:
-
-aconf.h:
-
-aconf2.h:

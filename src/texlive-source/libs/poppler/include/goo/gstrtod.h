@@ -1,1 +1,0 @@
-../../poppler-src/goo/gstrtod.h

@@ -1,1 +1,0 @@
-../../poppler-src/goo/NetPBMWriter.h

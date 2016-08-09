@@ -1,1 +1,0 @@
-../xpdf-3.04/fofi/FoFiType1.h

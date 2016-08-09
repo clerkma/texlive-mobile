@@ -1,1 +1,0 @@
-xpdf-3.04/aconf2.h

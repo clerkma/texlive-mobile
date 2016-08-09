@@ -1,1 +1,0 @@
-../xpdf-3.04/xpdf/UTF8.h

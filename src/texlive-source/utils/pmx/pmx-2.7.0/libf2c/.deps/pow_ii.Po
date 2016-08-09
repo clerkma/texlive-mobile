@@ -1,6 +1,0 @@
-pmx-2.7.0/libf2c/pow_ii.o: pmx-2.7.0/libf2c/pow_ii.c \
- /usr/include/stdc-predef.h pmx-2.7.0/libf2c/f2c.h
-
-/usr/include/stdc-predef.h:
-
-pmx-2.7.0/libf2c/f2c.h:

@@ -1,5 +1,0 @@
-uniblock.o: uniblock.c /usr/include/stdc-predef.h uniblock.h
-
-/usr/include/stdc-predef.h:
-
-uniblock.h:
