@@ -558,25 +558,25 @@ LOCAL_SRC_FILES  := $(PROG_FILES)
 include $(BUILD_EXECUTABLE)
 
 #for dvidvi
-#include $(CLEAR_VARS)
-#
-#PROG_ROOT     := ../src/texlive-upstream/texk/dvidvi
-#PROG_INCLUDES := \
-#$(LOCAL_PATH)/../src/texlive-upstream/texk\
-#$(LOCAL_PATH)/../src/texlive-upstream/texk/dvidvi
-#PROG_FILES :=\
-#$(PROG_ROOT)/dvidvi.c
-#LOCAL_ARM_NEON   := false
-#LOCAL_STATIC_LIBRARIES  := libkpathsea
-#LOCAL_MODULE     := dvidvi
-#LOCAL_LDLIBS     := -s -lm
-#LOCAL_CFLAGS     := \
-#-DHAVE_CONFIG_H -DNO_DEBUG -DUNIX -DKPATHSEA\
-#-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
-#LOCAL_C_INCLUDES := $(PROG_INCLUDES)
-#LOCAL_SRC_FILES  := $(PROG_FILES)
-#
-#include $(BUILD_EXECUTABLE)
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/dvidvi
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/dvidvi
+PROG_FILES :=\
+$(PROG_ROOT)/dvidvi.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := dvidvi
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DNO_DEBUG -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
 
 #for dviljk/libdviljk
 include $(CLEAR_VARS)
