@@ -77,6 +77,45 @@ include fragment-libpaper.mk
 include fragment-freetype2.mk
 include fragment-zlib.mk
 
+#for tangle
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/tangle.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libn libkpathsea
+LOCAL_MODULE     := tangle
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for ctangle
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/cweb.c\
+$(PROG_ROOT)/ctangle.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libn libkpathsea
+LOCAL_MODULE     := ctangle
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
 #for bibtex
 include $(CLEAR_VARS)
 
@@ -134,6 +173,25 @@ LOCAL_SRC_FILES  := $(PROG_FILES)
 
 include $(BUILD_EXECUTABLE)
 
+#for gftodvi
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/gftodvi.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libn libkpathsea
+LOCAL_MODULE     := gftodvi
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
 #for gftopk
 include $(CLEAR_VARS)
 
@@ -172,7 +230,7 @@ LOCAL_SRC_FILES  := $(PROG_FILES)
 
 include $(BUILD_EXECUTABLE)
 
-#for bibtex
+#for mft
 include $(CLEAR_VARS)
 
 PROG_ROOT     := ../src/texlive-upstream/texk/web2c
@@ -362,6 +420,64 @@ LOCAL_SRC_FILES  := $(PROG_FILES)
 
 include $(BUILD_EXECUTABLE)
 
+#for ctie
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/ctie.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libn libkpathsea
+LOCAL_MODULE     := ctie
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for cweave
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/cweb.c\
+$(PROG_ROOT)/cweave.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libn libkpathsea
+LOCAL_MODULE     := cweave
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for tie
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/tie.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libn libkpathsea
+LOCAL_MODULE     := tie
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
 #for tex
 include $(CLEAR_VARS)
 
@@ -379,6 +495,422 @@ LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := tex
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for ptex
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ptexenc\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/ptexdir/ptexextra.c\
+$(PROG_ROOT)/synctexdir/synctex.c\
+$(PROG_ROOT)/ptexini.c\
+$(PROG_ROOT)/ptex0.c\
+$(PROG_ROOT)/ptex-pool.c\
+$(PROG_ROOT)/ptexdir/kanji.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea libz
+LOCAL_MODULE     := ptex
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-D__SyncTeX__ -DSYNCTEX_ENGINE_H=\"synctex-ptex.h\"\
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for pbibtex
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ptexenc\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/pbibtex.c\
+$(PROG_ROOT)/ptexdir/kanji.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea
+LOCAL_MODULE     := pbibtex
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for pdvitype
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ptexenc\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/pdvitype.c\
+$(PROG_ROOT)/ptexdir/kanji.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea
+LOCAL_MODULE     := pdvitype
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for ppltotf
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ptexenc\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/ppltotf.c\
+$(PROG_ROOT)/ptexdir/kanji.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea
+LOCAL_MODULE     := ppltotf
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for ptftopl
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ptexenc\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/ptftopl.c\
+$(PROG_ROOT)/ptexdir/kanji.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea
+LOCAL_MODULE     := ptftopl
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for eptex
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ptexenc\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/libmd5
+PROG_FILES :=\
+$(PROG_ROOT)/eptexdir/eptexextra.c\
+$(PROG_ROOT)/synctexdir/synctex.c\
+$(PROG_ROOT)/eptexini.c\
+$(PROG_ROOT)/eptex0.c\
+$(PROG_ROOT)/eptex-pool.c\
+$(PROG_ROOT)/libmd5/md5.c\
+$(PROG_ROOT)/ptexdir/kanji.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea libz
+LOCAL_MODULE     := eptex
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-D__SyncTeX__ -DSYNCTEX_ENGINE_H=\"synctex-eptex.h\"\
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for uptex
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ptexenc\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/uptexdir/uptexextra.c\
+$(PROG_ROOT)/synctexdir/synctex.c\
+$(PROG_ROOT)/uptexini.c\
+$(PROG_ROOT)/uptex0.c\
+$(PROG_ROOT)/uptex-pool.c\
+$(PROG_ROOT)/uptexdir/kanji.c\
+$(PROG_ROOT)/uptexdir/kanji_dump.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea libz
+LOCAL_MODULE     := uptex
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-D__SyncTeX__ -DSYNCTEX_ENGINE_H=\"synctex-uptex.h\"\
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for upbibtex
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ptexenc\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/upbibtex.c\
+$(PROG_ROOT)/uptexdir/kanji.c\
+$(PROG_ROOT)/uptexdir/kanji_dump.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea libz
+LOCAL_MODULE     := upbibtex
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for updvitype
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ptexenc\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/updvitype.c\
+$(PROG_ROOT)/uptexdir/kanji.c\
+$(PROG_ROOT)/uptexdir/kanji_dump.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea libz
+LOCAL_MODULE     := updvitype
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for uppltotf
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ptexenc\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/uppltotf.c\
+$(PROG_ROOT)/uptexdir/kanji.c\
+$(PROG_ROOT)/uptexdir/kanji_dump.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea libz
+LOCAL_MODULE     := uppltotf
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for uptftopl
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ptexenc\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/uptftopl.c\
+$(PROG_ROOT)/uptexdir/kanji.c\
+$(PROG_ROOT)/uptexdir/kanji_dump.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea libz
+LOCAL_MODULE     := uptftopl
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for euptex
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ptexenc\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/libmd5
+PROG_FILES :=\
+$(PROG_ROOT)/euptexdir/euptexextra.c\
+$(PROG_ROOT)/synctexdir/synctex.c\
+$(PROG_ROOT)/euptexini.c\
+$(PROG_ROOT)/euptex0.c\
+$(PROG_ROOT)/euptex-pool.c\
+$(PROG_ROOT)/libmd5/md5.c\
+$(PROG_ROOT)/uptexdir/kanji.c\
+$(PROG_ROOT)/uptexdir/kanji_dump.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea libz
+LOCAL_MODULE     := euptex
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-D__SyncTeX__ -DSYNCTEX_ENGINE_H=\"synctex-euptex.h\"\
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for odvitype
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/odvitype.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libn libkpathsea
+LOCAL_MODULE     := odvitype
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for ofm2opl
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/ofm2opl.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libn libkpathsea
+LOCAL_MODULE     := wofm2opl
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for opl2ofm
+#include $(CLEAR_VARS)
+#
+#PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+#PROG_INCLUDES := \
+#$(LOCAL_PATH)/../src/texlive-upstream/texk \
+#$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+#PROG_FILES :=\
+#$(PROG_ROOT)/opl2ofm.c
+#LOCAL_ARM_NEON   := false
+#LOCAL_STATIC_LIBRARIES  := libn libkpathsea
+#LOCAL_MODULE     := wopl2ofm
+#LOCAL_LDLIBS     := -s -lm
+#LOCAL_CFLAGS     := \
+#-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+#LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+#LOCAL_SRC_FILES  := $(PROG_FILES)
+#
+#include $(BUILD_EXECUTABLE)
+
+#for ovf2ovp
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/ovf2ovp.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libn libkpathsea
+LOCAL_MODULE     := wovf2ovp
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for ovp2ovf
+#include $(CLEAR_VARS)
+#
+#PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+#PROG_INCLUDES := \
+#$(LOCAL_PATH)/../src/texlive-upstream/texk \
+#$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+#PROG_FILES :=\
+#$(PROG_ROOT)/ovp2ovf.c
+#LOCAL_ARM_NEON   := false
+#LOCAL_STATIC_LIBRARIES  := libn libkpathsea
+#LOCAL_MODULE     := wovp2ovf
+#LOCAL_LDLIBS     := -s -lm
+#LOCAL_CFLAGS     := \
+#-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+#LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+#LOCAL_SRC_FILES  := $(PROG_FILES)
+#
+#include $(BUILD_EXECUTABLE)
+
+#for aleph
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/alephdir
+PROG_FILES :=\
+$(PROG_ROOT)/alephdir/aleph.c\
+$(PROG_ROOT)/alephdir/alephbis.c\
+$(PROG_ROOT)/alephdir/alephextra.c\
+$(PROG_ROOT)/alephini.c\
+$(PROG_ROOT)/aleph0.c\
+$(PROG_ROOT)/aleph-pool.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libn libkpathsea
+LOCAL_MODULE     := aleph
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
