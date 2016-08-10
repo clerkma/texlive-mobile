@@ -1,3 +1,20 @@
+# Copyright 2013, 2014, 2015, 2016 Clerk Ma
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301 USA.
+
 # for web2c
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
@@ -56,6 +73,9 @@ include $(BUILD_STATIC_LIBRARY)
 
 include fragment-kpathsea.mk
 include fragment-ptexenc.mk
+include fragment-libpaper.mk
+include fragment-freetype2.mk
+include fragment-zlib.mk
 
 #for bibtex
 include $(CLEAR_VARS)
@@ -1126,3 +1146,625 @@ LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
 include $(BUILD_EXECUTABLE)
+
+#for makeindex
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/makeindexk
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/makeindexk
+PROG_FILES :=\
+$(PROG_ROOT)/genind.c\
+$(PROG_ROOT)/mkind.c\
+$(PROG_ROOT)/qsort.c\
+$(PROG_ROOT)/scanid.c\
+$(PROG_ROOT)/scanst.c\
+$(PROG_ROOT)/sortid.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := makeindex
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for makejvf
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/makejvf
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ptexenc
+PROG_FILES :=\
+$(PROG_ROOT)/main.c\
+$(PROG_ROOT)/tfmread.c\
+$(PROG_ROOT)/tool.c\
+$(PROG_ROOT)/uniblock.c\
+$(PROG_ROOT)/write.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea libptexenc
+LOCAL_MODULE     := makejvf
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for memdex
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/mendexk
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/mendexk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ptexenc
+PROG_FILES :=\
+$(PROG_ROOT)/convert.c\
+$(PROG_ROOT)/fread.c\
+$(PROG_ROOT)/fwrite.c\
+$(PROG_ROOT)/kp.c\
+$(PROG_ROOT)/main.c\
+$(PROG_ROOT)/pageread.c\
+$(PROG_ROOT)/qsort.c\
+$(PROG_ROOT)/sort.c\
+$(PROG_ROOT)/styfile.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea libptexenc
+LOCAL_MODULE     := mendex
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for msxlint
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/musixtnt
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/musixtnt
+PROG_FILES :=\
+$(PROG_ROOT)/musixtnt-src/msxlint.c\
+$(PROG_ROOT)/musixtnt-src/utils.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := msxlint
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for ps2pk/mag
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/ps2pk
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk
+PROG_FILES :=\
+$(PROG_ROOT)/basics.c\
+$(PROG_ROOT)/mag.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := mag
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for ps2pk/pfb2pfa
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/ps2pk
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk
+PROG_FILES :=\
+$(PROG_ROOT)/basics.c\
+$(PROG_ROOT)/filenames.c\
+$(PROG_ROOT)/pfb2pfa.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := pfb2pfa
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for ps2pk/pk2bm
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/ps2pk
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk
+PROG_FILES :=\
+$(PROG_ROOT)/basics.c\
+$(PROG_ROOT)/pkin.c\
+$(PROG_ROOT)/pk2bm.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := pk2bm
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for ps2pk/ps2pk
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/ps2pk
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk
+PROG_FILES :=\
+$(PROG_ROOT)/arith.c\
+$(PROG_ROOT)/basics.c\
+$(PROG_ROOT)/bstring.c\
+$(PROG_ROOT)/curves.c\
+$(PROG_ROOT)/encoding.c\
+$(PROG_ROOT)/filenames.c\
+$(PROG_ROOT)/fontfcn.c\
+$(PROG_ROOT)/hints.c\
+$(PROG_ROOT)/lines.c\
+$(PROG_ROOT)/objects.c\
+$(PROG_ROOT)/paths.c\
+$(PROG_ROOT)/pkout.c\
+$(PROG_ROOT)/ps2pk.c\
+$(PROG_ROOT)/regions.c\
+$(PROG_ROOT)/scanfont.c\
+$(PROG_ROOT)/spaces.c\
+$(PROG_ROOT)/t1funcs.c\
+$(PROG_ROOT)/t1info.c\
+$(PROG_ROOT)/t1io.c\
+$(PROG_ROOT)/t1snap.c\
+$(PROG_ROOT)/token.c\
+$(PROG_ROOT)/type1.c\
+$(PROG_ROOT)/util.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := ps2pk
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for psutils/libpsutils
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/psutils
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/psutils\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/psutils/psutils-src\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpaper/include
+PROG_FILES :=\
+$(PROG_ROOT)/paper-size.c\
+$(PROG_ROOT)/progname.c\
+$(PROG_ROOT)/verror.c\
+$(PROG_ROOT)/psutils-src/psutil.c\
+$(PROG_ROOT)/psutils-src/psspec.c
+LOCAL_ARM_NEON   := false
+LOCAL_MODULE     := libpsutils
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_STATIC_LIBRARY)
+
+
+#for psutils/epsffit
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/psutils
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/psutils\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/psutils/psutils-src\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpaper/include
+PROG_FILES :=\
+$(PROG_ROOT)/psutils-src/epsffit.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libpsutils libpaper libkpathsea
+LOCAL_MODULE     := epsffit
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for psutils/psbook
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/psutils
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/psutils\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/psutils/psutils-src\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpaper/include
+PROG_FILES :=\
+$(PROG_ROOT)/psutils-src/psbook.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libpsutils libpaper libkpathsea
+LOCAL_MODULE     := psbook
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for psutils/psnup
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/psutils
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/psutils\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/psutils/psutils-src\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpaper/include
+PROG_FILES :=\
+$(PROG_ROOT)/psutils-src/psnup.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libpsutils libpaper libkpathsea
+LOCAL_MODULE     := psnup
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for psutils/psresize
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/psutils
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/psutils\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/psutils/psutils-src\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpaper/include
+PROG_FILES :=\
+$(PROG_ROOT)/psutils-src/psresize.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libpsutils libpaper libkpathsea
+LOCAL_MODULE     := psresize
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for psutils/psselect
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/psutils
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/psutils\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/psutils/psutils-src\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpaper/include
+PROG_FILES :=\
+$(PROG_ROOT)/psutils-src/psselect.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libpsutils libpaper libkpathsea
+LOCAL_MODULE     := psselct
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for psutils/pstops
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/psutils
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/psutils\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/psutils/psutils-src\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpaper/include
+PROG_FILES :=\
+$(PROG_ROOT)/psutils-src/pstops.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libpsutils libpaper libkpathsea
+LOCAL_MODULE     := pstops
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+# gripes0.c
+# #ifndef WIN32
+# #include <errno.h>
+# #endif
+#for seetex/libtex
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/seetexk
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/seetexk
+PROG_FILES :=\
+$(PROG_ROOT)/dviclass.c\
+$(PROG_ROOT)/error.c\
+$(PROG_ROOT)/fio.c\
+$(PROG_ROOT)/gripes0.c\
+$(PROG_ROOT)/gripes1.c\
+$(PROG_ROOT)/search.c\
+$(PROG_ROOT)/seek.c\
+$(PROG_ROOT)/tempfile.c
+LOCAL_ARM_NEON   := false
+LOCAL_MODULE     := libseetex
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_STATIC_LIBRARY)
+
+#for seetex/dvibook
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/seetexk
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/seetexk
+PROG_FILES :=\
+$(PROG_ROOT)/dvibook.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libseetex libkpathsea
+LOCAL_MODULE     := dvibook
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for seetex/dviconcat
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/seetexk
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/seetexk
+PROG_FILES :=\
+$(PROG_ROOT)/dviconcat.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libseetex libkpathsea
+LOCAL_MODULE     := dviconcat
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for seetex/dviselect
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/seetexk
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/seetexk
+PROG_FILES :=\
+$(PROG_ROOT)/dviselect.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libseetex libkpathsea
+LOCAL_MODULE     := dviselect
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for seetex/dvitodvi
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/seetexk
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/seetexk
+PROG_FILES :=\
+$(PROG_ROOT)/dvitodvi.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libseetex libkpathsea
+LOCAL_MODULE     := dvitodvi
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for tex4htk/t4ht
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/tex4htk
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk
+PROG_FILES :=\
+$(PROG_ROOT)/t4ht.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libseetex libkpathsea
+LOCAL_MODULE     := t4ht
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DANSI -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for tex2ht/tex4ht
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/tex4htk
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk
+PROG_FILES :=\
+$(PROG_ROOT)/tex4ht.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libseetex libkpathsea
+LOCAL_MODULE     := tex4ht
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DANSI -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for tff2pk2/ttf2pk
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/ttf2pk2
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ttf2pk2\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/freetype2/freetype2
+PROG_FILES :=\
+$(PROG_ROOT)/errormsg.c\
+$(PROG_ROOT)/filesrch.c\
+$(PROG_ROOT)/ftlib.c\
+$(PROG_ROOT)/ligkern.c\
+$(PROG_ROOT)/newobj.c\
+$(PROG_ROOT)/parse.c\
+$(PROG_ROOT)/subfont.c\
+$(PROG_ROOT)/texenc.c\
+$(PROG_ROOT)/ttfenc.c\
+$(PROG_ROOT)/pklib.c\
+$(PROG_ROOT)/ttf2pk.c\
+$(PROG_ROOT)/ttflib.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libz libfreetype libkpathsea
+LOCAL_MODULE     := ttf2pk
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DANSI -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for tff2pk2/ttf2tfm
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/ttf2pk2
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ttf2pk2\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/freetype2/freetype2
+PROG_FILES :=\
+$(PROG_ROOT)/errormsg.c\
+$(PROG_ROOT)/filesrch.c\
+$(PROG_ROOT)/ftlib.c\
+$(PROG_ROOT)/ligkern.c\
+$(PROG_ROOT)/newobj.c\
+$(PROG_ROOT)/parse.c\
+$(PROG_ROOT)/subfont.c\
+$(PROG_ROOT)/texenc.c\
+$(PROG_ROOT)/ttfenc.c\
+$(PROG_ROOT)/case.c\
+$(PROG_ROOT)/tfmaux.c\
+$(PROG_ROOT)/ttf2tfm.c\
+$(PROG_ROOT)/ttfaux.c\
+$(PROG_ROOT)/vplaux.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libz libfreetype libkpathsea
+LOCAL_MODULE     := ttf2tfm
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DANSI -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+

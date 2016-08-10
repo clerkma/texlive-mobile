@@ -30,7 +30,8 @@
 #include <stdio.h>
 
 #ifndef WIN32
-extern int errno;
+#include <errno.h>
+//extern int errno;
 #endif
 
 /*
