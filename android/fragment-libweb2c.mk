@@ -76,6 +76,8 @@ include fragment-ptexenc.mk
 include fragment-libpaper.mk
 include fragment-freetype2.mk
 include fragment-zlib.mk
+include fragment-gd.mk
+include fragment-libpng.mk
 
 #for tangle
 include $(CLEAR_VARS)
@@ -1207,6 +1209,72 @@ LOCAL_MODULE     := dvilj4l
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := \
 -DHAVE_CONFIG_H -DLJ4 -DLJ4L -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for dvipng
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/dvipng
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/dvipng\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/dvipng/dvipng-src\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/freetype2/freetype2\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/gd/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpng/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include
+PROG_FILES :=\
+$(PROG_ROOT)/dvipng-src/color.c \
+$(PROG_ROOT)/dvipng-src/draw.c \
+$(PROG_ROOT)/dvipng-src/dvi.c \
+$(PROG_ROOT)/dvipng-src/dvipng.c \
+$(PROG_ROOT)/dvipng-src/font.c \
+$(PROG_ROOT)/dvipng-src/ft.c \
+$(PROG_ROOT)/dvipng-src/misc.c \
+$(PROG_ROOT)/dvipng-src/papersiz.c \
+$(PROG_ROOT)/dvipng-src/pk.c \
+$(PROG_ROOT)/dvipng-src/ppagelist.c \
+$(PROG_ROOT)/dvipng-src/set.c \
+$(PROG_ROOT)/dvipng-src/special.c \
+$(PROG_ROOT)/dvipng-src/vf.c \
+$(PROG_ROOT)/dvipng-src/enc.c \
+$(PROG_ROOT)/dvipng-src/fontmap.c \
+$(PROG_ROOT)/dvipng-src/sfd.c \
+$(PROG_ROOT)/dvipng-src/tfm.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea libgd libfreetype libpng libz
+LOCAL_MODULE     := dvipng
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DTEXLIVE\
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for dvipos
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/dvipos
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/dvipos
+PROG_FILES :=\
+$(PROG_ROOT)/dvicore.c \
+$(PROG_ROOT)/dvipos.c \
+$(PROG_ROOT)/tfm.c \
+$(PROG_ROOT)/utils.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := dvipos
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DSHIFTLOWCHARS -DKPATHSEA\
 -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)

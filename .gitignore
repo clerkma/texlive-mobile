@@ -4,6 +4,8 @@
 *.a
 *.la
 *.so
+android/obj/
+android/obj/*
 src/texlive-upstream/texk/dvipos/dvipos
 src/texlive-upstream/texk/tex4htk/tex4ht
 src/texlive-upstream/texk/tex4htk/t4ht
