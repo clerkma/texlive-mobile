@@ -1767,4 +1767,78 @@ LOCAL_SRC_FILES  := $(PROG_FILES)
 
 include $(BUILD_EXECUTABLE)
 
+#for ttfdump/libttf
+include $(CLEAR_VARS)
 
+PROG_ROOT     := ../src/texlive-upstream/texk/ttfdump
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ttfdump\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ttfdump/include
+PROG_FILES :=\
+$(PROG_ROOT)/libttf/cmap.c\
+$(PROG_ROOT)/libttf/cvt.c\
+$(PROG_ROOT)/libttf/disasm.c\
+$(PROG_ROOT)/libttf/font.c\
+$(PROG_ROOT)/libttf/fpgm.c\
+$(PROG_ROOT)/libttf/gasp.c\
+$(PROG_ROOT)/libttf/gcache.c\
+$(PROG_ROOT)/libttf/glyf.c\
+$(PROG_ROOT)/libttf/gpos.c\
+$(PROG_ROOT)/libttf/gsub.c\
+$(PROG_ROOT)/libttf/gstate.c\
+$(PROG_ROOT)/libttf/hdmx.c\
+$(PROG_ROOT)/libttf/head.c\
+$(PROG_ROOT)/libttf/hhea.c\
+$(PROG_ROOT)/libttf/hmtx.c\
+$(PROG_ROOT)/libttf/kern.c\
+$(PROG_ROOT)/libttf/loca.c\
+$(PROG_ROOT)/libttf/ltsh.c\
+$(PROG_ROOT)/libttf/maxp.c\
+$(PROG_ROOT)/libttf/name.c\
+$(PROG_ROOT)/libttf/os2.c\
+$(PROG_ROOT)/libttf/otfcommon.c\
+$(PROG_ROOT)/libttf/pclt.c\
+$(PROG_ROOT)/libttf/post.c\
+$(PROG_ROOT)/libttf/prep.c\
+$(PROG_ROOT)/libttf/tabledir.c\
+$(PROG_ROOT)/libttf/ttc.c\
+$(PROG_ROOT)/libttf/ttfread.c\
+$(PROG_ROOT)/libttf/ttfutil.c\
+$(PROG_ROOT)/libttf/vdmx.c\
+$(PROG_ROOT)/libttf/vhea.c\
+$(PROG_ROOT)/libttf/vmtx.c
+
+LOCAL_ARM_NEON   := false
+LOCAL_MODULE     := libttf
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_STATIC_LIBRARY)
+
+#for ttfdump
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/ttfdump
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ttfdump\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ttfdump/include
+PROG_FILES :=\
+$(PROG_ROOT)/src/ttfdump.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libttf libkpathsea
+LOCAL_MODULE     := ttfdump
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DANSI -DKPATHSEA\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
