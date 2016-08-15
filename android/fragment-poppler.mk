@@ -15,6 +15,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301 USA.
 
+LOCAL_PATH := $(call my-dir)
+include $(CLEAR_VARS)
+
+POPPLER_ROOT     := ../src/texlive-upstream/libs/poppler
+POPPLER_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/poppler/ \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/poppler/poppler-src \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/poppler/poppler-src/goo \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include
+POPPLER_FILES := \
 $(POPPLER_PATH)/poppler-src/goo/gfile.cc \
 $(POPPLER_PATH)/poppler-src/goo/glibc.cc \
 $(POPPLER_PATH)/poppler-src/goo/gmem.cc \
@@ -95,3 +105,11 @@ $(POPPLER_PATH)/poppler-src/poppler/ViewerPreferences.cc \
 $(POPPLER_PATH)/poppler-src/poppler/XRef.cc \
 $(POPPLER_PATH)/poppler-src/poppler/XpdfPluginAPI.cc \
 $(POPPLER_PATH)/poppler-src/poppler/strtok_r.cc 
+
+LOCAL_ARM_NEON   := false
+LOCAL_MODULE     := libpoppler
+LOCAL_CFLAGS     := -O2 -DHAVE_CONFIG_H -DPOPPLER_DATADIR='"."'
+LOCAL_C_INCLUDES := $(POPPLER_INCLUDES)
+LOCAL_SRC_FILES  := $(POPPLER_FILES)
+
+include $(BUILD_STATIC_LIBRARY)

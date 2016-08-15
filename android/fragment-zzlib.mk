@@ -15,6 +15,17 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301 USA.
 
+# for zziplib
+LOCAL_PATH := $(call my-dir)
+include $(CLEAR_VARS)
+
+ZZIPLIB_ROOT     := ../src/texlive-upstream/libs/zziplib
+ZZIPLIB_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zziplib/ \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zziplib/include \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zziplib/zziplib-src \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include
+ZZIPLIB_FILES := \
 $(ZZIPLIB_PATH)/zziplib-src/zzip/dir.c \
 $(ZZIPLIB_PATH)/zziplib-src/zzip/err.c \
 $(ZZIPLIB_PATH)/zziplib-src/zzip/fetch.c \
@@ -23,4 +34,11 @@ $(ZZIPLIB_PATH)/zziplib-src/zzip/info.c \
 $(ZZIPLIB_PATH)/zziplib-src/zzip/plugin.c \
 $(ZZIPLIB_PATH)/zziplib-src/zzip/stat.c \
 $(ZZIPLIB_PATH)/zziplib-src/zzip/write.c \
-$(ZZIPLIB_PATH)/zziplib-src/zzip/zip.c 
+$(ZZIPLIB_PATH)/zziplib-src/zzip/zip.c
+LOCAL_ARM_NEON   := false
+LOCAL_MODULE     := libzziplib
+LOCAL_CFLAGS     := -O2 -DHAVE_CONFIG_H -D_USE_MMAP
+LOCAL_C_INCLUDES := $(ZZIPLIB_INCLUDES)
+LOCAL_SRC_FILES  := $(ZZIPLIB_FILES)
+
+include $(BUILD_STATIC_LIBRARY)
