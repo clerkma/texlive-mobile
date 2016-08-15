@@ -78,6 +78,7 @@ include fragment-freetype2.mk
 include fragment-zlib.mk
 include fragment-gd.mk
 include fragment-libpng.mk
+include fragment-expat.mk
 
 #for tangle
 include $(CLEAR_VARS)
