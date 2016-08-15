@@ -79,6 +79,7 @@ include fragment-zlib.mk
 include fragment-gd.mk
 include fragment-libpng.mk
 include fragment-expat.mk
+include fragment-xpdf.mk
 
 #for tangle
 include $(CLEAR_VARS)
@@ -788,6 +789,145 @@ LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := \
 -D__SyncTeX__ -DSYNCTEX_ENGINE_H=\"synctex-euptex.h\"\
 -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for pdftex/core
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/w2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/libmd5\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/pdftexdir\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpng/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/xpdf\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/xpdf/goo\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/xpdf/xpdf
+PROG_FILES :=\
+$(PROG_ROOT)/pdftexdir/avl.c \
+$(PROG_ROOT)/pdftexdir/avlstuff.c \
+$(PROG_ROOT)/pdftexdir/epdf.c \
+$(PROG_ROOT)/pdftexdir/mapfile.c \
+$(PROG_ROOT)/pdftexdir/pdftoepdf.cc \
+$(PROG_ROOT)/pdftexdir/pkin.c \
+$(PROG_ROOT)/pdftexdir/subfont.c \
+$(PROG_ROOT)/pdftexdir/tounicode.c \
+$(PROG_ROOT)/pdftexdir/utils.c \
+$(PROG_ROOT)/pdftexdir/vfpacket.c \
+$(PROG_ROOT)/pdftexdir/writeenc.c \
+$(PROG_ROOT)/pdftexdir/writefont.c \
+$(PROG_ROOT)/pdftexdir/writeimg.c \
+$(PROG_ROOT)/pdftexdir/writejbig2.c \
+$(PROG_ROOT)/pdftexdir/writejpg.c \
+$(PROG_ROOT)/pdftexdir/writepng.c \
+$(PROG_ROOT)/pdftexdir/writet1.c \
+$(PROG_ROOT)/pdftexdir/writet3.c \
+$(PROG_ROOT)/pdftexdir/writettf.c \
+$(PROG_ROOT)/pdftexdir/writezip.c
+LOCAL_ARM_NEON   := false
+LOCAL_MODULE     := libcorepdftex
+LOCAL_CFLAGS     :=\
+-DPDF_PARSER_ONLY \
+-Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_STATIC_LIBRARY)
+
+#for pdftex/pdftex
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/w2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/libmd5\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/pdftexdir\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/synctexdir\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpng/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/xpdf \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/xpdf/goo \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/xpdf/xpdf
+PROG_FILES :=\
+$(PROG_ROOT)/pdftexdir/pdftexextra.c\
+$(PROG_ROOT)/synctexdir/synctex.c\
+$(PROG_ROOT)/pdftexini.c\
+$(PROG_ROOT)/pdftex0.c\
+$(PROG_ROOT)/pdftex-pool.c\
+$(PROG_ROOT)/libmd5/md5.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libcorepdftex libpng libxpdf libn libkpathsea libz
+LOCAL_MODULE     := pdftex
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-DPDF_PARSER_ONLY -D__SyncTeX__ -DSYNCTEX_ENGINE_H=\"synctex-pdftex.h\"\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for pdftex/ttf2afm
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/w2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/libmd5\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/pdftexdir\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/synctexdir\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpng/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/xpdf \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/xpdf/goo \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/xpdf/xpdf
+PROG_FILES :=\
+$(PROG_ROOT)/pdftexdir/ttf2afm.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libcorepdftex libn libkpathsea libz
+LOCAL_MODULE     := ttf2afm
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for pdftex/pdftosrc
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/w2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/libmd5\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/pdftexdir\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/synctexdir\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpng/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/xpdf \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/xpdf/goo \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/xpdf/xpdf
+PROG_FILES :=\
+$(PROG_ROOT)/pdftexdir/pdftosrc.cc
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libcorepdftex libxpdf libn libkpathsea libz
+LOCAL_MODULE     := pdftosrc
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
