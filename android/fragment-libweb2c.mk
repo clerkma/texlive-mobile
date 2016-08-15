@@ -933,6 +933,326 @@ LOCAL_SRC_FILES  := $(PROG_FILES)
 
 include $(BUILD_EXECUTABLE)
 
+#for luatex/unilib
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/w2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/unilib
+PROG_FILES :=\
+$(PROG_ROOT)/luatexdir/unilib/ArabicForms.c \
+$(PROG_ROOT)/luatexdir/unilib/alphabet.c \
+$(PROG_ROOT)/luatexdir/unilib/char.c \
+$(PROG_ROOT)/luatexdir/unilib/cjk.c \
+$(PROG_ROOT)/luatexdir/unilib/gwwiconv.c \
+$(PROG_ROOT)/luatexdir/unilib/ucharmap.c \
+$(PROG_ROOT)/luatexdir/unilib/unialt.c \
+$(PROG_ROOT)/luatexdir/unilib/usprintf.c \
+$(PROG_ROOT)/luatexdir/unilib/ustring.c \
+$(PROG_ROOT)/luatexdir/unilib/utype.c
+LOCAL_ARM_NEON   := false
+LOCAL_MODULE     := libluatexuni
+LOCAL_CFLAGS     :=\
+-DHAVE_CONFIG_H  \
+-Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_STATIC_LIBRARY)
+
+#for luatex/fontforge
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/w2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/unilib\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/luafontloader/fontforge\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/luafontloader/fontforge/inc
+PROG_FILES :=\
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/autohint.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/clipnoui.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/cvundoes.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/dumppfa.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/encoding.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/featurefile.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/fontviewbase.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/fvcomposit.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/fvfonts.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/lookups.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/macbinary.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/macenc.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/mathconstants.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/memory.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/mm.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/namelist.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/noprefs.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/nouiutil.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/parsepfa.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/parsettf.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/parsettfatt.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/psread.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/pua.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/python.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/sfd1.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/splinechar.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/splinefill.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/splinefont.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/splineorder2.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/splineoverlap.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/splinerefigure.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/splinesave.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/splinesaveafm.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/splinestroke.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/splineutil.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/splineutil2.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/start.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/stemdb.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/tottf.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/tottfgpos.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/fontforge/ttfspecial.c \
+$(PROG_ROOT)/luatexdir/luafontloader/fontforge/gutils/fsys.c
+LOCAL_ARM_NEON   := false
+LOCAL_MODULE     := libluatexff
+LOCAL_CFLAGS     :=\
+-DLUA_FF_LIB=1 -D_NO_PYTHON=1 -DX_DISPLAY_MISSING=1 -DUSE_OUR_MEMORY=1 \
+-Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_STATIC_LIBRARY)
+
+#for luatex/socket
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/w2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/luasocket\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/lua52/include
+PROG_FILES :=\
+$(PROG_ROOT)/luatexdir/luasocket/src/auxiliar.c \
+$(PROG_ROOT)/luatexdir/luasocket/src/buffer.c \
+$(PROG_ROOT)/luatexdir/luasocket/src/except.c \
+$(PROG_ROOT)/luatexdir/luasocket/src/inet.c \
+$(PROG_ROOT)/luatexdir/luasocket/src/io.c \
+$(PROG_ROOT)/luatexdir/luasocket/src/lua_preload.c \
+$(PROG_ROOT)/luatexdir/luasocket/src/luasocket.c \
+$(PROG_ROOT)/luatexdir/luasocket/src/mime.c \
+$(PROG_ROOT)/luatexdir/luasocket/src/options.c \
+$(PROG_ROOT)/luatexdir/luasocket/src/select.c \
+$(PROG_ROOT)/luatexdir/luasocket/src/serial.c \
+$(PROG_ROOT)/luatexdir/luasocket/src/socket.c \
+$(PROG_ROOT)/luatexdir/luasocket/src/tcp.c \
+$(PROG_ROOT)/luatexdir/luasocket/src/timeout.c \
+$(PROG_ROOT)/luatexdir/luasocket/src/udp.c
+LOCAL_ARM_NEON   := false
+LOCAL_MODULE     := libluatexsocket
+LOCAL_CFLAGS     :=\
+-DHAVE_CONFIG_H -DLUA_COMPAT_MODULE -DLUAI_HASHLIMIT=6 \
+-DLUA_USE_POSIX -DLUA_USE_DLOPEN\
+-Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_STATIC_LIBRARY)
+
+#for luatex/misc
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/w2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/luasocket\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/lua52/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zziplib/include
+PROG_FILES :=\
+$(PROG_ROOT)/luatexdir/luafilesystem/src/lfs.c \
+$(PROG_ROOT)/luatexdir/luamd5/md5.c \
+$(PROG_ROOT)/luatexdir/luamd5/md5lib.c \
+$(PROG_ROOT)/luatexdir/luamd5/md5_lua.c \
+$(PROG_ROOT)/luatexdir/luapeg/lpeg.c \
+$(PROG_ROOT)/luatexdir/luaprofiler/clocks.c \
+$(PROG_ROOT)/luatexdir/luaprofiler/core_profiler.c \
+$(PROG_ROOT)/luatexdir/luaprofiler/function_meter.c \
+$(PROG_ROOT)/luatexdir/luaprofiler/stack.c \
+$(PROG_ROOT)/luatexdir/luaprofiler/lua50_profiler.c \
+$(PROG_ROOT)/luatexdir/luazip/src/luazip.c \
+$(PROG_ROOT)/luatexdir/luazlib/lgzip.c \
+$(PROG_ROOT)/luatexdir/luazlib/lzlib.c \
+$(PROG_ROOT)/luatexdir/slnunicode/slnunico.c
+LOCAL_ARM_NEON   := false
+LOCAL_MODULE     := libluatexmisc
+LOCAL_CFLAGS     :=\
+-DHAVE_CONFIG_H -DLUA_COMPAT_MODULE -DLUAI_HASHLIMIT=6 \
+-DLUA_USE_POSIX -DLUA_USE_DLOPEN\
+-Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_STATIC_LIBRARY)
+
+#for luatex/luatex
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/w2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/unilib\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/luafontloader/fontforge/inc\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/luafontloader/fontforge/fontforge\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/luasocket\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/lua52/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zziplib/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/poppler/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpng/include
+PROG_FILES :=\
+$(PROG_ROOT)/luatexdir/lua/lstrlibext.c \
+$(PROG_ROOT)/texluac.c \
+$(PROG_ROOT)/luatexdir/luafontloader/src/ffdummies.c\
+$(PROG_ROOT)/luatexdir/luafontloader/src/luafflib.c \
+$(PROG_ROOT)/luatexdir/lua/lcallbacklib.c \
+$(PROG_ROOT)/luatexdir/lua/lfontlib.c \
+$(PROG_ROOT)/luatexdir/lua/limglib.c \
+$(PROG_ROOT)/luatexdir/lua/lpdfscannerlib.cc \
+$(PROG_ROOT)/luatexdir/lua/lepdflib.cc \
+$(PROG_ROOT)/luatexdir/lua/lkpselib.c \
+$(PROG_ROOT)/luatexdir/lua/llanglib.c \
+$(PROG_ROOT)/luatexdir/lua/llualib.c \
+$(PROG_ROOT)/luatexdir/lua/llfslibext.c \
+$(PROG_ROOT)/luatexdir/lua/lnodelib.c \
+$(PROG_ROOT)/luatexdir/lua/liolibext.c \
+$(PROG_ROOT)/luatexdir/lua/loslibext.c \
+$(PROG_ROOT)/luatexdir/lua/lpdflib.c \
+$(PROG_ROOT)/luatexdir/lua/lstatslib.c \
+$(PROG_ROOT)/luatexdir/lua/ltexiolib.c \
+$(PROG_ROOT)/luatexdir/lua/ltexlib.c \
+$(PROG_ROOT)/luatexdir/lua/lnewtokenlib.c \
+$(PROG_ROOT)/luatexdir/utils/avl.c \
+$(PROG_ROOT)/synctexdir/synctex.c \
+$(PROG_ROOT)/dvigen.c \
+$(PROG_ROOT)/dofont.c \
+$(PROG_ROOT)/luafont.c \
+$(PROG_ROOT)/mapfile.c \
+$(PROG_ROOT)/pkin.c \
+$(PROG_ROOT)/sfnt.c \
+$(PROG_ROOT)/subfont.c \
+$(PROG_ROOT)/texfont.c \
+$(PROG_ROOT)/tfmofm.c \
+$(PROG_ROOT)/tounicode.c \
+$(PROG_ROOT)/tt_glyf.c \
+$(PROG_ROOT)/tt_table.c \
+$(PROG_ROOT)/vfovf.c \
+$(PROG_ROOT)/vfpacket.c \
+$(PROG_ROOT)/writecff.c \
+$(PROG_ROOT)/writeenc.c \
+$(PROG_ROOT)/writefont.c \
+$(PROG_ROOT)/writet1.c \
+$(PROG_ROOT)/writet3.c \
+$(PROG_ROOT)/writettf.c \
+$(PROG_ROOT)/writetype0.c \
+$(PROG_ROOT)/writetype2.c \
+$(PROG_ROOT)/writeimg.c \
+$(PROG_ROOT)/writejbig2.c \
+$(PROG_ROOT)/writejpg.c \
+$(PROG_ROOT)/writejp2.c \
+$(PROG_ROOT)/writepng.c \
+$(PROG_ROOT)/pdftoepdf.cc \
+$(PROG_ROOT)/texlang.c \
+$(PROG_ROOT)/hyphen.c \
+$(PROG_ROOT)/hnjalloc.c \
+$(PROG_ROOT)/luainit.c \
+$(PROG_ROOT)/luanode.c \
+$(PROG_ROOT)/luatoken.c \
+$(PROG_ROOT)/pdfpagetree.c \
+$(PROG_ROOT)/pdfaction.c \
+$(PROG_ROOT)/pdfannot.c \
+$(PROG_ROOT)/pdfcolorstack.c \
+$(PROG_ROOT)/pdfdest.c \
+$(PROG_ROOT)/pdffont.c \
+$(PROG_ROOT)/pdfgen.c \
+$(PROG_ROOT)/pdfglyph.c \
+$(PROG_ROOT)/pdfimage.c \
+$(PROG_ROOT)/pdflink.c \
+$(PROG_ROOT)/pdflistout.c \
+$(PROG_ROOT)/pdfliteral.c \
+$(PROG_ROOT)/pdfobj.c \
+$(PROG_ROOT)/pdfoutline.c \
+$(PROG_ROOT)/pdfpage.c \
+$(PROG_ROOT)/pdfrule.c \
+$(PROG_ROOT)/pdfsaverestore.c \
+$(PROG_ROOT)/pdfsetmatrix.c \
+$(PROG_ROOT)/pdfshipout.c \
+$(PROG_ROOT)/pdftables.c \
+$(PROG_ROOT)/pdfthread.c \
+$(PROG_ROOT)/pdfxform.c \
+$(PROG_ROOT)/align.c \
+$(PROG_ROOT)/arithmetic.c \
+$(PROG_ROOT)/buildpage.c \
+$(PROG_ROOT)/commands.c \
+$(PROG_ROOT)/conditional.c \
+$(PROG_ROOT)/directions.c \
+$(PROG_ROOT)/dumpdata.c \
+$(PROG_ROOT)/equivalents.c \
+$(PROG_ROOT)/errors.c \
+$(PROG_ROOT)/expand.c \
+$(PROG_ROOT)/extensions.c \
+$(PROG_ROOT)/filename.c \
+$(PROG_ROOT)/inputstack.c \
+$(PROG_ROOT)/linebreak.c \
+$(PROG_ROOT)/mainbody.c \
+$(PROG_ROOT)/maincontrol.c \
+$(PROG_ROOT)/mathcodes.c \
+$(PROG_ROOT)/memoryword.c \
+$(PROG_ROOT)/mlist.c \
+$(PROG_ROOT)/nesting.c \
+$(PROG_ROOT)/packaging.c \
+$(PROG_ROOT)/postlinebreak.c \
+$(PROG_ROOT)/primitive.c \
+$(PROG_ROOT)/printing.c \
+$(PROG_ROOT)/scanning.c \
+$(PROG_ROOT)/stringpool.c \
+$(PROG_ROOT)/texdeffont.c \
+$(PROG_ROOT)/texfileio.c \
+$(PROG_ROOT)/texmath.c \
+$(PROG_ROOT)/texnodes.c \
+$(PROG_ROOT)/textcodes.c \
+$(PROG_ROOT)/textoken.c \
+$(PROG_ROOT)/avlstuff.c \
+$(PROG_ROOT)/managed-sa.c \
+$(PROG_ROOT)/utils.c \
+$(PROG_ROOT)/unistring.c
+LOCAL_ARM_NEON   := false
+LOCAL_MODULE     := libcoreluatex
+LOCAL_CFLAGS     := \
+-DpdfTeX\
+-DPDF_PARSER_ONLY -D__SyncTeX__ -DSYNCTEX_ENGINE_H='<synctex-luatex.h>'\
+-DLUA_COMPAT_MODULE -DLUAI_HASHLIMIT=6 -DLUA_USE_POSIX -DLUA_USE_DLOPEN\
+-DLUA_FF_LIB=1 \
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_STATIC_LIBRARY)
+
 #for odvitype
 include $(CLEAR_VARS)
 
