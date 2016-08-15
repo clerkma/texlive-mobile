@@ -4,6 +4,7 @@
 *.a
 *.la
 *.so
+*.so.*
 android/obj/
 android/obj/*
 src/texlive-upstream/texk/dvipos/dvipos
@@ -180,4 +181,8 @@ src/texlive-upstream/utils/lacheck/lacheck
 src/texlive-upstream/utils/autosp/autosp
 src/texlive-upstream/utils/xpdfopen/pdfopen
 src/texlive-upstream/utils/xpdfopen/pdfclose
-src/texlive-upstream/utils/m-tx/prepmx
+src/texlive-upstream/utils/m-tx/prepmxs
+src/expat-2.2.0/.libs/libexpat.lai
+src/expat-2.2.0/.libs/libexpat.so.1
+src/expat-2.2.0/.libs/libexpat.so.1.6.2
+src/expat-2.2.0/xmlwf/.libs/xmlwf
