@@ -1,0 +1,34 @@
+name plain
+category Package
+revision 40274
+shortdesc The Plain TeX format
+longdesc Contains files used to build the Plain TeX format, as described
+longdesc in the TeXbook, together with various supporting files (some
+longdesc also discussed in the book).
+containersize 60328
+containerchecksum 94a9c8a6a3de52710469bf0d4e57d73636185959bf458db2f249f0ad5c1b3e47520019d2c715a0ecd6b199dde24c1e3232088797a3681ea02e81c8a5033330cc
+runfiles size=335
+ texmf-dist/makeindex/plain/plaintex.ist
+ texmf-dist/tex/plain/base/fontchart.tex
+ texmf-dist/tex/plain/base/gkpmac.tex
+ texmf-dist/tex/plain/base/letter.tex
+ texmf-dist/tex/plain/base/list.tex
+ texmf-dist/tex/plain/base/llist.tex
+ texmf-dist/tex/plain/base/mptmac.tex
+ texmf-dist/tex/plain/base/picmac.tex
+ texmf-dist/tex/plain/base/plain.tex
+ texmf-dist/tex/plain/base/wlist.tex
+ texmf-dist/tex/plain/config/aleph.ini
+ texmf-dist/tex/plain/config/bplain.ini
+ texmf-dist/tex/plain/config/etex.ini
+ texmf-dist/tex/plain/config/omega.ini
+ texmf-dist/tex/plain/config/pdfbplain.ini
+ texmf-dist/tex/plain/config/pdfetex.ini
+ texmf-dist/tex/plain/config/pdftexmagfix.tex
+ texmf-dist/tex/plain/config/tex.ini
+ texmf-dist/tex/plain/config/unicode-letters.def
+catalogue-ctan /macros/plain/base
+catalogue-date 2015-08-03 05:43:12 +0200
+catalogue-license knuth
+catalogue-topics format
+catalogue-version 3.141592653

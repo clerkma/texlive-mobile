@@ -1,0 +1,379 @@
+%%
+%% This is file `luababel.def',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% bbunicode.dtx  (with options: `luatex')
+%% This is a generated file.
+%% 
+%% Copyright 2012-2016 Javier Bezos and Johannes L. Braams.
+%% Copyright 1989-2008 Johannes L. Braams and any individual authors
+%% listed elsewhere in this file.  All rights reserved.
+%% 
+%% This file was generated from file(s) of the Babel system.
+%% ---------------------------------------------------------
+%% 
+%% It may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either version 1.3
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%%   http://www.latex-project.org/lppl.txt
+%% and version 1.3 or later is part of all distributions of LaTeX
+%% version 2003/12/01 or later.
+%% 
+%% This work has the LPPL maintenance status "maintained".
+%% 
+%% The Current Maintainer of this work is Javier Bezos.
+%% 
+%% This file may only be distributed together with a copy of the Babel
+%% system. You may however distribute the Babel system without
+%% such generated files.
+%% 
+%% The list of all files belonging to the Babel distribution is
+%% given in the file `manifest.bbl'. See also `legal.bbl for additional
+%% information.
+%% 
+%% The list of derived (unpacked) files belonging to the distribution
+%% and covered by LPPL is defined by the unpacking scripts (with
+%% extension .ins) which are part of the distribution.
+%% File `bbunicode.dtx'
+%% Babel package for LaTeX version 2e
+%% Copyright (C) 2103-2016
+%%           by Javier Bezos
+\ifx\AddBabelHook\@undefined
+\begingroup
+  \toks@{}
+  \count@\z@ % 0=start, 1=0th, 2=normal
+  \def\bbl@process@line#1#2 #3 #4 {%
+    \ifx=#1%
+      \bbl@process@synonym{#2}%
+    \else
+      \bbl@process@language{#1#2}{#3}{#4}%
+    \fi
+    \ignorespaces}
+  \def\bbl@manylang{%
+    \ifnum\bbl@last>\@ne
+      \bbl@info{Non-standard hyphenation setup}%
+    \fi
+    \let\bbl@manylang\relax}
+  \def\bbl@process@language#1#2#3{%
+    \ifcase\count@
+      \@ifundefined{zth@#1}{\count@\tw@}{\count@\@ne}%
+    \or
+      \count@\tw@
+    \fi
+    \ifnum\count@=\tw@
+      \expandafter\addlanguage\csname l@#1\endcsname
+      \language\allocationnumber
+      \chardef\bbl@last\allocationnumber
+      \bbl@manylang
+      \let\bbl@elt\relax
+      \xdef\bbl@languages{%
+        \bbl@languages\bbl@elt{#1}{\the\language}{#2}{#3}}%
+    \fi
+    \the\toks@
+    \toks@{}}
+  \def\bbl@process@synonym@aux#1#2{%
+    \global\expandafter\chardef\csname l@#1\endcsname#2\relax
+    \let\bbl@elt\relax
+    \xdef\bbl@languages{%
+      \bbl@languages\bbl@elt{#1}{#2}{}{}}}%
+  \def\bbl@process@synonym#1{%
+    \ifcase\count@
+      \toks@\expandafter{\the\toks@\relax\bbl@process@synonym{#1}}%
+    \or
+      \@ifundefined{zth@#1}{\bbl@process@synonym@aux{#1}{0}}{}%
+    \else
+      \bbl@process@synonym@aux{#1}{\the\bbl@last}%
+    \fi}
+  \ifx\bbl@languages\@undefined % Just a (sensible?) guess
+    \chardef\l@english\z@
+    \chardef\l@USenglish\z@
+    \chardef\bbl@last\z@
+    \global\@namedef{bbl@hyphendata@0}{{hyphen.tex}{}}
+    \gdef\bbl@languages{%
+      \bbl@elt{english}{0}{hyphen.tex}{}%
+      \bbl@elt{USenglish}{0}{}{}}
+  \else
+    \global\let\bbl@languages@format\bbl@languages
+    \def\bbl@elt#1#2#3#4{% Remove all except language 0
+      \ifnum#2>\z@\else
+        \noexpand\bbl@elt{#1}{#2}{#3}{#4}%
+      \fi}%
+    \xdef\bbl@languages{\bbl@languages}%
+  \fi
+  \def\bbl@elt#1#2#3#4{\@namedef{zth@#1}{}} % Define flags
+  \bbl@languages
+  \openin1=language.dat
+  \ifeof1
+    \bbl@warning{I couldn't find language.dat. No additional\\%
+                 patterns loaded. Reported}%
+  \else
+    \loop
+      \endlinechar\m@ne
+      \read1 to \bbl@line
+      \endlinechar`\^^M
+      \if T\ifeof1F\fi T\relax
+        \ifx\bbl@line\@empty\else
+          \edef\bbl@line{\bbl@line\space\space\space}%
+          \expandafter\bbl@process@line\bbl@line\relax
+        \fi
+    \repeat
+  \fi
+\endgroup
+\def\bbl@get@enc#1:#2:#3\@@@{\def\bbl@hyph@enc{#2}}
+\ifx\babelcatcodetablenum\@undefined
+  \def\babelcatcodetablenum{5211}
+\fi
+\def\bbl@luapatterns#1#2{%
+  \bbl@get@enc#1::\@@@
+  \setbox\z@\hbox\bgroup
+    \begingroup
+      \ifx\catcodetable\@undefined
+        \let\savecatcodetable\luatexsavecatcodetable
+        \let\initcatcodetable\luatexinitcatcodetable
+        \let\catcodetable\luatexcatcodetable
+      \fi
+      \savecatcodetable\babelcatcodetablenum\relax
+      \initcatcodetable\numexpr\babelcatcodetablenum+1\relax
+      \catcodetable\numexpr\babelcatcodetablenum+1\relax
+      \catcode`\#=6  \catcode`\$=3 \catcode`\&=4 \catcode`\^=7
+      \catcode`\_=8  \catcode`\{=1 \catcode`\}=2 \catcode`\~=13
+      \catcode`\@=11 \catcode`\^^I=10 \catcode`\^^J=12
+      \catcode`\<=12 \catcode`\>=12 \catcode`\*=12 \catcode`\.=12
+      \catcode`\-=12 \catcode`\/=12 \catcode`\[=12 \catcode`\]=12
+      \catcode`\`=12 \catcode`\'=12 \catcode`\"=12
+      \input #1\relax
+      \catcodetable\babelcatcodetablenum\relax
+    \endgroup
+    \def\bbl@tempa{#2}%
+    \ifx\bbl@tempa\@empty\else
+      \input #2\relax
+    \fi
+  \egroup}%
+\def\bbl@patterns@lua#1{%
+  \language=\expandafter\ifx\csname l@#1:\f@encoding\endcsname\relax
+    \csname l@#1\endcsname
+    \edef\bbl@tempa{#1}%
+  \else
+    \csname l@#1:\f@encoding\endcsname
+    \edef\bbl@tempa{#1:\f@encoding}%
+  \fi\relax
+  \@namedef{lu@texhyphen@loaded@\the\language}{}% Temp
+  \@ifundefined{bbl@hyphendata@\the\language}%
+    {\def\bbl@elt##1##2##3##4{%
+       \ifnum##2=\csname l@\bbl@tempa\endcsname % #2=spanish, dutch:OT1...
+         \def\bbl@tempb{##3}%
+         \ifx\bbl@tempb\@empty\else % if not a synonymous
+           \def\bbl@tempc{{##3}{##4}}%
+         \fi
+         \bbl@csarg\xdef{hyphendata@##2}{\bbl@tempc}%
+       \fi}%
+     \bbl@languages
+     \@ifundefined{bbl@hyphendata@\the\language}%
+       {\bbl@info{No hyphenation patterns were set for\\%
+                  language ‘\bbl@tempa’. Reported}}%
+       {\expandafter\expandafter\expandafter\bbl@luapatterns
+          \csname bbl@hyphendata@\the\language\endcsname}}{}}
+\endinput\fi
+\begingroup
+\catcode`\%=12
+\catcode`\'=12
+\catcode`\"=12
+\catcode`\:=12
+\directlua{
+  Babel = {}
+  function Babel.bytes(line)
+    return line:gsub("(.)",
+      function (chr) return unicode.utf8.char(string.byte(chr)) end)
+  end
+  function Babel.begin_process_input()
+    if luatexbase and luatexbase.add_to_callback then
+      luatexbase.add_to_callback('process_input_buffer',
+                                 Babel.bytes,'Babel.bytes')
+    else
+      Babel.callback = callback.find('process_input_buffer')
+      callback.register('process_input_buffer',Babel.bytes)
+    end
+  end
+  function Babel.end_process_input ()
+    if luatexbase and luatexbase.remove_from_callback then
+      luatexbase.remove_from_callback('process_input_buffer','Babel.bytes')
+    else
+      callback.register('process_input_buffer',Babel.callback)
+    end
+  end
+  function Babel.addpatterns(pp, lg)
+    local lg = lang.new(lg)
+    local pats = lang.patterns(lg) or ''
+    lang.clear_patterns(lg)
+    for p in pp:gmatch('[^%s]+') do
+      ss = ''
+      for i in string.utfcharacters(p:gsub('%d', '')) do
+         ss = ss .. '%d?' .. i
+      end
+      ss = ss:gsub('^%%d%?%.', '%%.') .. '%d?'
+      ss = ss:gsub('%.%%d%?$', '%%.')
+      pats, n = pats:gsub('%s' .. ss .. '%s', ' ' .. p .. ' ')
+      if n == 0 then
+        tex.sprint(
+          [[\string\csname\space bbl@info\endcsname{New pattern: ]]
+          .. p .. [[}]])
+        pats = pats .. ' ' .. p
+      else
+        tex.sprint(
+          [[\string\csname\space bbl@info\endcsname{Renew pattern: ]]
+          .. p .. [[}]])
+      end
+    end
+    lang.patterns(lg, pats)
+  end
+}
+\endgroup
+\def\BabelStringsDefault{unicode}
+\let\luabbl@stop\relax
+\AddBabelHook{luatex}{encodedcommands}{%
+  \def\bbl@tempa{utf8}\def\bbl@tempb{#1}%
+  \ifx\bbl@tempa\bbl@tempb\else
+    \directlua{Babel.begin_process_input()}%
+    \def\luabbl@stop{%
+      \directlua{Babel.end_process_input()}}%
+  \fi}%
+\AddBabelHook{luatex}{stopcommands}{%
+  \luabbl@stop
+  \let\luabbl@stop\relax}
+\AddBabelHook{luatex}{patterns}{%
+  \@ifundefined{bbl@hyphendata@\the\language}%
+    {\def\bbl@elt##1##2##3##4{%
+       \ifnum##2=\csname l@#2\endcsname % #2=spanish, dutch:OT1...
+         \def\bbl@tempb{##3}%
+         \ifx\bbl@tempb\@empty\else % if not a synonymous
+           \def\bbl@tempc{{##3}{##4}}%
+         \fi
+         \bbl@csarg\xdef{hyphendata@##2}{\bbl@tempc}%
+       \fi}%
+     \bbl@languages
+     \@ifundefined{bbl@hyphendata@\the\language}%
+       {\bbl@info{No hyphenation patterns were set for\\%
+                  language ‘#2’. Reported}}%
+       {\expandafter\expandafter\expandafter\bbl@luapatterns
+          \csname bbl@hyphendata@\the\language\endcsname}}{}%
+  \@ifundefined{bbl@patterns@}{}{%
+    \begingroup
+      \@expandtwoargs\in@{,\number\language,}{,\bbl@pttnlist}%
+      \ifin@\else
+        \ifx\bbl@patterns@\@empty\else
+           \directlua{ Babel.addpatterns(
+             [[\bbl@patterns@]], \number\language) }%
+        \fi
+        \@ifundefined{bbl@patterns@#1}%
+          \@empty
+          {\directlua{ Babel.addpatterns(
+               [[\space\csname bbl@patterns@#1\endcsname]],
+               \number\language) }}%
+        \xdef\bbl@pttnlist{\bbl@pttnlist\number\language,}%
+      \fi
+    \endgroup}}
+\AddBabelHook{luatex}{everylanguage}{%
+  \def\process@language##1##2##3{%
+    \def\process@line####1####2 ####3 ####4 {}}}
+\AddBabelHook{luatex}{loadpatterns}{%
+   \input #1\relax
+   \expandafter\gdef\csname bbl@hyphendata@\the\language\endcsname
+     {{#1}{}}}
+\AddBabelHook{luatex}{loadexceptions}{%
+   \input #1\relax
+   \def\bbl@tempb##1##2{{##1}{#1}}%
+   \expandafter\xdef\csname bbl@hyphendata@\the\language\endcsname
+     {\expandafter\expandafter\expandafter\bbl@tempb
+      \csname bbl@hyphendata@\the\language\endcsname}}
+\@onlypreamble\babelpatterns
+\AtEndOfPackage{%
+  \newcommand\babelpatterns[2][\@empty]{%
+    \ifx\bbl@patterns@\relax
+      \let\bbl@patterns@\@empty
+    \fi
+    \ifx\bbl@pttnlist\@empty\else
+      \bbl@warning{%
+        You must not intermingle \string\selectlanguage\space and\\%
+        \string\babelpatterns\space or some patterns will not\\%
+        be taken into account. Reported}%
+    \fi
+    \ifx\@empty#1%
+      \protected@edef\bbl@patterns@{\bbl@patterns@\space#2}%
+    \else
+      \edef\bbl@tempb{\zap@space#1 \@empty}%
+      \bbl@for\bbl@tempa\bbl@tempb{%
+        \bbl@fixname\bbl@tempa
+        \bbl@iflanguage\bbl@tempa{%
+          \bbl@csarg\protected@edef{patterns@\bbl@tempa}{%
+            \@ifundefined{bbl@patterns@\bbl@tempa}%
+              \@empty
+              {\csname bbl@patterns@\bbl@tempa\endcsname\space}%
+            #2}}}%
+    \fi}}
+\AddBabelHook{luatex}{loadkernel}{%
+  \begingroup
+      % Reset chars "80-"C0 to category "other", no case mapping:
+    \catcode`\@=11 \count@=128
+    \loop\ifnum\count@<192
+      \global\uccode\count@=0 \global\lccode\count@=0
+      \global\catcode\count@=12 \global\sfcode\count@=1000
+      \advance\count@ by 1 \repeat
+      % Other:
+    \def\O ##1 {%
+      \global\uccode"##1=0 \global\lccode"##1=0
+      \global\catcode"##1=12 \global\sfcode"##1=1000 }%
+      % Letter:
+    \def\L ##1 ##2 ##3 {\global\catcode"##1=11
+      \global\uccode"##1="##2
+      \global\lccode"##1="##3
+      % Uppercase letters have sfcode=999:
+      \ifnum"##1="##3 \else \global\sfcode"##1=999 \fi }%
+      % Letter without case mappings:
+    \def\l ##1 {\L ##1 ##1 ##1 }%
+    \l 00AA
+    \L 00B5 039C 00B5
+    \l 00BA
+    \O 00D7
+    \l 00DF
+    \O 00F7
+    \L 00FF 0178 00FF
+  \endgroup
+  \input #1\relax}
+\def\babelFSstore#1{%
+  \bbl@for\bbl@tempa{#1}{%
+    \edef\bbl@tempb{\noexpand\bbl@FSstore{\bbl@tempa}}
+    \bbl@tempb{rm}\rmdefault\bbl@save@rmdefault
+    \bbl@tempb{sf}\sfdefault\bbl@save@sfdefault
+    \bbl@tempb{tt}\ttdefault\bbl@save@ttdefault}}
+\def\bbl@FSstore#1#2#3#4{%
+  \bbl@csarg\edef{#2default#1}{#3}%
+  \expandafter\addto\csname extras#1\endcsname{%
+    \let#4#3%
+    \ifx#3\f@family
+      \edef#3{\csname bbl@#2default#1\endcsname}%
+      \fontfamily{#3}\selectfont
+    \else
+      \edef#3{\csname bbl@#2default#1\endcsname}%
+    \fi}%
+  \expandafter\addto\csname noextras#1\endcsname{%
+    \ifx#3\f@family
+      \fontfamily{#4}\selectfont
+    \fi
+    \let#3#4}}
+\let\bbl@langfeatures\@empty
+\def\babelFSfeatures{%
+  \let\bbl@ori@fontspec\fontspec
+  \renewcommand\fontspec[1][]{%
+    \bbl@ori@fontspec[\bbl@langfeatures##1]}
+  \let\babelFSfeatures\bbl@FSfeatures
+  \babelFSfeatures}
+\def\bbl@FSfeatures#1#2{%
+  \expandafter\addto\csname extras#1\endcsname{%
+    \babel@save\bbl@langfeatures
+    \edef\bbl@langfeatures{#2,}}}
+\endinput
+%%
+%% End of file `luababel.def'.

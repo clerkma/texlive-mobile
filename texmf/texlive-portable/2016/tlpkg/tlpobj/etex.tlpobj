@@ -1,0 +1,24 @@
+name etex
+category Package
+revision 37057
+shortdesc An extended version of TeX, from the NTS project
+longdesc An extended version of TeX (which is capable of running as if
+longdesc it were TeX unmodified). E-TeX has been specified by the LaTeX
+longdesc team as the engine for the development of LaTeX 2e, in the
+longdesc immediate future; as a result, LaTeX programmers may (in all
+longdesc current TeX distributions) assume e-TeX functionality.
+longdesc Development versions of e-TeX are to be found in the TeX live
+longdesc source repository.
+containersize 11456
+containerchecksum e489af33559dc8326633747062dbfb96a3f55e851df334ffc2e80fcff668e12840b2ac958e6895ecd83c52aced1292a13cb24b736a1d321dac07ffe1545602e0
+doccontainersize 189804
+doccontainerchecksum d7363e295a44cee09ad5355836201d1f42892f453f952742447ad4543bd2c2ec980f58c0dcdaf9d618db37cb7e37bdaf5c3329b7c83e363f72770f5fe941e4b4
+runfiles size=11
+ texmf-dist/fonts/source/public/etex/xbmc10.mf
+ texmf-dist/fonts/tfm/public/etex/xbmc10.tfm
+ texmf-dist/tex/plain/etex/etex.src
+ texmf-dist/tex/plain/etex/etexdefs.lib
+catalogue-ctan /obsolete/systems/e-tex
+catalogue-date 2015-08-03 05:43:12 +0200
+catalogue-license knuth
+catalogue-topics engine

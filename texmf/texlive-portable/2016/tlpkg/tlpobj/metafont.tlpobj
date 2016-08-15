@@ -1,0 +1,37 @@
+name metafont
+category Package
+revision 40793
+shortdesc A system for specifying fonts
+longdesc The program takes a semi-algorithmic specification of a font,
+longdesc and produces a bitmap font (whose properties are defined by a
+longdesc set of parameters of the target device), and a set metrics for
+longdesc use by TeX. The bitmap output may be converted into a format
+longdesc directly usable by a device driver, etc., by the tools provided
+longdesc in the parallel mfware distribution. (Third parties have
+longdesc developed tools to convert the bitmap output to outline fonts.)
+longdesc The distribution includes the source of Knuth's Metafont book;
+longdesc this source is there to read, as an example of writing TeX --
+longdesc it should not be processed without Knuth's direct permission.
+depend kpathsea
+depend metafont.ARCH
+execute AddFormat name=mf engine=mf-nowin           options="-translate-file=cp227.tcx mf.ini"           fmttriggers=metafont
+containersize 33520
+containerchecksum 1249bc8c8ca89ffe646e755ca338e6288c9b8d3dd95a1b20d581d0bae76a6fd3b054bf77cab501fe8751500ca26a3ceddcba4b883a76444b0d47ca75f5b9dd49
+doccontainersize 54784
+doccontainerchecksum 9216d36b6830b9cc4c35d573d977a8b1c7b5a755ce5622bbad4f7756194226f6d731f479d135b5d09a86deaf220b2ab3cd46bd7bf096dcf207c22f47d0e9ce39
+runfiles size=36
+ texmf-dist/metafont/base/mf.mf
+ texmf-dist/metafont/base/plain.mf
+ texmf-dist/metafont/config/cmmf.ini
+ texmf-dist/metafont/config/mf.ini
+ texmf-dist/metafont/misc/mode2dpi.mf
+ texmf-dist/metafont/misc/mode2dpixy.mf
+ texmf-dist/metafont/misc/modename.mf
+ texmf-dist/metafont/misc/modes.mf
+ texmf-dist/metafont/misc/ps2mfbas.mf
+catalogue-also metapost
+catalogue-ctan /systems/knuth/dist/mf
+catalogue-date 2015-08-03 05:43:12 +0200
+catalogue-license knuth
+catalogue-topics font-devel font-proc
+catalogue-version 2.7182818

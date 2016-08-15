@@ -1,0 +1,21 @@
+name etex-pkg
+category Package
+revision 39355
+shortdesc E-TeX support package
+longdesc The package provides support for LaTeX documents to use many of
+longdesc the extensions offered by e-TeX; in particular, it modifies
+longdesc LaTeX's register allocation macros to make use of the extended
+longdesc register range. The etextools package provides macros that make
+longdesc more sophisticated use of e-TeX's facilities.
+containersize 5732
+containerchecksum 2b46dc359b567a94fd99664e3ceb9c3c94a3b7d0e3dac3a3ec2e104e7db8219e92fa84969e60b573fe899d72e7b806957154c2479fbe319f8126dab77e6a400c
+doccontainersize 520
+doccontainerchecksum 3228fab4c13fe85de55641f2af5527ddb6ab7320fd737e55b751856ddc5717695be4d21313272f76c86818329dbde06580672fc02e1e17c90c981eb07c6113eb
+runfiles size=5
+ texmf-dist/tex/latex/etex-pkg/etex.sty
+catalogue-also elocalloc
+catalogue-ctan /macros/latex/contrib/etex-pkg
+catalogue-date 2016-01-11 20:53:01 +0100
+catalogue-license lppl1.3
+catalogue-topics macro-supp
+catalogue-version 2.6

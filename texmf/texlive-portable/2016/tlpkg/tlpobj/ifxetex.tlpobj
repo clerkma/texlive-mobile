@@ -1,0 +1,22 @@
+name ifxetex
+category Package
+revision 19685
+shortdesc Am I running under XeTeX?
+longdesc A simple package which provides an \ifxetex conditional, so
+longdesc that other code can determine that it is running under XeTeX.
+longdesc The package requires the e-TeX extensions to the TeX primitive
+longdesc set.
+containersize 1192
+containerchecksum d9e89a2132c8081392acb52abed48562f6d9c5b963abf625b0837ec19d17823c34ff52c99e8b3001ce8c13cef55862fd3545140d5f2d6553225d61f90645e504
+doccontainersize 165756
+doccontainerchecksum 7635b999515eb2c381486c303b21a27e25ab6560aaa0c6f939162d1c48f6bfce88e8f60c6cd10e5ca681ec40751bf56f4e0086ed0d0dd7253c9503be546b5b5f
+srccontainersize 2280
+srccontainerchecksum 67e1fea6744928044a98075047bb19b84c858d7df86ddd86d789e2bc13e97054e921df252824ab5783a23088eab263d99f88dda2c64c57606694823e57611173
+runfiles size=1
+ texmf-dist/tex/generic/ifxetex/ifxetex.sty
+catalogue-also ifpdf ifvtex ifluatex
+catalogue-ctan /macros/generic/ifxetex
+catalogue-date 2015-08-03 05:43:12 +0200
+catalogue-license lppl
+catalogue-topics env-query
+catalogue-version 0.6

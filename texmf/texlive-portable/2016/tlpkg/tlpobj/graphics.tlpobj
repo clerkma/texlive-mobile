@@ -1,0 +1,39 @@
+name graphics
+category Package
+revision 41015
+catalogue latex-graphics
+shortdesc The LaTeX standard graphics bundle
+longdesc This is a collection of LaTeX packages for: producing colour
+longdesc including graphics (eg PostScript) files rotation and scaling
+longdesc of text in LaTeX documents. It comprises the packages color,
+longdesc graphics, graphicx, trig, epsfig, keyval, and lscape.
+containersize 12912
+containerchecksum 5f2204cfe3a75be776aa3d0c4752242e1bba29bf4e136e998e84380d73f29a631bb1568d5b6d1c76cd5dc188b93920b31923d22c29e026677dd350b9736825fc
+doccontainersize 1641028
+doccontainerchecksum e692f5616793ad421cc3856e1fa40ac5e4655db4f29ba210a19595c28cc3729b0bf6ad6a22a5c77845d57a3d68e735845a305526431ab9a40e09de7d5f184b11
+srccontainersize 44552
+srccontainerchecksum bc903cfd2ce3d0ae6dd271410dca079336fc0b917e59827335e9771e2e063762e8dc1e6989be418f09377829c507c8849766f306ed5b830ffb6a9e9d317aefdb
+runfiles size=30
+ texmf-dist/tex/latex/graphics/color.sty
+ texmf-dist/tex/latex/graphics/dvipdf.def
+ texmf-dist/tex/latex/graphics/dvips.def
+ texmf-dist/tex/latex/graphics/dvipsnam.def
+ texmf-dist/tex/latex/graphics/dvipsone.def
+ texmf-dist/tex/latex/graphics/dviwin.def
+ texmf-dist/tex/latex/graphics/emtex.def
+ texmf-dist/tex/latex/graphics/epsfig.sty
+ texmf-dist/tex/latex/graphics/graphics.sty
+ texmf-dist/tex/latex/graphics/graphicx.sty
+ texmf-dist/tex/latex/graphics/keyval.sty
+ texmf-dist/tex/latex/graphics/lscape.sty
+ texmf-dist/tex/latex/graphics/pctex32.def
+ texmf-dist/tex/latex/graphics/pctexhp.def
+ texmf-dist/tex/latex/graphics/pctexps.def
+ texmf-dist/tex/latex/graphics/pctexwin.def
+ texmf-dist/tex/latex/graphics/tcidvi.def
+ texmf-dist/tex/latex/graphics/trig.sty
+ texmf-dist/tex/latex/graphics/truetex.def
+catalogue-ctan /macros/latex/required/graphics
+catalogue-date 2016-05-09 23:24:57 +0200
+catalogue-license lppl1.3
+catalogue-topics collection

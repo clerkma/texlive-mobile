@@ -1,0 +1,16 @@
+name latexconfig
+category Package
+revision 40274
+containersize 4812
+containerchecksum 9188d96ac9da7ed2fa1d2ade216fd12fd017a777ecf656df2611285881f414a89c0cc20afc3931fe10940a9b22a1d72b6273d530048330e7674ff551016b1e81
+runfiles size=10
+ texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+ texmf-dist/tex/latex/latexconfig/hyperref.cfg
+ texmf-dist/tex/latex/latexconfig/latex.ini
+ texmf-dist/tex/latex/latexconfig/lualatex-patch-kernel.tex
+ texmf-dist/tex/latex/latexconfig/lualatex-reset-codes.tex
+ texmf-dist/tex/latex/latexconfig/lualatexiniconfig.tex
+ texmf-dist/tex/latex/latexconfig/lualatexquotejobname.lua
+ texmf-dist/tex/latex/latexconfig/lualatexquotejobname.tex
+ texmf-dist/tex/latex/latexconfig/mllatex.ini
+ texmf-dist/tex/latex/latexconfig/pdflatex.ini

@@ -1,0 +1,28 @@
+name mfnfss
+category Package
+revision 19410
+shortdesc Packages to typeset oldgerman and pandora fonts in LaTeX
+longdesc This bundle contains two packages: - oldgerm, a package to
+longdesc typeset with old german fonts designed by Yannis Haralambous. -
+longdesc pandora, a package to typeset with Pandora fonts designed by
+longdesc Neena Billawala. Note that support for the Pandora fonts is
+longdesc also available via the pandora-latex package.
+containersize 1832
+containerchecksum d5c087b2d393d939bc441d51da921042fc8d5d8f5894790a3ea75c25fc2c0a7053130b7b6b2fbb7b81ae298ac1a8dd713f5ddcc0ee2f4014a146ca3f2d9578d9
+doccontainersize 172068
+doccontainerchecksum 13eb53b2d71d01467806ce5045afa59d9df0d6dbeaf056795585487a8a84760e1bb4ff7311a78099f0837d673bc3d158014f35e7154a62a86905996295827c25
+srccontainersize 17264
+srccontainerchecksum 6504c3e26c6504383fcdf702a8bb1c71a0ebd78917f3065c58cc3abc0be96de3460c53fd0904fe6c88979bb7d66a0ee7918d491d044ac9391137ffdf1f8c846f
+runfiles size=8
+ texmf-dist/tex/latex/mfnfss/oldgerm.sty
+ texmf-dist/tex/latex/mfnfss/ot1panr.fd
+ texmf-dist/tex/latex/mfnfss/ot1pss.fd
+ texmf-dist/tex/latex/mfnfss/pandora.sty
+ texmf-dist/tex/latex/mfnfss/uyfrak.fd
+ texmf-dist/tex/latex/mfnfss/uygoth.fd
+ texmf-dist/tex/latex/mfnfss/uyinit.fd
+ texmf-dist/tex/latex/mfnfss/uyswab.fd
+catalogue-ctan /macros/latex/contrib/mfnfss
+catalogue-date 2015-08-03 05:43:12 +0200
+catalogue-license lppl
+catalogue-topics font-supp

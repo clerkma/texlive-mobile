@@ -1,0 +1,49 @@
+%%
+%% This is file `ifpdf.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% ifpdf.dtx  (with options: `package')
+%% 
+%% Source File: ifpdf.dtx
+%% Copyright 2016 Heiko Oberdiek and LaTeX3 project
+%%
+%% This file may be distributed under the terms of the LPPL.
+%% See README for details.
+\ifx\ProvidesPackage\undefined
+\def\next#1#2[#3]{\wlog{#2 #3}\expandafter\gdef
+\csname ver@ifpdf.sty\endcsname{#3}}
+\expandafter\next\fi
+\ProvidesPackage{ifpdf}
+[2016/05/14 v3.1 Provides the ifpdf switch]
+\expandafter\ifx\csname ifpdf\endcsname\relax
+ \csname newif\expandafter\endcsname\csname ifpdf\endcsname
+\else
+ \ifx\pdftrue\undefined
+  \ifx\PackageError\undefined
+  \begingroup\def\PackageError#1#2#3{\endgroup\errmessage{#2}}
+  \fi
+  \PackageError{ifpdf}{incompatible ifpdf definition}{}
+  \expandafter\expandafter\expandafter
+ \fi
+\fi
+\let\ifpdf\iffalse
+\ifx\directlua\undefined
+\begingroup\expandafter\expandafter\expandafter\endgroup
+\expandafter\ifx\csname pdfoutput\endcsname\relax
+\else
+  \ifnum\pdfoutput>0 %
+    \pdftrue
+  \fi
+\fi
+\else
+\directlua{%
+if (tex.outputmode or tex.pdfoutput or 0) > 0 then
+  tex.print('\string\\pdftrue')
+end
+}
+\fi
+\endinput
+%%
+%% End of file `ifpdf.sty'.

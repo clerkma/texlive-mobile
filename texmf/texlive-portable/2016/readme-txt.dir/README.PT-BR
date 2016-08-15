@@ -1,0 +1,106 @@
+
+Bem-vindo ao TeX Live
+
+   A distribuição TeX Live oferece um completo sistema TeX para uma
+   variedade de plataformas GNU e Unix, Macintosh, Windows entre outras.
+   Ela contém programas para editar, digitar, pré-visualizar e imprimir
+   documentos TeX em diferentes idiomas, e uma grande coleção de macros
+   TeX e bibliotecas de fontes.
+
+   A distribuição inclui uma documentação geral extensa sobre TeX, bem
+   como a documentação para os pacotes inclusos.
+
+   Para informações sobre licença, favor ver a seção principal
+   [1]LICENSE.TL e [2]LICENSE.CTAN destes arquivos.
+
+  Por onde começar
+
+   Recomendamos fortemente que você leia o guia TeX Live antes de efetuar
+   a instalação. Ele inclui instruções passo-a-passo, uma descrição dos
+   principais diretórios, além de outras informações.
+
+   Se você está instalando de uma imagem em DVD, o guia em Inglês e todas
+   suas traduções estão no sub-diretório [3]texlive-doc.
+
+   Após a instalação, versões em Inglês do Guia estão em
+   [4]texmf-dist/doc/texlive/, em ambos os formatos [5]html e [6]pdf.
+   Traduções para outros idiomas também estão disponíveis em
+   [7]texmf-dist/doc/texlive.
+
+   Fornecemos também uma lista de [8]links para as documentações
+   disponíveis em PDF e HTML para os pacotes e programas inclusos.
+
+   Se você está instalando a partir da Internet, os links acima não
+   funcionarão. Neste caso, você pode ver a [9]documentação TeX Live na
+   Internet.
+
+   Para uma lista das mudanças mais importantes no lançamento deste ano,
+   veja a seção Histórico de Lançamentos no final da documentação.
+
+  Instalação
+
+   O script de instalação chama-se install-tl (install-tl-windows.bat no
+   Windows), e possui três modos de operação:
+
+   wizard (padrão no Windows) que apresenta o mínimo de questões e
+          instala tudo. Pode ser especificado explicitamente com
+          install-tl --gui=wizard.
+
+   text (padrão nos demais) que possui opções completas de
+          personalização. Pode ser especificado explicitamente com
+          install-tl --gui=text.
+
+   perltk que é uma GUI para text; especialmente útil para usuários que
+          conhecem Windows e que não querem os padrões. Pode ser
+          especificado explicitamente com install-tl --gui=perltk, ou
+          executando install-tl-advanced.bat no Windows.
+
+   Atualização de pacotes após a instalação e outras configurações são
+   realizadas com o script tlmgr (TeX Live Package Manager), que também
+   possui ambos os modos GUI e text.
+
+   Você pode usar a linha de comando com a opção --help para ambos
+   [10]install-tl e [11]tlmgr para informações detalhadas sobre ambos os
+   programas. Veja a documentação nos links acima para (muito) mais
+   informações.
+
+  Links
+
+   Finalmente, algumas páginas web relacionadas, para consulta. Estão não
+   estão incluídas no TeX Live:
+
+     * [12]http://tug.org/begin.html - se você é novato no TeX e/ou
+       deseja material introdutório.
+     * [13]http://tug.org/interest.html - lista geral sobre TeX,
+       incluindo documentação, sistemas, pacotes, fontes, e mais.
+     * [14]http://tug.org/ctan.html - uma porta de entrada para o
+       Comprehensive TeX Archive Network (CTAN), que é um espelho online
+       de todas as coisas do TeX.
+     * [15]http://tug.org/usergroups.html - lista de grupos de usuários
+       TeX ao redor do mundo, com informações de contato. Recomendamos
+       que você faça parte do grupo de sua escolha, para dar suporte ao
+       TeX Live e outras atividades TeX.
+
+    Bom TeXing!
+     _________________________________________________________________
+
+   [16]Página web do TeX Live.
+
+References
+
+   1. http://www.tug.org/texlive/devsrc/Master/LICENSE.TL
+   2. http://www.tug.org/texlive/devsrc/Master/LICENSE.CTAN
+   3. http://www.tug.org/texlive/devsrc/Master/texlive-doc
+   4. http://www.tug.org/texlive/devsrc/Master/texmf-dist/doc/texlive/texlive-en
+   5. http://www.tug.org/texlive/devsrc/Master/texmf-dist/doc/texlive/texlive-en/texlive-en.html
+   6. http://www.tug.org/texlive/devsrc/Master/texmf-dist/doc/texlive/texlive-en/texlive-en.pdf
+   7. http://www.tug.org/texlive/devsrc/Master/texmf-dist/doc/texlive/
+   8. http://www.tug.org/texlive/devsrc/Master/doc.html
+   9. http://tug.org/texlive/doc.html
+  10. http://tug.org/texlive/doc/install-tl.html
+  11. http://tug.org/texlive/tlmgr.html
+  12. http://tug.org/begin.html
+  13. http://tug.org/interest.html
+  14. http://tug.org/ctan.html
+  15. http://tug.org/usergroups.html
+  16. http://tug.org/texlive/

@@ -1,0 +1,341 @@
+name oberdiek
+category Package
+revision 41247
+shortdesc A bundle of packages submitted by Heiko Oberdiek
+longdesc The bundle comprises packages to provide: accsupp: better
+longdesc accessibility support for PDF files; aliascnt: 'alias
+longdesc counters'; alphalph: multiple-alphabetic counting
+longdesc (a...z,aa...zz,... -- up to the full extent of a TeX counter);
+longdesc askinclude: replaces \includeonly by an interactive user
+longdesc interface; atbegshi: a modern reimplementation of package
+longdesc everyshi; atenddvi: provides \AtEndDvi command; attachfile2:
+longdesc attach files to PDF files; atveryend: hooks the very end of a
+longdesc document; auxhook: stick stuff at the start of the .aux file;
+longdesc bigintcalc: expandable arithmetic operations with big integers
+longdesc that can exceed TeX's number limits; bitset: defines and
+longdesc implements the data type bit set, a vector of bits; bmpsize:
+longdesc get bitmap size and resolution data; bookmark: alternative
+longdesc bookmark (outline) organization for package hyperref;
+longdesc catchfile: collects the contents of a file and puts it in a
+longdesc macro; centernot: a horizontally-centred \not symbol; chemarr:
+longdesc extensible chemists' reaction arrows; classlist: record
+longdesc information about document class(es) used; colonequals: poor
+longdesc man's mathematical relation symbols; dvipscol: dvips colour
+longdesc stack management; embedfile: embed files in PDF documents;
+longdesc engord: define counter-printing operations producing English
+longdesc ordinals; eolgrab: collect arguments delimited by end of line;
+longdesc epstopdf: conversion to epstopdf on the fly; etexcmds: adds a
+longdesc prefix to eTeX's commands, to avoid conflicts with existing
+longdesc macros; flags: setting and clearing flags in bit fields and
+longdesc converting the bit field into a decimal number; gettitlestring:
+longdesc clean up the string containing the title of a section, etc.;
+longdesc grfext: macros for adding and reordering the list of graphics
+longdesc file extensions recognised by the graphics package; grffile:
+longdesc extend file name processing in the latex-graphics bundle;
+longdesc hosub: build collections of packages; holtxdoc: extra
+longdesc documentation macros; hologo: bookmark-enabled logos; hopatch:
+longdesc safely apply package patches; hycolor: implements the color
+longdesc option stuff that is used by packages hyperref and bookmark;
+longdesc hypbmsec: bookmarks in sectioning commands; hypcap: anjusting
+longdesc anchors of captions; hypdestopt: optimising hyperref's pdftex
+longdesc driver destinations; hypdoc: hyper-references in the LaTeX
+longdesc standard doc package; hypgotoe: experimental package for links
+longdesc to embedded files; hyphsubst: substitute hyphenation patterns;
+longdesc ifdraft: switch for option draft; iflang: provides expandable
+longdesc checks for the current language; ifluatex: looks for LuaTeX
+longdesc regardless of its mode and provides the switch \ifluatex;
+longdesc ifpdf: provides the \ifpdf switch; ifvtex: provides the \ifvtex
+longdesc switch; infwarerr: provides a complete set of macros for
+longdesc informations, warnings and error messages with support for
+longdesc plain TeX; inputenx: enhanced handling of input encoding;
+longdesc intcalc: provides expandable arithmetic operations with
+longdesc integers; kvdefinekeys: define key-value keys in the same
+longdesc manner as keyval; kvoptions: use package options in key value
+longdesc format ; kvsetkeys: a variant of the \setkeys command;
+longdesc letltxmacro: Let assignment for LaTeX macros; listingsutf8:
+longdesc (partially) extends the listings package to UTF-8 encoding;
+longdesc ltxcmds: exports some utility macros from the LaTeX kernel into
+longdesc a separate namespace and also provides them for other formats
+longdesc such as plain-TeX; luacolor: implements colour support based on
+longdesc LuaTeX's node attributes; luatex: utilises new and extended
+longdesc features and resources that LuaTeX provides; magicnum: allows
+longdesc to access magic numbers by a hierarchical name system;
+longdesc makerobust: make a command robust; pagegrid: prints a page grid
+longdesc in the background; pagesel: select pages of a document for
+longdesc output; pdfcolfoot: using pdftex's color stack for footnotes;
+longdesc pdfcol: macros for setting and maintaining new color stacks;
+longdesc pdfcolmk: PDFTeX COLour MarK -- fake a PDFTeX colour stack
+longdesc using marks (not needed for PDFTeX 1.40.0 and later);
+longdesc pdfcolparallel: fixes colour problems in package parallel;
+longdesc pdfcolparcolumns: fixes colour problems in package parcolumns;
+longdesc pdfcrypt: setting PDF encryption; pdfescape: pdfTeX's escape
+longdesc features using TeX or e-TeX; pdflscape: landscape pages in PDF;
+longdesc pdfrender: control PDF rendering modes; pdftexcmds: provide
+longdesc PDFTeX primitives missing in LuaTeX; picture: dimens for
+longdesc picture macros; pmboxdraw: poor man's box drawing characters;
+longdesc protecteddef: define a command that protected against
+longdesc expansion; refcount: using the numeric values of references;
+longdesc rerunfilecheck: checksum based rerun checks on auxiliary files;
+longdesc resizegather: automatically resize overly large equations;
+longdesc rotchiffre: performs simple rotation cyphers; scrindex:
+longdesc redefines environment 'theindex' of package 'index', if a class
+longdesc from KOMA-Script is loaded; selinput: select the input encoding
+longdesc by specifying pairs of input characters and their glyph names;
+longdesc setouterhbox: set \hbox in outer horizontal mode; settobox:
+longdesc getting box sizes; soulutf8: extends package soul and adds some
+longdesc support for UTF-8; stackrel: extensions of the \stackrel
+longdesc command; stampinclude: selects the files for \include by
+longdesc inspecting the timestamp of the .aux file(s); stringenc:
+longdesc provides \StringEncodingConvert for converting a string between
+longdesc different encodings; tabularht: tabulars with height
+longdesc specification; tabularkv: key value interface for tabular
+longdesc parameters; telprint: print German telephone numbers;
+longdesc thepdfnumber: canonical numbers for use in PDF files and
+longdesc elsewhere; transparent: using a color stack for transparency
+longdesc with pdftex; twoopt: commands with two optional arguments;
+longdesc uniquecounter: provides unlimited unique counter; zref: a
+longdesc proposed new reference system. Each of the packages is
+longdesc represented by two files, a .dtx (documented source) and a PDF
+longdesc file; the .ins file necessary for installation is extracted by
+longdesc running the .dtx file with Plain TeX.
+containersize 225992
+containerchecksum 50097a07dc3fc27b31429a027c3868570dac868cc731138b942b742d5912ce1850e0a6f1afe65a1ae4b7bebc42dc7451a5b85bbe36ad12266daf4d55320907e6
+doccontainersize 25873136
+doccontainerchecksum 9e18c4263bb9ee6ec39c2e88b39eda09ee47f930695c267ddcd0e82e23125ba3e44746769ded4b67f46abeedbfe0bacb0256612614abd3c66b99210a47da5e83
+srccontainersize 502908
+srccontainerchecksum b6fd9a583f7c8fd7c2c13018702252aa3e4ccae9360020206a6cd06299a8ced11b0ef6bd67015370002cca0a8f3e17c243bdbaafa48c47e18335baacde6c530f
+runfiles size=701
+ texmf-dist/bibtex/bib/oberdiek/oberdiek-bundle.bib
+ texmf-dist/bibtex/bib/oberdiek/oberdiek-source.bib
+ texmf-dist/scripts/oberdiek/luacolor-pre065.lua
+ texmf-dist/scripts/oberdiek/luacolor.lua
+ texmf-dist/scripts/oberdiek/magicnum.lua
+ texmf-dist/scripts/oberdiek/oberdiek.luacolor-pre065.lua
+ texmf-dist/scripts/oberdiek/oberdiek.luacolor.lua
+ texmf-dist/scripts/oberdiek/oberdiek.luatex.lua
+ texmf-dist/scripts/oberdiek/oberdiek.magicnum.lua
+ texmf-dist/scripts/oberdiek/oberdiek.pdftexcmds.lua
+ texmf-dist/scripts/oberdiek/pdfatfi.pl
+ texmf-dist/scripts/oberdiek/pdftexcmds.lua
+ texmf-dist/tex/generic/oberdiek/alphalph.sty
+ texmf-dist/tex/generic/oberdiek/atbegshi.sty
+ texmf-dist/tex/generic/oberdiek/bigintcalc.sty
+ texmf-dist/tex/generic/oberdiek/bitset.sty
+ texmf-dist/tex/generic/oberdiek/catchfile.sty
+ texmf-dist/tex/generic/oberdiek/embedfile.sty
+ texmf-dist/tex/generic/oberdiek/engord.sty
+ texmf-dist/tex/generic/oberdiek/eolgrab.sty
+ texmf-dist/tex/generic/oberdiek/etexcmds.sty
+ texmf-dist/tex/generic/oberdiek/fibnum.sty
+ texmf-dist/tex/generic/oberdiek/gettitlestring.sty
+ texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+ texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
+ texmf-dist/tex/generic/oberdiek/hobsub.sty
+ texmf-dist/tex/generic/oberdiek/hologo.sty
+ texmf-dist/tex/generic/oberdiek/hyphsubst.sty
+ texmf-dist/tex/generic/oberdiek/iflang.sty
+ texmf-dist/tex/generic/oberdiek/ifpdf.sty
+ texmf-dist/tex/generic/oberdiek/ifvtex.sty
+ texmf-dist/tex/generic/oberdiek/infwarerr.sty
+ texmf-dist/tex/generic/oberdiek/intcalc.sty
+ texmf-dist/tex/generic/oberdiek/kvdefinekeys.sty
+ texmf-dist/tex/generic/oberdiek/kvsetkeys.sty
+ texmf-dist/tex/generic/oberdiek/ltxcmds.sty
+ texmf-dist/tex/generic/oberdiek/luatex-loader.sty
+ texmf-dist/tex/generic/oberdiek/luatex.sty
+ texmf-dist/tex/generic/oberdiek/magicnum.sty
+ texmf-dist/tex/generic/oberdiek/mleftright.sty
+ texmf-dist/tex/generic/oberdiek/pdfcol.sty
+ texmf-dist/tex/generic/oberdiek/pdfcrypt.sty
+ texmf-dist/tex/generic/oberdiek/pdfescape.sty
+ texmf-dist/tex/generic/oberdiek/pdfrender.sty
+ texmf-dist/tex/generic/oberdiek/pdftexcmds.sty
+ texmf-dist/tex/generic/oberdiek/protecteddef.sty
+ texmf-dist/tex/generic/oberdiek/rotchiffre.sty
+ texmf-dist/tex/generic/oberdiek/se-ascii-print.def
+ texmf-dist/tex/generic/oberdiek/se-ascii.def
+ texmf-dist/tex/generic/oberdiek/se-clean7bit.def
+ texmf-dist/tex/generic/oberdiek/se-cp1250.def
+ texmf-dist/tex/generic/oberdiek/se-cp1251.def
+ texmf-dist/tex/generic/oberdiek/se-cp1252.def
+ texmf-dist/tex/generic/oberdiek/se-cp1257.def
+ texmf-dist/tex/generic/oberdiek/se-cp437.def
+ texmf-dist/tex/generic/oberdiek/se-cp850.def
+ texmf-dist/tex/generic/oberdiek/se-cp852.def
+ texmf-dist/tex/generic/oberdiek/se-cp855.def
+ texmf-dist/tex/generic/oberdiek/se-cp858.def
+ texmf-dist/tex/generic/oberdiek/se-cp865.def
+ texmf-dist/tex/generic/oberdiek/se-cp866.def
+ texmf-dist/tex/generic/oberdiek/se-dec-mcs.def
+ texmf-dist/tex/generic/oberdiek/se-iso-8859-1.def
+ texmf-dist/tex/generic/oberdiek/se-iso-8859-10.def
+ texmf-dist/tex/generic/oberdiek/se-iso-8859-11.def
+ texmf-dist/tex/generic/oberdiek/se-iso-8859-13.def
+ texmf-dist/tex/generic/oberdiek/se-iso-8859-14.def
+ texmf-dist/tex/generic/oberdiek/se-iso-8859-15.def
+ texmf-dist/tex/generic/oberdiek/se-iso-8859-16.def
+ texmf-dist/tex/generic/oberdiek/se-iso-8859-2.def
+ texmf-dist/tex/generic/oberdiek/se-iso-8859-3.def
+ texmf-dist/tex/generic/oberdiek/se-iso-8859-4.def
+ texmf-dist/tex/generic/oberdiek/se-iso-8859-5.def
+ texmf-dist/tex/generic/oberdiek/se-iso-8859-6.def
+ texmf-dist/tex/generic/oberdiek/se-iso-8859-7.def
+ texmf-dist/tex/generic/oberdiek/se-iso-8859-8.def
+ texmf-dist/tex/generic/oberdiek/se-iso-8859-9.def
+ texmf-dist/tex/generic/oberdiek/se-koi8-r.def
+ texmf-dist/tex/generic/oberdiek/se-mac-centeuro.def
+ texmf-dist/tex/generic/oberdiek/se-mac-cyrillic.def
+ texmf-dist/tex/generic/oberdiek/se-mac-roman.def
+ texmf-dist/tex/generic/oberdiek/se-nextstep.def
+ texmf-dist/tex/generic/oberdiek/se-pdfdoc.def
+ texmf-dist/tex/generic/oberdiek/se-utf16le.def
+ texmf-dist/tex/generic/oberdiek/se-utf32be.def
+ texmf-dist/tex/generic/oberdiek/se-utf32le.def
+ texmf-dist/tex/generic/oberdiek/se-utf8.def
+ texmf-dist/tex/generic/oberdiek/setouterhbox.sty
+ texmf-dist/tex/generic/oberdiek/soulutf8.sty
+ texmf-dist/tex/generic/oberdiek/stringenc.sty
+ texmf-dist/tex/generic/oberdiek/telprint.sty
+ texmf-dist/tex/generic/oberdiek/thepdfnumber.sty
+ texmf-dist/tex/generic/oberdiek/uniquecounter.sty
+ texmf-dist/tex/latex/oberdiek/accsupp-dvipdfm.def
+ texmf-dist/tex/latex/oberdiek/accsupp-dvips.def
+ texmf-dist/tex/latex/oberdiek/accsupp-pdftex.def
+ texmf-dist/tex/latex/oberdiek/accsupp.sty
+ texmf-dist/tex/latex/oberdiek/aliascnt.sty
+ texmf-dist/tex/latex/oberdiek/askinclude.sty
+ texmf-dist/tex/latex/oberdiek/atenddvi.sty
+ texmf-dist/tex/latex/oberdiek/atfi-dvipdfmx.def
+ texmf-dist/tex/latex/oberdiek/atfi-dvips.def
+ texmf-dist/tex/latex/oberdiek/atfi-pdftex.def
+ texmf-dist/tex/latex/oberdiek/attachfile2.sty
+ texmf-dist/tex/latex/oberdiek/atveryend.sty
+ texmf-dist/tex/latex/oberdiek/auxhook.sty
+ texmf-dist/tex/latex/oberdiek/bkm-dvipdfm.def
+ texmf-dist/tex/latex/oberdiek/bkm-dvips.def
+ texmf-dist/tex/latex/oberdiek/bkm-dvipsone.def
+ texmf-dist/tex/latex/oberdiek/bkm-pdftex.def
+ texmf-dist/tex/latex/oberdiek/bkm-textures.def
+ texmf-dist/tex/latex/oberdiek/bkm-vtex.def
+ texmf-dist/tex/latex/oberdiek/bmpsize-base.sty
+ texmf-dist/tex/latex/oberdiek/bmpsize-dvipdfm.def
+ texmf-dist/tex/latex/oberdiek/bmpsize-dvipdfmx.def
+ texmf-dist/tex/latex/oberdiek/bmpsize-dvips.def
+ texmf-dist/tex/latex/oberdiek/bmpsize-test.tex
+ texmf-dist/tex/latex/oberdiek/bmpsize.sty
+ texmf-dist/tex/latex/oberdiek/bookmark.sty
+ texmf-dist/tex/latex/oberdiek/centernot.sty
+ texmf-dist/tex/latex/oberdiek/chemarr.sty
+ texmf-dist/tex/latex/oberdiek/classlist.sty
+ texmf-dist/tex/latex/oberdiek/colonequals.sty
+ texmf-dist/tex/latex/oberdiek/dtx-attach.sty
+ texmf-dist/tex/latex/oberdiek/dvipscol.sty
+ texmf-dist/tex/latex/oberdiek/enparen.sty
+ texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
+ texmf-dist/tex/latex/oberdiek/epstopdf.sty
+ texmf-dist/tex/latex/oberdiek/flags.sty
+ texmf-dist/tex/latex/oberdiek/grfext.sty
+ texmf-dist/tex/latex/oberdiek/grffile.sty
+ texmf-dist/tex/latex/oberdiek/holtxdoc.sty
+ texmf-dist/tex/latex/oberdiek/hopatch.sty
+ texmf-dist/tex/latex/oberdiek/hycolor.sty
+ texmf-dist/tex/latex/oberdiek/hypbmsec.sty
+ texmf-dist/tex/latex/oberdiek/hypcap.sty
+ texmf-dist/tex/latex/oberdiek/hypdestopt.sty
+ texmf-dist/tex/latex/oberdiek/hypdoc.sty
+ texmf-dist/tex/latex/oberdiek/hypgotoe.sty
+ texmf-dist/tex/latex/oberdiek/ifdraft.sty
+ texmf-dist/tex/latex/oberdiek/inputenx.sty
+ texmf-dist/tex/latex/oberdiek/ix-alias.def
+ texmf-dist/tex/latex/oberdiek/ix-math.def
+ texmf-dist/tex/latex/oberdiek/ix-name.def
+ texmf-dist/tex/latex/oberdiek/ix-slot.def
+ texmf-dist/tex/latex/oberdiek/ix-uc.def
+ texmf-dist/tex/latex/oberdiek/ix-utf8enc.dfu
+ texmf-dist/tex/latex/oberdiek/kvoptions-patch.sty
+ texmf-dist/tex/latex/oberdiek/kvoptions.sty
+ texmf-dist/tex/latex/oberdiek/letltxmacro.sty
+ texmf-dist/tex/latex/oberdiek/listingsutf8.sty
+ texmf-dist/tex/latex/oberdiek/luacolor.sty
+ texmf-dist/tex/latex/oberdiek/makerobust.sty
+ texmf-dist/tex/latex/oberdiek/pagegrid.sty
+ texmf-dist/tex/latex/oberdiek/pagesel.sty
+ texmf-dist/tex/latex/oberdiek/pdfcolfoot.sty
+ texmf-dist/tex/latex/oberdiek/pdfcolmk.sty
+ texmf-dist/tex/latex/oberdiek/pdfcolparallel.sty
+ texmf-dist/tex/latex/oberdiek/pdfcolparcolumns.sty
+ texmf-dist/tex/latex/oberdiek/pdflscape.sty
+ texmf-dist/tex/latex/oberdiek/picture.sty
+ texmf-dist/tex/latex/oberdiek/pmboxdraw.sty
+ texmf-dist/tex/latex/oberdiek/pmboxdrawenc.dfu
+ texmf-dist/tex/latex/oberdiek/refcount.sty
+ texmf-dist/tex/latex/oberdiek/rerunfilecheck.sty
+ texmf-dist/tex/latex/oberdiek/resizegather.sty
+ texmf-dist/tex/latex/oberdiek/scrindex.sty
+ texmf-dist/tex/latex/oberdiek/selinput.sty
+ texmf-dist/tex/latex/oberdiek/settobox.sty
+ texmf-dist/tex/latex/oberdiek/stackrel.sty
+ texmf-dist/tex/latex/oberdiek/stampinclude.sty
+ texmf-dist/tex/latex/oberdiek/tabularht.sty
+ texmf-dist/tex/latex/oberdiek/tabularkv.sty
+ texmf-dist/tex/latex/oberdiek/transparent.sty
+ texmf-dist/tex/latex/oberdiek/twoopt.sty
+ texmf-dist/tex/latex/oberdiek/x-ascii.def
+ texmf-dist/tex/latex/oberdiek/x-atarist.def
+ texmf-dist/tex/latex/oberdiek/x-cp1250.def
+ texmf-dist/tex/latex/oberdiek/x-cp1251.def
+ texmf-dist/tex/latex/oberdiek/x-cp1252.def
+ texmf-dist/tex/latex/oberdiek/x-cp1255.def
+ texmf-dist/tex/latex/oberdiek/x-cp1257.def
+ texmf-dist/tex/latex/oberdiek/x-cp437.def
+ texmf-dist/tex/latex/oberdiek/x-cp850.def
+ texmf-dist/tex/latex/oberdiek/x-cp852.def
+ texmf-dist/tex/latex/oberdiek/x-cp855.def
+ texmf-dist/tex/latex/oberdiek/x-cp858.def
+ texmf-dist/tex/latex/oberdiek/x-cp865.def
+ texmf-dist/tex/latex/oberdiek/x-cp866.def
+ texmf-dist/tex/latex/oberdiek/x-dec-mcs.def
+ texmf-dist/tex/latex/oberdiek/x-iso-8859-1.def
+ texmf-dist/tex/latex/oberdiek/x-iso-8859-10.def
+ texmf-dist/tex/latex/oberdiek/x-iso-8859-13.def
+ texmf-dist/tex/latex/oberdiek/x-iso-8859-14.def
+ texmf-dist/tex/latex/oberdiek/x-iso-8859-15.def
+ texmf-dist/tex/latex/oberdiek/x-iso-8859-16.def
+ texmf-dist/tex/latex/oberdiek/x-iso-8859-2.def
+ texmf-dist/tex/latex/oberdiek/x-iso-8859-3.def
+ texmf-dist/tex/latex/oberdiek/x-iso-8859-4.def
+ texmf-dist/tex/latex/oberdiek/x-iso-8859-5.def
+ texmf-dist/tex/latex/oberdiek/x-iso-8859-8.def
+ texmf-dist/tex/latex/oberdiek/x-iso-8859-9.def
+ texmf-dist/tex/latex/oberdiek/x-koi8-r.def
+ texmf-dist/tex/latex/oberdiek/x-mac-centeuro.def
+ texmf-dist/tex/latex/oberdiek/x-mac-cyrillic.def
+ texmf-dist/tex/latex/oberdiek/x-mac-roman.def
+ texmf-dist/tex/latex/oberdiek/x-nextstep.def
+ texmf-dist/tex/latex/oberdiek/x-verbatim.def
+ texmf-dist/tex/latex/oberdiek/xcolor-patch.sty
+ texmf-dist/tex/latex/oberdiek/zref-abspage.sty
+ texmf-dist/tex/latex/oberdiek/zref-abspos.sty
+ texmf-dist/tex/latex/oberdiek/zref-base.sty
+ texmf-dist/tex/latex/oberdiek/zref-counter.sty
+ texmf-dist/tex/latex/oberdiek/zref-dotfill.sty
+ texmf-dist/tex/latex/oberdiek/zref-env.sty
+ texmf-dist/tex/latex/oberdiek/zref-hyperref.sty
+ texmf-dist/tex/latex/oberdiek/zref-lastpage.sty
+ texmf-dist/tex/latex/oberdiek/zref-marks.sty
+ texmf-dist/tex/latex/oberdiek/zref-nextpage.sty
+ texmf-dist/tex/latex/oberdiek/zref-pageattr.sty
+ texmf-dist/tex/latex/oberdiek/zref-pagelayout.sty
+ texmf-dist/tex/latex/oberdiek/zref-perpage.sty
+ texmf-dist/tex/latex/oberdiek/zref-runs.sty
+ texmf-dist/tex/latex/oberdiek/zref-savepos.sty
+ texmf-dist/tex/latex/oberdiek/zref-thepage.sty
+ texmf-dist/tex/latex/oberdiek/zref-titleref.sty
+ texmf-dist/tex/latex/oberdiek/zref-totpages.sty
+ texmf-dist/tex/latex/oberdiek/zref-user.sty
+ texmf-dist/tex/latex/oberdiek/zref-xr.sty
+ texmf-dist/tex/latex/oberdiek/zref.sty
+catalogue-ctan /macros/latex/contrib/oberdiek
+catalogue-date 2016-05-16 22:08:23 +0200
+catalogue-license lppl
+catalogue-topics collection

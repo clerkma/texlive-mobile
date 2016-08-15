@@ -1,0 +1,8 @@
+name texconfig.x86_64-linux
+category TLCore
+revision 29820
+shortdesc x86_64-linux files of texconfig
+containersize 348
+containerchecksum 450384c69d531c0100c687060e43d4d9f95c9a57913f6fa0f2f5c99bcd55310e35b2ba55c75bf8f3fe198f6af142bba3135f9d09a8193a50d7b722596fc74ba0
+binfiles arch=x86_64-linux size=1
+ bin/x86_64-linux/texconfig

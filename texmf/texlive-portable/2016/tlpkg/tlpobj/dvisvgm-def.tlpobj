@@ -1,0 +1,18 @@
+name dvisvgm-def
+category Package
+revision 41011
+shortdesc Colour and Graphics support for dvisvgm
+longdesc The graphics and color packages have been enhanced with new
+longdesc dvisvgm options to load this code in a matching update.
+containersize 2132
+containerchecksum 172614c21fc7026a26fe8f136f6dcbd75b47097038acf2013cb23b6268804b42f6ac139929cd23541191c078dda6aefc72d85bb4df07f8bce1b2d8dd33186000
+doccontainersize 492
+doccontainerchecksum 0c3c50957a1ef6a83c628808012d8d77a7f5d8d88de1eb6bbc88f10a1699e010b3ed024d29f6c692be677af6c6ffae49ac116a5535331a5ed7ebdb4f92bacad1
+runfiles size=2
+ texmf-dist/tex/latex/dvisvgm-def/dvisvgm.def
+catalogue-also dvisvgm
+catalogue-ctan /macros/latex/contrib/dvisvgm-def
+catalogue-date 2016-05-10 15:49:00 +0200
+catalogue-license lppl
+catalogue-topics dvi-proc
+catalogue-version 1.0a

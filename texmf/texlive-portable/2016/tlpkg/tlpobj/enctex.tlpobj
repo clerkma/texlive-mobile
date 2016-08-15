@@ -1,0 +1,57 @@
+name enctex
+category Package
+revision 34957
+shortdesc A TeX extension that translates input on its way into TeX
+longdesc EncTeX is (another) TeX extension, written at the change-file
+longdesc level. It provides means of translating input on the way into
+longdesc TeX. It allows, for example, translation of multibyte
+longdesc sequences, such as utf-8 encoding.
+containersize 23768
+containerchecksum d4d4958b486f0d7df731362c74daa1d3c6907376175d7a9501f37b79882ed5cf5f398f09f422e6432c5071b7121c38a76a1c7e4c847b91672ec185880247553b
+doccontainersize 253872
+doccontainerchecksum 6f89420f8968159005b2e37c9b6dadb71ab5c6987994dd022b8c6406aa1906bb5294e9e8add93cc49898959cba4a73eafa117882047b573819a21471550e1b76
+runfiles size=62
+ texmf-dist/tex/generic/enctex/1250-csf.tex
+ texmf-dist/tex/generic/enctex/1250-il2.tex
+ texmf-dist/tex/generic/enctex/1250-latex.tex
+ texmf-dist/tex/generic/enctex/1250-t1.tex
+ texmf-dist/tex/generic/enctex/852-csf.tex
+ texmf-dist/tex/generic/enctex/852-il2.tex
+ texmf-dist/tex/generic/enctex/852-latex.tex
+ texmf-dist/tex/generic/enctex/852-t1.tex
+ texmf-dist/tex/generic/enctex/csfmacro.tex
+ texmf-dist/tex/generic/enctex/enc-u.tex
+ texmf-dist/tex/generic/enctex/encmacro.tex
+ texmf-dist/tex/generic/enctex/il2-1250.tex
+ texmf-dist/tex/generic/enctex/il2-852.tex
+ texmf-dist/tex/generic/enctex/il2-csf.tex
+ texmf-dist/tex/generic/enctex/il2-kam.tex
+ texmf-dist/tex/generic/enctex/il2-t1.tex
+ texmf-dist/tex/generic/enctex/kam-csf.tex
+ texmf-dist/tex/generic/enctex/kam-il2.tex
+ texmf-dist/tex/generic/enctex/kam-latex.tex
+ texmf-dist/tex/generic/enctex/kam-t1.tex
+ texmf-dist/tex/generic/enctex/mixcodes.tex
+ texmf-dist/tex/generic/enctex/noprefnt.tex
+ texmf-dist/tex/generic/enctex/plain-1250-cs.tex
+ texmf-dist/tex/generic/enctex/plain-852-cs.tex
+ texmf-dist/tex/generic/enctex/plain-il2-cs.tex
+ texmf-dist/tex/generic/enctex/plain-kam-cs.tex
+ texmf-dist/tex/generic/enctex/plain-utf8-cs.tex
+ texmf-dist/tex/generic/enctex/plain-utf8-ec.tex
+ texmf-dist/tex/generic/enctex/polyset.tex
+ texmf-dist/tex/generic/enctex/t1macro.tex
+ texmf-dist/tex/generic/enctex/utf8-csf.tex
+ texmf-dist/tex/generic/enctex/utf8-t1.tex
+ texmf-dist/tex/generic/enctex/utf8cseq.tex
+ texmf-dist/tex/generic/enctex/utf8lat1.tex
+ texmf-dist/tex/generic/enctex/utf8lata.tex
+ texmf-dist/tex/generic/enctex/utf8math.tex
+ texmf-dist/tex/generic/enctex/utf8off.tex
+ texmf-dist/tex/generic/enctex/utf8raw.tex
+ texmf-dist/tex/generic/enctex/utf8unkn.tex
+ texmf-dist/tex/generic/enctex/utf8warn.tex
+catalogue-ctan /systems/enctex
+catalogue-date 2015-08-03 05:43:12 +0200
+catalogue-license gpl
+catalogue-topics engine

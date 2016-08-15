@@ -1,0 +1,49 @@
+name kpathsea
+category TLCore
+revision 41139
+shortdesc Path searching library for TeX-related files
+longdesc Kpathsea is a library and utility programs which provide path
+longdesc searching facilities for TeX file types, including the self-
+longdesc locating feature required for movable installations, layered on
+longdesc top of a general search mechanism. It is not distributed
+longdesc separately, but rather is released and maintained as part of
+longdesc the TeX live sources.
+depend kpathsea.ARCH
+containersize 30500
+containerchecksum f011e2c4e1efc05c5b0f7ed89bc17c29e38c90f88e8ceff4331a7998b919c781856ccfaab08b1702563ee806b57e9bc5700d156d125b7164391a48eb75168d96
+doccontainersize 1135224
+doccontainerchecksum e8e0c97620a6ee8112034f9db1c2af14012b4322d0253fa3917a45769b3a987e182e2ca1c01c5f8132bbaf12f4959ad04ad52b6ad81db07f47c74406ba80a7fd
+runfiles size=50
+ texmf-dist/web2c/amiga-pl.tcx
+ texmf-dist/web2c/cp1250cs.tcx
+ texmf-dist/web2c/cp1250pl.tcx
+ texmf-dist/web2c/cp1250t1.tcx
+ texmf-dist/web2c/cp227.tcx
+ texmf-dist/web2c/cp852-cs.tcx
+ texmf-dist/web2c/cp852-pl.tcx
+ texmf-dist/web2c/cp8bit.tcx
+ texmf-dist/web2c/empty.tcx
+ texmf-dist/web2c/fmtutil.cnf
+ texmf-dist/web2c/il1-t1.tcx
+ texmf-dist/web2c/il2-cs.tcx
+ texmf-dist/web2c/il2-pl.tcx
+ texmf-dist/web2c/il2-t1.tcx
+ texmf-dist/web2c/kam-cs.tcx
+ texmf-dist/web2c/kam-t1.tcx
+ texmf-dist/web2c/macce-pl.tcx
+ texmf-dist/web2c/macce-t1.tcx
+ texmf-dist/web2c/maz-pl.tcx
+ texmf-dist/web2c/mktex.cnf
+ texmf-dist/web2c/mktex.opt
+ texmf-dist/web2c/mktexdir
+ texmf-dist/web2c/mktexdir.opt
+ texmf-dist/web2c/mktexnam
+ texmf-dist/web2c/mktexnam.opt
+ texmf-dist/web2c/mktexupd
+ texmf-dist/web2c/natural.tcx
+ texmf-dist/web2c/tcvn-t5.tcx
+ texmf-dist/web2c/texmf.cnf
+ texmf-dist/web2c/viscii-t5.tcx
+catalogue-date 2015-08-03 05:43:12 +0200
+catalogue-license lgpl
+catalogue-topics sys-supp

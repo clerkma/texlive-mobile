@@ -1,0 +1,37 @@
+name unicode-data
+category Package
+revision 39808
+shortdesc Unicode data and loaders for TeX
+longdesc This bundle provides generic access to Unicode Consortium data
+longdesc for TeX use. It contains a set of text files provided by the
+longdesc Unicode Consortium which are currently all from Unicode 8.0.0,
+longdesc with the exception of MathClass.txt which is not currently part
+longdesc of the Unicode Character Database. Accompanying these source
+longdesc data are generic TeX loader files allowing this data to be used
+longdesc as part of TeX runs, in particular in building format files.
+longdesc Currently there are two loader files: one for general character
+longdesc set up and one for initialising XeTeX character classes as has
+longdesc been carried out to date by unicode-letters.tex. The source
+longdesc data are distributed in accordance with the license stipulated
+longdesc by the Unicode Consortium. The bundle as a whole is co-
+longdesc ordinated by the LaTeX3 Project as a general resource for TeX
+longdesc users.
+containersize 213788
+containerchecksum 7c3c687000e0982ce0619c6bc9bd52a1ea588cc12771e583beb8e5a16662a1f4ee684c1e0f93f84bc7849f0d0827b6b4aea20405f1359cf7fe301afe5718e901
+doccontainersize 3472
+doccontainerchecksum 339ed187bdbb4da376852c746348f8ef831ab7874ffa0d591f3bb46b4a8386f13ac47ec029f60c1b6b2ce774842b76b9399cf17d6297bcdaab5e96f010adcb66
+runfiles size=520
+ texmf-dist/tex/generic/unicode-data/CaseFolding.txt
+ texmf-dist/tex/generic/unicode-data/EastAsianWidth.txt
+ texmf-dist/tex/generic/unicode-data/LineBreak.txt
+ texmf-dist/tex/generic/unicode-data/MathClass.txt
+ texmf-dist/tex/generic/unicode-data/SpecialCasing.txt
+ texmf-dist/tex/generic/unicode-data/UnicodeData.txt
+ texmf-dist/tex/generic/unicode-data/load-unicode-data.tex
+ texmf-dist/tex/generic/unicode-data/load-unicode-math-classes.tex
+ texmf-dist/tex/generic/unicode-data/load-unicode-xetex-classes.tex
+catalogue-ctan /macros/generic/unicode-data
+catalogue-date 2016-02-21 10:11:46 +0100
+catalogue-license lppl1.3
+catalogue-topics latex3
+catalogue-version 1.4a

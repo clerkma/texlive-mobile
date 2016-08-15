@@ -1,0 +1,21 @@
+name babel-english
+category Package
+revision 30264
+shortdesc Babel support for English
+longdesc The package provides the language definition file for support
+longdesc of English in babel. Care is taken to select british
+longdesc hyphenation patterns for British English and Australian text,
+longdesc and default ('american') patterns for Canadian and USA text.
+containersize 2700
+containerchecksum e0ad1121b66cdddfa8aee6316563d63685fa621b8f5809ced56aaf7c40382146aa33428490d30be1650a8903d4ef927a024a27fbead4b5ef4624c6ff1bfed3e3
+doccontainersize 127964
+doccontainerchecksum 9bb8eb35b245c4b37cfa310bb17cbda78f6faa9f29061ee16d940d8db288e61f2f745b6b27d0feb8aa0d03501634b5f9591cb43edfbd0500c91efbc5a324c8f7
+srccontainersize 6076
+srccontainerchecksum 84845385774ba6843b649f247d74e9b28631c513d2c0b6b8390983f96bb0107f1a5077650926a94f0d260c1b572b4bb6199a0ef490f69eeadc4d47463da297d5
+runfiles size=2
+ texmf-dist/tex/generic/babel-english/english.ldf
+catalogue-ctan /macros/latex/contrib/babel-contrib/english
+catalogue-date 2015-08-03 05:43:12 +0200
+catalogue-license lppl1.3
+catalogue-topics english multilingual-addon
+catalogue-version 3.3p

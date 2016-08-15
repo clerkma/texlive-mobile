@@ -1,0 +1,72 @@
+name tetex
+category TLCore
+revision 41059
+shortdesc scripts and files originally written for or included in teTeX
+longdesc teTeX was a comprehensive distribution of TeX, LaTeX and
+longdesc family, designed for ease of compilation, installation and
+longdesc customisation. In 2006, Thomas Esser announced he would no
+longdesc longer be able to support, or to produce new versions of,
+longdesc teTeX. With the appearance of TeX live 2007 (whose Unix-system
+longdesc TeX support originally derived from teTeX), no-one should be
+longdesc using teTeX at all, in new applications. One of the "schemes"
+longdesc available when installing TeX live provides a configuration
+longdesc very close to that of the old teTeX, but using modern versions
+longdesc of programs and packages.
+depend tetex.ARCH
+execute addMap mathpple.map
+containersize 59412
+containerchecksum ed71c9a225e717db74fd552de49a5b9f29da4356dc3ddea1ef26ac73f809b76c1dab9967c5296ccdbdefb781f0c39d81b7a7e48ac2becc4c0635b53e9fa45137
+doccontainersize 501376
+doccontainerchecksum 4de5ae5dd91a977d0586db9608f969aca0bd9c73deb99fba4536490822ed30d9ce5ae14abbb956b516cdd1fe6cad944aaacede1918ce32ee002300ad558544df
+runfiles size=104
+ texmf-dist/dvips/tetex/config.builtin35
+ texmf-dist/dvips/tetex/config.dfaxhigh
+ texmf-dist/dvips/tetex/config.dfaxlo
+ texmf-dist/dvips/tetex/config.download35
+ texmf-dist/dvips/tetex/config.gsftopk
+ texmf-dist/dvips/tetex/config.maxmem
+ texmf-dist/dvips/tetex/config.outline
+ texmf-dist/dvips/tetex/config.pdf
+ texmf-dist/dvips/tetex/config.pk
+ texmf-dist/dvips/tetex/config.www
+ texmf-dist/fonts/enc/dvips/tetex/09fbbfac.enc
+ texmf-dist/fonts/enc/dvips/tetex/0ef0afca.enc
+ texmf-dist/fonts/enc/dvips/tetex/10037936.enc
+ texmf-dist/fonts/enc/dvips/tetex/1b6d048e.enc
+ texmf-dist/fonts/enc/dvips/tetex/71414f53.enc
+ texmf-dist/fonts/enc/dvips/tetex/74afc74c.enc
+ texmf-dist/fonts/enc/dvips/tetex/aae443f0.enc
+ texmf-dist/fonts/enc/dvips/tetex/b6a4d7c7.enc
+ texmf-dist/fonts/enc/dvips/tetex/bbad153f.enc
+ texmf-dist/fonts/enc/dvips/tetex/d9b29452.enc
+ texmf-dist/fonts/enc/dvips/tetex/f7b6d320.enc
+ texmf-dist/fonts/enc/dvips/tetex/mtex.enc
+ texmf-dist/fonts/map/dvips/tetex/Makefile
+ texmf-dist/fonts/map/dvips/tetex/README
+ texmf-dist/fonts/map/dvips/tetex/base14flags.ltx
+ texmf-dist/fonts/map/dvips/tetex/base14flags.tex
+ texmf-dist/fonts/map/dvips/tetex/dvipdfm35.map
+ texmf-dist/fonts/map/dvips/tetex/dvips35.map
+ texmf-dist/fonts/map/dvips/tetex/mathpple.map
+ texmf-dist/fonts/map/dvips/tetex/pdftex35.map
+ texmf-dist/fonts/map/dvips/tetex/ps2pk35.map
+ texmf-dist/scripts/texlive/allcm.sh
+ texmf-dist/scripts/texlive/allneeded.sh
+ texmf-dist/scripts/texlive/dvi2fax.sh
+ texmf-dist/scripts/texlive/dvired.sh
+ texmf-dist/scripts/texlive/fmtutil-sys.sh
+ texmf-dist/scripts/texlive/fmtutil.pl
+ texmf-dist/scripts/texlive/kpsetool.sh
+ texmf-dist/scripts/texlive/kpsewhere.sh
+ texmf-dist/scripts/texlive/mktexlsr.pl
+ texmf-dist/scripts/texlive/texconfig-dialog.sh
+ texmf-dist/scripts/texlive/texconfig-sys.sh
+ texmf-dist/scripts/texlive/texlinks.sh
+ texmf-dist/scripts/texlive/updmap-sys.sh
+ texmf-dist/scripts/texlive/updmap.pl
+ texmf-dist/web2c/updmap.cfg
+catalogue-ctan /obsolete/systems/unix/teTeX
+catalogue-date 2015-08-03 05:43:12 +0200
+catalogue-license other-free
+catalogue-topics distribution obsolete
+catalogue-version 3.0

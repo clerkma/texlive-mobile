@@ -1,0 +1,87 @@
+name babel
+category Package
+revision 40706
+shortdesc Multilingual support for Plain TeX or LaTeX
+longdesc The package manages culturally-determined typographical (and
+longdesc other) rules, and hyphenation patterns for a wide range of
+longdesc languages. A document may select a single language to be
+longdesc supported, or it may select several, in which case the document
+longdesc may switch from one language to another in a variety of ways.
+longdesc Babel uses contributed configuration files that provide the
+longdesc detail of what has to be done for each language. Users of XeTeX
+longdesc are advised to use polyglossia rather than Babel.
+containersize 24176
+containerchecksum 55b121f39898be6458e31932a4d799013337cd453cec6417d42a816a7990bbc8db7cccab21023271023491ab0bdcc41358f015ce5f34815c3dc4418ab0ec53a0
+doccontainersize 397176
+doccontainerchecksum fae6f59695f00fd5afdbd9e5fdcadf69c793a9e0928f02bc975288480d20f7a318a2f223b2b4940aff9bf199717e6f54f12c143b5c85c1e6fdce90c5dad78da1
+srccontainersize 95224
+srccontainerchecksum 1c47638a4868f85f2d77394f483ce249e540d6a482d724997c20f75cbb5b5e389773ff8554269b4b091eb3409178d728efdb7bd9f4084085085db1d60f01c40b
+runfiles size=88
+ texmf-dist/makeindex/babel/bbglo.ist
+ texmf-dist/makeindex/babel/bbind.ist
+ texmf-dist/tex/generic/babel/UKenglish.sty
+ texmf-dist/tex/generic/babel/USenglish.sty
+ texmf-dist/tex/generic/babel/afrikaans.sty
+ texmf-dist/tex/generic/babel/albanian.sty
+ texmf-dist/tex/generic/babel/american.sty
+ texmf-dist/tex/generic/babel/austrian.sty
+ texmf-dist/tex/generic/babel/babel.def
+ texmf-dist/tex/generic/babel/babel.sty
+ texmf-dist/tex/generic/babel/bahasa.sty
+ texmf-dist/tex/generic/babel/bahasam.sty
+ texmf-dist/tex/generic/babel/basque.sty
+ texmf-dist/tex/generic/babel/blplain.tex
+ texmf-dist/tex/generic/babel/bplain.tex
+ texmf-dist/tex/generic/babel/breton.sty
+ texmf-dist/tex/generic/babel/british.sty
+ texmf-dist/tex/generic/babel/bulgarian.sty
+ texmf-dist/tex/generic/babel/catalan.sty
+ texmf-dist/tex/generic/babel/croatian.sty
+ texmf-dist/tex/generic/babel/czech.sty
+ texmf-dist/tex/generic/babel/danish.sty
+ texmf-dist/tex/generic/babel/dutch.sty
+ texmf-dist/tex/generic/babel/english.sty
+ texmf-dist/tex/generic/babel/esperanto.sty
+ texmf-dist/tex/generic/babel/estonian.sty
+ texmf-dist/tex/generic/babel/finnish.sty
+ texmf-dist/tex/generic/babel/francais.sty
+ texmf-dist/tex/generic/babel/galician.sty
+ texmf-dist/tex/generic/babel/germanb.sty
+ texmf-dist/tex/generic/babel/greek.sty
+ texmf-dist/tex/generic/babel/hebrew.sty
+ texmf-dist/tex/generic/babel/hyphen.cfg
+ texmf-dist/tex/generic/babel/icelandic.sty
+ texmf-dist/tex/generic/babel/interlingua.sty
+ texmf-dist/tex/generic/babel/irish.sty
+ texmf-dist/tex/generic/babel/italian.sty
+ texmf-dist/tex/generic/babel/latin.sty
+ texmf-dist/tex/generic/babel/lsorbian.sty
+ texmf-dist/tex/generic/babel/luababel.def
+ texmf-dist/tex/generic/babel/magyar.sty
+ texmf-dist/tex/generic/babel/naustrian.sty
+ texmf-dist/tex/generic/babel/ngermanb.sty
+ texmf-dist/tex/generic/babel/nil.ldf
+ texmf-dist/tex/generic/babel/norsk.sty
+ texmf-dist/tex/generic/babel/plain.def
+ texmf-dist/tex/generic/babel/polish.sty
+ texmf-dist/tex/generic/babel/portuges.sty
+ texmf-dist/tex/generic/babel/romanian.sty
+ texmf-dist/tex/generic/babel/russianb.sty
+ texmf-dist/tex/generic/babel/samin.sty
+ texmf-dist/tex/generic/babel/scottish.sty
+ texmf-dist/tex/generic/babel/serbian.sty
+ texmf-dist/tex/generic/babel/slovak.sty
+ texmf-dist/tex/generic/babel/slovene.sty
+ texmf-dist/tex/generic/babel/spanish.sty
+ texmf-dist/tex/generic/babel/swedish.sty
+ texmf-dist/tex/generic/babel/switch.def
+ texmf-dist/tex/generic/babel/turkish.sty
+ texmf-dist/tex/generic/babel/ukraineb.sty
+ texmf-dist/tex/generic/babel/usorbian.sty
+ texmf-dist/tex/generic/babel/welsh.sty
+ texmf-dist/tex/generic/babel/xebabel.def
+catalogue-ctan /macros/latex/required/babel/base
+catalogue-date 2016-04-23 19:07:15 +0200
+catalogue-license lppl1.3
+catalogue-topics multilingual
+catalogue-version 3.9r
