@@ -1294,24 +1294,25 @@ LOCAL_SRC_FILES  := $(PROG_FILES)
 include $(BUILD_EXECUTABLE)
 
 #for opl2ofm
-#include $(CLEAR_VARS)
-#
-#PROG_ROOT     := ../src/texlive-upstream/texk/web2c
-#PROG_INCLUDES := \
-#$(LOCAL_PATH)/../src/texlive-upstream/texk \
-#$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
-#PROG_FILES :=\
-#$(PROG_ROOT)/opl2ofm.c
-#LOCAL_ARM_NEON   := false
-#LOCAL_STATIC_LIBRARIES  := libn libkpathsea
-#LOCAL_MODULE     := wopl2ofm
-#LOCAL_LDLIBS     := -s -lm
-#LOCAL_CFLAGS     := \
-#-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
-#LOCAL_C_INCLUDES := $(PROG_INCLUDES)
-#LOCAL_SRC_FILES  := $(PROG_FILES)
-#
-#include $(BUILD_EXECUTABLE)
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/opl2ofm.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libn libkpathsea
+LOCAL_MODULE     := wopl2ofm
+LOCAL_LDLIBS     := -s -lm
+LOCAL_DISABLE_FATAL_LINKER_WARNINGS := true
+LOCAL_CFLAGS     := \
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
 
 #for ovf2ovp
 include $(CLEAR_VARS)
@@ -1334,24 +1335,25 @@ LOCAL_SRC_FILES  := $(PROG_FILES)
 include $(BUILD_EXECUTABLE)
 
 #for ovp2ovf
-#include $(CLEAR_VARS)
-#
-#PROG_ROOT     := ../src/texlive-upstream/texk/web2c
-#PROG_INCLUDES := \
-#$(LOCAL_PATH)/../src/texlive-upstream/texk \
-#$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
-#PROG_FILES :=\
-#$(PROG_ROOT)/ovp2ovf.c
-#LOCAL_ARM_NEON   := false
-#LOCAL_STATIC_LIBRARIES  := libn libkpathsea
-#LOCAL_MODULE     := wovp2ovf
-#LOCAL_LDLIBS     := -s -lm
-#LOCAL_CFLAGS     := \
-#-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
-#LOCAL_C_INCLUDES := $(PROG_INCLUDES)
-#LOCAL_SRC_FILES  := $(PROG_FILES)
-#
-#include $(BUILD_EXECUTABLE)
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
+PROG_FILES :=\
+$(PROG_ROOT)/ovp2ovf.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libn libkpathsea
+LOCAL_MODULE     := wovp2ovf
+LOCAL_LDLIBS     := -s -lm
+LOCAL_DISABLE_FATAL_LINKER_WARNINGS := true
+LOCAL_CFLAGS     := \
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
 
 #for aleph
 include $(CLEAR_VARS)
