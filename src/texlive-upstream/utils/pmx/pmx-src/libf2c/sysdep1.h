@@ -9,7 +9,9 @@
 #endif
 
 #ifdef __linux__
+#ifndef __ANDROID__
 #define USE_LARGEFILE
+#endif
 #ifdef __GLIBC__
 #define OFF_T __off64_t
 #else

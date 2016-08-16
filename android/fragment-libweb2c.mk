@@ -3000,3 +3000,577 @@ LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
 include $(BUILD_EXECUTABLE)
+
+#for utils/autosp
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/utils/autosp
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/utils/autosp
+PROG_FILES :=\
+$(PROG_ROOT)/autosp-src/autosp.c\
+$(PROG_ROOT)/autosp-src/utils.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := autosp
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DPACKAGE_NAME=\"autosp\ \(TeX\ Live\)\" \
+-DPACKAGE_TARNAME=\"autosp--tex-live-\" \
+-DPACKAGE_VERSION=\"2016-01-30\" \
+-DPACKAGE_STRING=\"autosp\ \(TeX\ Live\)\ 2016-01-30\" \
+-DPACKAGE_BUGREPORT=\"tex-k@tug.org\" \
+-DPACKAGE_URL=\"\" \
+-DPACKAGE=\"autosp--tex-live-\" \
+-DVERSION=\"2016-01-30\" \
+-DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 \
+-DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 \
+-DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 \
+-DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 \
+-DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 \
+-DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 \
+-DHAVE_STDIO_H=1 -DHAVE_TIME_H=1 \
+-DHAVE_GETOPT_H=1 -DHAVE_CTYPE_H=1 \
+-DHAVE_LIMITS_H=1 -DHAVE__BOOL=1 \
+-DHAVE_STDBOOL_H=1 -DHAVE_STRSTR=1\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for utils/devnag
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/utils/devnag
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/utils/devnag
+PROG_FILES :=\
+$(PROG_ROOT)/src/devnag.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := debnag
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DTEXLIVE\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for utils/lacheck
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/utils/lacheck
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/utils/lacheck
+PROG_FILES :=\
+$(PROG_ROOT)/lacheck.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := lacheck
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H \
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for utils/m-tx
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/utils/m-tx
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/utils/m-tx\
+$(LOCAL_PATH)/../src/texlive-upstream/utils/m-tx/mtx-src/libp2c
+PROG_FILES :=\
+$(PROG_ROOT)/mtx-src/analyze.c \
+$(PROG_ROOT)/mtx-src/cfuncs.c \
+$(PROG_ROOT)/mtx-src/control.c \
+$(PROG_ROOT)/mtx-src/files.c \
+$(PROG_ROOT)/mtx-src/globals.c \
+$(PROG_ROOT)/mtx-src/lyrics.c \
+$(PROG_ROOT)/mtx-src/mtx.c \
+$(PROG_ROOT)/mtx-src/mtxline.c \
+$(PROG_ROOT)/mtx-src/multfile.c \
+$(PROG_ROOT)/mtx-src/notes.c \
+$(PROG_ROOT)/mtx-src/preamble.c \
+$(PROG_ROOT)/mtx-src/prepmx.c \
+$(PROG_ROOT)/mtx-src/status.c \
+$(PROG_ROOT)/mtx-src/uptext.c \
+$(PROG_ROOT)/mtx-src/utility.c 
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := prepmx
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DPACKAGE_NAME=\"m-tx\ \(TeX\ Live\)\" \
+-DPACKAGE_TARNAME=\"m-tx--tex-live-\" \
+-DPACKAGE_VERSION=\"0.62\" \
+-DPACKAGE_STRING=\"m-tx\ \(TeX\ Live\)\ 0.62\" \
+-DPACKAGE_BUGREPORT=\"tex-k@tug.org\" \
+-DPACKAGE_URL=\"\" \
+-DPACKAGE=\"m-tx--tex-live-\" \
+-DVERSION=\"0.62\" \
+-DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 \
+-DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 \
+-DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 \
+-DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 \
+-DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 \
+-DHAVE_MEMORY_H=1 -DHAVE_STDDEF_H=1 \
+-DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 \
+-DHAVE_STRINGS_H=1 -DHAVE_MEMCHR=1 \
+-DHAVE_MEMMOVE=1 -DHAVE_MEMSET=1 \
+-DHAVE_STRCHR=1 -DHAVE_STRRCHR=1 \
+-DHAVE_STRTOL=1 -DNO_DECLARE_MALLOC \
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for pmx/libf2c
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/utils/pmx
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/utils/pmx\
+$(LOCAL_PATH)/../src/texlive-upstream/utils/pmx/pmx-src/libf2c
+PROG_FILES :=\
+$(PROG_ROOT)/pmx-src/libf2c/abort_.c \
+$(PROG_ROOT)/pmx-src/libf2c/cabs.c \
+$(PROG_ROOT)/pmx-src/libf2c/derf_.c \
+$(PROG_ROOT)/pmx-src/libf2c/derfc_.c \
+$(PROG_ROOT)/pmx-src/libf2c/erf_.c \
+$(PROG_ROOT)/pmx-src/libf2c/erfc_.c \
+$(PROG_ROOT)/pmx-src/libf2c/exit_.c \
+$(PROG_ROOT)/pmx-src/libf2c/f77vers.c \
+$(PROG_ROOT)/pmx-src/libf2c/getarg_.c \
+$(PROG_ROOT)/pmx-src/libf2c/getenv_.c \
+$(PROG_ROOT)/pmx-src/libf2c/i77vers.c \
+$(PROG_ROOT)/pmx-src/libf2c/iargc_.c \
+$(PROG_ROOT)/pmx-src/libf2c/main.c \
+$(PROG_ROOT)/pmx-src/libf2c/s_paus.c \
+$(PROG_ROOT)/pmx-src/libf2c/s_rnge.c \
+$(PROG_ROOT)/pmx-src/libf2c/s_stop.c \
+$(PROG_ROOT)/pmx-src/libf2c/sig_die.c \
+$(PROG_ROOT)/pmx-src/libf2c/signal_.c \
+$(PROG_ROOT)/pmx-src/libf2c/system_.c \
+$(PROG_ROOT)/pmx-src/libf2c/pow_ci.c \
+$(PROG_ROOT)/pmx-src/libf2c/pow_dd.c \
+$(PROG_ROOT)/pmx-src/libf2c/pow_di.c \
+$(PROG_ROOT)/pmx-src/libf2c/pow_hh.c \
+$(PROG_ROOT)/pmx-src/libf2c/pow_ii.c \
+$(PROG_ROOT)/pmx-src/libf2c/pow_ri.c \
+$(PROG_ROOT)/pmx-src/libf2c/pow_zi.c \
+$(PROG_ROOT)/pmx-src/libf2c/pow_zz.c \
+$(PROG_ROOT)/pmx-src/libf2c/c_abs.c \
+$(PROG_ROOT)/pmx-src/libf2c/c_cos.c \
+$(PROG_ROOT)/pmx-src/libf2c/c_div.c \
+$(PROG_ROOT)/pmx-src/libf2c/c_exp.c \
+$(PROG_ROOT)/pmx-src/libf2c/c_log.c \
+$(PROG_ROOT)/pmx-src/libf2c/c_sin.c \
+$(PROG_ROOT)/pmx-src/libf2c/c_sqrt.c \
+$(PROG_ROOT)/pmx-src/libf2c/z_abs.c \
+$(PROG_ROOT)/pmx-src/libf2c/z_cos.c \
+$(PROG_ROOT)/pmx-src/libf2c/z_div.c \
+$(PROG_ROOT)/pmx-src/libf2c/z_exp.c \
+$(PROG_ROOT)/pmx-src/libf2c/z_log.c \
+$(PROG_ROOT)/pmx-src/libf2c/z_sin.c \
+$(PROG_ROOT)/pmx-src/libf2c/z_sqrt.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_abs.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_acos.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_asin.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_atan.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_atn2.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_cnjg.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_cos.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_cosh.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_dim.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_exp.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_imag.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_int.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_lg10.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_log.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_mod.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_nint.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_sign.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_sin.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_sinh.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_sqrt.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_tan.c \
+$(PROG_ROOT)/pmx-src/libf2c/r_tanh.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_abs.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_acos.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_asin.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_atan.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_atn2.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_cnjg.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_cos.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_cosh.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_dim.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_exp.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_imag.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_int.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_lg10.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_log.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_mod.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_nint.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_prod.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_sign.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_sin.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_sinh.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_sqrt.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_tan.c \
+$(PROG_ROOT)/pmx-src/libf2c/d_tanh.c \
+$(PROG_ROOT)/pmx-src/libf2c/i_abs.c \
+$(PROG_ROOT)/pmx-src/libf2c/i_dim.c \
+$(PROG_ROOT)/pmx-src/libf2c/i_dnnt.c \
+$(PROG_ROOT)/pmx-src/libf2c/i_indx.c \
+$(PROG_ROOT)/pmx-src/libf2c/i_len.c \
+$(PROG_ROOT)/pmx-src/libf2c/i_mod.c \
+$(PROG_ROOT)/pmx-src/libf2c/i_nint.c \
+$(PROG_ROOT)/pmx-src/libf2c/i_sign.c \
+$(PROG_ROOT)/pmx-src/libf2c/lbitbits.c \
+$(PROG_ROOT)/pmx-src/libf2c/lbitshft.c \
+$(PROG_ROOT)/pmx-src/libf2c/h_abs.c \
+$(PROG_ROOT)/pmx-src/libf2c/h_dim.c \
+$(PROG_ROOT)/pmx-src/libf2c/h_dnnt.c \
+$(PROG_ROOT)/pmx-src/libf2c/h_indx.c \
+$(PROG_ROOT)/pmx-src/libf2c/h_len.c \
+$(PROG_ROOT)/pmx-src/libf2c/h_mod.c \
+$(PROG_ROOT)/pmx-src/libf2c/h_nint.c \
+$(PROG_ROOT)/pmx-src/libf2c/h_sign.c \
+$(PROG_ROOT)/pmx-src/libf2c/hl_ge.c \
+$(PROG_ROOT)/pmx-src/libf2c/hl_gt.c \
+$(PROG_ROOT)/pmx-src/libf2c/hl_le.c \
+$(PROG_ROOT)/pmx-src/libf2c/hl_lt.c \
+$(PROG_ROOT)/pmx-src/libf2c/l_ge.c \
+$(PROG_ROOT)/pmx-src/libf2c/l_gt.c \
+$(PROG_ROOT)/pmx-src/libf2c/l_le.c \
+$(PROG_ROOT)/pmx-src/libf2c/l_lt.c \
+$(PROG_ROOT)/pmx-src/libf2c/ef1asc_.c \
+$(PROG_ROOT)/pmx-src/libf2c/ef1cmc_.c \
+$(PROG_ROOT)/pmx-src/libf2c/f77_aloc.c \
+$(PROG_ROOT)/pmx-src/libf2c/s_cat.c \
+$(PROG_ROOT)/pmx-src/libf2c/s_cmp.c \
+$(PROG_ROOT)/pmx-src/libf2c/s_copy.c \
+$(PROG_ROOT)/pmx-src/libf2c/backspac.c \
+$(PROG_ROOT)/pmx-src/libf2c/close.c \
+$(PROG_ROOT)/pmx-src/libf2c/dfe.c \
+$(PROG_ROOT)/pmx-src/libf2c/dolio.c \
+$(PROG_ROOT)/pmx-src/libf2c/due.c \
+$(PROG_ROOT)/pmx-src/libf2c/endfile.c \
+$(PROG_ROOT)/pmx-src/libf2c/err.c \
+$(PROG_ROOT)/pmx-src/libf2c/fmt.c \
+$(PROG_ROOT)/pmx-src/libf2c/fmtlib.c \
+$(PROG_ROOT)/pmx-src/libf2c/ftell_.c \
+$(PROG_ROOT)/pmx-src/libf2c/iio.c \
+$(PROG_ROOT)/pmx-src/libf2c/ilnw.c \
+$(PROG_ROOT)/pmx-src/libf2c/inquire.c \
+$(PROG_ROOT)/pmx-src/libf2c/lread.c \
+$(PROG_ROOT)/pmx-src/libf2c/lwrite.c \
+$(PROG_ROOT)/pmx-src/libf2c/open.c \
+$(PROG_ROOT)/pmx-src/libf2c/rdfmt.c \
+$(PROG_ROOT)/pmx-src/libf2c/rewind.c \
+$(PROG_ROOT)/pmx-src/libf2c/rsfe.c \
+$(PROG_ROOT)/pmx-src/libf2c/rsli.c \
+$(PROG_ROOT)/pmx-src/libf2c/rsne.c \
+$(PROG_ROOT)/pmx-src/libf2c/sfe.c \
+$(PROG_ROOT)/pmx-src/libf2c/sue.c \
+$(PROG_ROOT)/pmx-src/libf2c/typesize.c \
+$(PROG_ROOT)/pmx-src/libf2c/uio.c \
+$(PROG_ROOT)/pmx-src/libf2c/util.c \
+$(PROG_ROOT)/pmx-src/libf2c/wref.c \
+$(PROG_ROOT)/pmx-src/libf2c/wrtfmt.c \
+$(PROG_ROOT)/pmx-src/libf2c/wsfe.c \
+$(PROG_ROOT)/pmx-src/libf2c/wsle.c \
+$(PROG_ROOT)/pmx-src/libf2c/wsne.c \
+$(PROG_ROOT)/pmx-src/libf2c/xwsne.c \
+$(PROG_ROOT)/pmx-src/libf2c/dtime_.c \
+$(PROG_ROOT)/pmx-src/libf2c/etime_.c
+LOCAL_ARM_NEON   := false
+LOCAL_MODULE     := libpmxf2c
+LOCAL_CFLAGS     := \
+-DPACKAGE_NAME=\"pmx\ \(TeX\ Live\)\" \
+-DPACKAGE_TARNAME=\"pmx--tex-live-\" \
+-DPACKAGE_VERSION=\"2.7.3\" \
+-DPACKAGE_STRING=\"pmx\ \(TeX\ Live\)\ 2.7.3\" \
+-DPACKAGE_BUGREPORT=\"tex-k@tug.org\" \
+-DPACKAGE_URL=\"\" \
+-DPACKAGE=\"pmx--tex-live-\" -DVERSION=\"2.7.3\" \
+-DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 \
+-DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 \
+-DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 \
+-DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 \
+-DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 \
+-DSIZEOF_LONG_LONG=8 -DNON_UNIX_STDIO\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_STATIC_LIBRARY)
+
+#for pmx/pmxab
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/utils/pmx
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/utils/pmx\
+$(LOCAL_PATH)/../src/texlive-upstream/utils/pmx/pmx-src/libf2c
+PROG_FILES :=\
+$(PROG_ROOT)/pmx-src/pmxab.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libpmxf2c libkpathsea
+LOCAL_MODULE     := pmxab
+LOCAL_CFLAGS     := \
+-DPACKAGE_NAME=\"pmx\ \(TeX\ Live\)\" \
+-DPACKAGE_TARNAME=\"pmx--tex-live-\" \
+-DPACKAGE_VERSION=\"2.7.3\" \
+-DPACKAGE_STRING=\"pmx\ \(TeX\ Live\)\ 2.7.3\" \
+-DPACKAGE_BUGREPORT=\"tex-k@tug.org\" \
+-DPACKAGE_URL=\"\" \
+-DPACKAGE=\"pmx--tex-live-\" -DVERSION=\"2.7.3\" \
+-DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 \
+-DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 \
+-DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 \
+-DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 \
+-DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 \
+-DSIZEOF_LONG_LONG=8 -DNON_UNIX_STDIO\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for pmx/scor2prt
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/utils/pmx
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/utils/pmx\
+$(LOCAL_PATH)/../src/texlive-upstream/utils/pmx/pmx-src/libf2c
+PROG_FILES :=\
+$(PROG_ROOT)/pmx-src/scor2prt.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libpmxf2c libkpathsea
+LOCAL_MODULE     := scor2prt
+LOCAL_CFLAGS     := \
+-DPACKAGE_NAME=\"pmx\ \(TeX\ Live\)\" \
+-DPACKAGE_TARNAME=\"pmx--tex-live-\" \
+-DPACKAGE_VERSION=\"2.7.3\" \
+-DPACKAGE_STRING=\"pmx\ \(TeX\ Live\)\ 2.7.3\" \
+-DPACKAGE_BUGREPORT=\"tex-k@tug.org\" \
+-DPACKAGE_URL=\"\" \
+-DPACKAGE=\"pmx--tex-live-\" -DVERSION=\"2.7.3\" \
+-DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 \
+-DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 \
+-DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 \
+-DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 \
+-DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 \
+-DSIZEOF_LONG_LONG=8 -DNON_UNIX_STDIO\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for utils/ps2eps
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/utils/ps2eps
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/utils/ps2eps
+PROG_FILES :=\
+$(PROG_ROOT)/ps2eps-src/src/C/bbox.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := bbox
+LOCAL_CFLAGS     := \
+-DPACKAGE_NAME=\"ps2eps\ \(TeX\ Live\)\" \
+-DPACKAGE_TARNAME=\"ps2eps--tex-live-\" \
+-DPACKAGE_VERSION=\"1.68\" \
+-DPACKAGE_STRING=\"ps2eps\ \(TeX\ Live\)\ 1.68\" \
+-DPACKAGE_BUGREPORT=\"tex-k@tug.org\" \
+-DPACKAGE_URL=\"\" \
+-DPACKAGE=\"ps2eps--tex-live-\" \
+-DVERSION=\"1.68\" \
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for utils/t1utils
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/utils/t1utils
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/utils/t1utils\
+$(LOCAL_PATH)/../src/texlive-upstream/utils/t1utils/t1utils-src/include
+PROG_FILES :=\
+$(PROG_ROOT)/t1utils-src/clp.c \
+$(PROG_ROOT)/t1utils-src/t1lib.c \
+$(PROG_ROOT)/t1utils-src/t1ascii.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := t1ascii
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for utils/t1utils
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/utils/t1utils
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/utils/t1utils\
+$(LOCAL_PATH)/../src/texlive-upstream/utils/t1utils/t1utils-src/include
+PROG_FILES :=\
+$(PROG_ROOT)/t1utils-src/clp.c \
+$(PROG_ROOT)/t1utils-src/t1lib.c \
+$(PROG_ROOT)/t1utils-src/t1binary.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := t1binary
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for utils/t1utils
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/utils/t1utils
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/utils/t1utils\
+$(LOCAL_PATH)/../src/texlive-upstream/utils/t1utils/t1utils-src/include
+PROG_FILES :=\
+$(PROG_ROOT)/t1utils-src/clp.c \
+$(PROG_ROOT)/t1utils-src/t1lib.c \
+$(PROG_ROOT)/t1utils-src/t1asm.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := t1asm
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for utils/t1utils
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/utils/t1utils
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/utils/t1utils\
+$(LOCAL_PATH)/../src/texlive-upstream/utils/t1utils/t1utils-src/include
+PROG_FILES :=\
+$(PROG_ROOT)/t1utils-src/clp.c \
+$(PROG_ROOT)/t1utils-src/t1lib.c \
+$(PROG_ROOT)/t1utils-src/t1disasm.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := t1disasm
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for utils/t1utils
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/utils/t1utils
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/utils/t1utils\
+$(LOCAL_PATH)/../src/texlive-upstream/utils/t1utils/t1utils-src/include
+PROG_FILES :=\
+$(PROG_ROOT)/t1utils-src/clp.c \
+$(PROG_ROOT)/t1utils-src/t1lib.c \
+$(PROG_ROOT)/t1utils-src/t1unmac.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := t1unmac
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for utils/t1utils
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/utils/t1utils
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/utils/t1utils\
+$(LOCAL_PATH)/../src/texlive-upstream/utils/t1utils/t1utils-src/include
+PROG_FILES :=\
+$(PROG_ROOT)/t1utils-src/clp.c \
+$(PROG_ROOT)/t1utils-src/t1lib.c \
+$(PROG_ROOT)/t1utils-src/t1mac.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := t1mac
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H\
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for utils/vlna
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/utils/vlna
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/utils/vlna
+PROG_FILES :=\
+$(PROG_ROOT)/vlna.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea
+LOCAL_MODULE     := vlna
+LOCAL_CFLAGS     := \
+-DPACKAGE_NAME=\"vlna\ \(TeX\ Live\)\" \
+-DPACKAGE_TARNAME=\"vlna--tex-live-\" \
+-DPACKAGE_VERSION=\"1.5\" \
+-DPACKAGE_STRING=\"vlna\ \(TeX\ Live\)\ 1.5\" \
+-DPACKAGE_BUGREPORT=\"tex-live@tug.org\" \
+-DPACKAGE_URL=\"\" \
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
