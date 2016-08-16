@@ -459,6 +459,28 @@ getpass (const char *prompt)
   return pwd_buf;
 }
 #endif
+#ifdef __ANDROID__
+static char *
+getpass (const char *prompt)
+{
+  static char pwd_buf[128];
+  size_t i;
+
+  fputs(prompt, stderr);
+  fflush(stderr);
+  for (i = 0; i < sizeof(pwd_buf)-1; i++) {
+    pwd_buf[i] = getchar();
+    if (pwd_buf[i] == '\r' || pwd_buf[i] == '\n')
+      break;
+    fputs("*", stderr);
+    fflush(stderr);
+  }
+  pwd_buf[i] = '\0';
+  fputs("\n", stderr);
+  return pwd_buf;
+}
+#endif
+
 
 static void
 check_version (struct pdf_sec *p, int version)

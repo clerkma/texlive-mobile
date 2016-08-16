@@ -1744,6 +1744,101 @@ LOCAL_SRC_FILES  := $(PROG_FILES)
 
 include $(BUILD_EXECUTABLE)
 
+# for DVIPDFMX
+include $(CLEAR_VARS)
+
+DVIPDFMX_ROOT     := ../src/texlive-upstream/texk/dvipdfm-x
+DVIPDFMX_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/ \
+$(LOCAL_PATH)/../src/texlive-upstream/texk/dvipdfm-x \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpng/include \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpaper/include
+
+DVIPDFMX_FILES := \
+$(DVIPDFMX_ROOT)/agl.c \
+$(DVIPDFMX_ROOT)/bmpimage.c \
+$(DVIPDFMX_ROOT)/cff.c \
+$(DVIPDFMX_ROOT)/cff_dict.c \
+$(DVIPDFMX_ROOT)/cid.c \
+$(DVIPDFMX_ROOT)/cidtype0.c \
+$(DVIPDFMX_ROOT)/cidtype2.c \
+$(DVIPDFMX_ROOT)/cmap.c \
+$(DVIPDFMX_ROOT)/cmap_read.c \
+$(DVIPDFMX_ROOT)/cmap_write.c \
+$(DVIPDFMX_ROOT)/cs_type2.c \
+$(DVIPDFMX_ROOT)/dpxconf.c \
+$(DVIPDFMX_ROOT)/dpxcrypt.c \
+$(DVIPDFMX_ROOT)/dpxfile.c \
+$(DVIPDFMX_ROOT)/dpxutil.c \
+$(DVIPDFMX_ROOT)/dvi.c \
+$(DVIPDFMX_ROOT)/dvipdfmx.c \
+$(DVIPDFMX_ROOT)/epdf.c \
+$(DVIPDFMX_ROOT)/error.c \
+$(DVIPDFMX_ROOT)/fontmap.c \
+$(DVIPDFMX_ROOT)/jp2image.c \
+$(DVIPDFMX_ROOT)/jpegimage.c \
+$(DVIPDFMX_ROOT)/mem.c \
+$(DVIPDFMX_ROOT)/mfileio.c \
+$(DVIPDFMX_ROOT)/mpost.c \
+$(DVIPDFMX_ROOT)/numbers.c \
+$(DVIPDFMX_ROOT)/otl_conf.c \
+$(DVIPDFMX_ROOT)/otl_opt.c \
+$(DVIPDFMX_ROOT)/pdfcolor.c \
+$(DVIPDFMX_ROOT)/pdfdev.c \
+$(DVIPDFMX_ROOT)/pdfdoc.c \
+$(DVIPDFMX_ROOT)/pdfdraw.c \
+$(DVIPDFMX_ROOT)/pdfencrypt.c \
+$(DVIPDFMX_ROOT)/pdfencoding.c \
+$(DVIPDFMX_ROOT)/pdffont.c \
+$(DVIPDFMX_ROOT)/pdfnames.c \
+$(DVIPDFMX_ROOT)/pdfobj.c \
+$(DVIPDFMX_ROOT)/pdfparse.c \
+$(DVIPDFMX_ROOT)/pdfresource.c \
+$(DVIPDFMX_ROOT)/pdfximage.c \
+$(DVIPDFMX_ROOT)/pkfont.c \
+$(DVIPDFMX_ROOT)/pngimage.c \
+$(DVIPDFMX_ROOT)/pst.c \
+$(DVIPDFMX_ROOT)/pst_obj.c \
+$(DVIPDFMX_ROOT)/sfnt.c \
+$(DVIPDFMX_ROOT)/spc_color.c \
+$(DVIPDFMX_ROOT)/spc_dvipdfmx.c \
+$(DVIPDFMX_ROOT)/spc_dvips.c \
+$(DVIPDFMX_ROOT)/spc_html.c \
+$(DVIPDFMX_ROOT)/spc_misc.c \
+$(DVIPDFMX_ROOT)/spc_pdfm.c \
+$(DVIPDFMX_ROOT)/spc_tpic.c \
+$(DVIPDFMX_ROOT)/spc_util.c \
+$(DVIPDFMX_ROOT)/spc_xtx.c \
+$(DVIPDFMX_ROOT)/specials.c \
+$(DVIPDFMX_ROOT)/subfont.c \
+$(DVIPDFMX_ROOT)/t1_char.c \
+$(DVIPDFMX_ROOT)/t1_load.c \
+$(DVIPDFMX_ROOT)/tfm.c \
+$(DVIPDFMX_ROOT)/truetype.c \
+$(DVIPDFMX_ROOT)/tt_aux.c \
+$(DVIPDFMX_ROOT)/tt_cmap.c \
+$(DVIPDFMX_ROOT)/tt_glyf.c \
+$(DVIPDFMX_ROOT)/tt_gsub.c \
+$(DVIPDFMX_ROOT)/tt_post.c \
+$(DVIPDFMX_ROOT)/tt_table.c \
+$(DVIPDFMX_ROOT)/type0.c \
+$(DVIPDFMX_ROOT)/type1.c \
+$(DVIPDFMX_ROOT)/type1c.c \
+$(DVIPDFMX_ROOT)/unicode.c \
+$(DVIPDFMX_ROOT)/vf.c \
+$(DVIPDFMX_ROOT)/xbb.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libkpathsea libpaper libpng libz
+LOCAL_MODULE     := xdvipdfmx
+LOCAL_CFLAGS     :=\
+-Wimplicit -Wreturn-type -Wdeclaration-after-statement\
+-Wno-unknown-pragmas -DHAVE_CONFIG_H -DMAKE_KPSE_DLL -O2
+LOCAL_C_INCLUDES := $(DVIPDFMX_INCLUDES)
+LOCAL_SRC_FILES  := $(DVIPDFMX_FILES)
+
+include $(BUILD_EXECUTABLE)
+
 #for dvipsk/afm2tfm
 include $(CLEAR_VARS)
 
