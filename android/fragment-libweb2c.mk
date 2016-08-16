@@ -1254,6 +1254,55 @@ LOCAL_SRC_FILES  := $(PROG_FILES)
 
 include $(BUILD_STATIC_LIBRARY)
 
+#for xetex
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/w2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/libmd5\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/xetexdir\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/icu/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/freetype2/freetype2 \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/teckit/include \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/harfbuzz/include \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/graphite2/include \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/poppler/include \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpng/include
+PROG_FILES :=\
+$(PROG_ROOT)/xetexdir/XeTeXFontInst.cpp \
+$(PROG_ROOT)/xetexdir/XeTeXFontMgr.cpp \
+$(PROG_ROOT)/xetexdir/XeTeXLayoutInterface.cpp \
+$(PROG_ROOT)/xetexdir/XeTeXOTMath.cpp \
+$(PROG_ROOT)/xetexdir/XeTeX_ext.c \
+$(PROG_ROOT)/xetexdir/XeTeX_pic.c \
+$(PROG_ROOT)/xetexdir/trans.c \
+$(PROG_ROOT)/xetexdir/hz.cpp \
+$(PROG_ROOT)/xetexdir/pdfimage.cpp \
+$(PROG_ROOT)/xetexdir/image/bmpimage.c \
+$(PROG_ROOT)/xetexdir/image/jpegimage.c \
+$(PROG_ROOT)/xetexdir/image/mfileio.c \
+$(PROG_ROOT)/xetexdir/image/numbers.c \
+$(PROG_ROOT)/xetexdir/image/pngimage.c \
+$(PROG_ROOT)/xetexdir/XeTeXFontMgr_FC.cpp \
+$(PROG_ROOT)/xetexdir/xetexextra.c \
+$(PROG_ROOT)/synctexdir/synctex.c \
+$(PROG_ROOT)/xetexini.c \
+$(PROG_ROOT)/xete0.c \
+$(PROG_ROOT)/xetex-pool.c
+LOCAL_ARM_NEON   := false
+LOCAL_MODULE     := xetex
+LOCAL_CFLAGS     :=\
+-DHAVE_CONFIG_H -DGRAPHITE2_STATIC \
+-Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_STATIC_LIBRARY)
+
 #for odvitype
 include $(CLEAR_VARS)
 
