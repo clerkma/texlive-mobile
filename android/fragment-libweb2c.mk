@@ -80,6 +80,7 @@ include fragment-gd.mk
 include fragment-libpng.mk
 include fragment-expat.mk
 include fragment-xpdf.mk
+include fragment-teckit.mk
 
 #for tangle
 include $(CLEAR_VARS)
