@@ -120,7 +120,7 @@
 #define HAVE_UNISTD_H 1
 
 /* Define to 1 if the system has the type `__uint128_t'. */
-#define HAVE___UINT128_T 1
+//#define HAVE___UINT128_T 1
 
 /* Name of package */
 #define PACKAGE "cairo--tex-live-"

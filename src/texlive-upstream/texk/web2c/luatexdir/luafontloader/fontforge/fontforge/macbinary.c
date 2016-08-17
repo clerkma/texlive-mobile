@@ -25,6 +25,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "fontforgevw.h"
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>

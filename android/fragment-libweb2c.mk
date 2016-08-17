@@ -76,11 +76,18 @@ include fragment-ptexenc.mk
 include fragment-libpaper.mk
 include fragment-freetype2.mk
 include fragment-zlib.mk
+include fragment-zzip.mk
 include fragment-gd.mk
 include fragment-libpng.mk
 include fragment-expat.mk
 include fragment-xpdf.mk
 include fragment-teckit.mk
+include fragment-pixman.mk
+include fragment-cairo.mk
+include fragment-gmp.mk
+include fragment-mpfr.mk
+include fragment-lua52.mk
+include fragment-poppler.mk
 
 #for tangle
 include $(CLEAR_VARS)
@@ -1068,6 +1075,77 @@ LOCAL_SRC_FILES  := $(PROG_FILES)
 
 include $(BUILD_STATIC_LIBRARY)
 
+#for libmplib
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/w2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/mplibdir\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/mpfr/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/gmp/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/cairo/cairo\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/pixman/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zziplib/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/poppler/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpng/include
+PROG_FILES :=\
+$(PROG_ROOT)/tfmin.c \
+$(PROG_ROOT)/mp.c \
+$(PROG_ROOT)/mpmath.c \
+$(PROG_ROOT)/mpmathbinary.c \
+$(PROG_ROOT)/mpmathdecimal.c \
+$(PROG_ROOT)/mpmathdouble.c \
+$(PROG_ROOT)/mpstrings.c \
+$(PROG_ROOT)/pngout.c \
+$(PROG_ROOT)/psout.c \
+$(PROG_ROOT)/svgout.c
+LOCAL_ARM_NEON   := false
+LOCAL_MODULE     := libmplib
+LOCAL_CFLAGS     :=\
+-DHAVE_CONFIG_H -DLUA_COMPAT_MODULE -DLUAI_HASHLIMIT=6 \
+-DLUA_USE_POSIX -DLUA_USE_DLOPEN\
+-Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_STATIC_LIBRARY)
+
+#for libmputil
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/w2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/mplibdir\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/mpfr/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/gmp/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/cairo/cairo\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/pixman/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zziplib/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/poppler/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpng/include
+PROG_FILES :=\
+$(PROG_ROOT)/mplibdir/avl.c \
+$(PROG_ROOT)/mplibdir/decNumber.c \
+$(PROG_ROOT)/mplibdir/decContext.c
+LOCAL_ARM_NEON   := false
+LOCAL_MODULE     := libmputil
+LOCAL_CFLAGS     :=\
+-DHAVE_CONFIG_H -DLUA_COMPAT_MODULE -DLUAI_HASHLIMIT=6 \
+-DLUA_USE_POSIX -DLUA_USE_DLOPEN\
+-Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_STATIC_LIBRARY)
+
 #for luatex/misc
 include $(CLEAR_VARS)
 
@@ -1114,12 +1192,15 @@ PROG_ROOT     := ../src/texlive-upstream/texk/web2c
 PROG_INCLUDES :=\
 $(LOCAL_PATH)/../src/texlive-upstream/texk\
 $(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/libmd5\
 $(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/w2c\
 $(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir\
 $(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/unilib\
 $(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/luafontloader/fontforge/inc\
 $(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/luafontloader/fontforge/fontforge\
 $(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/luasocket\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/mplibdir\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/synctexdir\
 $(LOCAL_PATH)/../src/texlive-upstream/libs/lua52/include\
 $(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include\
 $(LOCAL_PATH)/../src/texlive-upstream/libs/zziplib/include\
@@ -1127,6 +1208,7 @@ $(LOCAL_PATH)/../src/texlive-upstream/libs/poppler/include\
 $(LOCAL_PATH)/../src/texlive-upstream/libs/libpng/include
 PROG_FILES :=\
 $(PROG_ROOT)/luatexdir/lua/lstrlibext.c \
+$(PROG_ROOT)/luastuff.c \
 $(PROG_ROOT)/texluac.c \
 $(PROG_ROOT)/luatexdir/luafontloader/src/ffdummies.c\
 $(PROG_ROOT)/luatexdir/luafontloader/src/luafflib.c \
@@ -1244,6 +1326,7 @@ $(PROG_ROOT)/unistring.c
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libcoreluatex
 LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H \
 -DpdfTeX\
 -DPDF_PARSER_ONLY -D__SyncTeX__ -DSYNCTEX_ENGINE_H='<synctex-luatex.h>'\
 -DLUA_COMPAT_MODULE -DLUAI_HASHLIMIT=6 -DLUA_USE_POSIX -DLUA_USE_DLOPEN\
@@ -1253,6 +1336,50 @@ LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
 include $(BUILD_STATIC_LIBRARY)
+
+#libpixman libcairo libgmp libmpfr libpoppler libzzip
+#for luatex/unilib
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/w2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/unilib\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/luafontloader/fontforge/inc\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/luafontloader/fontforge/fontforge\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/luatexdir/luasocket\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/mplibdir\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/synctexdir\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/lua52/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zziplib/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/poppler/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpng/include
+PROG_FILES :=\
+$(PROG_ROOT)/luatexdir/luatex.c \
+$(PROG_ROOT)/mplibdir/lmplib.c \
+$(PROG_ROOT)/libmd5/md5.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := \
+libmplib libmputil libcoreluatex libluatexff \
+libluatexmisc libluatexsocket libmpfr libgmp\
+liblua52 libcairo libpixman libzzip libpng\
+libz libpoppler libn libkpathsea libluatexuni
+LOCAL_MODULE     := luatex
+LOCAL_CFLAGS     :=\
+-DHAVE_CONFIG_H \
+-DLUA_COMPAT_MODULE -DLUAI_HASHLIMIT=6 \
+-DLUA_USE_POSIX -DLUA_USE_DLOPEN \
+-DpdfTeX -Dextra_version_info=`date +-%Y%m%d%H` \
+-DSYNCTEX_ENGINE_H='<synctex-luatex.h>' \
+-Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
 
 #for xetex
 include $(CLEAR_VARS)

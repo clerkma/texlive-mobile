@@ -9,7 +9,7 @@
 #define HAVE_INTTYPES_H 1
 
 /* Define to 1 if you have the <langinfo_h> header file. */
-#define HAVE_LANGINFO_H 1
+//#define HAVE_LANGINFO_H 1
 
 /* Define to 1 if the system has the type `long double'. */
 #define HAVE_LONG_DOUBLE 1
