@@ -782,15 +782,8 @@ struct stat source_stat,target_stat;
 #if HAVE_SYS_STAT_H
 if(stat(target,&target_stat)<0)return 0;
 if(stat(source,&source_stat)<0)return 1;
-#if HAVE_STRUCT_STAT_ST_MTIM
-if(source_stat.st_mtim.tv_sec> target_stat.st_mtim.tv_sec||
-(source_stat.st_mtim.tv_sec==target_stat.st_mtim.tv_sec&&
-source_stat.st_mtim.tv_nsec>=target_stat.st_mtim.tv_nsec))
-return 0;
-#else
 if(source_stat.st_mtime>=target_stat.st_mtime)
 return 0;
-#endif
 #endif
 return 1;
 }

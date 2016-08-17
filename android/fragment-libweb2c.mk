@@ -1146,6 +1146,37 @@ LOCAL_SRC_FILES  := $(PROG_FILES)
 
 include $(BUILD_STATIC_LIBRARY)
 
+#for mpost
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/web2c
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/w2c\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/web2c/mplibdir\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/mpfr/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/gmp/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/cairo/cairo\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/pixman/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpng/include
+PROG_FILES :=\
+$(PROG_ROOT)/mpost.c \
+$(PROG_ROOT)/mpxout.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := \
+libmplib libmputil libmpfr libgmp libcairo libpixman\
+libpng libz libkpathsea
+LOCAL_MODULE     := mpost
+LOCAL_CFLAGS     :=\
+-DHAVE_CONFIG_H \
+-Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
 #for luatex/misc
 include $(CLEAR_VARS)
 
