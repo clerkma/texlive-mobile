@@ -101,7 +101,7 @@ void EPSToSVG::progress (const char *id) {
 	if (draw && ((System::time() - time > 0.05) || id == 0)) {
 		const size_t DIGITS=6;
 		Message::mstream(false, Message::MC_PROGRESS)
-			<< string(DIGITS-min(DIGITS, static_cast<size_t>(log10(count))), ' ')
+			<< string(DIGITS-min(DIGITS, static_cast<size_t>(log10((double)count))), ' ')
 			<< count << " PostScript instructions processed\r";
 		// overprint indicator when finished
 		if (id == 0) {

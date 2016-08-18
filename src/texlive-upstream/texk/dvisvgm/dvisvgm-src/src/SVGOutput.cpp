@@ -19,6 +19,7 @@
 *************************************************************************/
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <iomanip>
 #include <iostream>

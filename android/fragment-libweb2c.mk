@@ -88,6 +88,9 @@ include fragment-gmp.mk
 include fragment-mpfr.mk
 include fragment-lua52.mk
 include fragment-poppler.mk
+include fragment-graphite2.mk
+include fragment-harfbuzz.mk
+include fragment-libpotrace.mk
 
 #for tangle
 include $(CLEAR_VARS)
@@ -2114,6 +2117,123 @@ LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := \
 -DHAVE_CONFIG_H -DUNIX -DSHIFTLOWCHARS -DKPATHSEA\
 -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for dvisvgm
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/dvisvgm
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/dvisvgm\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/dvisvgm/dvisvgm-src/clipper\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/dvisvgm/dvisvgm-src/src\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/dvisvgm/dvisvgm-src/xxHash\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/potrace/include\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/freetype2/freetype2\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include
+PROG_FILES :=\
+$(PROG_ROOT)/dvisvgm-src/src/BasicDVIReader.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/Bezier.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/BgColorSpecialHandler.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/Bitmap.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/BoundingBox.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/CMap.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/CMapManager.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/CMapReader.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/CRC32.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/Calculator.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/CharMapID.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/CmdLineParserBase.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/Color.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/ColorSpecialHandler.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/CommandLine.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/DVIReader.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/DVIToSVG.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/DVIToSVGActions.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/Directory.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/DvisvgmSpecialHandler.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/EPSFile.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/EPSToSVG.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/EmSpecialHandler.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/EncFile.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/FileFinder.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/FilePath.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/FileSystem.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/Font.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/FontCache.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/FontEncoding.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/FontEngine.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/FontManager.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/FontMap.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/FontMetrics.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/GFReader.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/GFGlyphTracer.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/GFTracer.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/Ghostscript.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/HtmlSpecialHandler.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/InputBuffer.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/InputReader.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/JFM.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/Length.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/MapLine.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/Matrix.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/Message.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/MetafontWrapper.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/NoPsSpecialHandler.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/PapersizeSpecialHandler.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/PSInterpreter.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/PSPattern.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/PSPreviewFilter.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/PdfSpecialHandler.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/PageRanges.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/PageSize.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/PathClipper.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/PreScanDVIReader.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/Process.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/PsSpecialHandler.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/psdefs.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/RangeMap.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/SVGCharHandler.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/SVGCharHandlerFactory.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/SVGCharPathHandler.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/SVGCharTspanTextHandler.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/SVGOutput.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/SVGSingleCharTextHandler.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/SVGTree.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/ShadingPatch.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/SignalHandler.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/SpecialManager.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/StreamReader.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/StreamWriter.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/Subfont.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/System.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/TFM.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/TensorProductPatch.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/Terminal.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/ToUnicodeMap.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/TpicSpecialHandler.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/TriangularPatch.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/Unicode.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/VFReader.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/XMLDocument.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/XMLNode.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/XMLString.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/DLLoader.cpp \
+$(PROG_ROOT)/dvisvgm-src/clipper/clipper.cpp \
+$(PROG_ROOT)/dvisvgm-src/xxHash/xxhash.c \
+$(PROG_ROOT)/dvisvgm-src/src/dvisvgm.cpp \
+$(PROG_ROOT)/dvisvgm-src/src/gzstream.cpp
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := libpotrace libfreetype libkpathsea libz
+LOCAL_MODULE     := dvisvgm
+LOCAL_LDLIBS     := -s -lm
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H \
+-Wreturn-type -fexceptions -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 

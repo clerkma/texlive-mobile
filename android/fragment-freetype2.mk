@@ -24,6 +24,7 @@ $(LOCAL_PATH)/../src/texlive-upstream/libs/freetype2/freetype-src/include
 LIBFREETYPE_FILES   := \
 $(LIBFREETYPE_ROOT)/src/base/ftbase.c \
 $(LIBFREETYPE_ROOT)/src/base/ftbbox.c \
+$(LIBFREETYPE_ROOT)/src/base/ftcid.c \
 $(LIBFREETYPE_ROOT)/src/base/ftbitmap.c \
 $(LIBFREETYPE_ROOT)/src/base/ftfntfmt.c \
 $(LIBFREETYPE_ROOT)/src/base/ftgasp.c \
@@ -54,7 +55,9 @@ $(LIBFREETYPE_ROOT)/src/type1/type1.c
 
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libfreetype
-LOCAL_CFLAGS     := -DHAVE_CONFIG_H -DFT2_BUILD_LIBRARY -O2
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H  \
+-DFT2_BUILD_LIBRARY -O2
 LOCAL_C_INCLUDES := $(LIBFREETYPE_INCLUDES)
 LOCAL_SRC_FILES  := $(LIBFREETYPE_FILES)
 

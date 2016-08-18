@@ -15,33 +15,52 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301 USA.
 
-$(GRAPHITE2_PATH)/graphite2-src/src/CachedFace.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/CmapCache.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/Code.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/Collider.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/Decompressor.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/Face.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/FeatureMap.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/Font.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/GlyphCache.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/GlyphFace.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/Intervals.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/Justifier.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/NameTable.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/Pass.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/Position.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/Segment.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/Silf.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/Slot.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/Sparse.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/TtfUtil.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/UtfCodec.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/gr_char_info.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/gr_face.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/gr_features.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/gr_font.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/gr_logging.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/gr_segment.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/gr_slot.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/direct_machine.cpp \
-$(GRAPHITE2_PATH)/graphite2-src/src/FileFace.cpp  
+# for libgraphite2
+LOCAL_PATH := $(call my-dir)
+include $(CLEAR_VARS)
+
+GRAPHITE2_ROOT     := ../src/texlive-upstream/libs/graphite2
+GRAPHITE2_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/libs/graphite2\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/graphite2/graphite2-src/src\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/graphite2/graphite2-src/include
+GRAPHITE2_FILES := \
+$(GRAPHITE2_ROOT)/graphite2-src/src/CachedFace.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/CmapCache.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/Code.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/Collider.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/Decompressor.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/Face.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/FeatureMap.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/Font.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/GlyphCache.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/GlyphFace.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/Intervals.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/Justifier.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/NameTable.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/Pass.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/Position.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/Segment.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/Silf.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/Slot.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/Sparse.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/TtfUtil.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/UtfCodec.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/gr_char_info.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/gr_face.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/gr_features.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/gr_font.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/gr_logging.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/gr_segment.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/gr_slot.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/direct_machine.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/FileFace.cpp
+LOCAL_ARM_NEON   := false
+LOCAL_MODULE     := libgraphite2
+LOCAL_CFLAGS     := \
+-O2 -DHAVE_CONFIG_H -DHB_NO_MT -DGRAPHITE2_STATIC\
+-DHB_NO_UNICODE_FUNCS -DU_STATIC_IMPLEMENTATION
+LOCAL_C_INCLUDES := $(GRAPHITE2_INCLUDES)
+LOCAL_SRC_FILES  := $(GRAPHITE2_FILES)
+
+include $(BUILD_STATIC_LIBRARY)

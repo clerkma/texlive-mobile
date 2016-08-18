@@ -211,3 +211,5 @@
 
 /* Define as empty if not declared in <zlib.h>. */
 /* #undef z_const */
+
+#include <cctype>

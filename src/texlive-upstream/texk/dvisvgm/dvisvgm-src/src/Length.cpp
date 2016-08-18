@@ -19,6 +19,7 @@
 *************************************************************************/
 
 #include <sstream>
+#include <cctype>
 #include "InputReader.h"
 #include "Length.h"
 
