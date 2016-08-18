@@ -1,9 +1,0 @@
-name texlive-scripts.x86_64-linux
-category TLCore
-revision 29820
-shortdesc x86_64-linux files of texlive-scripts
-containersize 372
-containerchecksum 7658ea92cbf268dd276ea4d72479a7232ba54ec024600db9b2a707ba478c3437c921c549a0f046da9e265265c3728e43c93101eb4e473b5319abd4bf35f0e9db
-binfiles arch=x86_64-linux size=2
- bin/x86_64-linux/man
- bin/x86_64-linux/rungs
