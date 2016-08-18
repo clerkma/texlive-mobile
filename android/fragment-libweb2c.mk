@@ -1475,6 +1475,140 @@ LOCAL_SRC_FILES  := $(PROG_FILES)
 
 include $(BUILD_EXECUTABLE)
 
+#for fontconfig/fc-cache
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/fontconfig-2.12.1
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/fontconfig-2.12.1
+PROG_FILES :=\
+$(PROG_ROOT)/fc-cache/fc-cache.c
+LOCAL_STATIC_LIBRARIES  := libfontconfig libfreetype libexpat
+LOCAL_MODULE     := fc-cache
+LOCAL_CFLAGS     := -DHAVE_CONFIG_H -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for fontconfig/fc-list
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/fontconfig-2.12.1
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/fontconfig-2.12.1
+PROG_FILES :=\
+$(PROG_ROOT)/fc-list/fc-list.c
+LOCAL_STATIC_LIBRARIES  := libfontconfig libfreetype libexpat
+LOCAL_MODULE     := fc-list
+LOCAL_CFLAGS     := -DHAVE_CONFIG_H -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+
+#for fontconfig/fc-pattern
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/fontconfig-2.12.1
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/fontconfig-2.12.1
+PROG_FILES :=\
+$(PROG_ROOT)/fc-pattern/fc-pattern.c
+LOCAL_STATIC_LIBRARIES  := libfontconfig libfreetype libexpat
+LOCAL_MODULE     := fc-pattern
+LOCAL_CFLAGS     := -DHAVE_CONFIG_H -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for fontconfig/fc-scan
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/fontconfig-2.12.1
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/freetype2/freetype2 \
+$(LOCAL_PATH)/../src/fontconfig-2.12.1
+PROG_FILES :=\
+$(PROG_ROOT)/fc-scan/fc-scan.c
+LOCAL_STATIC_LIBRARIES  := libfontconfig libfreetype libexpat
+LOCAL_MODULE     := fc-scan
+LOCAL_CFLAGS     := -DHAVE_CONFIG_H -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for fontconfig/fc-cat
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/fontconfig-2.12.1
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/freetype2/freetype2 \
+$(LOCAL_PATH)/../src/fontconfig-2.12.1
+PROG_FILES :=\
+$(PROG_ROOT)/fc-cat/fc-cat.c
+LOCAL_STATIC_LIBRARIES  := libfontconfig libfreetype libexpat
+LOCAL_MODULE     := fc-cat
+LOCAL_CFLAGS     := -DHAVE_CONFIG_H -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for fontconfig/fc-match
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/fontconfig-2.12.1
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/freetype2/freetype2 \
+$(LOCAL_PATH)/../src/fontconfig-2.12.1
+PROG_FILES :=\
+$(PROG_ROOT)/fc-match/fc-match.c
+LOCAL_STATIC_LIBRARIES  := libfontconfig libfreetype libexpat
+LOCAL_MODULE     := fc-match
+LOCAL_CFLAGS     := -DHAVE_CONFIG_H -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for fontconfig/fc-query
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/fontconfig-2.12.1
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/freetype2/freetype2 \
+$(LOCAL_PATH)/../src/fontconfig-2.12.1
+PROG_FILES :=\
+$(PROG_ROOT)/fc-query/fc-query.c
+LOCAL_STATIC_LIBRARIES  := libfontconfig libfreetype libexpat
+LOCAL_MODULE     := fc-query
+LOCAL_CFLAGS     := -DHAVE_CONFIG_H -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for fontconfig/fc-validate
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/fontconfig-2.12.1
+PROG_INCLUDES :=\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/freetype2/freetype2 \
+$(LOCAL_PATH)/../src/fontconfig-2.12.1
+PROG_FILES :=\
+$(PROG_ROOT)/fc-validate/fc-validate.c
+LOCAL_STATIC_LIBRARIES  := libfontconfig libfreetype libexpat
+LOCAL_MODULE     := fc-validate
+LOCAL_CFLAGS     := -DHAVE_CONFIG_H -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
 #for odvitype
 include $(CLEAR_VARS)
 
