@@ -108,7 +108,7 @@
 #define HAVE_MKDTEMP 1
 
 /* Define to 1 if you have the `mkostemp' function. */
-#define HAVE_MKOSTEMP 1
+//#define HAVE_MKOSTEMP 1
 
 /* Define to 1 if you have the `mkstemp' function. */
 #define HAVE_MKSTEMP 1
@@ -135,7 +135,7 @@
 #define HAVE_RANDOM 1
 
 /* Define to 1 if you have the `random_r' function. */
-#define HAVE_RANDOM_R 1
+//#define HAVE_RANDOM_R 1
 
 /* Define to 1 if you have the `rand_r' function. */
 #define HAVE_RAND_R 1
@@ -180,7 +180,7 @@
 /* #undef HAVE_STRUCT_STATVFS_F_FSTYPENAME */
 
 /* Define to 1 if `st_mtim' is a member of `struct stat'. */
-#define HAVE_STRUCT_STAT_ST_MTIM 1
+// define HAVE_STRUCT_STAT_ST_MTIM 1
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */

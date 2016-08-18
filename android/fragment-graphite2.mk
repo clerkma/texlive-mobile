@@ -36,6 +36,7 @@ $(GRAPHITE2_ROOT)/graphite2-src/src/Font.cpp \
 $(GRAPHITE2_ROOT)/graphite2-src/src/GlyphCache.cpp \
 $(GRAPHITE2_ROOT)/graphite2-src/src/GlyphFace.cpp \
 $(GRAPHITE2_ROOT)/graphite2-src/src/Intervals.cpp \
+$(GRAPHITE2_ROOT)/graphite2-src/src/json.cpp \
 $(GRAPHITE2_ROOT)/graphite2-src/src/Justifier.cpp \
 $(GRAPHITE2_ROOT)/graphite2-src/src/NameTable.cpp \
 $(GRAPHITE2_ROOT)/graphite2-src/src/Pass.cpp \
@@ -58,8 +59,8 @@ $(GRAPHITE2_ROOT)/graphite2-src/src/FileFace.cpp
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libgraphite2
 LOCAL_CFLAGS     := \
--O2 -DHAVE_CONFIG_H -DHB_NO_MT -DGRAPHITE2_STATIC\
--DHB_NO_UNICODE_FUNCS -DU_STATIC_IMPLEMENTATION
+-O2 -DHAVE_CONFIG_H -DGRAPHITE2_STATIC\
+-DGRAPHITE2_CUSTOM_HEADER='<config.h>'
 LOCAL_C_INCLUDES := $(GRAPHITE2_INCLUDES)
 LOCAL_SRC_FILES  := $(GRAPHITE2_FILES)
 

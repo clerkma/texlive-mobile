@@ -24,7 +24,9 @@ $(LOCAL_PATH)/../src/texlive-upstream/libs/freetype2/freetype-src/include
 LIBFREETYPE_FILES   := \
 $(LIBFREETYPE_ROOT)/src/base/ftbase.c \
 $(LIBFREETYPE_ROOT)/src/base/ftbbox.c \
+$(LIBFREETYPE_ROOT)/src/base/ftbdf.c \
 $(LIBFREETYPE_ROOT)/src/base/ftcid.c \
+$(LIBFREETYPE_ROOT)/src/base/ftmm.c \
 $(LIBFREETYPE_ROOT)/src/base/ftbitmap.c \
 $(LIBFREETYPE_ROOT)/src/base/ftfntfmt.c \
 $(LIBFREETYPE_ROOT)/src/base/ftgasp.c \

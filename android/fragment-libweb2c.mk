@@ -91,6 +91,8 @@ include fragment-poppler.mk
 include fragment-graphite2.mk
 include fragment-harfbuzz.mk
 include fragment-libpotrace.mk
+include fragment-icu.mk
+include fragment-fontconfig.mk
 
 #for tangle
 include $(CLEAR_VARS)
@@ -102,7 +104,7 @@ $(LOCAL_PATH)/../src/texlive-upstream/texk/web2c
 PROG_FILES :=\
 $(PROG_ROOT)/tangle.c
 LOCAL_ARM_NEON   := false
-LOCAL_STATIC_LIBRARIES  := libn libkpathsea
+LOCAL_STATIC_LIBRARIES  := libn libkpathsea libfontconfig
 LOCAL_MODULE     := tangle
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
@@ -1432,7 +1434,8 @@ $(LOCAL_PATH)/../src/texlive-upstream/libs/harfbuzz/include \
 $(LOCAL_PATH)/../src/texlive-upstream/libs/graphite2/include \
 $(LOCAL_PATH)/../src/texlive-upstream/libs/poppler/include \
 $(LOCAL_PATH)/../src/texlive-upstream/libs/zlib/include\
-$(LOCAL_PATH)/../src/texlive-upstream/libs/libpng/include
+$(LOCAL_PATH)/../src/texlive-upstream/libs/libpng/include\
+$(LOCAL_PATH)/../src/fontconfig-2.12.1
 PROG_FILES :=\
 $(PROG_ROOT)/xetexdir/XeTeXFontInst.cpp \
 $(PROG_ROOT)/xetexdir/XeTeXFontMgr.cpp \
@@ -1452,17 +1455,25 @@ $(PROG_ROOT)/xetexdir/XeTeXFontMgr_FC.cpp \
 $(PROG_ROOT)/xetexdir/xetexextra.c \
 $(PROG_ROOT)/synctexdir/synctex.c \
 $(PROG_ROOT)/xetexini.c \
-$(PROG_ROOT)/xete0.c \
-$(PROG_ROOT)/xetex-pool.c
+$(PROG_ROOT)/xetex0.c \
+$(PROG_ROOT)/xetex-pool.c \
+$(PROG_ROOT)/libmd5/md5.c
 LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := \
+libharfbuzz libgraphite2 \
+libicuuc libicudata libTECkit \
+libpoppler libpng libfontconfig \
+libfreetype libexpat libn libkpathsea libz
 LOCAL_MODULE     := xetex
 LOCAL_CFLAGS     :=\
+-DU_STATIC_IMPLEMENTATION\
+-D__SyncTeX__ -DSYNCTEX_ENGINE_H=\"synctex-xetex.h\"\
 -DHAVE_CONFIG_H -DGRAPHITE2_STATIC \
 -Wreturn-type -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
-include $(BUILD_STATIC_LIBRARY)
+include $(BUILD_EXECUTABLE)
 
 #for odvitype
 include $(CLEAR_VARS)
@@ -3896,6 +3907,39 @@ LOCAL_CFLAGS     := \
 -DPACKAGE_STRING=\"vlna\ \(TeX\ Live\)\ 1.5\" \
 -DPACKAGE_BUGREPORT=\"tex-live@tug.org\" \
 -DPACKAGE_URL=\"\" \
+-Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wdeclaration-after-statement -Wno-write-strings -O2
+LOCAL_C_INCLUDES := $(PROG_INCLUDES)
+LOCAL_SRC_FILES  := $(PROG_FILES)
+
+include $(BUILD_EXECUTABLE)
+
+#for upmemdex
+include $(CLEAR_VARS)
+
+PROG_ROOT     := ../src/texlive-upstream/texk/upmendex
+PROG_INCLUDES := \
+$(LOCAL_PATH)/../src/texlive-upstream/texk\
+$(LOCAL_PATH)/../src/texlive-upstream/texk/upmendex\
+$(LOCAL_PATH)/../src/texlive-upstream/libs/icu/include
+PROG_FILES :=\
+$(PROG_ROOT)/convert.c\
+$(PROG_ROOT)/fread.c\
+$(PROG_ROOT)/fwrite.c\
+$(PROG_ROOT)/kp.c\
+$(PROG_ROOT)/main.c\
+$(PROG_ROOT)/pageread.c\
+$(PROG_ROOT)/qsort.c\
+$(PROG_ROOT)/sort.c\
+$(PROG_ROOT)/styfile.c
+LOCAL_ARM_NEON   := false
+LOCAL_STATIC_LIBRARIES  := \
+libicuio libicui18n libicuuc libicudata \
+libkpathsea
+LOCAL_MODULE     := upmendex
+LOCAL_LDLIBS     := -s
+LOCAL_CFLAGS     := \
+-DHAVE_CONFIG_H -DU_STATIC_IMPLEMENTATION\
 -Wimplicit -Wreturn-type -Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
