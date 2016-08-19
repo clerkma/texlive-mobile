@@ -59,6 +59,7 @@ $(GRAPHITE2_ROOT)/graphite2-src/src/FileFace.cpp
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libgraphite2
 LOCAL_CFLAGS     := \
+-pie -fPIE \
 -O2 -DHAVE_CONFIG_H -DGRAPHITE2_STATIC\
 -DGRAPHITE2_CUSTOM_HEADER='<config.h>'
 LOCAL_C_INCLUDES := $(GRAPHITE2_INCLUDES)

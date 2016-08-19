@@ -41,7 +41,7 @@ $(ZLIB_ROOT)/zutil.c
 
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libz
-LOCAL_CFLAGS     := -O2
+LOCAL_CFLAGS     := -pie -fPIE -O2
 LOCAL_C_INCLUDES := $(ZLIB_INCLUDES)
 LOCAL_SRC_FILES  := $(ZLIB_FILES)
 

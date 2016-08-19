@@ -55,6 +55,7 @@ $(FONTCONFIG_ROOT)/src/ftglue.c
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libfontconfig
 LOCAL_CFLAGS     := -O2 \
+-pie -fPIE \
 -DHAVE_CONFIG_H -DFC_CACHEDIR=\"/sdcard/texlive-portable/cache\"\
 -DFONTCONFIG_PATH=\"/sdcard/texlive-portable/fontconfig\"
 LOCAL_C_INCLUDES := $(FONTCONFIG_INCLUDES)

@@ -37,7 +37,7 @@ $(ZZIPLIB_ROOT)/zziplib-src/zzip/write.c \
 $(ZZIPLIB_ROOT)/zziplib-src/zzip/zip.c
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libzzip
-LOCAL_CFLAGS     := -O2 -DHAVE_CONFIG_H -D_USE_MMAP
+LOCAL_CFLAGS     := -pie -fPIE -O2 -DHAVE_CONFIG_H -D_USE_MMAP
 LOCAL_C_INCLUDES := $(ZZIPLIB_INCLUDES)
 LOCAL_SRC_FILES  := $(ZZIPLIB_FILES)
 

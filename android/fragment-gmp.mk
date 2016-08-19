@@ -195,6 +195,7 @@ $(GMP_ROOT)/gmp-src/mpz/ui_pow_ui.c
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libgmp
 LOCAL_CFLAGS     := \
+-pie -fPIE \
 -DHAVE_CONFIG_H -DNO_ASM -fvisibility=hidden -O2
 LOCAL_C_INCLUDES := $(GMP_INCLUDES)
 LOCAL_SRC_FILES  := $(GMP_FILES)

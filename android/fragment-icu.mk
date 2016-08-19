@@ -27,7 +27,7 @@ $(ICU_ROOT)/icu-src/source/stubdata/stubdata.c
 
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libicudata
-LOCAL_CFLAGS     := -O2
+LOCAL_CFLAGS     := -pie -fPIE -O2
 LOCAL_C_INCLUDES := $(ICU_INCLUDES)
 LOCAL_SRC_FILES  := $(ICU_FILES)
 
@@ -224,7 +224,7 @@ $(ICU_ROOT)/icu-src/source/common/putil.cpp \
 $(ICU_ROOT)/icu-src/source/common/errorcode.cpp
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libicuuc
-LOCAL_CFLAGS     := -O2 -DU_COMMON_IMPLEMENTATION
+LOCAL_CFLAGS     := -pie -fPIE -O2 -DU_COMMON_IMPLEMENTATION
 LOCAL_C_INCLUDES := $(ICU_INCLUDES)
 LOCAL_SRC_FILES  := $(ICU_FILES)
 
@@ -438,7 +438,7 @@ $(ICU_ROOT)/icu-src/source/i18n/fmtable.cpp \
 $(ICU_ROOT)/icu-src/source/i18n/ucln_in.cpp
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libicui18n
-LOCAL_CFLAGS     := -O2 -DU_I18N_IMPLEMENTATION 
+LOCAL_CFLAGS     := -pie -fPIE -O2 -DU_I18N_IMPLEMENTATION 
 LOCAL_C_INCLUDES := $(ICU_INCLUDES)
 LOCAL_SRC_FILES  := $(ICU_FILES)
 
@@ -465,7 +465,7 @@ $(ICU_ROOT)/icu-src/source/io/ufile.c \
 $(ICU_ROOT)/icu-src/source/io/locbund.cpp
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libicuio
-LOCAL_CFLAGS     := -O2 -DU_IO_IMPLEMENTATION
+LOCAL_CFLAGS     := -pie -fPIE -O2 -DU_IO_IMPLEMENTATION
 LOCAL_C_INCLUDES := $(ICU_INCLUDES)
 LOCAL_SRC_FILES  := $(ICU_FILES)
 

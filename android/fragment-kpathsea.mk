@@ -84,6 +84,7 @@ $(KPATHSEA_ROOT)/proginit.c
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libkpathsea
 LOCAL_CFLAGS     := \
+-pie -fPIE \
 -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas\
 -DHAVE_CONFIG_H -DHAVE_STRING_H -DMAKE_KPSE_DLL -O2
 LOCAL_C_INCLUDES := $(KPATHSEA_INCLUDES)

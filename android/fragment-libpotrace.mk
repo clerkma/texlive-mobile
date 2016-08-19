@@ -30,7 +30,7 @@ $(POTRACE_ROOT)/potrace-src/src/potracelib.c \
 $(POTRACE_ROOT)/potrace-src/src/trace.c
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libpotrace
-LOCAL_CFLAGS     := -O2 -DHAVE_CONFIG_H
+LOCAL_CFLAGS     := -pie -fPIE -O2 -DHAVE_CONFIG_H
 LOCAL_C_INCLUDES := $(POTRACE_INCLUDES)
 LOCAL_SRC_FILES  := $(POTRACE_FILES)
 

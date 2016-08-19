@@ -29,7 +29,7 @@ $(TECKIT_ROOT)/TECkit-src/source/Compiler.cpp \
 $(TECKIT_ROOT)/TECkit-src/source/UnicodeNames.cpp
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libTECkit_Compiler
-LOCAL_CFLAGS     := -fexceptions -DHAVE_CONFIG_H -O2
+LOCAL_CFLAGS     := -pie -fPIE -fexceptions -DHAVE_CONFIG_H -O2
 LOCAL_C_INCLUDES := $(TECKIT_INCLUDES)
 LOCAL_SRC_FILES  := $(TECKIT_FILES)
 
@@ -46,7 +46,7 @@ TECKIT_FILES := \
 $(TECKIT_ROOT)/TECkit-src/source/Engine.cpp
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libTECkit
-LOCAL_CFLAGS     := -fexceptions -DHAVE_CONFIG_H -O2
+LOCAL_CFLAGS     := -pie -fPIE -fexceptions -DHAVE_CONFIG_H -O2
 LOCAL_C_INCLUDES := $(TECKIT_INCLUDES)
 LOCAL_SRC_FILES  := $(TECKIT_FILES)
 
@@ -65,7 +65,7 @@ $(TECKIT_ROOT)/TECkit-src/source/Sample-tools/TECkit_Compile.cpp
 LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libTECkit_Compiler libz
 LOCAL_MODULE     := teckit_compile
-LOCAL_CFLAGS     := -fexceptions -DHAVE_CONFIG_H -O2
+LOCAL_CFLAGS     := -pie -fPIE -fexceptions -DHAVE_CONFIG_H -O2
 LOCAL_C_INCLUDES := $(TECKIT_INCLUDES)
 LOCAL_SRC_FILES  := $(TECKIT_FILES)
 

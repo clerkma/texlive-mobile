@@ -57,7 +57,7 @@ $(PIXMAN_ROOT)/pixman-src/pixman/pixman-utils.c
 
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libpixman
-LOCAL_CFLAGS     := -O2 -DHAVE_CONFIG_H
+LOCAL_CFLAGS     := -pie -fPIE -O2 -DHAVE_CONFIG_H
 LOCAL_C_INCLUDES := $(PIXMAN_INCLUDES)
 LOCAL_SRC_FILES  := $(PIXMAN_FILES)
 

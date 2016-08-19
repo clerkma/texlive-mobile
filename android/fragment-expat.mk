@@ -53,6 +53,7 @@ LOCAL_STATIC_LIBRARIES  := libexpat
 LOCAL_MODULE     := xmlwf
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := \
+-pie -fPIE \
 -DHAVE_EXPAT_CONFIG_H \
 -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)

@@ -133,6 +133,7 @@ $(CAIRO_ROOT)/cairo-src/src/cairo-wideint.c
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libcairo
 LOCAL_CFLAGS     := \
+-pie -fPIE \
 -Wno-attributes -fvisibility=hidden \
 -DHAVE_CONFIG_H -DCAIRO_NO_MUTEX -O2
 LOCAL_C_INCLUDES := $(CAIRO_INCLUDES)

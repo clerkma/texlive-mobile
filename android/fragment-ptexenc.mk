@@ -32,6 +32,7 @@ $(PTEXENC_ROOT)/unicode-jp.c
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libptexenc
 LOCAL_CFLAGS     := \
+-pie -fPIE \
 -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas\
 -DHAVE_CONFIG_H -DMAKE_KPSE_DLL -DMAKE_PTENC_DLL -O2
 LOCAL_C_INCLUDES := $(PTEXENC_INCLUDES)
