@@ -20,7 +20,7 @@
 /* #undef FC_ARCHITECTURE */
 
 /* System font directory */
-#define FC_DEFAULT_FONTS "/usr/share/fonts"
+#define FC_DEFAULT_FONTS "/system/fonts"
 
 /* Define to nothing if C supports flexible array members, and to 1 if it does
    not. That way, with a declaration like `struct s { int n; double
@@ -180,7 +180,7 @@
 /* #undef HAVE_STRUCT_STATVFS_F_FSTYPENAME */
 
 /* Define to 1 if `st_mtim' is a member of `struct stat'. */
-// define HAVE_STRUCT_STAT_ST_MTIM 1
+//#define HAVE_STRUCT_STAT_ST_MTIM 1
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */

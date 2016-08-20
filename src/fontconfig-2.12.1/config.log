@@ -745,8 +745,8 @@ configure:14579: $? = 0
 configure:14579: result: yes
 configure:14585: checking for _doprnt
 configure:14585: gcc -o conftest -g -O2   conftest.c  >&5
-/tmp/cckAh4sP.o: In function `main':
-/home/maqiyuan/fontconfig-2.12.1/conftest.c:76: undefined reference to `_doprnt'
+/tmp/ccpjxJXZ.o: In function `main':
+/home/maqiyuan/Desktop/texlive-mobile/src/fontconfig-2.12.1/conftest.c:76: undefined reference to `_doprnt'
 collect2: error: ld returned 1 exit status
 configure:14585: $? = 1
 configure: failed program was:
@@ -860,8 +860,8 @@ configure:14800: $? = 0
 configure:14800: result: yes
 configure:14800: checking for _mktemp_s
 configure:14800: gcc -o conftest -g -O2   conftest.c  >&5
-/tmp/ccQf7nMu.o: In function `main':
-/home/maqiyuan/fontconfig-2.12.1/conftest.c:84: undefined reference to `_mktemp_s'
+/tmp/ccc39RND.o: In function `main':
+/home/maqiyuan/Desktop/texlive-mobile/src/fontconfig-2.12.1/conftest.c:84: undefined reference to `_mktemp_s'
 collect2: error: ld returned 1 exit status
 configure:14800: $? = 1
 configure: failed program was:
@@ -967,8 +967,8 @@ configure:14800: $? = 0
 configure:14800: result: yes
 configure:14800: checking for getprogname
 configure:14800: gcc -o conftest -g -O2   conftest.c  >&5
-/tmp/ccnxIBYK.o: In function `main':
-/home/maqiyuan/fontconfig-2.12.1/conftest.c:87: undefined reference to `getprogname'
+/tmp/cc6gwJD2.o: In function `main':
+/home/maqiyuan/Desktop/texlive-mobile/src/fontconfig-2.12.1/conftest.c:87: undefined reference to `getprogname'
 collect2: error: ld returned 1 exit status
 configure:14800: $? = 1
 configure: failed program was:
@@ -1065,8 +1065,8 @@ configure: failed program was:
 configure:14800: result: no
 configure:14800: checking for getexecname
 configure:14800: gcc -o conftest -g -O2   conftest.c  >&5
-/tmp/cczeo9MT.o: In function `main':
-/home/maqiyuan/fontconfig-2.12.1/conftest.c:87: undefined reference to `getexecname'
+/tmp/ccXob2Q9.o: In function `main':
+/home/maqiyuan/Desktop/texlive-mobile/src/fontconfig-2.12.1/conftest.c:87: undefined reference to `getexecname'
 collect2: error: ld returned 1 exit status
 configure:14800: $? = 1
 configure: failed program was:
@@ -2172,11 +2172,11 @@ configure: failed program was:
 configure:16200: result: no
 configure:16098: checking whether pthreads work without any flags
 configure:16191: gcc -o conftest -g -O2     conftest.c   >&5
-/tmp/cczfJJgo.o: In function `main':
-/home/maqiyuan/fontconfig-2.12.1/conftest.c:87: undefined reference to `pthread_create'
-/home/maqiyuan/fontconfig-2.12.1/conftest.c:88: undefined reference to `pthread_join'
-/home/maqiyuan/fontconfig-2.12.1/conftest.c:90: undefined reference to `__pthread_register_cancel'
-/home/maqiyuan/fontconfig-2.12.1/conftest.c:91: undefined reference to `__pthread_unregister_cancel'
+/tmp/cc4lW6yM.o: In function `main':
+/home/maqiyuan/Desktop/texlive-mobile/src/fontconfig-2.12.1/conftest.c:87: undefined reference to `pthread_create'
+/home/maqiyuan/Desktop/texlive-mobile/src/fontconfig-2.12.1/conftest.c:88: undefined reference to `pthread_join'
+/home/maqiyuan/Desktop/texlive-mobile/src/fontconfig-2.12.1/conftest.c:90: undefined reference to `__pthread_register_cancel'
+/home/maqiyuan/Desktop/texlive-mobile/src/fontconfig-2.12.1/conftest.c:91: undefined reference to `__pthread_unregister_cancel'
 collect2: error: ld returned 1 exit status
 configure:16191: $? = 1
 configure: failed program was:
@@ -3054,7 +3054,7 @@ pkg_cv_FREETYPE_LIBS=-lfreetype
 ## Output variables. ##
 ## ----------------- ##
 
-ACLOCAL='${SHELL} /home/maqiyuan/fontconfig-2.12.1/missing aclocal-1.15'
+ACLOCAL='${SHELL} /home/maqiyuan/Desktop/texlive-mobile/src/fontconfig-2.12.1/missing aclocal-1.15'
 AMDEPBACKSLASH='\'
 AMDEP_FALSE='#'
 AMDEP_TRUE=''
@@ -3065,9 +3065,9 @@ AM_DEFAULT_VERBOSITY='0'
 AM_V='$(V)'
 AR='ar'
 AS='as'
-AUTOCONF='${SHELL} /home/maqiyuan/fontconfig-2.12.1/missing autoconf'
-AUTOHEADER='${SHELL} /home/maqiyuan/fontconfig-2.12.1/missing autoheader'
-AUTOMAKE='${SHELL} /home/maqiyuan/fontconfig-2.12.1/missing automake-1.15'
+AUTOCONF='${SHELL} /home/maqiyuan/Desktop/texlive-mobile/src/fontconfig-2.12.1/missing autoconf'
+AUTOHEADER='${SHELL} /home/maqiyuan/Desktop/texlive-mobile/src/fontconfig-2.12.1/missing autoheader'
+AUTOMAKE='${SHELL} /home/maqiyuan/Desktop/texlive-mobile/src/fontconfig-2.12.1/missing automake-1.15'
 AWK='gawk'
 BASECONFIGDIR='${sysconfdir}/fonts'
 CC='gcc'
@@ -3101,13 +3101,13 @@ EXPAT_LIBS='-lexpat'
 FC_ADD_FONTS=''
 FC_CACHEDIR='${localstatedir}/cache/${PACKAGE}'
 FC_DEFAULT_FONTS='/usr/share/fonts'
-FC_FONTDATE='Mon Aug 15 15:37:33 CST 2016'
+FC_FONTDATE='Sat Aug 20 19:35:44 CST 2016'
 FC_FONTPATH=''
 FGREP='/bin/grep -F'
 FREETYPE_CFLAGS='-I/usr/include/freetype2'
 FREETYPE_LIBS='-lfreetype'
-GIT='${SHELL} /home/maqiyuan/fontconfig-2.12.1/missing git'
-GPERF='${SHELL} /home/maqiyuan/fontconfig-2.12.1/missing gperf'
+GIT='${SHELL} /home/maqiyuan/Desktop/texlive-mobile/src/fontconfig-2.12.1/missing git'
+GPERF='${SHELL} /home/maqiyuan/Desktop/texlive-mobile/src/fontconfig-2.12.1/missing gperf'
 GREP='/bin/grep'
 HASDOCBOOK='no'
 HAVE_PTHREAD_FALSE='#'
@@ -3136,7 +3136,7 @@ LIPO=''
 LN_S='ln -s'
 LTLIBOBJS=''
 LT_SYS_LIBRARY_PATH=''
-MAKEINFO='${SHELL} /home/maqiyuan/fontconfig-2.12.1/missing makeinfo'
+MAKEINFO='${SHELL} /home/maqiyuan/Desktop/texlive-mobile/src/fontconfig-2.12.1/missing makeinfo'
 MANIFEST_TOOL=':'
 MKDIR_P='/bin/mkdir -p'
 MS_LIB_AVAILABLE_FALSE=''
@@ -3218,7 +3218,7 @@ host_vendor='unknown'
 htmldir='${docdir}'
 includedir='${prefix}/include'
 infodir='${datarootdir}/info'
-install_sh='${SHELL} /home/maqiyuan/fontconfig-2.12.1/install-sh'
+install_sh='${SHELL} /home/maqiyuan/Desktop/texlive-mobile/src/fontconfig-2.12.1/install-sh'
 libdir='${exec_prefix}/lib'
 libexecdir='${exec_prefix}/libexec'
 localedir='${datarootdir}/locale'

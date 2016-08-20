@@ -44,7 +44,7 @@ $(LIB_ROOT)/zround.c
 
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libn
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(LIB_INCLUDES)
 LOCAL_SRC_FILES  := $(LIB_FILES)
 
@@ -65,7 +65,7 @@ $(LIBP_ROOT)/printversion.c
 
 LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libp
-LOCAL_CFLAGS     := -pie -fPIE -DPTEX -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -DPTEX -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(LIBP_INCLUDES)
 LOCAL_SRC_FILES  := $(LIBP_FILES)
 
@@ -93,6 +93,7 @@ include fragment-harfbuzz.mk
 include fragment-libpotrace.mk
 include fragment-icu.mk
 include fragment-fontconfig.mk
+include fragment-xz.mk
 
 #for tangle
 include $(CLEAR_VARS)
@@ -107,7 +108,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea libfontconfig
 LOCAL_MODULE     := tangle
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -127,7 +128,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := ctangle
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -146,7 +147,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := bibtex
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -165,7 +166,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := dvicopy
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -184,7 +185,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := dvitype
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -203,7 +204,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := gftodvi
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -222,7 +223,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := gftopk
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -241,7 +242,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := gftype
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -260,7 +261,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := mft
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -279,7 +280,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := patgen
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -298,7 +299,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := pktogf
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -317,7 +318,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := pktype
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -336,7 +337,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := pltotf
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -355,7 +356,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := pooltype
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -374,7 +375,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := tftopl
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -393,7 +394,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := vftovp
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -412,7 +413,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := vptovf
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -431,7 +432,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := weave
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -450,7 +451,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := ctie
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -470,7 +471,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := cweave
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -489,7 +490,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := tie
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -511,7 +512,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := tex
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -538,7 +539,7 @@ LOCAL_MODULE     := ptex
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -D__SyncTeX__ -DSYNCTEX_ENGINE_H=\"synctex-ptex.h\"\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -559,7 +560,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea
 LOCAL_MODULE     := pbibtex
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -580,7 +581,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea
 LOCAL_MODULE     := pdvitype
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -601,7 +602,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea
 LOCAL_MODULE     := ppltotf
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -622,7 +623,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea
 LOCAL_MODULE     := ptftopl
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -651,7 +652,7 @@ LOCAL_MODULE     := eptex
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -D__SyncTeX__ -DSYNCTEX_ENGINE_H=\"synctex-eptex.h\"\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -679,7 +680,7 @@ LOCAL_MODULE     := uptex
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -D__SyncTeX__ -DSYNCTEX_ENGINE_H=\"synctex-uptex.h\"\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -702,7 +703,7 @@ LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea libz
 LOCAL_MODULE     := upbibtex
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -725,7 +726,7 @@ LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea libz
 LOCAL_MODULE     := updvitype
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -748,7 +749,7 @@ LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea libz
 LOCAL_MODULE     := uppltotf
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -771,7 +772,7 @@ LOCAL_STATIC_LIBRARIES  := libp libptexenc libn libkpathsea libz
 LOCAL_MODULE     := uptftopl
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -801,7 +802,7 @@ LOCAL_MODULE     := euptex
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -D__SyncTeX__ -DSYNCTEX_ENGINE_H=\"synctex-euptex.h\"\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -847,7 +848,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libcorepdftex
 LOCAL_CFLAGS     := -pie -fPIE \
 -DPDF_PARSER_ONLY \
--Wreturn-type -Wno-unknown-pragmas -O2
+-Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -882,7 +883,7 @@ LOCAL_MODULE     := pdftex
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DPDF_PARSER_ONLY -D__SyncTeX__ -DSYNCTEX_ENGINE_H=\"synctex-pdftex.h\"\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas -O2
+-Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -911,7 +912,7 @@ LOCAL_STATIC_LIBRARIES  := libcorepdftex libn libkpathsea libz
 LOCAL_MODULE     := ttf2afm
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
--Wimplicit -Wreturn-type -Wno-unknown-pragmas -O2
+-Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -940,7 +941,7 @@ LOCAL_STATIC_LIBRARIES  := libcorepdftex libxpdf libn libkpathsea libz
 LOCAL_MODULE     := pdftosrc
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
--Wimplicit -Wreturn-type -Wno-unknown-pragmas -O2
+-Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -971,7 +972,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libluatexuni
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H  \
--Wreturn-type -Wno-unknown-pragmas -O2
+-Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1036,7 +1037,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libluatexff
 LOCAL_CFLAGS     := -pie -fPIE \
 -DLUA_FF_LIB=1 -D_NO_PYTHON=1 -DX_DISPLAY_MISSING=1 -DUSE_OUR_MEMORY=1 \
--Wreturn-type -Wno-unknown-pragmas -O2
+-Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1074,7 +1075,7 @@ LOCAL_MODULE     := libluatexsocket
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DLUA_COMPAT_MODULE -DLUAI_HASHLIMIT=6 \
 -DLUA_USE_POSIX -DLUA_USE_DLOPEN\
--Wreturn-type -Wno-unknown-pragmas -O2
+-Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1113,7 +1114,7 @@ LOCAL_MODULE     := libmplib
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DLUA_COMPAT_MODULE -DLUAI_HASHLIMIT=6 \
 -DLUA_USE_POSIX -DLUA_USE_DLOPEN\
--Wreturn-type -Wno-unknown-pragmas -O2
+-Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1145,7 +1146,7 @@ LOCAL_MODULE     := libmputil
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DLUA_COMPAT_MODULE -DLUAI_HASHLIMIT=6 \
 -DLUA_USE_POSIX -DLUA_USE_DLOPEN\
--Wreturn-type -Wno-unknown-pragmas -O2
+-Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1176,7 +1177,7 @@ libpng libz libkpathsea
 LOCAL_MODULE     := mpost
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H \
--Wreturn-type -Wno-unknown-pragmas -O2
+-Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1215,7 +1216,7 @@ LOCAL_MODULE     := libluatexmisc
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DLUA_COMPAT_MODULE -DLUAI_HASHLIMIT=6 \
 -DLUA_USE_POSIX -DLUA_USE_DLOPEN\
--Wreturn-type -Wno-unknown-pragmas -O2
+-Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1367,7 +1368,7 @@ LOCAL_CFLAGS     := -pie -fPIE \
 -DPDF_PARSER_ONLY -D__SyncTeX__ -DSYNCTEX_ENGINE_H='<synctex-luatex.h>'\
 -DLUA_COMPAT_MODULE -DLUAI_HASHLIMIT=6 -DLUA_USE_POSIX -DLUA_USE_DLOPEN\
 -DLUA_FF_LIB=1 \
--Wimplicit -Wreturn-type -Wno-unknown-pragmas -O2
+-Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1411,7 +1412,7 @@ LOCAL_CFLAGS     := -pie -fPIE \
 -DLUA_USE_POSIX -DLUA_USE_DLOPEN \
 -DpdfTeX -Dextra_version_info=`date +-%Y%m%d%H` \
 -DSYNCTEX_ENGINE_H='<synctex-luatex.h>' \
--Wreturn-type -Wno-unknown-pragmas -O2
+-Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1469,7 +1470,7 @@ LOCAL_CFLAGS     := -pie -fPIE \
 -DU_STATIC_IMPLEMENTATION\
 -D__SyncTeX__ -DSYNCTEX_ENGINE_H=\"synctex-xetex.h\"\
 -DHAVE_CONFIG_H -DGRAPHITE2_STATIC \
--Wreturn-type -Wno-unknown-pragmas -O2
+-Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1485,7 +1486,7 @@ PROG_FILES :=\
 $(PROG_ROOT)/fc-cache/fc-cache.c
 LOCAL_STATIC_LIBRARIES  := libfontconfig libfreetype libexpat
 LOCAL_MODULE     := fc-cache
-LOCAL_CFLAGS     := -pie -fPIE -DHAVE_CONFIG_H -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -DHAVE_CONFIG_H -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1501,7 +1502,7 @@ PROG_FILES :=\
 $(PROG_ROOT)/fc-list/fc-list.c
 LOCAL_STATIC_LIBRARIES  := libfontconfig libfreetype libexpat
 LOCAL_MODULE     := fc-list
-LOCAL_CFLAGS     := -pie -fPIE -DHAVE_CONFIG_H -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -DHAVE_CONFIG_H -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1518,7 +1519,7 @@ PROG_FILES :=\
 $(PROG_ROOT)/fc-pattern/fc-pattern.c
 LOCAL_STATIC_LIBRARIES  := libfontconfig libfreetype libexpat
 LOCAL_MODULE     := fc-pattern
-LOCAL_CFLAGS     := -pie -fPIE -DHAVE_CONFIG_H -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -DHAVE_CONFIG_H -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1535,7 +1536,7 @@ PROG_FILES :=\
 $(PROG_ROOT)/fc-scan/fc-scan.c
 LOCAL_STATIC_LIBRARIES  := libfontconfig libfreetype libexpat
 LOCAL_MODULE     := fc-scan
-LOCAL_CFLAGS     := -pie -fPIE -DHAVE_CONFIG_H -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -DHAVE_CONFIG_H -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1552,7 +1553,7 @@ PROG_FILES :=\
 $(PROG_ROOT)/fc-cat/fc-cat.c
 LOCAL_STATIC_LIBRARIES  := libfontconfig libfreetype libexpat
 LOCAL_MODULE     := fc-cat
-LOCAL_CFLAGS     := -pie -fPIE -DHAVE_CONFIG_H -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -DHAVE_CONFIG_H -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1569,7 +1570,7 @@ PROG_FILES :=\
 $(PROG_ROOT)/fc-match/fc-match.c
 LOCAL_STATIC_LIBRARIES  := libfontconfig libfreetype libexpat
 LOCAL_MODULE     := fc-match
-LOCAL_CFLAGS     := -pie -fPIE -DHAVE_CONFIG_H -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -DHAVE_CONFIG_H -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1586,7 +1587,7 @@ PROG_FILES :=\
 $(PROG_ROOT)/fc-query/fc-query.c
 LOCAL_STATIC_LIBRARIES  := libfontconfig libfreetype libexpat
 LOCAL_MODULE     := fc-query
-LOCAL_CFLAGS     := -pie -fPIE -DHAVE_CONFIG_H -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -DHAVE_CONFIG_H -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1603,7 +1604,7 @@ PROG_FILES :=\
 $(PROG_ROOT)/fc-validate/fc-validate.c
 LOCAL_STATIC_LIBRARIES  := libfontconfig libfreetype libexpat
 LOCAL_MODULE     := fc-validate
-LOCAL_CFLAGS     := -pie -fPIE -DHAVE_CONFIG_H -Wreturn-type -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -DHAVE_CONFIG_H -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1623,7 +1624,7 @@ LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := odvitype
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1643,7 +1644,7 @@ LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := wofm2opl
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1664,7 +1665,7 @@ LOCAL_MODULE     := wopl2ofm
 LOCAL_LDLIBS     := -s -lm
 LOCAL_DISABLE_FATAL_LINKER_WARNINGS := true
 LOCAL_CFLAGS     := -pie -fPIE \
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1684,7 +1685,7 @@ LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := wovf2ovp
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1705,7 +1706,7 @@ LOCAL_MODULE     := wovp2ovf
 LOCAL_LDLIBS     := -s -lm
 LOCAL_DISABLE_FATAL_LINKER_WARNINGS := true
 LOCAL_CFLAGS     := -pie -fPIE \
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1731,7 +1732,7 @@ LOCAL_STATIC_LIBRARIES  := libn libkpathsea
 LOCAL_MODULE     := aleph
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1749,7 +1750,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libkpathsea
 LOCAL_MODULE     := afm2pl
 LOCAL_LDLIBS     := -s -lm
-LOCAL_CFLAGS     := -pie -fPIE -Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+LOCAL_CFLAGS     := -pie -fPIE -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1774,7 +1775,7 @@ LOCAL_MODULE     := bibtex8
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DUNIX -DKPATHSEA -DSUPPORT_8BIT\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1799,7 +1800,7 @@ LOCAL_MODULE     := chktex
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DKPATHSEA\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1820,7 +1821,7 @@ LOCAL_MODULE     := detex
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DNO_MALLOC_DECL -DKPATHSEA -Dlint\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1840,7 +1841,7 @@ LOCAL_MODULE     := dt2dv
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1860,7 +1861,7 @@ LOCAL_MODULE     := dv2dt
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1881,7 +1882,7 @@ LOCAL_MODULE     := disdvi
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DKPATHSEA\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1904,7 +1905,7 @@ LOCAL_MODULE     := dvi2tty
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DKPATHSEA\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1925,7 +1926,7 @@ LOCAL_MODULE     := dvidvi
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DNO_DEBUG -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1944,7 +1945,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libdviljk
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DKPATHSEA\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1965,7 +1966,7 @@ LOCAL_MODULE     := dvilj
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DLJ -DKPATHSEA\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -1986,7 +1987,7 @@ LOCAL_MODULE     := dvilj2p
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DLJ2P -DKPATHSEA\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2007,7 +2008,7 @@ LOCAL_MODULE     := dvilj4
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DLJ4 -DKPATHSEA\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2028,7 +2029,7 @@ LOCAL_MODULE     := dvilj4l
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DLJ4 -DLJ4L -DKPATHSEA\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2070,7 +2071,7 @@ LOCAL_MODULE     := dvipng
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DTEXLIVE\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2094,7 +2095,7 @@ LOCAL_MODULE     := dvipos
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DSHIFTLOWCHARS -DKPATHSEA\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2188,7 +2189,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_STATIC_LIBRARIES  := libkpathsea libpaper libpng libz
 LOCAL_MODULE     := xdvipdfmx
 LOCAL_CFLAGS     := -pie -fPIE \
--Wimplicit -Wreturn-type -Wdeclaration-after-statement\
+-Wdeclaration-after-statement\
 -Wno-unknown-pragmas -DHAVE_CONFIG_H -DMAKE_KPSE_DLL -O2
 LOCAL_C_INCLUDES := $(DVIPDFMX_INCLUDES)
 LOCAL_SRC_FILES  := $(DVIPDFMX_FILES)
@@ -2210,7 +2211,7 @@ LOCAL_MODULE     := afm2tfm
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DSHIFTLOWCHARS -DKPATHSEA\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2261,7 +2262,7 @@ LOCAL_MODULE     := dvips
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DSHIFTLOWCHARS -DKPATHSEA\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2378,7 +2379,7 @@ LOCAL_MODULE     := dvisvgm
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H \
--Wreturn-type -fexceptions -Wno-unknown-pragmas -O2
+-fexceptions -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2421,7 +2422,7 @@ LOCAL_MODULE     := gregorio
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -D_GNU_SOURCE -DUSE_KPSE\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2442,7 +2443,7 @@ LOCAL_MODULE     := gsftopk
 LOCAL_LDLIBS     := -s -lm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -Dlint -DKPATHSEA\
--Wimplicit -Wreturn-type -Wdeclaration-after-statement -Wno-unknown-pragmas -O2
+-Wdeclaration-after-statement -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2477,7 +2478,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := liblcdf
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H \
--fexceptions -frtti -Wreturn-type -Wno-unknown-pragmas -O2
+-fexceptions -frtti -Wno-unknown-pragmas -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2529,7 +2530,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libefont
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H \
--fexceptions -frtti -Wreturn-type -Wno-unknown-pragmas -Wno-write-strings -O2
+-fexceptions -frtti -Wno-unknown-pragmas -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2553,7 +2554,7 @@ LOCAL_MODULE     := cfftot1
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H \
--fexceptions -frtti -Wreturn-type -Wno-unknown-pragmas -Wno-write-strings -O2
+-fexceptions -frtti -Wno-unknown-pragmas -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2576,7 +2577,7 @@ LOCAL_MODULE     := mmafm
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H \
--fexceptions -frtti -Wreturn-type -Wno-unknown-pragmas -Wno-write-strings -O2
+-fexceptions -frtti -Wno-unknown-pragmas -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2602,7 +2603,7 @@ LOCAL_MODULE     := mmpfb
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H \
--fexceptions -frtti -Wreturn-type -Wno-unknown-pragmas -Wno-write-strings -O2
+-fexceptions -frtti -Wno-unknown-pragmas -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2625,7 +2626,7 @@ LOCAL_MODULE     := otfinfo
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H \
--fexceptions -frtti -Wreturn-type -Wno-unknown-pragmas -Wno-write-strings -O2
+-fexceptions -frtti -Wno-unknown-pragmas -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2656,7 +2657,7 @@ LOCAL_MODULE     := otftotfm
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H \
--fexceptions -frtti -Wreturn-type -Wno-unknown-pragmas -Wno-write-strings -O2
+-fexceptions -frtti -Wno-unknown-pragmas -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2679,7 +2680,7 @@ LOCAL_MODULE     := t1dotlessj
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H \
--fexceptions -frtti -Wreturn-type -Wno-unknown-pragmas -Wno-write-strings -O2
+-fexceptions -frtti -Wno-unknown-pragmas -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2703,7 +2704,7 @@ LOCAL_MODULE     := t1lint
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H \
--fexceptions -frtti -Wreturn-type -Wno-unknown-pragmas -Wno-write-strings -O2
+-fexceptions -frtti -Wno-unknown-pragmas -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2726,7 +2727,7 @@ LOCAL_MODULE     := t1rawafm
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H \
--fexceptions -frtti -Wreturn-type -Wno-unknown-pragmas -Wno-write-strings -O2
+-fexceptions -frtti -Wno-unknown-pragmas -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2749,7 +2750,7 @@ LOCAL_MODULE     := t1testpage
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H \
--fexceptions -frtti -Wreturn-type -Wno-unknown-pragmas -Wno-write-strings -O2
+-fexceptions -frtti -Wno-unknown-pragmas -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2772,7 +2773,7 @@ LOCAL_MODULE     := ttftotype42
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H \
--fexceptions -frtti -Wreturn-type -Wno-unknown-pragmas -Wno-write-strings -O2
+-fexceptions -frtti -Wno-unknown-pragmas -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
 
@@ -2798,7 +2799,7 @@ LOCAL_MODULE     := makeindex
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -2824,7 +2825,7 @@ LOCAL_MODULE     := makejvf
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -2855,7 +2856,7 @@ LOCAL_MODULE     := mendex
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -2878,7 +2879,7 @@ LOCAL_MODULE     := msxlint
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -2900,7 +2901,7 @@ LOCAL_MODULE     := mag
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -2923,7 +2924,7 @@ LOCAL_MODULE     := pfb2pfa
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -2946,7 +2947,7 @@ LOCAL_MODULE     := pk2bm
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -2989,7 +2990,7 @@ LOCAL_MODULE     := ps2pk
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3015,7 +3016,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libpsutils
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3040,7 +3041,7 @@ LOCAL_MODULE     := epsffit
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3064,7 +3065,7 @@ LOCAL_MODULE     := psbook
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3088,7 +3089,7 @@ LOCAL_MODULE     := psnup
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3112,7 +3113,7 @@ LOCAL_MODULE     := psresize
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3136,7 +3137,7 @@ LOCAL_MODULE     := psselct
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3160,7 +3161,7 @@ LOCAL_MODULE     := pstops
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3191,7 +3192,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libseetex
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3213,7 +3214,7 @@ LOCAL_MODULE     := dvibook
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3235,7 +3236,7 @@ LOCAL_MODULE     := dviconcat
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3257,7 +3258,7 @@ LOCAL_MODULE     := dviselect
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3279,7 +3280,7 @@ LOCAL_MODULE     := dvitodvi
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3300,7 +3301,7 @@ LOCAL_MODULE     := t4ht
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DANSI -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3321,7 +3322,7 @@ LOCAL_MODULE     := tex4ht
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DANSI -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3355,7 +3356,7 @@ LOCAL_MODULE     := ttf2pk
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DANSI -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3391,7 +3392,7 @@ LOCAL_MODULE     := ttf2tfm
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DANSI -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3444,7 +3445,7 @@ LOCAL_ARM_NEON   := false
 LOCAL_MODULE     := libttf
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DUNIX -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3467,7 +3468,7 @@ LOCAL_MODULE     := ttfdump
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DANSI -DKPATHSEA\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3506,7 +3507,7 @@ LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_GETOPT_H=1 -DHAVE_CTYPE_H=1 \
 -DHAVE_LIMITS_H=1 -DHAVE__BOOL=1 \
 -DHAVE_STDBOOL_H=1 -DHAVE_STRSTR=1\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3527,7 +3528,7 @@ LOCAL_MODULE     := debnag
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DTEXLIVE\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3548,7 +3549,7 @@ LOCAL_MODULE     := lacheck
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H \
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3602,7 +3603,7 @@ LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_MEMMOVE=1 -DHAVE_MEMSET=1 \
 -DHAVE_STRCHR=1 -DHAVE_STRRCHR=1 \
 -DHAVE_STRTOL=1 -DNO_DECLARE_MALLOC \
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3785,7 +3786,7 @@ LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 \
 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 \
 -DSIZEOF_LONG_LONG=8 -DNON_UNIX_STDIO\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3818,7 +3819,7 @@ LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 \
 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 \
 -DSIZEOF_LONG_LONG=8 -DNON_UNIX_STDIO\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3851,7 +3852,7 @@ LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 \
 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 \
 -DSIZEOF_LONG_LONG=8 -DNON_UNIX_STDIO\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3878,7 +3879,7 @@ LOCAL_CFLAGS     := -pie -fPIE \
 -DPACKAGE_URL=\"\" \
 -DPACKAGE=\"ps2eps--tex-live-\" \
 -DVERSION=\"1.68\" \
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3901,7 +3902,7 @@ LOCAL_STATIC_LIBRARIES  := libkpathsea
 LOCAL_MODULE     := t1ascii
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3924,7 +3925,7 @@ LOCAL_STATIC_LIBRARIES  := libkpathsea
 LOCAL_MODULE     := t1binary
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3947,7 +3948,7 @@ LOCAL_STATIC_LIBRARIES  := libkpathsea
 LOCAL_MODULE     := t1asm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3970,7 +3971,7 @@ LOCAL_STATIC_LIBRARIES  := libkpathsea
 LOCAL_MODULE     := t1disasm
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -3993,7 +3994,7 @@ LOCAL_STATIC_LIBRARIES  := libkpathsea
 LOCAL_MODULE     := t1unmac
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -4016,7 +4017,7 @@ LOCAL_STATIC_LIBRARIES  := libkpathsea
 LOCAL_MODULE     := t1mac
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -4041,7 +4042,7 @@ LOCAL_CFLAGS     := -pie -fPIE \
 -DPACKAGE_STRING=\"vlna\ \(TeX\ Live\)\ 1.5\" \
 -DPACKAGE_BUGREPORT=\"tex-live@tug.org\" \
 -DPACKAGE_URL=\"\" \
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
@@ -4074,7 +4075,7 @@ LOCAL_MODULE     := upmendex
 LOCAL_LDLIBS     := -s
 LOCAL_CFLAGS     := -pie -fPIE \
 -DHAVE_CONFIG_H -DU_STATIC_IMPLEMENTATION\
--Wimplicit -Wreturn-type -Wno-unknown-pragmas\
+-Wno-unknown-pragmas\
 -Wdeclaration-after-statement -Wno-write-strings -O2
 LOCAL_C_INCLUDES := $(PROG_INCLUDES)
 LOCAL_SRC_FILES  := $(PROG_FILES)
