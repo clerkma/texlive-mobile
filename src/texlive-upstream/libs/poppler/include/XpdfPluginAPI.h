@@ -1,1 +1,0 @@
-../poppler-src/poppler/XpdfPluginAPI.h

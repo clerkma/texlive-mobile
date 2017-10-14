@@ -1,5 +1,0 @@
-version.o: version.c /usr/include/stdc-predef.h ../w2c/c-auto.h
-
-/usr/include/stdc-predef.h:
-
-../w2c/c-auto.h:

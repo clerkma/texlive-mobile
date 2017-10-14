@@ -1,1 +1,0 @@
-../xpdf-src/xpdf/CompactFontTables.h

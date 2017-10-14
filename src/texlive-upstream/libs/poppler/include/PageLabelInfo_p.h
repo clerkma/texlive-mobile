@@ -1,1 +1,0 @@
-../poppler-src/poppler/PageLabelInfo_p.h

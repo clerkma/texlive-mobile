@@ -1,1 +1,0 @@
-../../zziplib-src/zzip/write.h

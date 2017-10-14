@@ -1,1 +1,0 @@
-mpfr-src/src/mparam_h.in

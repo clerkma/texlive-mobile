@@ -1,1 +1,0 @@
-../poppler-src/poppler/JPEG2000Stream.h

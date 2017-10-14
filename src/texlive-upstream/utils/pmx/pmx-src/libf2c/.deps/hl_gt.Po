@@ -1,6 +1,0 @@
-pmx-src/libf2c/hl_gt.o: pmx-src/libf2c/hl_gt.c /usr/include/stdc-predef.h \
- pmx-src/libf2c/f2c.h
-
-/usr/include/stdc-predef.h:
-
-pmx-src/libf2c/f2c.h:

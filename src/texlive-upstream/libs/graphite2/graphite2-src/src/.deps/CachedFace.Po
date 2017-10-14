@@ -1,4 +1,0 @@
-graphite2-src/src/CachedFace.o: graphite2-src/src/CachedFace.cpp \
- /usr/include/stdc-predef.h
-
-/usr/include/stdc-predef.h:

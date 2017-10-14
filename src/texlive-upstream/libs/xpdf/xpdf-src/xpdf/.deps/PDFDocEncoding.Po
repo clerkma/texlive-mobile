@@ -1,9 +1,0 @@
-xpdf-src/xpdf/PDFDocEncoding.o: xpdf-src/xpdf/PDFDocEncoding.cc \
- /usr/include/stdc-predef.h xpdf-src/xpdf/PDFDocEncoding.h \
- xpdf-src/xpdf/CharTypes.h
-
-/usr/include/stdc-predef.h:
-
-xpdf-src/xpdf/PDFDocEncoding.h:
-
-xpdf-src/xpdf/CharTypes.h:

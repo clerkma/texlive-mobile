@@ -1,1 +1,0 @@
-../xpdf-src/goo/gtypes.h

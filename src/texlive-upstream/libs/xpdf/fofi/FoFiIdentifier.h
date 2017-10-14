@@ -1,1 +1,0 @@
-../xpdf-src/fofi/FoFiIdentifier.h

@@ -1,1 +1,0 @@
-../libgd-src/src/gdfonts.h

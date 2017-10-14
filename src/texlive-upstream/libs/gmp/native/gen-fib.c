@@ -1,1 +1,0 @@
-./../gmp-src/gen-fib.c

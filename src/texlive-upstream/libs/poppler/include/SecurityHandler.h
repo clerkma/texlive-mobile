@@ -1,1 +1,0 @@
-../poppler-src/poppler/SecurityHandler.h

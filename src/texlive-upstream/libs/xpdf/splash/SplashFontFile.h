@@ -1,1 +1,0 @@
-../xpdf-src/splash/SplashFontFile.h

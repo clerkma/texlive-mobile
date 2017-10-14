@@ -1,1 +1,0 @@
-../lua52-src/src/lparser.h

@@ -1,1 +1,0 @@
-../libpng-src/pngconf.h

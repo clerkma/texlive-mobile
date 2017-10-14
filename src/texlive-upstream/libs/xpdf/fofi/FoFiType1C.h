@@ -1,1 +1,0 @@
-../xpdf-src/fofi/FoFiType1C.h

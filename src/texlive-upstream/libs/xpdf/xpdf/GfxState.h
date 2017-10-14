@@ -1,1 +1,0 @@
-../xpdf-src/xpdf/GfxState.h

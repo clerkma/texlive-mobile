@@ -1,6 +1,0 @@
--D P64
--D JIT
--D FFI
--D FPU
--D HFABI
--D VER=

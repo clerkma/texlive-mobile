@@ -1,9 +1,0 @@
-poppler-src/poppler/PDFDocEncoding.o: \
- poppler-src/poppler/PDFDocEncoding.cc /usr/include/stdc-predef.h \
- poppler-src/poppler/PDFDocEncoding.h poppler-src/poppler/CharTypes.h
-
-/usr/include/stdc-predef.h:
-
-poppler-src/poppler/PDFDocEncoding.h:
-
-poppler-src/poppler/CharTypes.h:

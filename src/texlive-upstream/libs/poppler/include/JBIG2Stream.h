@@ -1,1 +1,0 @@
-../poppler-src/poppler/JBIG2Stream.h

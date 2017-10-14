@@ -1,1 +1,0 @@
-xpdf-src/aconf2.h

@@ -1,1 +1,0 @@
-../cairo-src/cairo-version.h

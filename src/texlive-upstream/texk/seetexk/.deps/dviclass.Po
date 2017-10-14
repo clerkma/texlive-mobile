@@ -1,5 +1,0 @@
-dviclass.o: dviclass.c /usr/include/stdc-predef.h dviclass.h
-
-/usr/include/stdc-predef.h:
-
-dviclass.h:
