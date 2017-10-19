@@ -1,5 +1,0 @@
-SET(TESTS_FILES
-	bug00340
-)
-
-ADD_GD_TESTS()
