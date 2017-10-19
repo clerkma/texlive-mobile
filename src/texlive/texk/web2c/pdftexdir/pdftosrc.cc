@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
                     obj1.free();
                     obj2.free();
                 }
-#ifdef POPPLER_VERSION /* 0.57.0 or older (or xpdf 3.04) */
+#if defined(POPPLER_VERSION) || defined(XPDF304)
                 while (str->getChar() != EOF) ;
 #else /* xpdf 4.00 */
                 lexer->skipToEOF();
