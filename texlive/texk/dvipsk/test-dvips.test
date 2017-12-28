@@ -1,0 +1,13 @@
+#! /bin/sh -vx
+# $Id: test-dvips.test 45809 2017-11-15 00:36:56Z karl $
+# Public domain.
+
+rm -f mtest.ps
+
+./dvips -D 300 $srcdir/testdata/dvipstst.xdv -o dvipstst.ps
+mv dvipstst.ps mtest.ps || exit 1
+./dvips -D 300 $srcdir/testdata/dvipstst.xdv -o || exit 1
+diff $srcdir/testdata/dvipstst.xps dvipstst.ps
+
+exit 0
+

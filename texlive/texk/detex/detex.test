@@ -1,0 +1,20 @@
+#! /bin/sh -vx
+# $Id: detex.test 45809 2017-11-15 00:36:56Z karl $
+# Copyright 2017 Karl Berry <tex-live@tug.org>
+# Copyright 2009 Peter Breitenlohner <tex-live@tug.org>
+# You may freely use, modify and/or distribute this file.
+
+echo '#' >texmf.cnf
+
+./detex $srcdir/test.tex >test.out \
+	&& diff test.out $srcdir/test.lout \
+	|| exit 1
+
+./detex -l $srcdir/test.tex >test.out \
+	&& diff test.out $srcdir/test.lout \
+	|| exit 1
+
+./detex -t $srcdir/test.tex >test.out \
+	&& diff test.out $srcdir/test.tout \
+	|| exit 1
+

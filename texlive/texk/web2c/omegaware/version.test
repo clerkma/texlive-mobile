@@ -1,0 +1,18 @@
+#! /bin/sh -vx
+# $Id: version.test 45809 2017-11-15 00:36:56Z karl $
+# Copyright 2017 Karl Berry <tex-live@tug.org>
+# Copyright 2015 Peter Breitenlohner <tex-live@tug.org>
+# You may freely use, modify and/or distribute this file.
+
+echo && echo "*** ofm2opl -version"
+./wofm2opl -version || exit 1
+
+echo && echo "*** opl2ofm -version"
+./wopl2ofm -version || exit 1
+
+echo && echo "*** ovf2ovp -version"
+./wovf2ovp -version || exit 1
+
+echo && echo "*** ovp2ovf -version"
+./wovp2ovf -version || exit 1
+

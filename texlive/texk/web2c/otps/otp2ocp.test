@@ -1,0 +1,9 @@
+#! /bin/sh -vx
+# $Id: otp2ocp.test 45809 2017-11-15 00:36:56Z karl $
+# Public domain. Originally written by Peter Breitenlohner.
+
+TEXMFCNF=$srcdir/../../kpathsea \
+  ./otp2ocp $srcdir/uni2lat xuni2lat.ocp || exit 1
+
+cmp $srcdir/uni2lat.ocp xuni2lat.ocp || exit 1
+
