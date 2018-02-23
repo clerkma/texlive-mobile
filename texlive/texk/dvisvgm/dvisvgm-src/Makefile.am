@@ -1,11 +1,11 @@
 ## This file is part of dvisvgm
-## Copyright (C) 2005-2017 Martin Gieseking <martin.gieseking@uos.de>
+## Copyright (C) 2005-2018 Martin Gieseking <martin.gieseking@uos.de>
 ##
 ## Process this file with automake.
 
 AUTOMAKE_OPTIONS = foreign
 EXTRA_DIST = COPYING
-SUBDIRS = libs src #TL: tests doc
+SUBDIRS = libs src #not for TL: tests doc
 ACLOCAL_AMFLAGS = -I m4
 
 if CODE_COVERAGE_ENABLED
@@ -15,7 +15,6 @@ lcov_file=$(lcov_dir)/lcov.info
 lcov-report:
 	@mkdir -p $(lcov_dir)
 	lcov --capture --directory . --no-external -o $(lcov_file)
-	lcov --remove $(lcov_file) "gzstream.*" -o $(lcov_file)
 	genhtml --title "dvisvgm" --num-spaces 2 --legend -o $(lcov_dir) $(lcov_file)
 
 lcov-clean:

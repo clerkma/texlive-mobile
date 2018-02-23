@@ -321,12 +321,16 @@ void writevf(int code, FILE *fp)
 			goto outputj;
 		}
 	}
-	if (skip != -rightamount && enhanced) {
-		fprintf(stderr,
-			"[Warning] Conflicting MOVERIGHT value for code %x,\n"
-			"[Warning]   makejvf default:    %08x\n"
-			"[Warning]   suggested from JFM: %08x <= I'll use this ...\n",
-			code, skip, -rightamount);
+	if (enhanced) {
+#ifdef DEBUG
+		if (skip != -rightamount) {
+			fprintf(stderr,
+				"[DEBUG] Conflicting MOVERIGHT value for code %x,\n"
+				"[DEBUG]   makejvf default:    %08x\n"
+				"[DEBUG]   suggested from JFM: %08x <= I'll use this ...\n",
+				code, skip, -rightamount);
+		}
+#endif
 		skip=-rightamount;
 	}
 
@@ -619,6 +623,7 @@ void writevfu(int code, FILE *fp)
 	case 0x3017: /* JIS X 0213  1-02-59 終わりすみ付き括弧(白) */
 	case 0x00BB: /* JIS X 0213  1-09-18 終わり二重山括弧引用記号/終わりギュメ */
 	case 0x301F: /* JIS X 0213  1-13-65 終わりダブルミニュート */
+	case 0x301E: /* --- - ----  ------- 上付き終わりダブルミニュート */
 	case 0x00B0: /* ° */
 	case 0x2032: /* ′ */
 	case 0x2033: /* ″ */
@@ -722,12 +727,16 @@ void writevfu(int code, FILE *fp)
 			goto outputu;
 		}
 	}
-	if (skip != -rightamount && enhanced) {
-		fprintf(stderr,
-			"[Warning] Conflicting MOVERIGHT value for code %x,\n"
-			"[Warning]   makejvf default:    %08x\n"
-			"[Warning]   suggested from JFM: %08x <= I'll use this ...\n",
-			code, skip, -rightamount);
+	if (enhanced) {
+#ifdef DEBUG
+		if (skip != -rightamount) {
+			fprintf(stderr,
+				"[DEBUG] Conflicting MOVERIGHT value for code %x,\n"
+				"[DEBUG]   makejvf default:    %08x\n"
+				"[DEBUG]   suggested from JFM: %08x <= I'll use this ...\n",
+				code, skip, -rightamount);
+		}
+#endif
 		skip=-rightamount;
 	}
 

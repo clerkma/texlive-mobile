@@ -634,7 +634,7 @@ static int scanner_scan(lua_State * L)
       int i;
       for (i=0;i<count;i++) {
 	Object *val = new Object();
-	arrayref->get(i, val);
+	*val = arrayref->get(i);
 	if (val->isStream()) {
 	  ObjectList *rover = self->_streams;
 	  ObjectList *item = (ObjectList *)priv_xmalloc (sizeof(ObjectList));
@@ -944,8 +944,8 @@ LUALIB_API int luaopen_pdfscanner(lua_State * L)
     luaL_openlib(L, 0, scannerlib_meta, 0);
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");
-    luaL_register(L, NULL, scannerlib_m);
-    luaL_register(L, "pdfscanner", scannerlib);
+    luaL_openlib(L, NULL, scannerlib_m, 0);
+    luaL_openlib(L, "pdfscanner", scannerlib, 0);
     return 1;
 }
 

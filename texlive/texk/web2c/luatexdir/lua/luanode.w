@@ -96,21 +96,18 @@ void lua_node_filter(int filterid, int extrainfo, halfword head_node, halfword *
     start_node = vlink(head_node);
     if (start_node != null) {
         /* maybe just always slide (harmless and fast) */
-        last_node = vlink(start_node);
         if (fix_node_lists) {
-            while (last_node != null) {
-                alink(last_node) = start_node;
-                start_node = last_node;
-                last_node = vlink(start_node);
-            }
+            /* slides and returns last node */
+            *tail_node = fix_node_list(start_node);
         } else {
+            last_node = vlink(start_node);
             while (last_node != null) {
                 start_node = last_node;
                 last_node = vlink(start_node);
             }
+            /* we're at the end now */
+            *tail_node = start_node;
         }
-        /* we're at the end now */
-        *tail_node = start_node;
     } else {
         /* we're already at the end */
         *tail_node = head_node;
@@ -413,6 +410,7 @@ void show_pdf_literal(pointer p)
     tprint_esc("pdfliteral");
     switch (pdf_literal_mode(p)) {
         case set_origin:
+            tprint(" origin");
             break;
         case direct_page:
             tprint(" page");

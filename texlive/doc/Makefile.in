@@ -122,6 +122,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/kpse-cairo-flags.m4 \
 	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/tardate.ac \
 	$(top_srcdir)/version.ac \
 	$(top_srcdir)/utils/autosp/ac/withenable.ac \
+	$(top_srcdir)/utils/axodraw2/ac/withenable.ac \
 	$(top_srcdir)/utils/devnag/ac/withenable.ac \
 	$(top_srcdir)/utils/lacheck/ac/withenable.ac \
 	$(top_srcdir)/utils/m-tx/ac/withenable.ac \
@@ -190,6 +191,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/kpse-cairo-flags.m4 \
 	$(top_srcdir)/libs/libpaper/ac/withenable.ac \
 	$(top_srcdir)/libs/luajit/ac/withenable.ac \
 	$(top_srcdir)/libs/lua52/ac/withenable.ac \
+	$(top_srcdir)/libs/lua53/ac/withenable.ac \
 	$(top_srcdir)/libs/zlib/ac/withenable.ac \
 	$(top_srcdir)/texk/ptexenc/ac/withenable.ac \
 	$(top_srcdir)/texk/kpathsea/ac/withenable.ac \

@@ -1,3 +1,32 @@
+2018-02-17  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* write.c: Add U+301E.
+	* version.h: Bump version.
+
+2018-02-02  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* tfmread.c: Support SKIP property in GLUEKERN table.
+	* write.c: Remove warning message on enhanced mode (hoping
+	  well-tested).
+	* version.h: Bump version.
+	* tests/{gkhugeok,skipjfmp}.{tfm,vf}: New test files.
+	* Makefile.am, makejvf.test: Add new tests.
+
+2018-01-27  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* tfmread.c: Support new JFM spec (3-byte characters in TYPE > 0).
+	* version.h: Bump version.
+	* tests/testnewu.{tfm,vf}, tests/uni10.cnf: New test files.
+	* Makefile.am, makejvf.test: Add new tests.
+	* makejvf.1 (.TH): use 1 instead of L, per Debian.
+
+2018-01-14  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* uniblock.c: Update references Unicode blocks Blocks-10.0.0.txt
+	and CMap files.
+	* COPYRIGHT: Update copyright years.
+	* version.h: Bump version.
+
 2017-08-29  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
 
 	* makejvf.1: Updated manual based on version 20170828.

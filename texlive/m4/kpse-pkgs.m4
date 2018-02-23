@@ -1,6 +1,6 @@
-# $Id: kpse-pkgs.m4 39962 2016-03-07 19:26:54Z karl $
+# $Id: kpse-pkgs.m4 46590 2018-02-10 23:30:32Z karl $
 # Private Autoconf macros for the TeX Live (TL) tree.
-# Copyright 2016 Karl Berry <tex-live@tug.org>
+# Copyright 2016-2018 Karl Berry <tex-live@tug.org>
 # Copyright 2009-2015 Peter Breitenlohner <tex-live@tug.org>
 #
 # This file is free software; the copyright holder
@@ -43,6 +43,7 @@ libpng
 libpaper
 luajit
 lua52
+lua53
 zlib
 ])[]dnl
 m4_define([kpse_texlibs_pkgs], [dnl
@@ -83,6 +84,7 @@ AC_REQUIRE([KPSE_HARFBUZZ_SYSTEM_FLAGS])[]dnl
 AC_DEFUN([KPSE_UTILS_PKGS], [dnl
 m4_define([kpse_utils_pkgs], [dnl
 autosp
+axodraw2
 devnag
 lacheck
 m-tx

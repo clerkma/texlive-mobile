@@ -43,9 +43,13 @@ static int luapdfprint(lua_State * L)
                 literal_mode = direct_always;
             else if (lua_key_eq(modestr_s,page))
                 literal_mode = direct_page;
+            else if (lua_key_eq(modestr_s,text))
+                literal_mode = direct_text;
             else if (lua_key_eq(modestr_s,raw))
                 literal_mode = direct_raw;
-            else {
+            else if (lua_key_eq(modestr_s,origin))
+                literal_mode = set_origin;
+            else  {
                 luaL_error(L, "invalid first argument for print literal mode");
             }
         }
@@ -61,6 +65,10 @@ static int luapdfprint(lua_State * L)
             break;
         case (direct_page):
             pdf_goto_pagemode(static_pdf);
+            (void) calc_pdfpos(static_pdf->pstruct, static_pdf->posstruct->pos);
+            break;
+        case (direct_text):
+            pdf_goto_textmode(static_pdf);
             (void) calc_pdfpos(static_pdf->pstruct, static_pdf->posstruct->pos);
             break;
         case (direct_always):
@@ -949,6 +957,25 @@ static int getpdfcreationdate(lua_State * L)
     return 1 ;
 }
 
+static int getpdfmajorversion(lua_State * L)
+{
+ /* lua_pushinteger(L,static_pdf->major_version); */
+    lua_pushinteger(L,pdf_major_version);
+    return 1 ;
+}
+
+static int setpdfmajorversion(lua_State * L)
+{
+    if (lua_type(L, 1) == LUA_TNUMBER) {
+        int c = (int) lua_tointeger(L, 1);
+        if ((c >= 1) && (c <= 2)) {
+            static_pdf->major_version = c;
+            set_pdf_major_version(c);
+        }
+    }
+    return 0 ;
+}
+
 static int getpdfminorversion(lua_State * L)
 {
  /* lua_pushinteger(L,static_pdf->minor_version); */
@@ -1107,6 +1134,8 @@ static int newpdfcolorstack(lua_State * L)
             literal_mode = set_origin;
         } else if (lua_key_eq(l,page))  {
             literal_mode = direct_page;
+        } else if (lua_key_eq(l,text))  {
+            literal_mode = direct_text;
         } else if (lua_key_eq(l,direct)) {
             literal_mode = direct_always;
         } else if (lua_key_eq(l,raw)) {
@@ -1199,6 +1228,8 @@ static const struct luaL_Reg pdflib[] = {
     { "xformname", getpdfxformname },
     { "getversion", getpdfversion },
     { "getcreationdate", getpdfcreationdate },
+    { "getmajorversion", getpdfmajorversion },
+    { "setmajorversion", setpdfmajorversion },
     { "getminorversion", getpdfminorversion },
     { "setminorversion", setpdfminorversion },
     { "newcolorstack", newpdfcolorstack },
@@ -1234,7 +1265,7 @@ int luaopen_pdf(lua_State * L)
     lua_newtable(L);
     lua_settable(L,LUA_REGISTRYINDEX);
     /* */
-    luaL_register(L, "pdf", pdflib);
+    luaL_openlib(L, "pdf", pdflib, 0);
     /*
     luaL_newmetatable(L, "pdf.meta");
     lua_pushstring(L, "__index");

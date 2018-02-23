@@ -100,7 +100,7 @@ that a type has been found.
 #define HEADER_PNG "\x89PNG\r\n\x1A\n"
 #define HEADER_JBIG2 "\x97\x4A\x42\x32\x0D\x0A\x1A\x0A"
 #define HEADER_JP2 "\x6A\x50\x20\x20"
-#define HEADER_PDF "%PDF-1."
+#define HEADER_PDF "%PDF-"
 #define MAX_HEADER (sizeof(HEADER_PNG)-1)
 #define HEADER_PDF_MEMSTREAM "data:application/pdf," /* see epdf.h */
 #define LEN_PDF_MEMSTREAM 21 /* see epdf.h */
@@ -217,7 +217,8 @@ image_dict *new_image_dict(void)
     img_index(p) = -1; /* -1 = unused, used count from 0 */
     img_luaref(p) = 0;
     img_errorlevel(p) = pdf_inclusion_errorlevel;
-    fix_pdf_minorversion(static_pdf);
+    fix_pdf_version(static_pdf);
+    img_pdfmajorversion(p) = pdf_major_version;
     img_pdfminorversion(p) = pdf_minor_version;
     return p;
 }
@@ -429,14 +430,30 @@ void scan_pdfximage(PDF pdf) /* static_pdf */
 @ @c
 void scan_pdfrefximage(PDF pdf)
 {
-    int transform = 0;          /* one could scan transform as well */
+    /* one could scan transform as well */
+    int transform = 0;
+    /* begin of experiment */
+    int open = 0;
+    /* end of experiment */
     image_dict *idict;
+    /* scans |<rule spec>| to |alt_rule| */
     scaled_whd alt_rule, dim;
-    alt_rule = scan_alt_rule(); /* scans |<rule spec>| to |alt_rule| */
+    alt_rule = scan_alt_rule();
+    /* begin of experiment */
+    if (scan_keyword("keepopen")) {
+        open = 1;
+    }
+    /* end of experiment */
     scan_int();
     check_obj_type(pdf, obj_type_ximage, cur_val);
     tail_append(new_rule(image_rule));
     idict = idict_array[obj_data_ptr(pdf, cur_val)];
+    /* begin of experiment */
+    if (open) {
+        /* so we keep the original value when no close is given */
+        idict->keepopen = 1;
+    }
+    /* end of experiment */
     if (img_state(idict) == DICT_NEW) {
         normal_warning("image","don't rely on the image data to be okay");
         width(tail_par) = 0;

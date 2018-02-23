@@ -1,10 +1,10 @@
 #!/usr/bin/env texlua
 
--- Copyright 2016-2017 Brian Dunn
+-- Copyright 2016-2018 Brian Dunn
 
 -- Print the usage of the lwarpmk command:
 
-printversion = "v0.44"
+printversion = "v0.49"
 
 function printhelp ()
 print ("lwarpmk: Use lwarpmk -h or lwarpmk --help for help.") ;
@@ -280,7 +280,7 @@ err = os.execute(
  lwimgpage .. " " .. sourcename .."_html.pdf lateximagetemp-%d.pdf")
 -- Crop the image:
 err = os.execute(
-"pdfcrop --hires lateximagetemp-" .. lwimgpage ..".pdf lateximage-" .. lwimgnum ..".pdf")
+"pdfcrop  lateximagetemp-" .. lwimgpage ..".pdf lateximage-" .. lwimgnum ..".pdf")
 if ( err ~= 0 ) then print ( "lwarpmk: File error.") ; os.exit(1) ; end
 -- Convert the image to svg:
 err = os.execute(
