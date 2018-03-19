@@ -1,4 +1,4 @@
-$Id: README 46726 2018-02-23 23:21:58Z kakuto $
+$Id: README 46965 2018-03-14 23:00:36Z karl $
 Public domain.  Originally written 2005 by Karl Berry.
 
 Extra utilities we (optionally) compile for TeX Live.
@@ -81,14 +81,6 @@ ln -s . $clisp_toolsdir/lib/64  # for Solaris 64-bit
 # if you can't build libsigsegv, pass --ignore-absence-of-libsigsegv
 # when running configure for clisp.
 
-ffcall_ver=libffcall-2.1
-cd $clisp_basedir
-$wget https://ftp.gnu.org/gnu/libffcall/$ffcall_ver.tar.gz
-gzip -dc $ffcall_ver.tar.gz | tar xf -
-cd $ffcall_ver
-./configure -C --prefix=$clisp_toolsdir --disable-shared --enable-static \
-&& make && make check && make install
-
 # may be able to omit iconv if have new enough in libc or elsewhere.
 libiconv_ver=libiconv-1.15
 cd $clisp_basedir
@@ -107,7 +99,7 @@ cd $libiconv_ver
 
 clisp_ver=clisp-2.49.92
 cd $clisp_basedir
-$wget https://haible.de/bruno/gnu/clisp-2.49.50.tar.bz2
+$wget https://haible.de/bruno/gnu/$clisp_ver.tar.bz2
 bunzip2 -dc $clisp_ver.tar.bz2 | tar xf -
 cd $clisp_ver
 
@@ -121,11 +113,9 @@ cd $clisp_ver
   --without-readline --without-dynamic-modules --without-termcap-ncurses \
   --disable-nls \
   --with-libsigsegv-prefix=$clisp_toolsdir \
-  --with-libffcall-prefix=$clisp_toolsdir \
   --with-libiconv-prefix=$clisp_toolsdir \
   $clisp_builddir \
 && (cd $clisp_builddir && make)
 
 There may be clisp test failures relating to sockets on some
 systems. Since xindy doesn't use sockets, we can ignore those for TL.
-
