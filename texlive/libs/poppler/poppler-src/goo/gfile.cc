@@ -34,9 +34,7 @@
 
 #include <config.h>
 
-#ifdef _WIN32
-#  include <time.h>
-#else
+#ifndef _WIN32
 #  if defined(MACOS)
 #    include <sys/stat.h>
 #  elif !defined(ACORN)
@@ -44,7 +42,6 @@
 #    include <sys/stat.h>
 #    include <fcntl.h>
 #  endif
-#  include <time.h>
 #  include <limits.h>
 #  include <string.h>
 #  if !defined(VMS) && !defined(ACORN) && !defined(MACOS)
@@ -64,6 +61,8 @@
 #ifndef PATH_MAX
 #define PATH_MAX 1024
 #endif
+
+#ifndef _WIN32
 
 namespace {
 
@@ -98,6 +97,8 @@ inline const struct timespec& mtim(const struct stat& stbuf) {
 }
 
 }
+
+#endif
 
 //------------------------------------------------------------------------
 

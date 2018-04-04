@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <time.h>
 extern "C" {
 #if defined(_WIN32)
 #  include <sys/stat.h>
@@ -49,8 +50,6 @@ extern "C" {
 #    include <windows.h>
 #  endif
 #elif defined(ACORN)
-#elif defined(MACOS)
-#  include <ctime.h>
 #else
 #  include <unistd.h>
 #  include <sys/types.h>
