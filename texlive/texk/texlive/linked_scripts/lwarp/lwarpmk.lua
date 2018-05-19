@@ -4,7 +4,7 @@
 
 -- Print the usage of the lwarpmk command:
 
-printversion = "v0.53"
+printversion = "v0.56"
 
 function printhelp ()
 print ("lwarpmk: Use lwarpmk -h or lwarpmk --help for help.") ;
@@ -27,6 +27,7 @@ lwarpmk pdftohtml [project]:
     For use with latexmk or a Makefile:
     Converts project_html.pdf to project_html.html and individual HTML files.
     Finishes the HTML conversion even if there was a compile error.
+lwarpmk pdftosvg <list of file names>: Converts each PDF file to SVG.
 lwarpmk clean [project]: Remove .aux, .toc, .lof/t, .idx, .ind, .log, *_html_inc.*, .gl*
 lwarpmk cleanall [project]: Remove auxiliary files and also project.pdf, *.html
 lwarpmk cleanlimages: Removes all images from the "lateximages" directory.
@@ -49,11 +50,14 @@ sourcename = "projectname"  (the source-code filename w/o .tex)
 homehtmlfilename = "index"  (or perhaps the project name)
 htmlfilename = ""  (or "projectname" - filename prefix)
 latexmk = "false"  (or "true" to use latexmk to build PDFs)
-languge = "english"  (use a language supported by xindy)
-xdyfile = "lwarp.xdy" (or a custom file based on lwarp.xdy)
+shellescape = "false"
+xindylanguge = "english"  (use a language supported by xindy)
+xindycodepage = "utf8"  (use a codepage supported by xindy)
+xindystyle = "lwarp.xdy" (or a custom file based on lwarp.xdy)
+pdftotextenc = "UTF-8"  (use an encoding supported by pdftotext)
 --
 Filenames must contain only letters, numbers, underscore, or dash.
-Values must be in "quotes".
+Values must be in upright "quotes".
 
 ]] ) ;
 end
@@ -97,17 +101,24 @@ function loadconf ()
 local conffile = "lwarpmk.conf"
 -- Optional configuration filename:
 if ( arg[2] ~= nil ) then conffile = arg[2]..".lwarpmkconf" end
--- Default language:
-language = "english"
--- Default xdyfile:
-xdyfile = "lwarp.xdy"
+-- Additional defaults:
+opsystem = "Unix"
+latexmk = "false"
+shellescape = "false"
+xindylanguage = "english"
+xindycodepage = "utf8"
+xindystyle = "lwarp.xdy"
+pdftotextenc = "UTF-8"
 -- Verify the file exists:
 if (lfs.attributes(conffile,"mode")==nil) then
     -- file not exists
     print ("lwarpmk: ===")
-    print ("lwarpmk: " .. conffile .." does not exist.")
+    print ("lwarpmk: File \"" .. conffile .."\" does not exist.")
+    print ("lwarpmk: Move to the project's source directory,")
+    print ("lwarpmk: recompile using pdflatex, xelatex, or lualatex,")
+    print ("lwarpmk: then try using lwarpmk again.")
     if ( arg[2] ~= nil ) then
-        print ("lwarpmk: " .. arg[2] .. " does not appear to be a project name.\n")
+        print ("lwarpmk: (\"" .. arg[2] .. "\" does not appear to be a project name.)")
     end
     print ("lwarpmk: ===")
     printhelp () ;
@@ -152,8 +163,11 @@ elseif ( cvarname == "sourcename" ) then sourcename = cvalue
 elseif ( cvarname == "homehtmlfilename" ) then homehtmlfilename = cvalue
 elseif ( cvarname == "htmlfilename" ) then htmlfilename = cvalue
 elseif ( cvarname == "latexmk" ) then latexmk = cvalue
-elseif ( cvarname == "language" ) then language = cvalue
-elseif ( cvarname == "xdyfile" ) then xdyfile = cvalue
+elseif ( cvarname == "shellescape" ) then shellescape = cvalue
+elseif ( cvarname == "xindylanguage" ) then xindylanguage = cvalue
+elseif ( cvarname == "xindycodepage" ) then xindycodepage = cvalue
+elseif ( cvarname == "xindystyle" ) then xindystyle = cvalue
+elseif ( cvarname == "pdftotextenc" ) then pdftotextenc = cvalue
 else
     print ("lwarpmk: ===")
     print ("lwarpmk: " .. linenum .. " : " .. line ) ;
@@ -207,13 +221,13 @@ elseif opsystem=="Windows" then -- For Windows
 else print ( "lwarpmk: Select Unix or Windows for opsystem" )
 end --- for Windows
 
--- set xindycmd according to pdflatex vs xelatex/lualatex:
+-- set xindycmd, glossarycmd according to pdflatex vs xelatex/lualatex:
 if ( latexname == "pdflatex" ) then
-    xindycmd = "texindy  -C utf8"
-    glossarycmd = "xindy -C utf8"
+    xindycmd = "texindy  "
+    glossarycmd = "xindy  "
 else
-    xindycmd = "xindy  -M texindy  -C utf8"
-    glossarycmd = "xindy -C utf8"
+    xindycmd = "xindy  -M texindy  "
+    glossarycmd = "xindy "
 end
 
 end -- loadconf
@@ -243,7 +257,13 @@ end
 
 function onetime (fsuffix)
 print("lwarpmk: Compiling with " .. latexname .. " " .. sourcename..fsuffix)
-err = os.execute(latexname .. " " .. sourcename..fsuffix)
+local thisshellescape = " "
+if ( shellescape == "true" ) then
+    thisshellescape = " -shell-escape "
+else
+    thisshellescape = " "
+end
+err = os.execute(latexname .. thisshellescape .. sourcename..fsuffix)
 if ( err ~= 0 ) then
     print ("lwarpmk: ===")
     print ("lwarpmk: Compile error.")
@@ -282,7 +302,7 @@ function pdftohtml ()
 -- Convert to text:
 print ("lwarpmk: Converting " .. sourcename
     .."_html.pdf to " .. sourcename .. "_html.html")
-os.execute("pdftotext  -enc UTF-8  -nopgbrk  -layout "
+os.execute("pdftotext  -enc " .. pdftotextenc .. "  -nopgbrk  -layout "
     .. sourcename .. "_html.pdf " .. sourcename .. "_html.html")
 -- Split the result into individual HTML files:
 splitfile (homehtmlfilename .. ".html" , sourcename .. "_html.html")
@@ -303,33 +323,96 @@ os.execute ( rmname .. " *.aux " ..
     )
 end
 
--- Create lateximages based on lateximages.txt:
-function createlateximages ()
-print ("lwarpmk: Creating lateximages.")
-local limagesfile = io.open("lateximages.txt", "r")
-if ( limagesfile == nil ) then
+-- Error if the HTML document does not exist.
+-- The lateximages are drawn from the HTML PDF verison of the document,
+-- so "lwarpmk html" must be done before "lwarpmk limages".
+function checkhtmlpdfexists ()
+local htmlpdffile = io.open(sourcename .. "_html.pdf", "r")
+if ( htmlpdffile == nil ) then
+    print ("")
+    print ("lwarpmk: ===")
+    print ("lwarpmk: The HTML version of the document does not exist.")
+    print ("lwarpmk: Enter \"lwarpmk html\" to compile the HTML version.")
+    print ("lwarpmk: ===")
+    os.exit(1)
+end
+io.close (htmlpdffile)
+end -- checkhtmlpdfexists
+
+-- Warning of a missing lateximages.txt file:
+function warnlimages ()
     print ("lwarpmk: ===")
     print ("lwarpmk: \"lateximages.txt\" does not exist.")
     print ("lwarpmk: Your project does not use SVG math or other lateximages,")
     print ("lwarpmk: or the file has been deleted somehow.")
-    print ("lwarpmk: Use \"lwarpmk html\" to recompile your project,")
+    print ("lwarpmk: Use \"lwarpmk html\" to recompile your project")
     print ("lwarpmk: and recreate \"lateximages.txt\".")
     print ("lwarpmk: If your project does not use SVG math or other lateximages,")
     print ("lwarpmk: then \"lateximages.txt\" will never exist, and")
     print ("lwarpmk: \"lwarpmk limages\" will not be necessary.")
     print ("lwarpmk: ===")
+end -- warnlimages
+
+-- Check lateximages.txt to see if need to recompile first.
+-- If any entry has a page number of zero, then there were incorrect images.
+function checklimages ()
+print ("lwarpmk: Checking for a valid lateximages.txt file.")
+local limagesfile = io.open("lateximages.txt", "r")
+if ( limagesfile == nil ) then
+    warnlimages ()
+    os.exit(1)
+end
+-- Track warning to recompile if find a page 0
+local pagezerowarning = false
+-- Scan lateximages.txt
+for line in limagesfile:lines() do
+    -- lwimgpage is the page number in the PDF which has the image
+    -- lwimghash is true if this filename is a hash
+    -- lwimgname is the lateximage filename root to assign for the image
+    i,j,lwimgpage,lwimghash,lwimgname = string.find (line,"|(.*)|(.*)|(.*)|")
+    -- For each entry:
+    if ( (i~=nil) ) then
+        -- If the page number is 0, image references are incorrect
+        --  and must recompile the soure document:
+        if ( lwimgpage == "0" ) then
+            pagezerowarning = true
+        end
+    end -- if i~=nil
+end -- do
+if ( pagezerowarning ) then
+    print ("")
+    print ("lwarpmk: ===")
+    print ("lwarpmk: The document must be recompiled before creating the lateximages.")
+    print ("lwarpmk: Enter \"lwarpmk html\" again, then try \"lwarpmk limages\" again.")
+    print ("lwarpmk: ===")
+    os.exit(1) ;
+end -- pagezerowarning
+end -- checklateximages
+
+-- Create lateximages based on lateximages.txt:
+function createlateximages ()
+-- See if the document must be recompiled first:
+checklimages ()
+-- See if the print version exists:
+checkhtmlpdfexists ()
+-- Attempt to create the lateximages:
+print ("lwarpmk: Creating lateximages.")
+local limagesfile = io.open("lateximages.txt", "r")
+if ( limagesfile == nil ) then
+    warnlateximages ()
     os.exit(1)
 end
 -- Create the lateximages directory, ignore error if already exists
 err = os.execute("mkdir lateximages")
--- For Windows, create lwarp_one_limage.cmd:
+-- For Windows, create lwarp_one_limage.cmd from lwarp_one_limage.txt:
 if opsystem=="Windows" then
     err = os.execute (
         cpname .. " lwarp_one_limage.txt lwarp_one_limage.cmd"
     )
     if ( err ~= 0 ) then
         print ("lwarpmk: ===")
-        print ("lwarpmk: File error trying to copy to lwarp_one_limage.cmd")
+        print ("lwarpmk: File error trying to copy")
+        print ("         lwarp_one_limage.txt to lwarp_one_limage.cmd")
         print ("lwarpmk: ===")
         os.exit(1) ;
     end
@@ -429,6 +512,10 @@ end -- not page 0
 end -- not nil
 end -- do
 io.close(limagesfile)
+print ( "lwarpmk limages: ===")
+print ( "lwarpmk limages: Wait a moment for the images to complete" )
+print ( "lwarpmk limages: before reloading the page." )
+print ( "lwarpmk limages: ===")
 print ( "lwarpmk limages: done" )
 if ( pagezerowarning == true ) then
     print ( "lwarpmk limages: WARNING: Images will be incorrect." )
@@ -441,6 +528,13 @@ end -- function
 -- Use latexmk to compile source and index:
 -- fsuffix is "" for print, or "_html" for HTML
 function compilelatexmk ( fsuffix )
+-- Maybe select the shell-escape option:
+local thisshellescape = " "
+if ( shellescape == "true" ) then
+    thisshellescape = " -shell-escape "
+else
+    thisshellescape = " "
+end
 -- The recorder option is required to detect changes in <project>.tex
 -- while we are loading <project>_html.tex.
 err=os.execute ( "latexmk -pdf -dvi- -ps- -recorder "
@@ -448,10 +542,11 @@ err=os.execute ( "latexmk -pdf -dvi- -ps- -recorder "
     .. opquote
     .. "$makeindex = q/" -- $
     .. xindycmd
-    .. "  -M " .. xdyfile
-    .. "  -L " .. language .. " /"
+    .. "  -M " .. xindystyle
+    .. "  -C " .. xindycodepage
+    .. "  -L " .. xindylanguage .. " /"
     .. opquote
-    .. " -pdflatex=\"" .. latexname .." %O %S\" "
+    .. " -pdflatex=\"" .. latexname .. thisshellescape .." %O %S\" "
     .. sourcename..fsuffix ..".tex" ) ;
 if ( err ~= 0 ) then
     print ("lwarpmk: ===")
@@ -459,7 +554,21 @@ if ( err ~= 0 ) then
     print ("lwarpmk: ===")
     os.exit(1)
 end
-end
+end -- function
+
+-- Converts PDF files to SVG files.
+-- The filenames are arg[2] and up.
+-- arg[1] is the command "pdftosvg".
+function convertpdftosvg ()
+for i = 2 , #arg do
+    if (lfs.attributes(arg[i],"mode")==nil) then
+        print ("lwarpmk: File \"" .. arg[i] .. "\" does not exist.")
+    else
+        print ("lwarpmk: Converting \"" .. arg[i] .. "\"")
+        os.execute ( "pdftocairo -svg " .. arg[i] )
+    end -- if
+end -- do
+end --function
 
 -- lwarpmk --version :
 
@@ -512,8 +621,9 @@ loadconf ()
 print ("lwarpmk: Processing the index.")
 os.execute(
     xindycmd
-    .. "  -M " .. xdyfile
-    .. "  -L " .. language
+    .. "  -M " .. xindystyle
+    .. "  -C " .. xindycodepage
+    .. "  -L " .. xindylanguage
     .. " " .. sourcename .. ".idx")
 print ("lwarpmk: Forcing an update of " .. sourcename ..".tex.")
 refreshdate ()
@@ -528,7 +638,10 @@ elseif arg[1] == "printglossary" then
 loadconf ()
 print ("lwarpmk: Processing the glossary.")
 
-os.execute(glossarycmd .. "  -L " .. language .. "  -I xindy -M " .. sourcename ..
+os.execute(glossarycmd ..
+    "  -L " .. xindylanguage ..
+    "  -C " .. xindycodepage ..
+    "  -I xindy -M " .. sourcename ..
     " -t " .. sourcename .. ".glg -o " .. sourcename .. ".gls "
     .. sourcename .. ".glo")
 print ("lwarpmk: Forcing an update of " .. sourcename ..".tex.")
@@ -583,8 +696,9 @@ loadconf ()
 print ("lwarpmk: Processing the index.")
 os.execute(
     xindycmd
-    .. "  -M " .. xdyfile
-    .. "  -L " .. language
+    .. "  -M " .. xindystyle
+    .. "  -L " .. xindylanguage
+    .. "  -C " .. xindycodepage
     .. " " .. sourcename .. "_html.idx"
 )
 print ("lwarpmk: Forcing an update of " .. sourcename ..".tex.")
@@ -600,7 +714,10 @@ elseif arg[1] == "htmlglossary" then
 loadconf ()
 print ("lwarpmk: Processing the glossary.")
 
-os.execute(glossarycmd .. "  -L " .. language .. "  -I xindy -M " ..sourcename ..
+os.execute(glossarycmd ..
+    "  -L " .. xindylanguage ..
+    "  -C " .. xindycodepage ..
+    "  -I xindy -M " ..sourcename ..
     "_html -t " .. sourcename .. "_html.glg -o " ..sourcename ..
     "_html.gls " ..sourcename .. "_html.glo")
 
@@ -657,6 +774,12 @@ loadconf ()
 os.execute ( rmname .. " lateximages/*" )
 print ("lwarpmk: Done.")
 
+-- lwarpmk pdftosvg <list of file names>
+-- Convert PDf files to SVG using pdftocairo
+elseif arg[1] == "pdftosvg" then
+convertpdftosvg ()
+print ("lwarpmk: Done.")
+
 -- lwarpmk with no argument :
 
 elseif (arg[1] == nil) then
@@ -668,8 +791,8 @@ elseif (arg[1] == "-h" ) or (arg[1] == "--help") then
 printusage ()
 
 else
-print ("lwarpmk: Unknown command \""..arg[1].."\".\n")
 printhelp ()
+print ("\nlwarpmk: ****** Unknown command \""..arg[1].."\". ******\n")
 end
 
 end -- not --version

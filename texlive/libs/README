@@ -1,4 +1,4 @@
-$Id: README 47014 2018-03-18 21:59:37Z kakuto $
+$Id: README 47607 2018-05-04 03:48:43Z kakuto $
 Public domain.  Originally created by Karl Berry, 2005.
 
 Libraries we compile for TeX Live.
@@ -12,7 +12,7 @@ See also comments in ../texk/README.
 cairo 1.14.12 - checked 07dec17
   http://cairographics.org/releases/
 
-freetype2 2.9.0 - checked 09jan18
+freetype2 2.9.1 - checked 04may18
   http://savannah.nongnu.org/download/freetype/
 
 gd 2.2.5 - checked 30aug17
@@ -27,7 +27,7 @@ graphite2 1.3.11 - checked 05mar18
 harfbuzz 1.7.6 - checked 07mar18
   http://www.freedesktop.org/software/harfbuzz/release/
 
-icu 60.2 - checked 11jan18
+icu 61.1 - checked 29mar18
   http://download.icu-project.org/files/icu4c/
 
 libpaper 1.1.24+nmu2 - checked 24oct13
@@ -49,7 +49,7 @@ mpfr 4.0.1 - checked 10feb18
 pixman 0.34.0 - checked 04feb16
   http://cairographics.org/releases/
 
-poppler 0.63.0 - checked 18mar18
+poppler 0.64.0 - checked 29apr18
   http://poppler.freedesktop.org/ - used by luatex and xetex
   (requires C++11)
 
