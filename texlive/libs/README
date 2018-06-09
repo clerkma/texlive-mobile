@@ -1,4 +1,4 @@
-$Id: README 47607 2018-05-04 03:48:43Z kakuto $
+$Id: README 47939 2018-06-06 07:23:34Z kakuto $
 Public domain.  Originally created by Karl Berry, 2005.
 
 Libraries we compile for TeX Live.
@@ -24,7 +24,7 @@ gmp 6.1.2 - checked 16dec16
 graphite2 1.3.11 - checked 05mar18
   http://sourceforge.net/projects/silgraphite/files/graphite2/
 
-harfbuzz 1.7.6 - checked 07mar18
+harfbuzz 1.8.0 - checked 06jun18
   http://www.freedesktop.org/software/harfbuzz/release/
 
 icu 61.1 - checked 29mar18
@@ -49,7 +49,7 @@ mpfr 4.0.1 - checked 10feb18
 pixman 0.34.0 - checked 04feb16
   http://cairographics.org/releases/
 
-poppler 0.64.0 - checked 29apr18
+poppler 0.65.0 - checked 21may18
   http://poppler.freedesktop.org/ - used by luatex and xetex
   (requires C++11)
 

@@ -1,12 +1,12 @@
 #!/usr/bin/env perl
-# $Id: tlmgr.pl 47303 2018-04-05 17:52:22Z karl $
+# $Id: tlmgr.pl 47951 2018-06-07 05:55:43Z preining $
 #
 # Copyright 2008-2018 Norbert Preining
 # This file is licensed under the GNU General Public License version 2
 # or any later version.
 
-my $svnrev = '$Revision: 47303 $';
-my $datrev = '$Date: 2018-04-05 19:52:22 +0200 (Thu, 05 Apr 2018) $';
+my $svnrev = '$Revision: 47951 $';
+my $datrev = '$Date: 2018-06-07 07:55:43 +0200 (Thu, 07 Jun 2018) $';
 my $tlmgrrevision;
 my $tlmgrversion;
 my $prg;
@@ -1091,7 +1091,7 @@ sub backup_and_remove_package {
     return($F_WARNING);
   }
   if ($opts{"backup"}) {
-    $tlp->make_container("xz", $localtlpdb->root,
+    $tlp->make_container($::progs{'compressor'}, $localtlpdb->root,
                          $opts{"backupdir"}, 
                          "${pkg}.r" . $tlp->revision,
                          $tlp->relocated);
@@ -1761,7 +1761,15 @@ sub get_available_backups {
   #
   for my $dirent (@dirents) {
     next if (-d $dirent);
-    next if ($dirent !~ m/^(.*)\.r([0-9]+)\.tar\.xz$/);
+    my $has_accepted_compressiontype = 0;
+    for my $comptype (@AcceptedCompressors) {
+      my $ext = $CompressorExtension{$comptype};
+      $has_accepted_compressiontype = 1 if ($dirent =~ m/\.tar\.$ext$/);
+    }
+    next if (!$has_accepted_compressiontype);
+    if ($dirent !~ m/^(.*)\.r([0-9]+)\.tar\.(.*)$/) {
+      next;
+    }
     if (!$do_stat) {
       $backups{$1}->{$2} = 1;
       next;
@@ -1796,9 +1804,13 @@ sub restore_one_package {
   my ($pkg, $rev, $bd) = @_;
   # first remove the package, then reinstall it
   # this way we get rid of useless files
-  my $restore_file = "$bd/${pkg}.r${rev}.tar.xz";
-  if (! -r $restore_file) {
-    tlwarn("$prg: Cannot read $restore_file, no action taken\n");
+  my $restore_file;
+  for my $comptype (@AcceptedCompressors) {
+    my $ext = $CompressorExtension{$comptype};
+    $restore_file = "$bd/${pkg}.r${rev}.tar.$ext" if (-r "$bd/${pkg}.r${rev}.tar.$ext");
+  }
+  if (!$restore_file) {
+    tlwarn("$prg: Cannot find restore file $bd/${pkg}.r${rev}.tar.*, no action taken\n");
     return ($F_ERROR);
   }
   $localtlpdb->remove_package($pkg);
@@ -1938,7 +1950,7 @@ sub action_restore {
     for my $p (sort keys %backups) {
       my @tmp = sort {$b <=> $a} (keys %{$backups{$p}});
       my $rev = $tmp[0];
-      print "Restoring $p, $rev from $opts{'backupdir'}/${p}.r${rev}.tar.xz\n";
+      print "Restoring $p, $rev from $opts{'backupdir'}/${p}.r${rev}.tar.*\n";
       if (!$opts{"dry-run"}) {
         # first remove the package, then reinstall it
         # this way we get rid of useless files
@@ -2128,11 +2140,13 @@ sub action_backup {
     if ($clean_mode) {
       clear_old_backups ($pkg, $opts{"backupdir"}, $opts{"clean"}, $opts{"dry-run"}, 1);
     } else {
+      # for now default to xz and allow overriding with env var
+      my $compressorextension = $CompressorExtension{$::progs{'compressor'}};
       my $tlp = $localtlpdb->get_package($pkg);
       info("saving current status of $pkg to $opts{'backupdir'}/${pkg}.r" .
-        $tlp->revision . ".tar.xz\n");
+        $tlp->revision . ".tar.$compressorextension\n");
       if (!$opts{"dry-run"}) {
-        $tlp->make_container("xz", $localtlpdb->root,
+        $tlp->make_container($::progs{'compressor'}, $localtlpdb->root,
                              $opts{"backupdir"}, "${pkg}.r" . $tlp->revision);
       }
     }
@@ -2254,24 +2268,28 @@ sub write_w32_updater {
       tlwarn("$prg: Creation of backup container of $pkg failed.\n");
       return 1; # backup failed? abort
     }
+    my $decompressor = $::progs{$DecompressorProgram{$DefaultCompressorFormat}};
+    my $compressorextension = $CompressorExtension{$DefaultCompressorFormat};
+    my @decompressorArgs = @{$DecompressorArgs{$DefaultCompressorFormat}};
     foreach my $pkg_part (@pkg_parts) {
       if ($media eq 'local_compressed') {
-        copy("$repo/$pkg_part.tar.xz", "$temp");
+        copy("$repo/$pkg_part.tar.$compressorextension", "$temp");
       } else { # net
-        TeXLive::TLUtils::download_file("$repo/$pkg_part.tar.xz", "$temp/$pkg_part.tar.xz");
+        TeXLive::TLUtils::download_file("$repo/$pkg_part.tar.$compressorextension", 
+                                        "$temp/$pkg_part.tar.$compressorextension");
       }
       # now we should have the file present
-      if (!-r "$temp/$pkg_part.tar.xz") {
-        tlwarn("$prg: Couldn't get $pkg_part.tar.xz, that is bad\n");
+      if (!-r "$temp/$pkg_part.tar.$compressorextension") {
+        tlwarn("$prg: Couldn't get $pkg_part.tar.$compressorextension, that is bad\n");
         return 1; # abort
       }
       # unpack xz archive
-      my $sysret = system("$::progs{'xzdec'} < \"$temp/$pkg_part.tar.xz\" > \"$temp/$pkg_part.tar\"");
+      my $sysret = system("$decompressor @decompressorArgs < \"$temp/$pkg_part.tar.xz\" > \"$temp/$pkg_part.tar\"");
       if ($sysret) {
-        tlwarn("$prg: Couldn't unpack $pkg_part.tar.xz\n");
+        tlwarn("$prg: Couldn't unpack $pkg_part.tar.$compressorextension\n");
         return 1; # unpack failed? abort
       }
-      unlink("$temp/$pkg_part.tar.xz"); # we don't need that archive anymore
+      unlink("$temp/$pkg_part.tar.$compressorextension"); # we don't need that archive anymore
     }
   }
   
@@ -2809,7 +2827,7 @@ sub action_update {
       $mediatlp = $remotetlpdb->get_package($pkg);
     }
     if (!defined($mediatlp)) {
-      debug("$pkg cannot be found in $location\n");
+      ddebug("$pkg cannot be found in $location\n");
       next;
     }
     my $rctanvers = $mediatlp->cataloguedata->{'version'};
@@ -3163,11 +3181,12 @@ sub action_update {
       }
 
       if ($opts{"backup"} && !$opts{"dry-run"}) {
-        $tlp->make_container("xz", $root,
+        my $compressorextension = $CompressorExtension{$::progs{'compressor'}};
+        $tlp->make_container($::progs{'compressor'}, $root,
                              $opts{"backupdir"}, "${pkg}.r" . $tlp->revision,
                              $tlp->relocated);
         $unwind_package =
-            "$opts{'backupdir'}/${pkg}.r" . $tlp->revision . ".tar.xz";
+            "$opts{'backupdir'}/${pkg}.r" . $tlp->revision . ".tar.$compressorextension";
         
         if ($autobackup) {
           # in case we do auto backups we remove older backups
@@ -4415,9 +4434,9 @@ sub action_repository {
       return ($F_ERROR);
     }
     # check if it is either url or absolute path
-    if (($p !~ m!^(https?|ftp)://!i) && 
+    if (($p !~ m!^(https?|ftp)://!i) && ($p !~ m!$TeXLive::TLUtils::SshURIRegex!) && 
         !File::Spec->file_name_is_absolute($p)) {
-      tlwarn("$prg: neither https?/ftp URL nor absolute path, no action: $p\n");
+      tlwarn("$prg: neither https?/ftp/ssh/scp/file URI nor absolute path, no action: $p\n");
       return ($F_ERROR);
     }
     my $t = shift @ARGV;
@@ -6508,7 +6527,7 @@ sub init_local_db {
   if (!setup_programs("$Master/tlpkg/installer", $localtlpdb->platform)) {
     tlwarn("$prg: Couldn't set up the necessary programs.\nInstallation of packages is not supported.\nPlease report to texlive\@tug.org.\n");
     if (defined($should_i_die) && $should_i_die) {
-      return ($F_ERROR);
+      die("$prg: no way to continue!\n");
     } else {
       tlwarn("$prg: Continuing anyway ...\n");
       return ($F_WARNING);
@@ -6531,7 +6550,8 @@ sub init_local_db {
   # we normalize the path only if it is
   # - a url starting with neither http or ftp
   # - if we are on Windows, it does not start with Drive:[\/]
-  if (! ( $location =~ m!^(https?|ftp)://!i  ||
+  if (! ( $location =~ m!^(https?|ftp)://!i  || 
+          $location =~ m!$TeXLive::TLUtils::SshURIRegex!i ||
           (win32() && (!(-e $location) || ($location =~ m!^.:[\\/]!) ) ) ) ) {
     # seems to be a local path, try to normalize it
     my $testloc = abs_path($location);
@@ -7241,22 +7261,23 @@ sub clear_old_backups {
   my @dirents = readdir (DIR);
   closedir (DIR) || warn "closedir($backupdir) failed: $!";
   my @backups;
+  my $extre = "(" . join("|", map { $CompressorExtension{$_} } @AcceptedCompressors) . ")";
   for my $dirent (@dirents) {
     next if (-d $dirent);
-    next if ($dirent !~ m/^$pkg\.r([0-9]+)\.tar\.xz$/);
-    push @backups, $1;
+    next if ($dirent !~ m/^$pkg\.r([0-9]+)\.tar\.$extre$/);
+    push @backups, [ $1, $dirent ] ;
   }
   my $i = 1;
-  for my $e (reverse sort {$a <=> $b} @backups) {
+  for my $e (reverse sort {$a->[0] <=> $b->[0]} @backups) {
     if ($i > $autobackup) {
       # only echo out if explicitly asked for verbose which is done
       # in the backup --clean action
       if ($verb) {
-        info ("Removing backup $backupdir/$pkg.r$e.tar.xz\n");
+        info ("Removing backup $backupdir/$e->[1]\n");
       } else {
-        debug ("Removing backup $backupdir/$pkg.r$e.tar.xz\n");
+        debug ("Removing backup $backupdir/$e->[1]\n");
       }
-      unlink("$backupdir/$pkg.r$e.tar.xz") unless $dryrun;
+      unlink("$backupdir/$e->[1]") unless $dryrun;
     }
     $i++;
   }
@@ -7437,19 +7458,88 @@ between an option name and its value.
 
 =item B<--repository> I<url|path>
 
-Specifies the package repository from which packages should be installed
-or updated, overriding the default package repository found in the
-installation's TeX Live Package Database (a.k.a. the TLPDB, defined
-entirely in the file C<tlpkg/texlive.tlpdb>).  The documentation for
-C<install-tl> has more details about this
-(L<http://tug.org/texlive/doc/install-tl.html>).
+Specify the package repository from which packages should be installed
+or updated, either a local directory or network location, as below. This
+overridesthe default package repository found in the installation's TeX
+Live Package Database (a.k.a. the TLPDB, which is given entirely in the
+file C<tlpkg/texlive.tlpdb>).
 
-C<--repository> changes the repository location only for the current
+This C<--repository> option changes the location only for the current
 run; to make a permanent change, use C<option repository> (see the
 L</option> action).
 
+As an example, you can choose a particular CTAN mirror with something
+like this:
+
+  -repository http://ctan.example.org/its/ctan/dir/systems/texlive/tlnet
+
+Of course a real hostname and its particular top-level CTAN directory
+have to be specified.  The list of CTAN mirrors is available at
+L<http://ctan.org/mirrors>.
+
+Here's an example of using a local directory:
+
+  -repository /local/TL/repository
+
 For backward compatibility and convenience, C<--location> and C<--repo>
 are accepted as aliases for this option.
+
+Locations can be specified as any of the following:
+
+=over 4
+
+=item C</some/local/dir>
+
+=item C<file:/some/local/dir>
+
+Equivalent ways of specifying a local directory.
+
+=item C<ctan>
+
+=item C<http://mirror.ctan.org/systems/texlive/tlnet>
+
+Pick a CTAN mirror automatically, trying for one that is both nearby and
+up-to-date. The chosen mirror is used for the entire download. The bare
+C<ctan> is merely an alias for the full url. (See L<http://ctan.org> for
+more about CTAN and its mirrors.)
+
+=item C<http://server/path/to/tlnet>
+
+Standard HTTP. If the (default) LWP method is used, persistent
+connections are supported. TL can also use C<curl> or C<wget> to do the
+downloads, or an arbitrary user-specified program, as described in the
+C<tlmgr> documentation
+(L<http://tug.org/texlive/doc/tlmgr.html#ENVIRONMENT-VARIABLES>).
+
+=item C<https://server/path/to/tlnet>
+
+Again, if the (default) LWP method is used, this supports persistent
+connections. Unfortunately, some versions of C<wget> and C<curl> do not
+support https, and even when C<wget> supports https, certificates may be
+rejected even when the certificate is fine, due to a lack of local
+certificate roots. The simplest workaround for this problem is to use
+http or ftp.
+
+=item C<ftp://server/path/to/tlnet>
+
+If the (default) LWP method is used, persistent connections are
+supported.
+
+=item C<user@machine:/path/to/tlnet>
+
+=item C<scp://user@machine/path/to/tlnet>
+
+=item C<ssh://user@machine/path/to/tlnet>
+
+These forms are equivalent; they all use C<scp> to transfer files. Using
+C<ssh-agent> is recommended. (Info:
+L<https://en.wikipedia.org/wiki/OpenSSH>,
+L<https://en.wikipedia.org/wiki/Ssh-agent>.)
+
+=back
+
+If the repository is on the network, trailing C</> characters and/or
+trailing C</tlpkg> and/or C</archive> components are ignored.  
 
 =item B<--gui> [I<action>]
 
@@ -8297,7 +8387,7 @@ platform instead of auto detection.
 
 C<platform set auto> switches TeX Live to auto detection mode for platform.
 
-Platform detection is needed to select the proper C<xz>, C<xzdec> and 
+Platform detection is needed to select the proper C<xz> and 
 C<wget> binaries that are shipped with TeX Live.
 
 C<arch> is a synonym for C<platform>.
@@ -8937,8 +9027,9 @@ above) to succeed, and a working GnuPG (C<gpg>) program (see below for
 search method).  Then, unless cryptographic verification has been
 disabled, a signature file (C<texlive.tlpdb.*.asc>) of the checksum file
 is downloaded and the signature verified. The signature is created by
-the TeX Live Distribution GPG key 0x06BAB6BC, which in turn is signed by
-Karl Berry's key 0x30D155AD and Norbert Preining's key 0x6CACA448.  All
+the TeX Live Distribution GPG key 0x0D5E5D9106BAB6BC, which in turn is
+signed by Karl Berry's key 0x0716748A30D155AD and
+Norbert Preining's key 0x6CACA448860CDC13.  All
 of these keys are obtainable from the standard key servers.
 
 Additional trusted keys can be added using the C<key> action.
@@ -9511,16 +9602,103 @@ If a value is not saved in the database the string C<(not set)> is shown.
 If you are developing a program that uses this output, and find that
 changes would be helpful, do not hesitate to write the mailing list.
 
+=head1 ENVIRONMENT VARIABLES
+
+C<tlmgr> uses many of the standard TeX environment variables, as
+reported by, e.g., C<tlmgr conf> (L</conf>).
+
+In addition, for ease in scripting and debugging, C<tlmgr> looks for the
+following environment variables. These are not of interest for normal
+user installations.
+
+=over 4
+
+=item C<TEXLIVE_COMPRESSOR>
+
+This option allows selecting a different compressor program for
+backups and intermediate rollback containers. The order of selection is:
+
+=over 8
+
+=item 1.
+
+If the environment variable C<TEXLIVE_COMPRESSOR> is
+defined, use it; abort if it doesn't work. Possible values:
+C<lz4>, C<gzip>, C<xz>. The necessary options are added internally.
+
+=item 2.
+
+If lz4 is available (either from the system or TL) and working, use that.
+
+=item 3.
+
+If gzip is available (from the system) and working, use that.
+
+=item 4.
+
+If xz is available (either from the system or TL) and working, use that.
+  
+=back
+
+lz4 and gzip are much faster in creating tlmgr's local backups.
+The unconditional use of xz for the tlnet containers is unaffected,
+to minimize download sizes.
+
+=item C<TEXLIVE_DOWNLOADER>
+
+=item C<TL_DOWNLOAD_PROGRAM>
+
+=item C<TL_DOWNLOAD_ARGS>
+
+These options allow selecting different download programs then the ones
+automatically selected by the installer. The order of selection is:
+
+=over 8
+
+=item 1.
+
+If the environment variable C<TEXLIVE_DOWNLOADER> is
+defined, use it; abort if the specified program doesn't work.
+Possible values: C<curl>, C<wget>. The necessary options are added
+internally.
+
+=item 2.
+
+If the environment variable C<TL_DOWNLOAD_PROGRAM> is
+defined (can be any value), use it together with
+C<TL_DOWNLOAD_ARGS>; abort if it doesn't work.
+
+=item 3.
+
+If LWP is available and working, use that (by far the most
+efficient method, as it supports persistent downloads).
+
+=item 4.
+
+If curl is available (from the system) and working, use that.
+
+=item 5.
+
+If wget is available (either from the system or TL) and working, use that.
+
+=back
+
+TL still provides C<wget> binaries for some platforms, so
+some download method should always be available.
+
+=back
+
+
 =head1 AUTHORS AND COPYRIGHT
 
 This script and its documentation were written for the TeX Live
 distribution (L<http://tug.org/texlive>) and both are licensed under the
 GNU General Public License Version 2 or later.
 
-$Id: tlmgr.pl 47303 2018-04-05 17:52:22Z karl $
+$Id: tlmgr.pl 47951 2018-06-07 05:55:43Z preining $
 =cut
 
-# to remake HTML version: pod2html --cachedir=/tmp tlmgr.pl >/tmp/tlmgr.html
+# test HTML version: pod2html --cachedir=/tmp tlmgr.pl >/tmp/tlmgr.html
 
 ### Local Variables:
 ### perl-indent-level: 2
