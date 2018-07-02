@@ -141,7 +141,7 @@ recorder_record_output (const_string name)
     recorder_record_name ("OUTPUT", name);
 }
 
-/* Open an input file F, using the kpathsea format FILEFMT and passing
+/* Open input file *F_PTR, using the kpathsea format FILEFMT and passing
    FOPEN_MODE to fopen.  The filename is in `nameoffile+1'.  We return
    whether or not the open succeeded.  If it did, `nameoffile' is set to
    the full filename opened, and `namelength' to its length.  */
@@ -297,6 +297,36 @@ open_input (FILE **f_ptr, int filefmt, const_string fopen_mode)
 
     return *f_ptr != NULL;
 }
+
+
+/* Open input file *F_PTR (of type FILEFMT), prepending the directory
+   part of the string FNAME to `nameoffile'+1, unless that is already
+   kpse_absolute_p. This is called from BibTeX, to open subsidiary .aux
+   files, with FNAME set to the top-level aux file. The idea is that if
+   we're invoked as bibtex somedir/foo.aux, and foo.aux has an
+   \@input{bar} statement, we should look for somedir/bar.aux too. (See
+   bibtex-auxinclude.test.) */
+
+boolean
+open_input_with_dirname (FILE **f_ptr, int filefmt, const char *fname)
+{
+  boolean ret = false;
+  char *top_dir = xdirname (fname);
+
+  if (top_dir && *top_dir && !STREQ (top_dir, ".")
+      && !kpse_absolute_p (nameoffile+1, true)) {
+    char *newname = concat3 (top_dir, DIR_SEP_STRING, nameoffile+1);
+    free (nameoffile);
+    nameoffile = xmalloc (strlen (newname) + 2);
+    strcpy (nameoffile + 1, newname);
+    ret = open_input (f_ptr, filefmt, FOPEN_RBIN_MODE);
+    free (newname);
+  }
+
+  free (top_dir);
+  return ret;
+}
+
 
 /* Open an output file F either in the current directory or in
    $TEXMFOUTPUT/F, if the environment variable `TEXMFOUTPUT' exists.
@@ -324,7 +354,7 @@ open_output (FILE **f_ptr, const_string fopen_mode)
 #if defined(PTEX) && !defined(WIN32)
     fname0 = ptenc_from_internal_enc_string_to_utf8(fname);
     if (fname0) {
-        free(fname);
+        if (fname != nameoffile + 1) free(fname);
         fname = fname0;
     }
 #endif
