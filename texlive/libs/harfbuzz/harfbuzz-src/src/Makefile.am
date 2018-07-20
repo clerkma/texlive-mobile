@@ -14,6 +14,7 @@ check_PROGRAMS =
 
 # Convenience targets:
 lib: $(BUILT_SOURCES) libharfbuzz.la libharfbuzz-subset.la
+libs: $(BUILT_SOURCES) $(lib_LTLIBRARIES)
 fuzzing: $(BUILT_SOURCES) libharfbuzz-fuzzing.la libharfbuzz-subset-fuzzing.la
 
 lib_LTLIBRARIES = libharfbuzz.la
@@ -277,13 +278,13 @@ endif
 check: $(DEF_FILES) # For check-symbols.sh
 CLEANFILES += $(DEF_FILES)
 harfbuzz.def: $(HBHEADERS) $(HBNODISTHEADERS)
-	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py "$@"
+	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 harfbuzz-subset.def: $(HB_SUBSET_headers)
-	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py "$@"
+	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 harfbuzz-icu.def: $(HB_ICU_headers)
-	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py "$@"
+	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 harfbuzz-gobject.def: $(HB_GOBJECT_headers)
-	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py "$@"
+	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 
 
 GENERATORS = \
