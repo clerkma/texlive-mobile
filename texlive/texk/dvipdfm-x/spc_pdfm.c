@@ -75,13 +75,15 @@ struct spc_pdf_
    int               lowest_level; /* current min level of outlines */
    struct ht_table  *resourcemap;  /* see remark below (somewhere)  */
    struct tounicode  cd;           /* For to-UTF16-BE conversion :( */
+   pdf_obj          *pageresources; /* Add to all page resource dict */
 };
 
 static struct spc_pdf_  _pdf_stat = {
   NULL,
   255,
   NULL,
-  { -1, 0, NULL }
+  { -1, 0, NULL },
+  NULL
 };
 
 /* PLEASE REMOVE THIS */
@@ -148,6 +150,7 @@ spc_handler_pdfm__init (void *dp)
     pdf_add_array(sd->cd.taintkeys,
 		  pdf_new_name(default_taintkeys[i]));
   }
+  sd->pageresources = NULL;
 
   return 0;
 }
@@ -172,6 +175,9 @@ spc_handler_pdfm__clean (void *dp)
   if (sd->cd.taintkeys)
     pdf_release_obj(sd->cd.taintkeys);
   sd->cd.taintkeys = NULL;
+  if (sd->pageresources)
+    pdf_release_obj(sd->pageresources);
+  sd->pageresources = NULL;
 
   return 0;
 }
@@ -191,6 +197,45 @@ spc_pdfm_at_end_document (void)
   return  spc_handler_pdfm__clean(sd);
 }
 
+static
+int putpageresources (pdf_obj *kp, pdf_obj *vp, void *dp)
+{
+  char *resource_name;
+
+  ASSERT(kp && vp);
+
+  resource_name = pdf_name_value(kp);
+  pdf_doc_add_page_resource(dp, resource_name, pdf_ref_obj(vp));
+
+  return 0;
+}
+
+static
+int forallresourcecategory (pdf_obj *kp, pdf_obj *vp, void *dp)
+{
+  char *category;
+
+  ASSERT(kp && vp);
+
+  category = pdf_name_value(kp);
+  if (!PDF_OBJ_DICTTYPE(vp)) {
+    return -1;
+  }
+
+  return pdf_foreach_dict(vp, putpageresources, category);
+}
+
+int
+spc_pdfm_at_end_page (void)
+{
+  struct spc_pdf_ *sd = &_pdf_stat;
+
+  if (sd->pageresources) {
+    pdf_foreach_dict(sd->pageresources, forallresourcecategory, NULL);
+  }
+
+  return 0;
+}
 
 /* Dvipdfm specials */
 static int
@@ -1439,8 +1484,7 @@ spc_handler_pdfm_stream_with_type (struct spc_env *spe, struct spc_arg *args, in
     break;
   case STRING_STREAM:
     fstream = pdf_new_stream(STREAM_COMPRESS);
-    if (instring)
-      pdf_add_stream(fstream, instring, strlen(instring));
+    pdf_add_stream(fstream, pdf_string_value(tmp), pdf_string_length(tmp));
     break;
   default:
     pdf_release_obj(tmp);
@@ -1819,6 +1863,7 @@ spc_handler_pdfm_tounicode (struct spc_env *spe, struct spc_arg *args)
 {
   struct spc_pdf_ *sd = &_pdf_stat;
   char *cmap_name;
+  pdf_obj *taint_keys;
 
   /* First clear */
   sd->cd.cmap_id = -1;
@@ -1859,9 +1904,49 @@ spc_handler_pdfm_tounicode (struct spc_env *spe, struct spc_arg *args)
       sd->cd.unescape_backslash = 1;
   }
   RELEASE(cmap_name);
+
+  /* Additional "taint key" */
+  taint_keys = parse_pdf_object(&args->curptr, args->endptr, NULL);
+  if (taint_keys) {
+    if (PDF_OBJ_ARRAYTYPE(taint_keys)) {
+      int i;
+      for (i = 0; i < pdf_array_length(taint_keys); i++) {
+        pdf_obj *key;
+        
+        key = pdf_get_array(taint_keys, i);
+        if (PDF_OBJ_NAMETYPE(key))
+          pdf_add_array(sd->cd.taintkeys, pdf_link_obj(key));
+        else {
+          spc_warn(spe, "Invalid argument specified in pdf:tounicode special.");
+        }
+      }
+    } else {
+      spc_warn(spe, "Invalid argument specified in pdf:unicode special.");
+    }
+    pdf_release_obj(taint_keys);
+  }
+
   return 0;
 }
 
+static int
+spc_handler_pdfm_pageresources (struct spc_env *spe, struct spc_arg *args)
+{
+  struct spc_pdf_ *sd = &_pdf_stat;
+  pdf_obj *dict;
+
+  dict = parse_pdf_object(&args->curptr, args->endptr, NULL);
+  if (!dict) {
+    spc_warn(spe, "Dictionary object expected but not found.");
+    return  -1;
+  }
+
+  if (sd->pageresources)
+    pdf_release_obj(sd->pageresources);
+  sd->pageresources = dict;
+
+  return 0;
+}
 
 static struct spc_handler pdfm_handlers[] = {
   {"annotation", spc_handler_pdfm_annot},
@@ -1973,6 +2058,8 @@ static struct spc_handler pdfm_handlers[] = {
   {"minorversion", spc_handler_pdfm_do_nothing},
   {"majorversion", spc_handler_pdfm_do_nothing},
   {"encrypt",      spc_handler_pdfm_do_nothing},
+
+  {"pageresources", spc_handler_pdfm_pageresources},
 };
 
 int

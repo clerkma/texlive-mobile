@@ -72,6 +72,7 @@ static struct pdf_sec {
    struct {
      int use_aes;
      int encrypt_metadata;
+     int need_adobe_extension;
    } setting;
 
    struct {
@@ -106,6 +107,7 @@ pdf_enc_init (int use_aes, int encrypt_metadata)
   srand(current_time); /* For AES IV */
   p->setting.use_aes = use_aes;
   p->setting.encrypt_metadata = encrypt_metadata;
+  p->setting.need_adobe_extension = 0;
 }
 
 #define PRODUCER \
@@ -474,6 +476,10 @@ check_version (struct pdf_sec *p, int version)
     WARN("Current encryption setting requires PDF version >= 1.7" \
          " (plus Adobe Extension Level 3).");
     p->V = 4;
+    p->key_size = 16;
+  }
+  if (p->V == 5 && version < 20) {
+    p->setting.need_adobe_extension = 1;
   }
 }
 
@@ -573,6 +579,9 @@ pdf_enc_set_passwd (unsigned int bits, unsigned int perm,
   check_version(p, version);
 
   p->P = (int32_t) (perm | 0xC0U);
+  /* Bit position 10 shall be always set to 1 for PDF >= 2.0. */
+  if (version >= 20)
+    p->P |= (1 << 9);
   switch (p->V) {
   case 1:
     p->R = (p->P < 0x100L) ? 2 : 3;
@@ -786,7 +795,7 @@ pdf_encrypt_obj (void)
   }
 
 #ifdef USE_ADOBE_EXTENSION
-  if (p->R > 5) {
+  if (p->R > 5 && p->setting.need_adobe_extension != 0) {
     pdf_obj *catalog = pdf_doc_catalog();
     pdf_obj *ext  = pdf_new_dict();
     pdf_obj *adbe = pdf_new_dict();

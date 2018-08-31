@@ -1,4 +1,4 @@
-## $Id: Makefile.am 47939 2018-06-06 07:23:34Z kakuto $
+## $Id: Makefile.am 48370 2018-08-07 22:18:29Z kakuto $
 ## Proxy Makefile.am to build harfbuzz for TeX Live.
 ##
 ##   Copyright 2016-2017 Karl Berry <tex-live@tug.org>
@@ -44,9 +44,12 @@ libharfbuzz_a_SOURCES =  \
 	@HARFBUZZ_TREE@/src/hb-face.cc \
 	@HARFBUZZ_TREE@/src/hb-font-private.hh \
 	@HARFBUZZ_TREE@/src/hb-font.cc \
+	@HARFBUZZ_TREE@/src/hb-iter-private.hh \
 	@HARFBUZZ_TREE@/src/hb-map-private.hh \
 	@HARFBUZZ_TREE@/src/hb-map.cc \
+	@HARFBUZZ_TREE@/src/hb-machinery-private.hh \
 	@HARFBUZZ_TREE@/src/hb-mutex-private.hh \
+	@HARFBUZZ_TREE@/src/hb-null.hh \
 	@HARFBUZZ_TREE@/src/hb-object-private.hh \
 	@HARFBUZZ_TREE@/src/hb-open-file-private.hh \
 	@HARFBUZZ_TREE@/src/hb-open-type-private.hh \
@@ -80,6 +83,7 @@ libharfbuzz_a_SOURCES =  \
 	@HARFBUZZ_TREE@/src/hb-string-array.hh \
 	@HARFBUZZ_TREE@/src/hb-unicode-private.hh \
 	@HARFBUZZ_TREE@/src/hb-unicode.cc \
+	@HARFBUZZ_TREE@/src/hb-vector-private.hh \
 	@HARFBUZZ_TREE@/src/hb-utf-private.hh \
 	@HARFBUZZ_TREE@/src/hb-warning.cc \
 	@HARFBUZZ_TREE@/src/hb-buffer-deserialize-json.hh \
@@ -89,6 +93,16 @@ libharfbuzz_a_SOURCES =  \
 
 ## native OpenType Layout backend
 libharfbuzz_a_SOURCES += \
+	@HARFBUZZ_TREE@/src/hb-aat-layout.cc \
+	@HARFBUZZ_TREE@/src/aat-layout-common-private.hh \
+	@HARFBUZZ_TREE@/src/hb-aat-layout-ankr-table.hh \
+	@HARFBUZZ_TREE@/src/hb-aat-layout-bsln-table.hh \
+	@HARFBUZZ_TREE@/src/hb-aat-layout-feat-table.hh \
+	@HARFBUZZ_TREE@/src/hb-aat-layout-kerx-table.hh \
+	@HARFBUZZ_TREE@/src/hb-aat-layout-morx-table.hh \
+	@HARFBUZZ_TREE@/src/hb-aat-layout-trak-table.hh \
+	@HARFBUZZ_TREE@/src/hb-aat-layout-private.hh \
+	@HARFBUZZ_TREE@/src/hb-aat-ltag-table.hh \
 	@HARFBUZZ_TREE@/src/hb-ot-font.cc \
 	@HARFBUZZ_TREE@/src/hb-ot-layout.cc \
 	@HARFBUZZ_TREE@/src/hb-ot-layout-base-table.hh \
