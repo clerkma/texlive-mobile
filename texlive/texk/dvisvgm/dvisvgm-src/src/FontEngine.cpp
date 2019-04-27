@@ -2,7 +2,7 @@
 ** FontEngine.cpp                                                       **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2018 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2019 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -246,7 +246,7 @@ int FontEngine::charIndex (const Character &c) const {
 		case Character::CHRCODE:
 			return FT_Get_Char_Index(_currentFace, (FT_ULong)c.number());
 		case Character::NAME:
-			return FT_Get_Name_Index(_currentFace, (FT_String*)c.name());
+			return FT_Get_Name_Index(_currentFace, const_cast<FT_String*>(c.name()));
 		default:
 			return c.number();
 	}

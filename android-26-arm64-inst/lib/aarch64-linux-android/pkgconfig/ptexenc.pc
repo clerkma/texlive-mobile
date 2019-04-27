@@ -1,0 +1,12 @@
+prefix=/home/maqiyuan/texlive-android/texlive-arm64/inst
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib/aarch64-linux-android
+includedir=${prefix}/include
+
+Name: ptexenc
+Description: Ptexenc pTeX encoding library
+Version: 1.3.7
+Requires.private: kpathsea
+Libs: -L${libdir} -lptexenc
+Cflags: -I${includedir}
+

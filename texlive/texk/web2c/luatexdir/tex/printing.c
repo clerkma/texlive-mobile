@@ -416,7 +416,7 @@ void tprint(const char *sss)
 {
     char *buffer = NULL;
     int i = 0;
-    int newlinechar = new_line_char_par;
+    int newlinechar = (lua_only == 1) ? 10 : new_line_char_par;
     int dolog = 0;
     int doterm = 0;
     switch (selector) {
@@ -466,7 +466,8 @@ void tprint(const char *sss)
     /*tex What is left is the 3 term/log settings. */
     if (dolog || doterm) {
         buffer = xmalloc(strlen(sss)*3);
-        if (dolog) {
+        /*tex The |wrapup_run| callback acts when the log file is already closed.*/
+        if (dolog && log_opened_global) {
             const unsigned char *ss = (const unsigned char *) sss;
             while (*ss) {
                 int s = *ss++;

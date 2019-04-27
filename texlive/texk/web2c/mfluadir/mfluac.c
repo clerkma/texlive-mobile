@@ -10,6 +10,9 @@
 #include <lualib.h>
 #include <lauxlib.h>
 #include <kpathsea/kpathsea.h>
+#if defined(JIT)
+#include <luajit.h>
+#endif
 /**************************************************************/
 /*                                                            */
 /* private functions                                          */
@@ -451,6 +454,19 @@ static int priv_mfweb_LUAGLOBALGET_boundary_char(lua_State *L)
   return 1;
 }
 
+static int priv_mflua_version(lua_State *L)
+{
+  lua_pushstring(L,MFLUA_VERSION);
+  return 1;
+}
+
+static int priv_mflua_banner(lua_State *L)
+{
+  lua_pushstring(L,BANNER);
+  return 1;
+}
+
+
 
 
 /**************************************************************/
@@ -493,6 +509,8 @@ static const struct luaL_Reg MFbuiltin_l[] = {
   {"turning_check", priv_mfweb_LUAGLOBALGET_turning_check},
   {"boundary_char", priv_mfweb_LUAGLOBALGET_boundary_char},
   {"turning_number", priv_mfweb_LUAGLOBALGET_turning_number},
+  {"mflua_version",priv_mflua_version},
+  {"mflua_banner",priv_mflua_banner},
   {NULL, NULL}                /* sentinel */
 };
 
@@ -537,6 +555,7 @@ int mfluabeginprogram(void)
       lua_pushstring(L,"MFbuiltin");
 #ifdef MFLuaJIT
       /* 5.1 */ 
+      luaJIT_setmode(L, 0, LUAJIT_MODE_ENGINE|LUAJIT_MODE_OFF);
       lua_newtable(L);
       luaL_register (L,NULL,MFbuiltin_l);
 #else

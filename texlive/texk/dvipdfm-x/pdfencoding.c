@@ -1,6 +1,6 @@
 /* This is dvipdfmx, an eXtended version of dvipdfm by Mark A. Wicks.
 
-    Copyright (C) 2008-2018 by Jin-Hwan Cho, Matthias Franz, and Shunsaku Hirata,
+    Copyright (C) 2002-2019 by Jin-Hwan Cho, Matthias Franz, and Shunsaku Hirata,
     the dvipdfmx project team.
     
     Copyright (C) 1998, 1999 by Mark A. Wicks <mwicks@kettering.edu>
@@ -29,6 +29,7 @@
 #include "system.h"
 #include "mem.h"
 #include "error.h"
+#include "dpxconf.h"
 #include "dpxutil.h"
 
 #include "pdfparse.h"
@@ -42,8 +43,6 @@ static int      is_similar_charset (char **encoding, const char **encoding2);
 static pdf_obj *make_encoding_differences (char **encoding, char **baseenc,
 					   const char *is_used);
 
-static unsigned char verbose = 0;
-
 static const char *MacRomanEncoding[256];
 static const char *MacExpertEncoding[256];
 static const char *WinAnsiEncoding[256];
@@ -51,12 +50,6 @@ static const char *WinAnsiEncoding[256];
 static const char *StandardEncoding[256];
 static const char *ISOLatin1Encoding[256];
 #endif
-
-void
-pdf_encoding_set_verbose (void)
-{
-  verbose++;
-}
 
 /*
  * ident:  File name, e.g., 8a.enc.
@@ -291,7 +284,7 @@ load_encoding_file (const char *filename)
   if (!filename)
     return -1;
 
-  if (verbose) {
+  if (dpx_conf.verbose_level > 0) {
     MESG("(Encoding:%s", filename);
   }
 
@@ -340,13 +333,13 @@ load_encoding_file (const char *filename)
 				     filename, enc_vec, NULL, 0);
 
   if (enc_name) {
-    if (verbose > 1)
+    if (dpx_conf.verbose_level > 1)
       MESG("[%s]", pdf_name_value(enc_name));
     pdf_release_obj(enc_name);
   }
   pdf_release_obj(encoding_array);
 
-  if (verbose) MESG(")");
+  if (dpx_conf.verbose_level > 0) MESG(")");
 
   return enc_id;
 }
@@ -650,11 +643,14 @@ pdf_create_ToUnicode_CMap (const char *enc_name,
 {
   pdf_obj  *stream;
   CMap     *cmap;
-  int       code, total_fail;
+  int       code, count, total_fail;
   char     *cmap_name;
   unsigned char *p, *endptr;
 
   ASSERT(enc_name && enc_vec);
+
+  if (!is_used)
+    return NULL;
 
   cmap_name = NEW(strlen(enc_name)+strlen("-UTF16")+1, char);
   sprintf(cmap_name, "%s-UTF16", enc_name);
@@ -668,6 +664,7 @@ pdf_create_ToUnicode_CMap (const char *enc_name,
 
   CMap_add_codespacerange(cmap, range_min, range_max, 1);
 
+  count = 0;
   total_fail = 0;
   for (code = 0; code <= 0xff; code++) {
     if (is_used && !is_used[code])
@@ -684,15 +681,16 @@ pdf_create_ToUnicode_CMap (const char *enc_name,
         total_fail++;
       } else {
         CMap_add_bfchar(cmap, wbuf, 1, wbuf + 1, len);
+        count++;
       }  
     }
   }
 
   if (total_fail > 0) {
-    if (verbose)
+    if (dpx_conf.verbose_level > 0)
       WARN("Glyphs with no Unicode mapping found. Removing ToUnicode CMap.");
   }
-  stream = total_fail > 0 ? NULL : CMap_create_stream(cmap);
+  stream = (count == 0 || total_fail > 0) ? NULL : CMap_create_stream(cmap);
 
   CMap_release(cmap);
   RELEASE(cmap_name);
@@ -723,7 +721,7 @@ pdf_load_ToUnicode_stream (const char *ident)
   if (CMap_parse(cmap, fp) < 0) {
     WARN("Reading CMap file \"%s\" failed.", ident);
   } else {
-    if (verbose) {
+    if (dpx_conf.verbose_level > 0) {
       MESG("(CMap:%s)", ident);
     }
     stream = CMap_create_stream(cmap);

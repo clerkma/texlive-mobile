@@ -40,17 +40,8 @@
 /* Define to 1 if you have the `kpathsea' library (-lkpathsea). */
 #undef HAVE_LIBKPATHSEA
 
-/* Define to 1 if you have the `m' library (-lm). */
-#undef HAVE_LIBM
-
-/* Define to 1 if you have the `potrace' library (-lpotrace). */
-#undef HAVE_LIBPOTRACE
-
 /* Define to 1 if you have the `ttfautohint' library (-lttfautohint). */
 #undef HAVE_LIBTTFAUTOHINT
-
-/* Define to 1 if you have the `xxhash' library (-lxxhash). */
-#undef HAVE_LIBXXHASH
 
 /* Define to 1 if you have the `z' library (-lz). */
 #undef HAVE_LIBZ
@@ -60,6 +51,9 @@
 
 /* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
+
+/* Define to 1 if you have the <openssl/md5.h> header file. */
+#undef HAVE_OPENSSL_MD5_H
 
 /* Define to 1 if you have the `sigaction' function. */
 #undef HAVE_SIGACTION

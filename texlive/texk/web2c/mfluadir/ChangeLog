@@ -1,3 +1,14 @@
+2019-03-06 Luigi Scarso <luigi.scarso@gmail.com>
+
+	MFLua 0.9.1. Fixed a bug on strings management.
+
+2018-10-30 Luigi Scarso <luigi.scarso@gmail.com>
+
+	* jit default off in mfluajit: in some platforms (e.g NetBSD8)
+	  executing code from memory is forbidden by default.
+	  In case, a user can enable jit at runtime.
+
+
 2018-02-08 Luigi Scarso <luigi.scarso@gmail.com>
 
 	* MFLua 0.9.

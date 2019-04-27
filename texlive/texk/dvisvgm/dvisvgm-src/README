@@ -26,13 +26,13 @@ DEPENDENCIES
    (PFB, OTF, TTF).
 
  * Ghostscript (https://www.ghostscript.com)
-   The PostScript special handler requires the Ghostscript library
-   libgs.so (Linux) or gsdll32.dll/gsdll64.dll (Windows) to be installed.
+   The PostScript special handler requires the Ghostscript shared library
+   libgs.so.N (Linux) or gsdll32.dll/gsdll64.dll (Windows) to be installed.
    If the configure script finds the corresponding Ghostscript development
    files on the system, it directly links against libgs.so.N, where N is the
-   library's ABI version. Otherwise, the library is looked up at runtime,
-   and PostScript support is enabled only if libgs.so can be found.
-   Due to incompatible changes of the Ghostscript API, dvisvgm requires
+   library's ABI version. Otherwise, the library is looked up during runtime,
+   and the PostScript support is enabled only if the shared library can be
+   found. Due to incompatible changes of the Ghostscript API, dvisvgm requires
    Ghostscript 8.31 or later.
 
  * kpathsea (https://tug.org/kpathsea)
@@ -40,6 +40,13 @@ DEPENDENCIES
    conjunction with a TeX distribution. kpathsea provides functions for
    searching files in the large texmf tree. Please ensure that you use the
    kpathsea version coming with or matching your TeX system.
+
+ * OpenSSL crypto library (https://www.openssl.org)
+   dvisvgm comes with a bundled implementation of the MD5 hash algorithm which
+   can optionally be replaced with the corresponding function of the OpenSSL
+   crypto library. If the configuration script finds the OpenSSL development
+   files on the build system, it links against libcrypto instead of the bundled
+   MD5 module.
 
  * potracelib (http://potrace.sourceforge.net)
    Peter Selinger's bitmap tracing library is utilized to vectorize Metafont's
@@ -65,9 +72,6 @@ DEPENDENCIES
  * zlib (http://www.zlib.org)
    This library is required to create compressed SVGZ files.
 
- If you want to build and run the test suite located in the tests subdirectory,
- you also need the Google Test libraries (https://github.com/google/googletest).
-
 
 BUILDING DVISVGM FROM SOURCE
 
@@ -78,14 +82,14 @@ BUILDING DVISVGM FROM SOURCE
 
  Quick installation info:
    * ensure that the development packages of all libraries, listed above,
-	  are installed
+     are installed
    * type "./autogen.sh" if "configure" is not present in the dvisvgm
      root folder
-	* either type "./configure" if you don't want to use the bundled libraries
-	  brotli, woff2, and xxHash but link against the corresponding
-	  system libraries,
-	  or type "./configure --enable-bundled-libs" in order to build and
-	  statically link the bundled libraries.
+   * either type "./configure" if you don't want to use the bundled libraries
+     brotli, potrace, woff2, and xxHash but link against the corresponding
+     system libraries,
+     or type "./configure --enable-bundled-libs" in order to build and
+     statically link the bundled libraries.
    * type "make"
    * type "make install" as root (or "sudo make install")
 
@@ -126,7 +130,7 @@ ADDITIONAL INFORMATION
 
 COPYRIGHT
 
- Copyright (C) 2005-2018 Martin Gieseking <martin.gieseking@uos.de>
+ Copyright (C) 2005-2019 Martin Gieseking <martin.gieseking@uos.de>
 
  This program is free software; you can redistribute it and/or modify it
  under the terms of the GNU General Public License as published by the

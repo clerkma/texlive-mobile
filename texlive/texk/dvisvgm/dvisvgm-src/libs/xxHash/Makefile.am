@@ -1,4 +1,4 @@
-if USE_BUNDLED_LIBS
+if !HAVE_XXHASH
 noinst_LIBRARIES = libxxhash.a
 
 libxxhash_a_SOURCES = xxhash.c xxhash.h

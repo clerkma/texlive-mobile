@@ -808,6 +808,12 @@ static int getpdfomitcidset(lua_State * L)
     return 1 ;
 }
 
+static int getpdfomitcharset(lua_State * L)
+{
+    lua_pushinteger(L, (pdf_omit_charset));
+    return 1 ;
+}
+
 static int setpdfgentounicode(lua_State * L)
 {
     if (lua_type(L, 1) == LUA_TNUMBER) {
@@ -820,6 +826,14 @@ static int setpdfomitcidset(lua_State * L)
 {
     if (lua_type(L, 1) == LUA_TNUMBER) {
         set_pdf_omit_cidset(lua_tointeger(L, 1));
+    }
+    return 0 ;
+}
+
+static int setpdfomitcharset(lua_State * L)
+{
+    if (lua_type(L, 1) == LUA_TNUMBER) {
+        set_pdf_omit_charset(lua_tointeger(L, 1));
     }
     return 0 ;
 }
@@ -1242,6 +1256,19 @@ static int getpdfnofobjects(lua_State * L)
     return 2;
 }
 
+/*tex
+
+    The following option is not official and needs testing anyway. It's a
+    prelude a followup where the dependencies are limited.
+
+*/
+
+static int settypeonewidemode(lua_State * L)
+{
+    t1_wide_mode = lua_tointeger(L,1);
+    return 0;
+}
+
 /*tex For normal output see |pdflistout.c|: */
 
 static const struct luaL_Reg pdflib[] = {
@@ -1322,10 +1349,12 @@ static const struct luaL_Reg pdflib[] = {
     { "getignoreunknownimages", getpdfignoreunknownimages },
     { "getgentounicode", getpdfgentounicode },
     { "getomitcidset", getpdfomitcidset },
+    { "getomitcharset", getpdfomitcharset },
     { "setinclusionerrorlevel", setpdfinclusionerrorlevel },
     { "setignoreunknownimages", setpdfignoreunknownimages },
     { "setgentounicode", setpdfgentounicode },
     { "setomitcidset", setpdfomitcidset },
+    { "setomitcharset", setpdfomitcharset },
     { "setforcefile", setforcefile },
     { "mapfile", l_mapfile },
     { "mapline", l_mapline },
@@ -1342,6 +1371,8 @@ static const struct luaL_Reg pdflib[] = {
     { "fontobjnum", getpdffontobjnum },
     { "fontsize", getpdffontsize },
     { "xformname", getpdfxformname },
+    /* experimental */
+    { "settypeonewidemode", settypeonewidemode},
     /* sentinel */
     {NULL, NULL}
 };

@@ -2,7 +2,7 @@
 ** InputReader.hpp                                                      **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2018 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2019 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -22,8 +22,8 @@
 #define INPUTREADER_HPP
 
 #include <istream>
+#include <map>
 #include <string>
-#include <unordered_map>
 #include <vector>
 #include "InputBuffer.hpp"
 
@@ -48,12 +48,12 @@ class InputReader {
 		virtual double getDouble ();
 		virtual std::string getWord ();
 		virtual char getPunct ();
-		virtual std::string getQuotedString (char quotechar);
+		virtual std::string getQuotedString (const char *quotechars);
 		virtual std::string getString ();
 		virtual std::string getString (size_t n);
 		virtual std::string getString (const char *delim);
 		virtual std::string getLine ();
-		virtual int parseAttributes (std::unordered_map<std::string,std::string> &attr, char quotechar=0);
+		virtual int parseAttributes (std::map<std::string,std::string> &attr, const char *quotechars=nullptr);
 		virtual operator bool () const {return !eof();}
 };
 

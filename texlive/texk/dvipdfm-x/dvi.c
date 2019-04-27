@@ -41,11 +41,12 @@
 #include "error.h"
 #include "mfileio.h"
 #include "numbers.h"
+#include "dpxconf.h"
+#include "dpxutil.h"
 
 #include "pdfdev.h"
 #include "pdfdoc.h"
 #include "pdfparse.h"
-#include "pdfencrypt.h"
 #include "pdfresource.h"
 #include "pdfdraw.h"
 
@@ -195,7 +196,6 @@ static struct font_def
 
 static int num_def_fonts = 0, max_def_fonts = 0;
 static int compute_boxes = 0, link_annot    = 1;
-static int verbose       = 0;
 
 #define DVI_PAGE_BUF_CHUNK              0x10000U        /* 64K should be plenty for most pages */
 
@@ -292,16 +292,6 @@ static int32_t get_buffered_unsigned_num(unsigned char num)
 
 #define skip_bufferd_bytes(n) dvi_page_buf_index += n
 
-void
-dvi_set_verbose (void)
-{
-  verbose++;
-  subfont_set_verbose();
-  tfm_set_verbose();
-  vf_set_verbose ();
-  spc_set_verbose();
-}
-
 unsigned int
 dvi_npages (void)
 {
@@ -326,7 +316,7 @@ check_id_bytes (void) {
 
 static void
 need_XeTeX (int c) {
-  if (!is_xdv)
+  if (dpx_conf.compat_mode != dpx_mode_xdv_mode)
     ERROR ("DVI opcode %i only valid for XeTeX", c);
 }
 
@@ -366,7 +356,8 @@ find_post (void)
   } 
 
   post_id_byte = ch;
-  is_xdv = (ch == XDV_ID || ch == XDV_ID_OLD);
+  if (ch == XDV_ID || ch == XDV_ID_OLD)
+    dpx_conf.compat_mode = dpx_mode_xdv_mode;
   is_ptex = ch == DVIV_ID;
 
   /* Make sure post_post is really there */
@@ -411,7 +402,7 @@ get_page_info (int32_t post_location)
   if (num_pages == 0) {
     ERROR("Page count is 0!");
   }
-  if (verbose > 2) {
+  if (dpx_conf.verbose_level > 2) {
     MESG("Page count:\t %4d\n", num_pages);
   }
 
@@ -464,7 +455,7 @@ get_dvi_info (int32_t post_location)
     ERROR("Capacity exceeded.");
   }
 
-  if (verbose > 2) {
+  if (dpx_conf.verbose_level > 2) {
     MESG("DVI File Info\n");
     MESG("Unit: %ld / %ld\n",    dvi_info.unit_num, dvi_info.unit_den);
     MESG("Magnification: %ld\n", dvi_info.mag);
@@ -493,7 +484,8 @@ get_preamble_dvi_info (void)
   }
 
   pre_id_byte = ch;
-  is_xdv = (ch == XDV_ID || ch == XDV_ID_OLD);
+  if (ch == XDV_ID || ch == XDV_ID_OLD)
+    dpx_conf.compat_mode = dpx_mode_xdv_mode;
   is_ptex = ch == DVI_ID; /* maybe */
   
   dvi_info.unit_num = get_positive_quad(dvi_file, "DVI", "unit_num");
@@ -507,13 +499,13 @@ get_preamble_dvi_info (void)
   }
   dvi_info.comment[ch] = '\0';
 
-  if (verbose > 2) {
+  if (dpx_conf.verbose_level > 2) {
     MESG("DVI File Info\n");
     MESG("Unit: %ld / %ld\n",    dvi_info.unit_num, dvi_info.unit_den);
     MESG("Magnification: %ld\n", dvi_info.mag);
   }
 
-  if (verbose) {
+  if (dpx_conf.verbose_level > 0) {
     MESG("DVI Comment: %s\n", dvi_info.comment);
   }
 
@@ -651,7 +643,7 @@ get_dvi_fonts (int32_t post_location)
       ERROR(invalid_signature);
     }
   }
-  if (verbose > 2) {
+  if (dpx_conf.verbose_level > 2) {
     unsigned  i;
 
     MESG("\n");
@@ -678,7 +670,7 @@ static void get_comment (void)
     ERROR(invalid_signature);
   }
   dvi_info.comment[length] = '\0';
-  if (verbose) {
+  if (dpx_conf.verbose_level > 0) {
     MESG("DVI Comment: %s\n", dvi_info.comment);
   }
 }
@@ -792,7 +784,7 @@ dvi_do_special (const void *buffer, int32_t size)
   mag    =  dvi_tell_mag();
 
   if (spc_exec_special(p, size, x_user, y_user, mag) < 0) {
-    if (verbose) {
+    if (dpx_conf.verbose_level > 0) {
       dump(p, p + size);
     }
   }
@@ -815,7 +807,7 @@ dvi_locate_font (const char *tfm_name, spt_t ptsize)
   int           subfont_id = -1, font_id; /* VF or device font ID */
   fontmap_rec  *mrec;
 
-  if (verbose)
+  if (dpx_conf.verbose_level > 0)
     MESG("<%s@%.2fpt", tfm_name, ptsize * dvi2pts);
 
   need_more_fonts(1);
@@ -861,7 +853,7 @@ dvi_locate_font (const char *tfm_name, spt_t ptsize)
     if (font_id >= 0) {
       loaded_fonts[cur_id].type    = VIRTUAL;
       loaded_fonts[cur_id].font_id = font_id;
-      if (verbose)
+      if (dpx_conf.verbose_level > 0)
         MESG("(VF)>");
       return  cur_id;
     }
@@ -891,7 +883,7 @@ dvi_locate_font (const char *tfm_name, spt_t ptsize)
       else {
         loaded_fonts[cur_id].type    = VIRTUAL;
         loaded_fonts[cur_id].font_id = font_id;
-        if (verbose)
+        if (dpx_conf.verbose_level > 0)
           MESG("(OVF)>");
         return  cur_id;
       }
@@ -940,7 +932,7 @@ dvi_locate_font (const char *tfm_name, spt_t ptsize)
   loaded_fonts[cur_id].type    = PHYSICAL;
   loaded_fonts[cur_id].font_id = font_id;
 
-  if (verbose)
+  if (dpx_conf.verbose_level > 0)
     MESG(">");
 
   return  cur_id;
@@ -966,7 +958,7 @@ dvi_locate_native_font (const char *filename, uint32_t index,
   struct tt_hhea_table *hhea;
   int is_dfont = 0, is_type1 = 0;
 
-  if (verbose)
+  if (dpx_conf.verbose_level > 0)
     MESG("<%s@%.2fpt", filename, ptsize * dvi2pts);
 
   if ((path = dpx_find_dfont_file(filename)) != NULL &&
@@ -1069,7 +1061,7 @@ dvi_locate_native_font (const char *filename, uint32_t index,
   loaded_fonts[cur_id].slant = mrec->opt.slant;
   loaded_fonts[cur_id].embolden = mrec->opt.bold;
 
-  if (verbose)
+  if (dpx_conf.verbose_level > 0)
     MESG(">");
 
   return cur_id;
@@ -1312,7 +1304,7 @@ dvi_rule (int32_t width, int32_t height)
 void
 dvi_dirchg (unsigned char dir)
 {
-  if (verbose)
+  if (dpx_conf.verbose_level > 0)
     fprintf(stderr, "  > dvi_dirchg %d\n", dir);
   dvi_state.d = dir;
   pdf_dev_set_dirmode(dvi_state.d); /* 0: horizontal, 1,3: vertical */
@@ -2260,12 +2252,104 @@ read_length (double *vp, double mag, const char **pp, const char *endptr)
   return  error;
 }
 
+static int
+scan_special_encrypt (int *key_bits, int32_t *permission, char *opassword, char *upassword,
+                      const char **curptr, const char *endptr)
+{
+  int   error = 0;
+  const char *p = *curptr;
+
+  skip_white(&p, endptr);
+
+  opassword[0] = '\0';
+  upassword[0] = '\0';
+  while (!error && p < endptr) {
+    char  *kp = parse_c_ident(&p, endptr);
+    if (!kp)
+      break;
+    else {
+      pdf_obj *obj;
+      skip_white(&p, endptr);
+      if (!strcmp(kp, "ownerpw")) {
+        if ((obj = parse_pdf_string(&p, endptr))) {
+          if (pdf_string_value(obj))
+            strncpy(opassword, pdf_string_value(obj), sizeof(opassword)-1);
+          pdf_release_obj(obj);
+        } else
+          error = -1;
+      } else if (!strcmp(kp, "userpw")) {
+        if ((obj = parse_pdf_string(&p, endptr))) {
+          if (pdf_string_value(obj))
+            strncpy(upassword, pdf_string_value(obj), sizeof(upassword)-1);
+          pdf_release_obj(obj);
+        } else
+          error = -1;
+      } else if (!strcmp(kp, "length")) {
+        if ((obj = parse_pdf_number(&p, endptr)) && PDF_OBJ_NUMBERTYPE(obj)) {
+          *key_bits = (unsigned) pdf_number_value(obj);
+        } else
+          error = -1;
+        if (obj)
+          pdf_release_obj(obj);
+      } else if (!strcmp(kp, "perm")) {
+        if ((obj = parse_pdf_number(&p, endptr)) && PDF_OBJ_NUMBERTYPE(obj)) {
+          *permission = (unsigned) pdf_number_value(obj);
+        } else
+          error = -1;
+        if (obj)
+          pdf_release_obj(obj);
+      } else
+        error = -1;
+      RELEASE(kp);
+    }
+    skip_white(&p, endptr);
+  }
+  *curptr = p;
+
+  return error;
+}
+
+static int
+scan_special_trailerid (unsigned char *id1, unsigned char *id2,
+                        const char **curptr, const char *endptr)
+{
+  int         error = 0;
+  pdf_obj    *id_array;
+  const char *p = *curptr;
+
+  skip_white(&p, endptr);
+  id_array = parse_pdf_array(&p, endptr, NULL);
+  if (id_array) {
+    if (pdf_array_length(id_array) == 2) {
+      pdf_obj *tmp1, *tmp2;
+      tmp1 = pdf_get_array(id_array, 0);
+      tmp2 = pdf_get_array(id_array, 1);
+      if (PDF_OBJ_STRINGTYPE(tmp1) && pdf_string_length(tmp1) == 16 &&
+          PDF_OBJ_STRINGTYPE(tmp2) && pdf_string_length(tmp2) == 16) {
+        memcpy(id1, pdf_string_value(tmp1), 16);
+        memcpy(id2, pdf_string_value(tmp2), 16);
+      } else {
+        error = -1;
+      }
+    } else {
+      error = -1;
+    }
+    pdf_release_obj(id_array);
+  } else {
+    error = -1;
+  }
+  skip_white(&p, endptr);
+  *curptr = p;
+
+  return error;
+}
 
 static int
 scan_special (double *wd, double *ht, double *xo, double *yo, int *lm,
               int *majorversion, int *minorversion,
-              int *do_enc, int *key_bits, int32_t *permission,
-              char *owner_pw, char *user_pw,
+              int *enable_encryption, int *key_bits, int32_t *permission,
+              char *opassword, char *upassword,
+              int *has_id, unsigned char *id1, unsigned char *id2,
               const char *buf, uint32_t size)
 {
   char  *q;
@@ -2392,52 +2476,19 @@ scan_special (double *wd, double *ht, double *xo, double *yo, int *lm,
         *majorversion = (int)strtol(kv, NULL, 10);
         RELEASE(kv);
       }
-    } else if (ns_pdf && !strcmp(q, "encrypt") && do_enc) {
-      *do_enc = 1;
-      *owner_pw = *user_pw = 0;
-      while (!error && p < endptr) {
-        char  *kp = parse_c_ident(&p, endptr);
-        if (!kp)
-          break;
-        else {
-          pdf_obj *obj;
-          skip_white(&p, endptr);
-          if (!strcmp(kp, "ownerpw")) {
-            if ((obj = parse_pdf_string(&p, endptr))) {
-              if (pdf_string_value(obj))
-                strncpy(owner_pw, pdf_string_value(obj), MAX_PWD_LEN);
-              pdf_release_obj(obj);
-            } else
-              error = -1;
-          } else if (!strcmp(kp, "userpw")) {
-            if ((obj = parse_pdf_string(&p, endptr))) {
-              if (pdf_string_value(obj))
-                strncpy(user_pw, pdf_string_value(obj), MAX_PWD_LEN);
-              pdf_release_obj(obj);
-            } else
-              error = -1;
-          } else if (!strcmp(kp, "length")) {
-            if ((obj = parse_pdf_number(&p, endptr)) && PDF_OBJ_NUMBERTYPE(obj)) {
-              *key_bits = (unsigned) pdf_number_value(obj);
-            } else
-              error = -1;
-            if (obj)
-              pdf_release_obj(obj);
-          } else if (!strcmp(kp, "perm")) {
-            if ((obj = parse_pdf_number(&p, endptr)) && PDF_OBJ_NUMBERTYPE(obj)) {
-              *permission = (unsigned) pdf_number_value(obj);
-            } else
-              error = -1;
-            if (obj)
-              pdf_release_obj(obj);
-          } else
-            error = -1;
-          RELEASE(kp);
-        }
-        skip_white(&p, endptr);
-      }
+    } else if (enable_encryption && ns_pdf && !strcmp(q, "encrypt")) {
+      *enable_encryption = 1;
+      error = scan_special_encrypt(key_bits, permission, opassword, upassword, &p, endptr);
     } else if (ns_dvipdfmx && !strcmp(q, "config")) {
       read_config_special(&p, endptr);
+    } else if (has_id && id1 && id2 && ns_pdf && !strcmp(q, "trailerid")) {
+      error = scan_special_trailerid(id1, id2, &p, endptr);
+      if (error) {
+        WARN("Invalid argument for pdf:trailerid special.");
+        *has_id = 0;
+      } else {
+        *has_id = 1;
+      } 
     }
     RELEASE(q);
   }
@@ -2452,7 +2503,8 @@ dvi_scan_specials (int page_no,
                    double *x_offset, double *y_offset, int *landscape,
                    int *majorversion, int *minorversion,
                    int *do_enc, int *key_bits, int32_t *permission,
-                   char *owner_pw, char *user_pw)
+                   char *owner_pw, char *user_pw,
+                   int *has_id, unsigned char *id1, unsigned char *id2)
 {
   FILE          *fp = dvi_file;
   int32_t        offset;
@@ -2499,6 +2551,7 @@ dvi_scan_specials (int page_no,
       if (scan_special(page_width, page_height, x_offset, y_offset, landscape,
                        majorversion, minorversion,
                        do_enc, key_bits, permission, owner_pw, user_pw,
+                       has_id, id1, id2,
                        buf, size))
         WARN("Reading special command failed: \"%.*s\"", size, buf);
 #undef buf

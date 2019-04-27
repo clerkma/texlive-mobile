@@ -25,12 +25,12 @@
 #endif
 
 #include <string.h>
-#include <time.h>
 
 #include "system.h"
 #include "error.h"
 #include "mem.h"
 
+#include "dpxconf.h"
 #include "dpxfile.h"
 #include "dpxutil.h"
 
@@ -53,67 +53,12 @@
 
 #include "pdffont.h"
 
-static int __verbose = 0;
-
 #define MREC_HAS_TOUNICODE(m) ((m) && (m)->opt.tounicode)
-
-void
-pdf_font_set_verbose (void)
-{
-  __verbose++;
-  CMap_set_verbose();
-  Type0Font_set_verbose();
-  CIDFont_set_verbose  ();
-  pdf_encoding_set_verbose();
-  agl_set_verbose();
-  otf_cmap_set_verbose ();
-}
-
-int
-pdf_font_get_verbose (void)
-{
-  return __verbose;
-}
 
 void
 pdf_font_set_dpi (int font_dpi)
 {
   PKFont_set_dpi(font_dpi);
-}
-
-
-#if defined(_MSC_VER)
-#define strtoll _strtoi64
-#endif
-
-/* If an environment variable SOURCE_DATE_EPOCH is correctly defined like
- * SOURCE_DATE_EPOCH=1456304492, then returns this value, to be used as the
- * 'current time', otherwise returns INVALID_EPOCH_VALUE (= (time_t)-1).
- * In the case of Microsoft Visual Studio 2010, the value should be less
- * than 32535291600.
- */
-
-time_t
-get_unique_time_if_given(void)
-{
-  const char *source_date_epoch;
-  int64_t epoch;
-  char *endptr;
-  time_t ret = INVALID_EPOCH_VALUE;
-
-  source_date_epoch = getenv("SOURCE_DATE_EPOCH");
-  if (source_date_epoch) {
-    errno = 0;
-    epoch = strtoll(source_date_epoch, &endptr, 10);
-    if (!(epoch < 0 || *endptr != '\0' || errno != 0)) {
-      ret = (time_t) epoch;
-#if defined(_MSC_VER)
-      if (ret > 32535291599ULL)
-        ret = 32535291599ULL;
-#endif
-    }
-  }
-  return ret;
 }
 
 void
@@ -125,7 +70,7 @@ pdf_font_make_uniqueTag (char *tag)
 
   if (first) {
     time_t current_time;
-    current_time = get_unique_time_if_given();
+    current_time = dpx_util_get_unique_time_if_given();
     if (current_time == INVALID_EPOCH_VALUE)
       current_time = time(NULL);
     srand(current_time);
@@ -469,7 +414,7 @@ try_load_ToUnicode_CMap (pdf_font *font)
       pdf_add_dict(fontdict,
                    pdf_new_name("ToUnicode"),
                    pdf_ref_obj (tounicode)); /* _FIXME_ */
-      if (__verbose)
+      if (dpx_conf.verbose_level > 0)
         MESG("pdf_font>> ToUnicode CMap \"%s\" attached to font id=\"%s\".\n",
              cmap_name, font->map_name);
     }
@@ -490,18 +435,18 @@ pdf_close_fonts (void)
 
     font = GET_FONT(font_id);
 
-    if (__verbose) {
+    if (dpx_conf.verbose_level > 0) {
       if (font->subtype != PDF_FONT_FONTTYPE_TYPE0) {
 	      MESG("(%s", pdf_font_get_ident(font));
-	      if (__verbose > 2 &&
+	      if (dpx_conf.verbose_level > 2 &&
 	          !pdf_font_get_flag(font, PDF_FONT_FLAG_NOEMBED)) {
 	        MESG("[%s+%s]",
 	        pdf_font_get_uniqueTag(font),
 	        pdf_font_get_fontname(font));
-	      } else if (__verbose > 1) {
+	      } else if (dpx_conf.verbose_level > 1) {
 	        MESG("[%s]", pdf_font_get_fontname(font));
 	      }
-	      if (__verbose > 1) {
+	      if (dpx_conf.verbose_level > 1) {
 	        if (pdf_font_get_encoding(font) >= 0) {
 	            MESG("[%s]", pdf_encoding_get_name(pdf_font_get_encoding(font)));
 	        } else {
@@ -517,23 +462,23 @@ pdf_close_fonts (void)
     /* Type 0 is handled separately... */
     switch (font->subtype) {
     case PDF_FONT_FONTTYPE_TYPE1:
-      if (__verbose)
+      if (dpx_conf.verbose_level > 0)
 	      MESG("[Type1]");
       if (!pdf_font_get_flag(font, PDF_FONT_FLAG_BASEFONT))
 	      pdf_font_load_type1(font);
       break;
     case PDF_FONT_FONTTYPE_TYPE1C:
-      if (__verbose)
+      if (dpx_conf.verbose_level > 0)
 	      MESG("[Type1C]");
       pdf_font_load_type1c(font);
       break;
     case PDF_FONT_FONTTYPE_TRUETYPE:
-      if (__verbose)
+      if (dpx_conf.verbose_level > 0)
 	      MESG("[TrueType]");
       pdf_font_load_truetype(font);
       break;
     case PDF_FONT_FONTTYPE_TYPE3:
-      if (__verbose)
+      if (dpx_conf.verbose_level > 0)
 	      MESG("[Type3/PK]");
       pdf_font_load_pkfont (font);
       break;
@@ -547,7 +492,7 @@ pdf_close_fonts (void)
     if (font->encoding_id >= 0 && font->subtype != PDF_FONT_FONTTYPE_TYPE0)
       pdf_encoding_add_usedchars(font->encoding_id, font->usedchars);
 
-    if (__verbose) {
+    if (dpx_conf.verbose_level > 0) {
       if (font->subtype != PDF_FONT_FONTTYPE_TYPE0)
 	      MESG(")");
     }
@@ -668,7 +613,7 @@ pdf_font_findresource (const char *tex_name,
 	       * Turn on map option.
 	       */
 	      if (minbytes == 2 && mrec->opt.mapc < 0) {
-	        if (__verbose) {
+	        if (dpx_conf.verbose_level > 0) {
 	          MESG("\n");
 	          MESG("pdf_font>> Input encoding \"%s\" requires at least 2 bytes.\n",
 		            CMap_get_name(cmap));
@@ -713,7 +658,7 @@ pdf_font_findresource (const char *tex_name,
 	        font->font_id == type0_id &&
 	        font->encoding_id == cmap_id) {
 	      found = 1;
-	      if (__verbose) {
+	      if (dpx_conf.verbose_level > 0) {
 	        MESG("\npdf_font>> Type0 font \"%s\" (cmap_id=%d) found at font_id=%d.\n",
 	        mrec->font_name, cmap_id, font_id);
 	      }
@@ -736,7 +681,7 @@ pdf_font_findresource (const char *tex_name,
 
       font_cache.count++;
 
-      if (__verbose) {
+      if (dpx_conf.verbose_level > 0) {
 	      MESG("\npdf_font>> Type0 font \"%s\"", fontname);
         MESG(" cmap_id=<%s,%d>", mrec->enc_name, font->encoding_id);
         MESG(" opened at font_id=<%s,%d>.\n", tex_name, font_id);
@@ -787,7 +732,7 @@ pdf_font_findresource (const char *tex_name,
       }
 
       if (found) {
-	      if (__verbose) {
+	      if (dpx_conf.verbose_level > 0) {
 	        MESG("\npdf_font>> Simple font \"%s\" (enc_id=%d) found at id=%d.\n",
 	            fontname, encoding_id, font_id);
 	      }
@@ -830,7 +775,7 @@ pdf_font_findresource (const char *tex_name,
 
       font_cache.count++;
 
-      if (__verbose) {
+      if (dpx_conf.verbose_level > 0) {
 	      MESG("\npdf_font>> Simple font \"%s\"", fontname);
         MESG(" enc_id=<%s,%d>",
              (mrec && mrec->enc_name) ? mrec->enc_name : "builtin", font->encoding_id);

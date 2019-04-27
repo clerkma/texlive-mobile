@@ -1,3 +1,37 @@
+2019-02-23  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* uptex-m.ch, upbibtex.ch, updvitype.ch, uppltotf.ch, uptftopl.ch,
+	uptex_version.h: upTeX version u1.24.
+	* uptex-m.ch, kanji.c:
+	Update reference of Unicode blocks to
+	"Blocks-12.0.0.txt Date: 2018-07-30, 19:40:00 GMT [KW]".
+	Set kcatcode of "Latin Extended-B",
+	"Latin Extended Additional" 15 (not_cjk).
+	* COPYRIGHT, COPYRIGHT.ja:
+	Update copyright year.
+
+2019-02-03  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* kanji.h: Use fputs2() to benefit from kanji encoding conversion.
+	https://github.com/texjporg/tex-jp-build/issues/34
+
+2019-01-23  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* kanji_dump.c: Throw a warning when kanji internal encoding
+	is incompatible with the preloaded format.
+	https://github.com/texjporg/tex-jp-build/issues/55
+
+2018-09-16  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* upbibtex.ch: Fix bug of substring$
+	from Takashi Sakai:
+	https://github.com/texjporg/tex-jp-build/issues/64
+	https://github.com/texjporg/tex-jp-build/pull/66
+
+2018-09-09  Karl Berry  <karl@tug.org>
+
+	* uptriptest.test: LC_ALL=LANGUAGE=C.
+
 2018-09-03  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
 
 	* gkhuge.test: Export TEXMFCNF beforehand, instead of setting

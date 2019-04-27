@@ -89,6 +89,8 @@ build_triplet = @build@
 host_triplet = @host@
 @build_TRUE@am__append_1 = include/unicode
 @build_TRUE@check_PROGRAMS = icutest$(EXEEXT)
+@cross_TRUE@am__append_2 = icu-build/lib/libicuuc.a
+@cross_FALSE@am__append_3 = icu-build/lib/libicudata.a 
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/../../m4/kpse-common.m4 \
@@ -107,8 +109,8 @@ CONFIG_CLEAN_VPATH_FILES =
 am_icutest_OBJECTS = icutest-icutest.$(OBJEXT)
 icutest_OBJECTS = $(am_icutest_OBJECTS)
 icutest_LDADD = $(LDADD)
-icutest_DEPENDENCIES = icu-build/lib/libicuuc.a \
-	icu-build/lib/libicudata.a
+icutest_DEPENDENCIES = icu-build/lib/libicuuc.a $(am__append_2) \
+	$(am__append_3)
 am__dist_check_SCRIPTS_DIST = icu.test
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -579,7 +581,8 @@ icutest_SOURCES = icutest.c
 # Force Automake to use CXXLD for linking
 nodist_EXTRA_icutest_SOURCES = dummy.cxx
 icutest_CPPFLAGS = -Iinclude
-LDADD = icu-build/lib/libicuuc.a icu-build/lib/libicudata.a $(ICU_LIBS_EXTRA)
+LDADD = icu-build/lib/libicuuc.a $(am__append_2) $(am__append_3) \
+	$(ICU_LIBS_EXTRA)
 
 # Rebuild
 rebuild_prereq = 
@@ -1330,6 +1333,10 @@ icu-native/Makefile:
 icubuild: icu-build/Makefile check-makeflags
 @cross_TRUE@	cd icu-native && $(MAKE) $(AM_MAKEFLAGS) all
 	cd icu-build && $(MAKE) $(AM_MAKEFLAGS) all
+# these two cp commands are a kludge for mingw cross compilation.
+	cd icu-build/lib && (test ! -r icudt.a || cp icudt.a libicudata.a)
+	cd icu-build/lib && (test ! -r libicuin.a || cp libicuin.a libicui18n.a)
+#
 	cd include/unicode && $(MAKE) $(AM_MAKEFLAGS) all
 
 check-makeflags:

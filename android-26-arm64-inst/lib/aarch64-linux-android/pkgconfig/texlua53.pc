@@ -1,0 +1,12 @@
+prefix=/home/maqiyuan/texlive-android/texlive-arm64/inst
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib/aarch64-linux-android
+includedir=${prefix}/include
+
+Name: Lua for LuaTeX
+Description: Lua 5.3, modified for use with LuaTeX
+Version: 5.3.4
+Libs: -L${libdir} -ltexlua53
+Libs.private: -lm 
+Cflags: -I${includedir}/texlua53
+

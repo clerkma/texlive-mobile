@@ -2,7 +2,7 @@
 ** XMLNode.hpp                                                          **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2018 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2019 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -41,7 +41,11 @@ class XMLNode {
 
 class XMLElementNode : public XMLNode {
 	public:
-		using AttribMap = std::map<std::string,std::string>;
+		struct Attribute {
+			Attribute (const std::string &nam, const std::string &val) : name(nam), value(val) {}
+			std::string name;
+			std::string value;
+		};
 		using ChildList = std::deque<std::unique_ptr<XMLNode>>;
 
 	public:
@@ -66,10 +70,13 @@ class XMLElementNode : public XMLNode {
 		bool empty () const                  {return _children.empty();}
 		const ChildList& children () const   {return _children;}
 		const std::string& getName () const  {return _name;}
+	protected:
+		Attribute* getAttribute (const std::string &name);
+		const Attribute* getAttribute (const std::string &name) const;
 
 	private:
 		std::string _name;     // element name (<name a1="v1" .. an="vn">...</name>)
-		AttribMap _attributes;
+		std::vector<Attribute> _attributes;
 		ChildList _children;   // child nodes
 };
 

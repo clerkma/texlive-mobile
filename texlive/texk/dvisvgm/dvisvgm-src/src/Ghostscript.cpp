@@ -2,7 +2,7 @@
 ** Ghostscript.cpp                                                      **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2018 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2019 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -64,8 +64,8 @@ static string get_path_from_registry () {
 					int major_version;
 					iss >> major_version;
 					if (major_version >= 7) {
-						char dll_path[256];  // path to Ghostscript DLL stored in the registry
-						DWORD length;
+						char dll_path[512];  // path to Ghostscript DLL stored in the registry
+						DWORD length = 512;
 						if (RegGetValueA(hkey, subkey, "GS_DLL", RRF_RT_REG_SZ, 0, dll_path, &length) == ERROR_SUCCESS) {
 							RegCloseKey(hkey);
 							return dll_path;
@@ -193,7 +193,7 @@ bool Ghostscript::init (int argc, const char **argv, void *caller) {
 		if (status < 0)
 			_inst = 0;
 		else {
-			init_with_args(argc, (char**)argv);
+			init_with_args(argc, const_cast<char**>(argv));
 		}
 	}
 	return _inst != 0;
@@ -237,8 +237,12 @@ int Ghostscript::revision () {
 /** Returns the revision of the GS library as a string of the form "MAJOR.MINOR". */
 string Ghostscript::revisionstr () {
 	string revstr;
-	if (int rev = revision())
-		revstr = to_string(rev/100) + "." + to_string(rev%100);
+	if (int rev = revision()) {
+		revstr = to_string(rev/100) + ".";
+		if (rev % 100 < 10)
+			revstr += "0";
+	  	revstr += to_string(rev%100);
+	}
 	return revstr;
 }
 

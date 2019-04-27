@@ -1,3 +1,87 @@
+2019-04-07  Karl Berry  <karl@freefriends.org>
+
+	* TeX Live 2019.
+
+2019-03-11  Karl Berry  <karl@tug.org>
+
+	* ac/web2c.ac (kpse_tex_progs) <luatex53>: remove.
+	<luatex>, <mflua>: depend on lua53, not lua52.
+
+2019-01-19  Andreas Scherer  <https://ascherer.github.io>
+
+	* help.h: Fix CTWILL '--help' text.
+
+2019-01-15  Andreas Scherer  <https://ascherer.github.io>
+
+	* cwebboot.cin: Provisional 'bindtextdomain' lookup in TDS.
+
+2019-01-10  Andreas Scherer  <https://ascherer.github.io>
+
+	* help.h (CTWILLHELP): update.
+
+2019-01-09  Andreas Scherer  <https://ascherer.github.io>
+	
+	* help.h (CTANGLEHELP, CWEAVEHELP, CTWILLHELP): update.
+
+2019-01-06  Andreas Scherer  <https://ascherer.github.io>
+
+	Integration of CWEBbin as the new CWEB in TeX Live,
+	https://github.com/ascherer/cwebbin.
+	
+	Purge cweb.h and cwebboot.h[in] from CWEB build process.
+	* am/bootstrap.am (cweb.h): no longer created at common-ctangle.
+	(DISTCLEANFILES): do not remove cweb.h or cwebboot.h.
+	$(ctangleboot_OBJECTS): do not depend on cwebboot.h.
+	(EXTRA_DIST): omit no-longer-created cwebboot.hin.
+	(ctangle.c),
+	* am/cweb.am (cweave.c): depend on new file cwebdir/comm-w2c.h,
+	instead of common.h.
+	$(cweave_OBJECTS): remove rule.
+	* ctangleboot-sh.in <common>: only generate .c, not .h;
+	don't try to #include cwebboot.h.
+	* ctangleboot.cin,
+	* cwebboot.cin: regenerate.
+	* cwebboot.hin: delete.
+	* help.h (CTWILLHELP): new help string.
+	(CTANGLEHELP, CWEAVEHELP): update.
+	
+	Add CTWILL material on top of CWEAVE.
+	* am/bootstrap.am (NEVER_DIST): omit {ctwill,refsort,twinx}.{log,trs}.
+	* am/cweb.am (bin_programs): add ctwill, ctwill-refsort, ctwill-twinx,
+	with related targets and dependencies.
+
+2018-12-30  Karl Berry  <karl@tug.org>
+
+	* mplibdir/am/mplib.am,
+	* pmpostdir/am/pmpost.am (bin_links): make that r- instead of r.
+	Suggested by Hironobu,
+	https://tug.org/pipermail/tex-live/2018-December/043014.html.
+
+2018-12-21  Karl Berry  <karl@freefriends.org>
+
+	* mplibdir/am/mplib.am,
+	* pmpostdir/am/pmpost.am (bin_links): make links at install time:
+	 ln -s mpost rmpost
+	 ln -s pmpost rpmpost
+	 ln -s upmpost rupmpost
+	which implicitly specify -restricted; these new links can be
+	included in shell_escape_commands (we hope).
+	Thread starting here:
+	https://tug.org/pipermail/tex-live/2017-May/040169.html
+
+2018-11-19  Akira Kakuto  <kakuto@fuk.kindai.ac.jp>
+
+	* texmfmp.h: Remove unused functions in XeTeX.
+
+2018-11-17  Joseph Wright  <joseph.wright@morningstar2.co.uk>
+
+	* texmfmp.h: Support some primitives from pdfTeX in XeTeX.
+
+2018-09-09  Karl Berry  <karl@tug.org>
+
+	* mftraptest.test,
+	* triptest.test: LC_ALL=LANGUAGE=C.
+
 2018-07-24  Akira Kakuto  <kakuto@fuk.kindai.ac.jp>
 
 	* synctexdir/am/synctex.am: Add synctex_version.h.

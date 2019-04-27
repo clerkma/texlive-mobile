@@ -1,4 +1,34 @@
 ==============================================================
+LuaTeX 1.10.0 2019-03-15
+==============================================================
+
+This the release for TeX Live 2019. 
+Small bug fixes, code clean up.
+This is a stable release: only bug-fixes until the next TeX Live. 
+
+
+
+==============================================================
+LuaTeX 1.09.2 2019-01-19
+==============================================================
+
+This is a transitional release to LuaTeX 1.10 for TeX Live 2019
+
+
+
+==============================================================
+LuaTeX 1.09 2018-10-23
+==============================================================
+
+(1) This is a release that fixed some bugs, and the latest 
+with lua 5.2. 
+
+(2) luaffi is still incomplete, so very likely there will be
+a new release 1.09.1 before the next year.
+
+
+
+==============================================================
 LuaTeX 1.08 2018-08-28
 ==============================================================
 

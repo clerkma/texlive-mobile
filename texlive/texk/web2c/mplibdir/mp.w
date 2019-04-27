@@ -71,7 +71,7 @@ undergoes any modifications, so that it will be clear which version of
 @^extensions to \MP@>
 @^system dependencies@>
 
-@d default_banner "This is MetaPost, Version 2.000" /* printed when \MP\ starts */
+@d default_banner "This is MetaPost, Version 2.00" /* printed when \MP\ starts */
 @d true 1
 @d false 0
 
@@ -122,9 +122,24 @@ typedef struct pngout_data_struct *pngout_data;
 #ifndef HAVE_BOOLEAN
 typedef int boolean;
 #endif
+
 #ifndef INTEGER_TYPE
 typedef int integer;
+#define MPOST_ABS abs
+#else
+/* See source/texk/web2c/w2c/config.h */
+#if INTEGER_MAX == LONG_MAX /* this should mean INTEGER_TYPE == long */
+#ifdef HAVE_LABS
+#define MPOST_ABS labs
+#else
+#define MPOST_ABS abs
 #endif
+#else
+#define MPOST_ABS abs
+#endif /* if INTEGER_TYPE == long */
+#endif /* ifndef INTEGER_TYPE */
+
+
 @<Declare helpers@>;
 @<Enumeration types@>;
 @<Types in the outer block@>;
@@ -189,7 +204,7 @@ static int DEBUGENVELOPECOUNTER=0;
 #include "mpmath.h"             /* internal header */
 #include "mpmathdouble.h"       /* internal header */
 #include "mpmathdecimal.h"      /* internal header */
-/*#include "mpmathbinary.h"*/       /* internal header */
+/*|#include "mpmathbinary.h"|*/       /* internal header */
 #include "mpstrings.h"          /* internal header */
 /* BEGIN PATCH */
 mp_number dx_ap;    /* approximation of dx */
@@ -608,7 +623,7 @@ MP mp_initialize (MP_options * opt) {
   mp_reallocate_paths (mp, 1000);
   mp_reallocate_fonts (mp, 8);
   mp->history = mp_fatal_error_stop;    /* in case we quit during initialization */
-  @<Check the ``constant'' values...@>;
+  @<Check the ``constant'' values...@>; /* consider also the raise of the bits for precision */
   if (mp->bad > 0) {
     char ss[256];
     mp_snprintf (ss, 256, "Ouch---my internal constants have been clobbered!\n"
@@ -756,7 +771,7 @@ defined.
 @<Glob...@>=
 integer bad;    /* is some ``constant'' wrong? */
 
-@ Later on we will say `|if ( int_packets+17*int_increment>bistack_size )mp->bad=19;|',
+@ Later on we will say `|if ( int_packets+(17+2)*int_increment>bistack_size )mp->bad=19;|',
 or something similar.
 
 In case you are wondering about the non-consequtive values of |bad|: most
@@ -1253,6 +1268,9 @@ to the input buffer.  The variable |command_line| will be filled by the
     mp->term_in = (mp->open_file)(mp,"terminal", "r", mp_filetype_terminal);
     if (mp->command_line!=NULL) {
       mp->last = strlen(mp->command_line);
+      if (mp->last > (mp->buf_size+1)) {
+      	 mp_reallocate_buffer(mp,mp->last);
+      }
       (void)memcpy((void *)mp->buffer,(void *)mp->command_line,mp->last);
       xfree(mp->command_line);
     } else {
@@ -1330,7 +1348,7 @@ not be typed immediately after~`\.{**}'.)
 
 @c
 boolean mp_init_terminal (MP mp) {                               /* gets the terminal input started */
-  t_open_in();
+   t_open_in();
   if (mp->last != 0) {
     loc = 0;
     mp->first = 0;
@@ -1780,7 +1798,7 @@ following subroutine is usually called with a parameter in the range |0<=n<=99|.
 
 @c
 static void mp_print_dd (MP mp, integer n) {                               /* prints two least significant digits */
-  n = abs (n) % 100;
+  n = MPOST_ABS (n) % 100;
   mp_print_char (mp, xord ('0' + (n / 10)));
   mp_print_char (mp, xord ('0' + (n % 10)));
 }
@@ -2930,7 +2948,7 @@ void *mp_xmalloc (MP mp, size_t nmem, size_t size) {
     mp_jump_out (mp);
   }
 #endif
-  w = malloc (nmem * size);
+  w = calloc(nmem, size); /* TODO: check an un-initialize use of w and replace calloc with malloc. */
   if (w == NULL) {
     mp_fputs ("Out of memory!\n", mp->err_out);
     mp->history = mp_system_error_stop;
@@ -2940,7 +2958,11 @@ void *mp_xmalloc (MP mp, size_t nmem, size_t size) {
 }
 
 @ @<Internal library declarations@>=
-#  define mp_snprintf (void)snprintf
+int mp_snprintf_res ;
+/* Some compilers (i.e. gcc 8.2.0 ) complained with the old */
+/* #define mp_snprintf (void)snprintf                       */
+/* about truncation. For the moment we store the result.    */
+#  define mp_snprintf mp_snprintf_res=snprintf
 
 @* Dynamic memory allocation.
 
@@ -4797,7 +4819,7 @@ double mp_get_numeric_value (MP mp, const char *s, size_t l) {
 	   mp_loop_data *s;
            s = mp->loop_ptr;
            while (s != NULL && sym != s->var)
-             s = mp->loop_ptr->link;
+             s = s->link;
            if (s != NULL &&  sym == s->var ){
 	     mp_xfree (ss);
              return number_to_double(s->old_value) ;
@@ -4857,7 +4879,7 @@ mp_knot mp_get_path_value (MP mp, const char *s, size_t l) {
     char *ss = mp_xstrdup(mp,s);
     if (ss) {
         mp_sym sym = mp_id_lookup(mp,ss,l,false);
-        if (sym != NULL) {
+        if (sym != NULL && sym->v.data.node != NULL) {
             if (mp_type(sym->v.data.node) == mp_path_type) {
                 mp_xfree (ss);
                 return (mp_knot) sym->v.data.node->data.p;
@@ -15680,7 +15702,7 @@ mp->bisect_stack = xmalloc ((bistack_size + 1), sizeof (mp_number));
 xfree (mp->bisect_stack);
 
 @ @<Check the ``constant''...@>=
-if (int_packets + 17 * int_increment > bistack_size)
+if (int_packets + (17+2) * int_increment > bistack_size)
   mp->bad = 19;
 
 @ Computation of the min and max is a tedious but fairly fast sequence of
@@ -15769,11 +15791,42 @@ and |(pp,mp_link(pp))|, respectively.
 @c
 static void mp_cubic_intersection (MP mp, mp_knot p, mp_knot pp) {
   mp_knot q, qq;        /* |mp_link(p)|, |mp_link(pp)| */
+  mp_number x_two_t;    /* increment bit precision */
+  mp_number x_two_t_low_precision;    /* check for low precision */
   mp->time_to_go = max_patience;
   set_number_from_scaled (mp->max_t, 2);
+  new_number (x_two_t);
+  new_number (x_two_t_low_precision);
+
+  number_clone (x_two_t,two_t);
+  number_double(x_two_t);number_double(x_two_t);  /* added 2 bit of precision */
+  set_number_from_double (x_two_t_low_precision,-0.5);
+  number_add (x_two_t_low_precision,x_two_t);
+
   @<Initialize for intersections at level zero@>;
 CONTINUE:
   while (1) {
+    /* When we are in arbitrary precision math, low precisions can */
+    /* lead to acces locations beyond the |stack_size|: in this case */
+    /* we say that there is no intersection.*/
+    if ( ((x_packet (mp->xy))+4)>bistack_size ||
+         ((u_packet (mp->uv))+4)>bistack_size ||
+    	 ((y_packet (mp->xy))+4)>bistack_size ||
+         ((v_packet (mp->uv))+4)>bistack_size ){
+    	 set_number_from_scaled (mp->cur_t, 1);
+    	 set_number_from_scaled (mp->cur_tt, 1);
+         goto NOT_FOUND;
+    }
+    /* Also, low precision can lead to wrong result in comparing   */
+    /* so we check that the level of bisection stay low, and later */
+    /* we will also check that the bisection level are safe from   */
+    /* approximations.                                             */
+    if (number_greater (mp->max_t, x_two_t)){
+    	 set_number_from_scaled (mp->cur_t, 1);
+    	 set_number_from_scaled (mp->cur_tt, 1);
+         goto NOT_FOUND;
+    }
+  
     if (number_to_scaled (mp->delx) - mp->tol <=
         number_to_scaled (stack_max (x_packet (mp->xy))) - number_to_scaled (stack_min (u_packet (mp->uv))))
       if (number_to_scaled (mp->delx) + mp->tol >=
@@ -15783,7 +15836,8 @@ CONTINUE:
           if (number_to_scaled (mp->dely) + mp->tol >=
               number_to_scaled (stack_min (y_packet (mp->xy))) - number_to_scaled (stack_max (v_packet (mp->uv)))) {
             if (number_to_scaled (mp->cur_t) >= number_to_scaled (mp->max_t)) {
-              if (number_equal(mp->max_t, two_t)) {   /* we've done 17 bisections */
+              if ( number_equal(mp->max_t, x_two_t) || number_greater(mp->max_t,x_two_t_low_precision)) {   /* we've done 17+2 bisections */
+                number_divide_int(mp->cur_t,1<<2);number_divide_int(mp->cur_tt,1<<2); /* restore values due bit precision */ 
                 set_number_from_scaled (mp->cur_t, ((number_to_scaled (mp->cur_t) + 1)/2));
                 set_number_from_scaled (mp->cur_tt, ((number_to_scaled (mp->cur_tt) + 1)/2));
                 return;
@@ -15798,6 +15852,8 @@ CONTINUE:
     if (mp->time_to_go > 0) {
       decr (mp->time_to_go);
     } else {
+      /* we have added 2 bit of precision */
+      number_divide_int(mp->appr_t,1<<2);number_divide_int(mp->appr_tt,1<<2);
       while (number_less (mp->appr_t, unity_t)) {
         number_double(mp->appr_t);
         number_double(mp->appr_tt);
@@ -20003,10 +20059,10 @@ line and preceded by a space or at the beginning of a line.
             if (mode <= 0) {
                 txt[size - 1] = ' ';
             } else if (verb) {
-                /* modes >= 1 permit a newline in verbatimtex */
+                /* modes $\geq 1$ permit a newline in verbatimtex */
                 txt[size - 1] = '\n';
             } else if (mode >= 2) {
-                /* modes >= 2 permit a newline in btex */
+                /* modes $\geq 2$ permit a newline in btex */
                 txt[size - 1] = '\n';
             } else {
                 txt[size - 1] = ' ';
@@ -20047,8 +20103,8 @@ line and preceded by a space or at the beginning of a line.
             txt[size] = '\0';
             ptr = txt;
         } else {
-            /* strip trailing whitespace, we have a \0 so we're one off  */
-         /* while ((size > 1) && (mp->char_class[(ASCII_code) txt[size-2]] == space_class || txt[size-2] == '\n')) { */
+            /* strip trailing whitespace, we have a |'\0'| so we are off by one */ 
+            /* |while ((size > 1) && (mp->char_class[(ASCII_code) txt[size-2]] == space_class| $\vbv\vbv$ |txt[size-2] == '\n')) | */
             while ((size > 1) && (mp->char_class[(ASCII_code) txt[size-1]] == space_class || txt[size-1] == '\n')) {
                 decr(size);
             }

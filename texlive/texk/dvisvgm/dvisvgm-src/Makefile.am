@@ -1,11 +1,11 @@
 ## This file is part of dvisvgm
-## Copyright (C) 2005-2018 Martin Gieseking <martin.gieseking@uos.de>
+## Copyright (C) 2005-2019 Martin Gieseking <martin.gieseking@uos.de>
 ##
 ## Process this file with automake.
 
 AUTOMAKE_OPTIONS = foreign
 EXTRA_DIST = COPYING
-SUBDIRS = libs src #not for TL: tests doc
+SUBDIRS = libs src #not for TL: m4 tests doc
 ACLOCAL_AMFLAGS = -I m4
 
 if USE_BUNDLED_LIBS

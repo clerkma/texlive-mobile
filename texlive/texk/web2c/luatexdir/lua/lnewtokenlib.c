@@ -381,10 +381,10 @@ static int run_scan_int(lua_State * L)
 */
 
 # define add_to_buffer(chr) \
-    if (chr <= 255) { \
+    if (chr <= 127) { \
         luaL_addchar(&b,(unsigned) (char) chr); \
     } else { \
-        uindex = uni2string((char *)word,(unsigned) chr); \
+        uindex = uni2string((char *)word,(unsigned int) chr); \
         *uindex = '\0'; \
         luaL_addstring(&b,(char *) word); \
     }
@@ -580,9 +580,11 @@ static int run_scan_string(lua_State * L) /* HH */
         t = def_ref;
         def_ref = saved_defref;
         tokenlist_to_luastring(L,t);
+        flush_list(t);
     } else if (cur_cmd == call_cmd) {
         t = token_link(cur_chr);
         tokenlist_to_luastring(L,t);
+        flush_list(t);
     } else if (cur_cmd == 11 || cur_cmd == 12 ) {
         declare_buffer;
         while (1) {
@@ -617,6 +619,7 @@ static int run_scan_argument(lua_State * L) /* HH */
         t = def_ref;
         def_ref = saved_defref;
         tokenlist_to_luastring(L,t);
+        flush_list(t);
     } else if (cur_cmd == call_cmd) {
         halfword saved_cur_tok = cur_tok;
         cur_tok = right_brace_token + '}';
@@ -630,6 +633,7 @@ static int run_scan_argument(lua_State * L) /* HH */
         t = def_ref;
         def_ref = saved_defref;
         tokenlist_to_luastring(L,t);
+        flush_list(t);
     } else if (cur_cmd == 11 || cur_cmd == 12 ) {
         declare_buffer;
         while (1) {
@@ -1267,7 +1271,7 @@ static int set_char(lua_State * L)
     if (n < 2)
         return 0;
     name = lua_tolstring(L, 1, &lname);
-    if (name == null)
+    if (name == NULL)
         return 0;
     value = lua_tointeger(L, 2);
     if (value < 0)

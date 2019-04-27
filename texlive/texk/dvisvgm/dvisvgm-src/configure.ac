@@ -1,11 +1,11 @@
 # This file is part of dvisvgm
-# Copyright (C) 2005-2018 Martin Gieseking <martin.gieseking@uos.de>
+# Copyright (C) 2005-2019 Martin Gieseking <martin.gieseking@uos.de>
 #
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([dvisvgm],[2.5],[martin.gieseking@uos.de])
-DATE="August 2018"
+AC_INIT([dvisvgm],[2.6.3],[martin.gieseking@uos.de])
+DATE="March 2019"
 AC_CONFIG_SRCDIR(src)
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
@@ -27,6 +27,7 @@ LT_INIT
 AC_PROG_RANLIB
 AC_LANG(C)
 
+AX_CHECK_COMPILE_FLAG([-Wmismatched-tags -Wno-mismatched-tags], [CXXFLAGS="$CXXFLAGS -Wno-mismatched-tags"])
 AC_CHECK_HEADERS([sys/time.h sys/timeb.h xlocale.h])
 AC_HEADER_TIOCGWINSZ
 
@@ -71,12 +72,6 @@ AS_IF([test -z "$kpseversion"],
 AC_SUBST(KPSE_CFLAGS)
 AC_SUBST(KPSE_LIBS)
 
-# Check how to link potrace library
-AC_CHECK_HEADER([potracelib.h],
-	[AC_CHECK_LIB(m, sqrt)] # required to pass potrace check
-	[AC_CHECK_LIB(potrace, potrace_trace,,
-		[AC_MSG_ERROR([potrace library not found])])])
-
 # Check how to link Ghostscript
 have_libgs=yes
 AC_CHECK_HEADER([ghostscript/iapi.h],
@@ -105,27 +100,24 @@ AC_ARG_WITH([ttfautohint],
 	[with_ttfautohint="$withval"],
 	[with_ttfautohint=no])
 
-# Add option to enable linking of bundled libraries (brotli, woff2, xxhash).
+# Add option to enable linking of bundled libraries (brotli, potrace, woff2, xxhash).
 AC_ARG_ENABLE([bundled-libs],
-	[AS_HELP_STRING([--enable-bundled-libs], [use bundled libraries instead of the system ones @<:@default=no@:>@])],
-	[use_bundled_libs=yes])
-AM_CONDITIONAL([USE_BUNDLED_LIBS], [test "x$use_bundled_libs" = "xyes"])
+	[AS_HELP_STRING([--enable-bundled-libs], [use bundled libraries instead of the system ones @<:@default=no@:>@])])
+AM_CONDITIONAL([USE_BUNDLED_LIBS], [test "x$enable_bundled_libs" = "xyes"])
 
-# If option --enable-bundled-libs is not given, look for system libraries of brotli, woff2, and xxhash.
-AS_IF([test "x$use_bundled_libs" != "xyes"],
-	[AC_CHECK_HEADER([potracelib.h],
-		[AC_CHECK_LIB(potrace, potrace_trace,,
-			[AC_MSG_ERROR([system library 'libpotrace' not found])])],
-		[AC_MSG_ERROR([header file 'potracelib.h' for system library 'libpotrace' not found])])]
-	[AS_IF([test "x$enable_woff" = "xyes"],
-		[PKG_CHECK_MODULES([BROTLI], [libbrotlienc],,
-			[AC_MSG_ERROR([system library 'libbrotlienc' not found])])]
-		[PKG_CHECK_MODULES([WOFF2], [libwoff2enc],,
-			[AC_MSG_ERROR([system library 'libwoff2enc' not found])])])]
+# If option --enable-bundled-libs is not given, look for system libraries of brotli, potrace, woff2, and xxhash.
+AS_IF([test "x$enable_bundled_libs" != "xyes"],
+	[AC_CHECK_HEADER(potracelib.h,
+		[AC_SEARCH_LIBS(potrace_trace, [potrace], [have_potrace=yes])])]
 	[AC_CHECK_HEADER([xxhash.h],
-		[AC_CHECK_LIB(xxhash, XXH32,,
-			[AC_MSG_ERROR([system library 'libxxhash' not found])])],
-		[AC_MSG_ERROR([header file 'xxhash.h' for system library 'libxxhash' not found])])])
+		[AC_SEARCH_LIBS(XXH32, [xxhash], [have_xxhash=yes])])]
+	[AS_IF([test "x$enable_woff" = "xyes"],
+		[PKG_CHECK_MODULES(BROTLI, [libbrotlienc], [have_brotli=yes])]
+		[PKG_CHECK_MODULES(WOFF2, [libwoff2enc], [have_woff2=yes])])])
+AM_CONDITIONAL(HAVE_POTRACE, [test "x$have_potrace" = "xyes"])
+AM_CONDITIONAL(HAVE_BROTLI, [test "x$have_brotli" = "xyes"])
+AM_CONDITIONAL(HAVE_WOFF2, [test "x$have_woff2" = "xyes"])
+AM_CONDITIONAL(HAVE_XXHASH, [test "x$have_xxhash" = "xyes"])
 
 AS_IF([test "x$enable_woff" != "xyes"],
 	[AC_DEFINE([DISABLE_WOFF], 1, [Define if WOFF support is disabled])],
@@ -146,12 +138,16 @@ AS_IF([test "x$enable_woff" != "xyes"],
 				[AC_MSG_WARN([disabled ttfautohint support])])])]
 		[AC_SUBST(TTFAUTOHINT_CFLAGS) AC_SUBST(TTFAUTOHINT_LIBS)])])
 
+AC_CHECK_HEADERS([openssl/md5.h])
+PKG_CHECK_MODULES([LIBCRYPTO], [libcrypto], [HAVE_LIBCRYPTO=1], [HAVE_LIBCRYPTO=0])
+AM_CONDITIONAL([USE_BUNDLED_MD5], [test "$HAVE_LIBCRYPTO" -eq 0])
+
 AC_CHECK_LIB(z, gzopen)
 
 # Check for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_CHECK_HEADERS([libintl.h stdlib.h string.h strings.h unistd.h])
+AC_CHECK_HEADERS_ONCE([libintl.h stdlib.h string.h strings.h unistd.h])
 
 # Check for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -192,17 +188,20 @@ CPPFLAGS="$CPPFLAGS_SAVE"
 CFLAGS="$CFLAGS_SAVE"
 LDFLAGS="$LDFLAGS_SAVE"
 
-# Check for utilities required to build the manpage
-build_manpage="no"
-AC_CHECK_PROG(ASCIIDOC, asciidoc, yes)
-AS_IF([test "x$ASCIIDOC" = "xyes"], [
-	AC_CHECK_PROG(XMLTO, xmlto, yes)
-	AS_IF([test "x$XMLTO" = "xyes"], [
-		AC_CHECK_PROG(XSLTPROC, xsltproc, yes)
-		AS_IF([test "x$XSLTPROC" = "xyes"],[build_manpage="yes"])])])
-AS_IF([test "x$build_manpage" != "xyes"],
+AC_ARG_ENABLE([manpage],
+	[AS_HELP_STRING([--disable-manpage], [disable generation of manual page @<:@default=no@:>@])])
+AS_IF([test "x$enable_manpage" != "xno"],[
+	enable_manpage="no"
+	# Check for utilities required to build the manpage
+	AC_CHECK_PROG(ASCIIDOC, asciidoc, yes)
+	AS_IF([test "x$ASCIIDOC" = "xyes"], [
+		AC_CHECK_PROG(XMLTO, xmlto, yes)
+		AS_IF([test "x$XMLTO" = "xyes"], [
+			AC_CHECK_PROG(XSLTPROC, xsltproc, yes)
+			AS_IF([test "x$XSLTPROC" = "xyes"],[enable_manpage="yes"])])])])
+AS_IF([test "x$enable_manpage" != "xyes"],
 	AC_MSG_NOTICE([generation of manual page has been disabled]))
-AM_CONDITIONAL([BUILD_MANPAGE], [test "x$build_manpage" = "xyes"])
+AM_CONDITIONAL([BUILD_MANPAGE], [test "x$enable_manpage" = "xyes"])
 
 AX_CODE_COVERAGE
 AS_IF([ test "$enable_code_coverage" = "yes" ], [
@@ -213,6 +212,7 @@ AS_IF([ test "$enable_code_coverage" = "yes" ], [
 	changequote([,])
 ])
 
+AC_SUBST([dvisvgm_srcdir], ['$(top_srcdir)'])
 AC_SUBST(DATE)
 AC_SUBST(AM_CPPFLAGS)
 AC_SUBST(AM_LDFLAGS)
@@ -222,15 +222,15 @@ AC_CONFIG_FILES([
 	libs/brotli/Makefile
 	libs/clipper/Makefile
 	libs/ff-woff/Makefile
+	libs/md5/Makefile
 	libs/potrace/Makefile
 	libs/variant/Makefile
 	libs/woff2/Makefile
 	libs/xxHash/Makefile
+	m4/Makefile
 	src/Makefile
 	src/version.hpp
 	tests/Makefile
 	tests/data/Makefile
-	doc/dvisvgm.txt
 	doc/Makefile])
 AC_OUTPUT
-

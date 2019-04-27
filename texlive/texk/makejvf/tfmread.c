@@ -93,23 +93,26 @@ int jfmread(int kcode)
 
 int tfmget(char *name)
 {
-	char nbuff[1024];
+	char *nbuff;
 	FILE *fp;
 
+	nbuff = xmalloc(strlen(name)+4+1);
 	strcpy(nbuff,name);
+	strcat(nbuff,".tfm");
 	fp = fopen(nbuff,"rb");
 	if (fp == NULL) {
-		strcat(nbuff,".tfm");
-		fp = fopen(nbuff,"rb");
+		fp = fopen(name,"rb"); /* just in case ... */
 		if (fp == NULL) {
-			fprintf(stderr,"%s is not found.\n",name);
-			exit(0);
+			fprintf(stderr,"Cannot open %s for input.\n",nbuff);
+			exit(1);
 		}
 	}
 
 	tfmidx(fp);
 
 	fclose(fp);
+
+	free(nbuff);
 
 	return 0;
 }
@@ -138,15 +141,15 @@ int tfmidx(FILE *fp)
 
 		header = xmalloc(lh*4);
 		for (i = 0 ; i < lh*4 ; i++) {
-			header[i] = fgetc(fp);
+			header[i] = (char)fgetc(fp);
 		}
 		char_type = xmalloc(nt*4);
 		for (i = 0 ; i < nt*4 ; i++) {
-			char_type[i] = fgetc(fp);
+			char_type[i] = (char)fgetc(fp);
 		}
 		char_info = xmalloc((ec+1)*4);
 		for (i = 0 ; i < (ec+1)*4 ; i++) {
-			char_info[i] = fgetc(fp);
+			char_info[i] = (char)fgetc(fp);
 		}
 		width = xmalloc(nw*sizeof(int));
 		for (i = 0 ; i < nw ; i++) {
@@ -166,7 +169,7 @@ int tfmidx(FILE *fp)
 		}
 		glue_kern = xmalloc(nl*4);
 		for (i = 0 ; i < nl*4 ; i++) {
-			glue_kern[i] = fgetc(fp);
+			glue_kern[i] = (char)fgetc(fp);
 		}
 		kern = xmalloc(nk*sizeof(int));
 		for (i = 0 ; i < nk ; i++) {

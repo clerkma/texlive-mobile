@@ -1,3 +1,137 @@
+2019-04-07  Karl Berry  <karl@freefriends.org>
+
+	* TeX Live 2019.
+
+2019-04-01  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* pdfencoding.c: Fix a bug that dvipdfmx wrongly tries to
+	create ToUnicode CMap even when there is no valid mapping
+	entry. It just results in "Invalid CMap" warning.
+
+2019-03-30  Akira Kakuto  <kakuto@w32tex.org>
+
+	* spc_xtx.c: "ap->curptr" was copied to "buffer" without
+	length validation. Fix this security problem.
+	* spc_pdfm.c: "ap->curptr" was copied to "buffer" without
+	length validation. Fix this security problem.
+	* specials.c: Error message was written using vsprintf(),
+	which has no length limitation. Use vsnprintf() instead.
+
+	Report from Andy Nguyen of ETH Zurich.
+
+2019-03-05  Clerk Ma  <maqiyuan130324@vip.qq.com>
+
+	* tt_table.c: Fix 'null character(s)' warning caused by
+	fonts like Roboto (Android) or YuMincho (Windows 10).
+
+2019-02-25  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* tt_cmap.c (is_PUA_or_presentation):
+	Skip also CJK Radicals Supplement, to lower the priority for
+	double encoded glyphs. This does not break tounicode entries
+	for glyphs which are only encoded in this region.
+
+2019-02-25  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* tt_post.c: Since OpenType ver. 1.7, PostScript glyph names
+	more than 32767 are allowed for version 2.0 post table. Some
+	minore fixes in chek of valid index range.
+	* configure.ac: Version 20190225.
+
+2019-02-23  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* tt_post.c (tt_lookup_post_table): Fix a bug that the loop
+	exceeds post->numberOfGlyphs (= the size of post->glyphNamePtr).
+	https://github.com/texjporg/tex-jp-build/issues/74
+
+2019-02-11  Karl Berry  <karl@tug.org>
+
+	* configure.ac,
+	* dvipdfmx.c: copyright 2019.
+
+2019-02-10  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* cidtype0.c, cidtype2.c: Fix typo.
+
+2019-01-27  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* spc_pdfm.c: Suppress a warning in tounicode special.
+	Dvipdfmx had been giving a wrong warning when an optional
+	argument to tounicode special is not supplied.
+
+2018-12-27  Clerk Ma  <maqiyuan130324@vip.qq.com>
+
+	* pdfobj.c: Introduce a static variable pdf_output_file_stats
+	for LIBDPX. It does not affect (x)dvipdfmx.
+
+2018-12-21  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* dvi.[ch], dvipdfmx.c, pdfdoc.[ch], pdfencrypt.[ch],
+	spc_pdfm.c: Add a new special pdf:trailerid for directly
+	specifying trailer ID.
+	* spc_tpic.c, tfm.c, tt_gsub.c: Avoid compiler warning.
+	* configure.ac: Version 20181221.
+
+2018-10-12  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* dvipdfmx.c: Fix a bug that landscape option is not handled
+	properly.
+	* configure.ac: Version 20181012.
+
+2018-10-08  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* mpost.c: Fix a bug in inline PS code handling.
+	* dpxfile.c, pdfencrypt.c, type0.c: Avoid compiler warnings.
+	* pdfobj.c: Fix a bug in (unused) TIFF predictor code.
+	* configure.ac: Version 20181008.
+
+2018-10-07  Simon Cozens  <simon@simon-cozens.org>
+
+	* pdfobj.c: Clear static variables to allow PDF funcfions to
+	be used more than once.
+
+2018-10-02  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* dvipdfmx.c: Fixed a bug in handling of command line option '-M'.
+	* mpost.c:  Fixed a bug in MetaPost generated PS files.
+	Font selection had not been properly done for gsave/grestore.
+	* configure.ac: Version 20181002.
+
+2018-09-16  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* dvi.[ch], dvipdfmx.c: Fixed a bug that papersize special does
+	not work (introduced in the previous change). Command line
+	options other than papersize now take precedence over special
+	command options.
+	* dpxconf.[ch], tt_aux.c: Moved always_embed flag to dpx_conf.
+	* pdfencrypt.c: Fixed a bug that calculation of encryption key
+	was not done properly for RC4 and revision 2-3 AES security.
+
+2018-09-16  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* dpxutil.[ch], dvi.[ch], dvipdfmx.c, pdfdoc.[ch], pdfencrypt.[ch],
+	pdffont.[ch], xbb.c: Remove duplicated code. Reorganize
+	initialization process. Use struct for passing options.
+	* configure.ac: Version 20180916.
+
+2018-09-14  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* agl.[ch], bmpimage.c, cid.[ch], cidtype0.[ch], cidtype2.[ch],
+	cmap.[ch], cmap_read.c, dpxconf.[ch], dpxfile.[ch], dvi.[ch],
+	dvipdfmx.[ch], epdf.c, fontmap.[ch], jp2image.c, jpegimage.c,
+	mpost.[ch], pdfcolor.[ch], pdfdev.[ch], pdfdoc.[ch], pdfdraw.c,
+	pdfencoding.[ch], pdfencrypt.[ch], pdffont.[ch], pdfobj.[ch],
+	pdfximage.[ch], pngimage.c, spc_pdfm.c, spc_util.[ch],
+	specials.[ch], subfont.[ch], t1_char.c, tfm.[ch], truetype.c,
+	tt_aux.[ch], tt_cmap.[ch], tt_gsub.[ch], type0.[ch], type1.c,
+	type1c.c, vf.[ch], xbb.c: Cleanup. Remove duplicated code.
+	Reorganize global variables.
+	* configure.ac: Version 20180914.
+
+2018-09-09  Karl Berry  <karl@tug.org>
+
+	* xdvipfm-bb.test: LC_ALL=LANGUAGE=C.
+
 2018-09-06  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
 
 	* pdfencoding.c: Reverted change made for 20071115.

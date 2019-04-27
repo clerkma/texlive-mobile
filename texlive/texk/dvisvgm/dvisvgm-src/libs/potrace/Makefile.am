@@ -1,4 +1,4 @@
-if USE_BUNDLED_LIBS
+if !HAVE_POTRACE
 noinst_LIBRARIES = libpotrace.a
 libpotrace_a_SOURCES = \
 	auxiliary.h \

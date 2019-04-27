@@ -33,6 +33,7 @@
 #include "mem.h"
 #include "error.h"
 #include "mfileio.h"
+#include "dpxconf.h"
 #include "dpxutil.h"
 #include "pdflimits.h"
 #include "pdfencrypt.h"
@@ -250,7 +251,6 @@ static void release_dict (pdf_dict *dict);
 static void write_stream   (pdf_stream *stream, FILE *file);
 static void release_stream (pdf_stream *stream);
 
-static int  verbose = 0;
 static char compression_level = 9;
 static char compression_use_predictor = 1;
 
@@ -274,10 +274,10 @@ pdf_set_compression (int level)
   return;
 }
 
-void
-pdf_set_use_predictor (int bval)
+FILE *
+pdf_get_output_file (void)
 {
-  compression_use_predictor = bval ? 1 : 0;
+  return pdf_output_file;
 }
 
 static int pdf_version = PDF_VERSION_DEFAULT;
@@ -315,18 +315,6 @@ pdf_check_version (int major, int minor)
   return (pdf_version >= major*10+minor) ? 0 : -1;
 }
 
-int
-pdf_obj_get_verbose(void)
-{
-  return verbose;
-}
-
-void
-pdf_obj_set_verbose(void)
-{
-  verbose++;
-}
-
 static pdf_obj *current_objstm = NULL;
 static int do_objstm;
 
@@ -347,7 +335,8 @@ add_xref_entry (unsigned label, unsigned char type, unsigned int field2, unsigne
 
 #define BINARY_MARKER "%\344\360\355\370\n"
 void
-pdf_out_init (const char *filename, int do_encryption, int enable_objstm)
+pdf_out_init (const char *filename,
+              int do_encryption, int enable_objstm, int enable_predictor)
 {
   char v;
 
@@ -400,6 +389,7 @@ pdf_out_init (const char *filename, int do_encryption, int enable_objstm)
 
   enc_mode = 0;
   doc_enc_mode = do_encryption;
+  compression_use_predictor = enable_predictor;
 }
 
 static void
@@ -486,10 +476,11 @@ dump_xref_stream (void)
 }
 
 #if defined(LIBDPX)
+static long pdf_output_file_stats = 0;
 long
 pdf_output_stats (void)
 {
-  return pdf_output_file_position;
+  return pdf_output_file_stats;
 }
 #endif /* LIBDPX */
 
@@ -537,7 +528,7 @@ pdf_out_flush (void)
 #if !defined(LIBDPX)
     MESG("\n");
 #endif /* !LIBDPX */
-    if (verbose) {
+    if (dpx_conf.verbose_level > 0) {
       if (compression_level > 0) {
 	MESG("Compression saved %ld bytes%s\n", compression_saved,
 	     pdf_version < 15 ? ". Try \"-V 1.5\" for better compression" : "");
@@ -545,9 +536,14 @@ pdf_out_flush (void)
     }
 #if !defined(LIBDPX)
     MESG("%ld bytes written", pdf_output_file_position);
+#else
+    pdf_output_file_stats = pdf_output_file_position;
 #endif /* !LIBDPX */
 
     MFCLOSE(pdf_output_file);
+    pdf_output_file_position = 0;
+    pdf_output_line_position = 0;
+    pdf_output_file = NULL;
   }
 #if defined(PDFOBJ_DEBUG)
   {
@@ -579,6 +575,7 @@ pdf_error_cleanup (void)
    */
   if (pdf_output_file)
     MFCLOSE(pdf_output_file);
+  pdf_output_file = NULL;
 }
 
 
@@ -1829,20 +1826,6 @@ filter_PNG15_apply_filter (unsigned char *raster,
   return  dst;
 }
 
-/* TIFF predictor filter support
- *
- * Many PDF viewers seems to have broken TIFF 2 predictor support?
- * Ony GhostScript and MuPDF render 4bpc grayscale image with TIFF 2 predictor
- * filter applied correctly.
- *
- *  Acrobat Reader DC  2015.007.20033  NG
- *  Adobe Acrobat X    10.1.13         NG
- *  Foxit Reader       4.1.5.425       NG
- *  GhostScript        9.16            OK
- *  SumatraPDF(MuPDF)  v3.0            OK
- *  Evince(poppler)    2.32.0.145      NG (1bit and 4bit broken)
- */
-
 /* This modifies "raster" itself! */
 static void
 apply_filter_TIFF2_1_2_4 (unsigned char *raster,
@@ -1896,13 +1879,14 @@ apply_filter_TIFF2_1_2_4 (unsigned char *raster,
         }
       }
     }
-    if (outbits > 0)
+    if (outbits > 0) {
       raster[k] = (outbuf << (8 - outbits)); k++;
+    }
   }
   RELEASE(prev);
 }
 
-unsigned char *
+static unsigned char *
 filter_TIFF2_apply_filter (unsigned char *raster,
                            int32_t columns, int32_t rows,
                            int8_t bpc, int8_t colors, int32_t *length)

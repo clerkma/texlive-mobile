@@ -1,3 +1,27 @@
+2019-03-22  Akira Kakuto  <kakuto@w32tex.org>
+
+	* pmp.ch: Sync with the change of mp.w.
+
+2019-02-23  Akira Kakuto  <kakuto@w32tex.org>
+
+	* pmp.ch: Bump upmpost version to 2.00-0.04-u1.24.
+	* pmpost.ch: Do not change internal encoding by -kanji option. 
+
+2019-01-29  Akira Kakuto  <kakuto@w32tex.org>
+
+	* pmpost.ch: adapt to the new mpost.w.
+	Forbid too long kanji option.
+
+2018-12-21  Karl Berry  <karl@freefriends.org>
+
+	* am/pmpost.am (bin_links): make r* links at install time;
+	see entry in ../mplibdir/ChangeLog.
+
+2018-09-09  Karl Berry  <karl@tug.org>
+
+	* upmpsamp.test,
+	* pmpsamp.test: LC_ALL=LANGUAGE=C.
+
 2018-08-16  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
 
 	* ptfmin.ch: Support new JFM spec, which allows 3-byte

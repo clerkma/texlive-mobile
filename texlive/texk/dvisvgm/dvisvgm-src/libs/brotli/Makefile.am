@@ -1,4 +1,4 @@
-if USE_BUNDLED_LIBS
+if !HAVE_BROTLI
 noinst_LIBRARIES = libbrotli.a
 libbrotli_a_SOURCES = \
 	common/constants.h \

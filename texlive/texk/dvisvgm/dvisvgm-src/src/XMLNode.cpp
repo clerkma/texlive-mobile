@@ -2,7 +2,7 @@
 ** XMLNode.cpp                                                          **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2018 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2019 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -54,12 +54,15 @@ void XMLElementNode::clear () {
 
 
 void XMLElementNode::addAttribute (const string &name, const string &value) {
-	_attributes.emplace(name, value);
+	if (Attribute *attr = getAttribute(name))
+		attr->value = value;
+	else
+		_attributes.emplace_back(Attribute(name, value));
 }
 
 
 void XMLElementNode::addAttribute (const string &name, double value) {
-	_attributes.emplace(name, XMLString(value));
+	addAttribute(name, XMLString(value));
 }
 
 
@@ -198,7 +201,7 @@ XMLElementNode* XMLElementNode::getFirstDescendant (const char *name, const char
 ostream& XMLElementNode::write (ostream &os) const {
 	os << '<' << _name;
 	for (const auto &attrib : _attributes)
-		os << ' ' << attrib.first << "='" << attrib.second << '\'';
+		os << ' ' << attrib.name << "='" << attrib.value << '\'';
 	if (_children.empty())
 		os << "/>";
 	else {
@@ -223,7 +226,7 @@ ostream& XMLElementNode::write (ostream &os) const {
 
 /** Returns true if this element has an attribute of given name. */
 bool XMLElementNode::hasAttribute (const string &name) const {
-	return _attributes.find(name) != _attributes.end();
+	return getAttribute(name) != nullptr;
 }
 
 
@@ -231,10 +234,25 @@ bool XMLElementNode::hasAttribute (const string &name) const {
  *  @param[in] name name of attribute
  *  @return attribute value or 0 if attribute doesn't exist */
 const char* XMLElementNode::getAttributeValue (const std::string& name) const {
-	auto it = _attributes.find(name);
-	if (it != _attributes.end())
-		return it->second.c_str();
+	if (const Attribute *attr = getAttribute(name))
+		return attr->value.c_str();
 	return nullptr;
+}
+
+
+XMLElementNode::Attribute* XMLElementNode::getAttribute (const string &name) {
+	auto it = find_if(_attributes.begin(), _attributes.end(), [&](const Attribute &attr) {
+		return attr.name == name;
+	});
+	return it != _attributes.end() ? &(*it) : nullptr;
+}
+
+
+const XMLElementNode::Attribute* XMLElementNode::getAttribute (const string &name) const {
+	auto it = find_if(_attributes.begin(), _attributes.end(), [&](const Attribute &attr) {
+		return attr.name == name;
+	});
+	return it != _attributes.end() ? &(*it) : nullptr;
 }
 
 

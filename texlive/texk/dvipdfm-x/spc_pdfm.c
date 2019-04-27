@@ -1,6 +1,6 @@
 /* This is dvipdfmx, an eXtended version of dvipdfm by Mark A. Wicks.
 
-    Copyright (C) 2007-2018 by Jin-Hwan Cho and Shunsaku Hirata,
+    Copyright (C) 2007-2019 by Jin-Hwan Cho and Shunsaku Hirata,
     the dvipdfmx project team.
     
     Copyright (C) 1998, 1999 by Mark A. Wicks <mwicks@kettering.edu>
@@ -36,6 +36,7 @@
 #include "fontmap.h"
 #include "dpxfile.h"
 #include "dpxutil.h"
+#include "dpxconf.h"
 
 #include "unicode.h"
 
@@ -553,7 +554,7 @@ modstrings (pdf_obj *kp, pdf_obj *vp, void *dp)
       CMap *cmap = CMap_cache_get(cd->cmap_id);
       if (needreencode(kp, vp, cd))
         r = reencodestring(cmap, vp);
-    } else if (is_xdv && cd && cd->taintkeys) {
+    } else if ((dpx_conf.compat_mode == dpx_mode_xdv_mode) && cd && cd->taintkeys) {
       /* Please fix this... PDF string object is not always a text string.
        * needreencode() is assumed to do a simple check if given string
        * object is actually a text string.
@@ -581,7 +582,7 @@ parse_pdf_dict_with_tounicode (const char **pp, const char *endptr, struct touni
   pdf_obj  *dict;
 
   /* disable this test for XDV files, as we do UTF8 reencoding with no cmap */
-  if (!is_xdv && cd->cmap_id < 0)
+  if ((dpx_conf.compat_mode != dpx_mode_xdv_mode) && cd->cmap_id < 0)
     return  parse_pdf_dict(pp, endptr, NULL);
 
   /* :( */
@@ -1077,7 +1078,7 @@ spc_handler_pdfm_image (struct spc_env *spe, struct spc_arg *args)
     pdf_dev_put_image(xobj_id, &ti, spe->x_user, spe->y_user);
 
   if (ident) {
-    if (compat_mode &&
+    if ((dpx_conf.compat_mode == dpx_mode_compat_mode) &&
         pdf_ximage_get_subtype(xobj_id) == PDF_XOBJECT_TYPE_IMAGE)
       pdf_ximage_set_attr(xobj_id, 1, 1, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0);
     addresource(sd, ident, xobj_id);
@@ -1108,7 +1109,7 @@ spc_handler_pdfm_dest (struct spc_env *spe, struct spc_arg *args)
   }
 
 #if 0
-  if (is_xdv && maybe_reencode_utf8(name) < 0)
+  if ((dpx_conf.compat_mode == dpx_mode_xdv_mode) && maybe_reencode_utf8(name) < 0)
     WARN("Failed to convert input string to UTF16...");
 #endif
 
@@ -1763,15 +1764,17 @@ spc_handler_pdfm_bgcolor (struct spc_env *spe, struct spc_arg *args)
   return  error;
 }
 
+#define THEBUFFLENGTH 1024
 static int
 spc_handler_pdfm_mapline (struct spc_env *spe, struct spc_arg *ap)
 {
   fontmap_rec *mrec;
   char        *map_name, opchr;
   int          error = 0;
-  static char  buffer[1024];
+  static char  buffer[THEBUFFLENGTH];
   const char  *p;
   char        *q;
+  int         count;
 
   skip_white(&ap->curptr, ap->endptr);
   if (ap->curptr >= ap->endptr) {
@@ -1799,8 +1802,16 @@ spc_handler_pdfm_mapline (struct spc_env *spe, struct spc_arg *ap)
   default:
     p = ap->curptr;
     q = buffer;
-    while (p < ap->endptr)
+    count = 0;
+    while (p < ap->endptr && count < THEBUFFLENGTH - 1) {
       *q++ = *p++;
+      count++;
+    }
+    if (count == THEBUFFLENGTH - 1) {
+      spc_warn(spe, "Invalid fontmap line: Too long a line.");
+      *q = 0;
+      return -1;
+    }
     *q = '\0';
     mrec = NEW(1, fontmap_rec);
     pdf_init_fontmap_record(mrec);
@@ -1905,25 +1916,32 @@ spc_handler_pdfm_tounicode (struct spc_env *spe, struct spc_arg *args)
   }
   RELEASE(cmap_name);
 
-  /* Additional "taint key" */
-  taint_keys = parse_pdf_object(&args->curptr, args->endptr, NULL);
-  if (taint_keys) {
-    if (PDF_OBJ_ARRAYTYPE(taint_keys)) {
-      int i;
-      for (i = 0; i < pdf_array_length(taint_keys); i++) {
-        pdf_obj *key;
+  /* Additional "taint key"
+   * An array of PDF name objects can be supplied optionally.
+   * Dictionary entries specified by this option will be added to the list
+   * of dictionary keys to be treated as the target of "ToUnicode" conversion.
+   */
+  skip_white(&args->curptr, args->endptr);
+  if (args->curptr < args->endptr) {
+    taint_keys = parse_pdf_object(&args->curptr, args->endptr, NULL);
+    if (taint_keys) {
+      if (PDF_OBJ_ARRAYTYPE(taint_keys)) {
+        int i;
+        for (i = 0; i < pdf_array_length(taint_keys); i++) {
+          pdf_obj *key;
         
-        key = pdf_get_array(taint_keys, i);
-        if (PDF_OBJ_NAMETYPE(key))
-          pdf_add_array(sd->cd.taintkeys, pdf_link_obj(key));
-        else {
-          spc_warn(spe, "Invalid argument specified in pdf:tounicode special.");
+          key = pdf_get_array(taint_keys, i);
+          if (PDF_OBJ_NAMETYPE(key))
+            pdf_add_array(sd->cd.taintkeys, pdf_link_obj(key));
+          else {
+            spc_warn(spe, "Invalid argument specified in pdf:tounicode special.");
+          }
         }
+      } else {
+        spc_warn(spe, "Invalid argument specified in pdf:unicode special.");
       }
-    } else {
-      spc_warn(spe, "Invalid argument specified in pdf:unicode special.");
+      pdf_release_obj(taint_keys);
     }
-    pdf_release_obj(taint_keys);
   }
 
   return 0;
@@ -2060,6 +2078,7 @@ static struct spc_handler pdfm_handlers[] = {
   {"encrypt",      spc_handler_pdfm_do_nothing},
 
   {"pageresources", spc_handler_pdfm_pageresources},
+  {"trailerid", spc_handler_pdfm_do_nothing},
 };
 
 int

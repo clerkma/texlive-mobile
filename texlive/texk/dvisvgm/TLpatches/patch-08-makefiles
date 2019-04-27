@@ -1,23 +1,29 @@
-diff -u1r dvisvgm-2.5/Makefile.am dvisvgm-src/Makefile.am
---- dvisvgm-2.5/Makefile.am	2018-07-31 07:51:05.000000000 -0700
-+++ dvisvgm-src/Makefile.am	2018-08-27 09:10:41.553596312 -0700
-@@ -7,3 +7,3 @@
+	See ./TL-Changes.
+
+--- dvisvgm-2.6.3/Makefile.am	2019-03-09 04:09:01.000000000 -0800
++++ dvisvgm-src/Makefile.am	2019-03-10 11:06:34.614937057 -0700
+@@ -6,5 +6,5 @@
+ AUTOMAKE_OPTIONS = foreign
  EXTRA_DIST = COPYING
--SUBDIRS = libs src tests doc
+-SUBDIRS = libs m4 src tests doc
 +SUBDIRS = libs src #not for TL: tests doc
  ACLOCAL_AMFLAGS = -I m4
-diff -u1r dvisvgm-2.5/src/Makefile.am dvisvgm-src/src/Makefile.am
---- dvisvgm-2.5/src/Makefile.am	2018-07-31 07:53:41.000000000 -0700
-+++ dvisvgm-src/src/Makefile.am	2018-08-27 16:28:25.615599693 -0700
-@@ -14,6 +14,3 @@
+ 
+--- dvisvgm-2.6.3/src/Makefile.am	2019-03-09 04:09:01.000000000 -0800
++++ dvisvgm-src/src/Makefile.am	2019-03-10 11:08:14.712515629 -0700
+@@ -16,9 +16,6 @@
  	$(noinst_LIBRARIES) \
--	../libs/clipper/libclipper.a \
+ 	../libs/clipper/libclipper.a \
 -	$(FREETYPE_LIBS) \
 -	$(FONTFORGE_LIBS) \
+ 	$(POTRACE_LIBS) \
+-	$(XXHASH_LIBS) \
 -	$(ZLIB_LIBS)
-+	../libs/clipper/libclipper.a
++	$(XXHASH_LIBS)
  
-@@ -43,3 +40,11 @@
+ if ENABLE_WOFF
+@@ -35,5 +32,13 @@
+ endif
  
 +dvisvgm_LDADD += \
 +	$(KPATHSEA_LIBS) \
@@ -29,49 +35,29 @@ diff -u1r dvisvgm-2.5/src/Makefile.am dvisvgm-src/src/Makefile.am
  dvisvgm_DEPENDENCIES = $(noinst_LIBRARIES)
 +dvisvgm_DEPENDENCIES += $(KPATHSEA_DEPEND) $(ZLIB_DEPEND) $(FREETYPE2_DEPEND)
  
-@@ -263,18 +268,16 @@
+ libdvisvgm_a_SOURCES = \
+@@ -259,15 +264,11 @@
+ EXTRA_DIST = options.xml options.dtd iapi.h ierrors.h MiKTeXCom.hpp MiKTeXCom.cpp
  
 -AM_CFLAGS = -Wall \
--	$(ZLIB_CFLAGS) \
--	$(CODE_COVERAGE_CFLAGS)
-+dvisvgm_srcdir = $(top_srcdir)/dvisvgm-src
- 
--AM_CXXFLAGS = -Wall -Wnon-virtual-dtor -Wno-mismatched-tags \
--	-I$(top_srcdir)/libs/clipper \
--	-I$(top_srcdir)/libs/variant/include \
--	$(KPSE_CFLAGS) \
--	$(FREETYPE_CFLAGS) \
 -	$(ZLIB_CFLAGS) \
 +AM_CFLAGS = $(WARNING_CFLAGS) \
 +	$(ZLIB_INCLUDES) \
  	$(CODE_COVERAGE_CFLAGS)
  
-+AM_CXXFLAGS = $(WARNING_CFLAGS) -Wnon-virtual-dtor -Wno-mismatched-tags \
-+	-I$(dvisvgm_srcdir)/libs/clipper \
+-AM_CXXFLAGS = -Wall -Wnon-virtual-dtor \
++AM_CXXFLAGS = $(WARNING_CXXFLAGS) -Wnon-virtual-dtor \
+ 	-I$(dvisvgm_srcdir)/libs/clipper \
+-	-I$(dvisvgm_srcdir)/libs/variant/include \
+-	$(KPSE_CFLAGS) \
+-	$(FREETYPE_CFLAGS) \
+-	$(ZLIB_CFLAGS) \
+-	$(CODE_COVERAGE_CFLAGS)
 +	-I$(dvisvgm_srcdir)/libs/variant/include
-+
- if USE_BUNDLED_LIBS
- AM_CXXFLAGS +=  \
--	-I$(top_srcdir)/libs/potrace \
--	-I$(top_srcdir)/libs/xxHash
-+	-I$(dvisvgm_srcdir)/libs/potrace \
-+	-I$(dvisvgm_srcdir)/libs/xxHash
- else
-@@ -291,4 +294,4 @@
- AM_CFLAGS +=  \
--	-I$(top_srcdir)/libs/ff-woff/fontforge \
--	-I$(top_srcdir)/libs/ff-woff/inc
-+	-I$(dvisvgm_srcdir)/libs/ff-woff/fontforge \
-+	-I$(dvisvgm_srcdir)/libs/ff-woff/inc
  
-@@ -298,4 +301,4 @@
- AM_CXXFLAGS +=  \
--	-I$(top_srcdir)/libs/brotli/include \
--	-I$(top_srcdir)/libs/woff2/include
-+	-I$(dvisvgm_srcdir)/libs/brotli/include \
-+	-I$(dvisvgm_srcdir)/libs/woff2/include
- else
-@@ -309,3 +312,16 @@
+ AM_CXXFLAGS += \
+@@ -299,5 +300,18 @@
+ endif
  
 +AM_CXXFLAGS += \
 +	$(KPATHSEA_INCLUDES) \
@@ -88,16 +74,19 @@ diff -u1r dvisvgm-2.5/src/Makefile.am dvisvgm-src/src/Makefile.am
 +if ! TEXLIVE_BUILD
 +# TL: do not try to rebuild these source files.
  # the command-line parser class is generated from options.xml by opt2cpp
-@@ -322,2 +338,3 @@
+ $(srcdir)/CommandLine.hpp: options.xml
+@@ -312,6 +326,14 @@
+ 
  psdefs.ps: ;
 +endif ! TEXLIVE_BUILD
  
-@@ -326 +343,8 @@
+ @CODE_COVERAGE_RULES@
+ 
  CLEANFILES = *.gcda *.gcno
 +
-+## Rebuild libkpathsea
++# Rebuild libkpathsea:
 +@KPATHSEA_RULE@
-+## Rebuild libfreetype
++# Rebuild libfreetype:
 +@FREETYPE2_RULE@
-+## Rebuild libz
++# Rebuild libz:
 +@ZLIB_RULE@

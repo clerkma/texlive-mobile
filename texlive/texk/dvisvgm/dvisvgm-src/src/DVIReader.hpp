@@ -2,7 +2,7 @@
 ** DVIReader.hpp                                                        **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2018 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2019 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -31,6 +31,7 @@
 
 class Font;
 class FontStyle;
+class HashFunction;
 class NativeFont;
 class VirtualFont;
 
@@ -67,6 +68,7 @@ class DVIReader : public BasicDVIReader, public VFActions {
 		int executeCommand () override;
 		void collectBopOffsets ();
 		size_t numberOfPageBytes (int n) const {return _bopOffsets.size() > 1 ? _bopOffsets[n+1]-_bopOffsets[n] : 0;}
+		bool computePageHash (size_t pageno, HashFunction &hashFunc);
 		void goToPostamble ();
 		virtual void moveRight (double dx, MoveMode mode);
 		virtual void moveDown (double dy, MoveMode mode);

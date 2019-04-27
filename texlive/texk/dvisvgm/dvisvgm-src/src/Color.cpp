@@ -2,7 +2,7 @@
 ** Color.cpp                                                            **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2018 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2019 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -222,6 +222,9 @@ Color Color::operator *= (double c) {
 }
 
 
+/** Returns an RGB string representing the color. Depending on the
+ *  color value, the string either consists of 3 or 6 hex digits
+ *  plus a leading '#' character. */
 string Color::rgbString () const {
 	ostringstream oss;
 	oss << '#';
@@ -229,7 +232,15 @@ string Color::rgbString () const {
 		oss << setbase(16) << setfill('0') << setw(2)
 			 << (((_rgb >> (8*i)) & 0xff));
 	}
-	return oss.str();
+	// check if RGB string can be reduced to a three digit hex value
+	// #RRGGBB => #RGB, e.g. #112233 => #123
+	string hexstr = oss.str();
+	if (hexstr[1] == hexstr[2] && hexstr[3] == hexstr[4] && hexstr[5] == hexstr[6]) {
+		hexstr[2] = hexstr[3];
+		hexstr[3] = hexstr[5];
+		hexstr.resize(4);
+	}
+	return hexstr;
 }
 
 

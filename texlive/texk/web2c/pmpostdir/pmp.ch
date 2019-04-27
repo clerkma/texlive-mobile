@@ -13,7 +13,7 @@
 %
 
 @x
-@d default_banner "This is MetaPost, Version 2.000" /* printed when \MP\ starts */
+@d default_banner "This is MetaPost, Version 2.00" /* printed when \MP\ starts */
 @y
 @z
 
@@ -22,7 +22,7 @@
 @y
 #ifdef UPMP
 #define P_UP "up"
-#define metapost_version "2.00-0.04-u1.23"
+#define metapost_version "2.00-0.04-u1.24"
 #else
 #define P_UP "p"
 #define metapost_version "2.00-0.04"

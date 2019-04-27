@@ -60,6 +60,18 @@ const char ppname_byte_lookup[] = {
    ghost->size = siz - sizeof(_ppname) - 1, \
   (ppname)(ghost + 1))
 
+#if ARM_COMPLAINT
+#define ppname_flush_with_ego(O, ghost, siz, flgs) \
+  (iof_put(O, '\0'), \
+   pad=(O->pos - pos_begin)%(sizeof(ppname*)), \
+   iof_ensure(O, pad+sizeof(ppname *)),		\
+   O->pos += sizeof(ppname *), \
+   O->pos += pad, \
+   ghost = (_ppname *)ppheap_flush(O, &siz), \
+   ghost->flags = flgs, \
+   ghost->size = siz - sizeof(_ppname) - 1 - pad - sizeof(ppname *), \
+  (ppname)(ghost + 1))
+#else
 #define ppname_flush_with_ego(O, ghost, siz, flgs) \
   (iof_put(O, '\0'), \
    iof_ensure(O, sizeof(ppname *)), \
@@ -68,27 +80,23 @@ const char ppname_byte_lookup[] = {
    ghost->flags = flgs, \
    ghost->size = siz - sizeof(_ppname) - 1 - sizeof(ppname *), \
   (ppname)(ghost + 1))
+#endif
 
-
-#if defined __arm__ || defined __ARM__ || defined ARM || defined __ARM || defined __arm || defined __ARM_ARCH ||defined __aarch64__ 
-#define ppname_set_alter_ego(name, ghost, ego) do {\
-    ppname temp;\
-    ppname *temp1;\
-    temp =  (name + (ghost)->size + 1) ; \
-    temp1 = (ppname *)((void*)temp); \
-    *temp1= ego; \
-    }while(0)
+#if ARM_COMPLIANT 
+#define ppname_set_alter_ego(name, ghost, ego) do{ \
+  size_t t = ((ghost)->size + 1); \
+  t = (t%sizeof(ppname *))==0?t: (t/sizeof(ppname *)+1)*sizeof(ppname *); \
+  (*((ppname *)(name + t)) = ego);		       \
+}while(0)
 #else
 #define ppname_set_alter_ego(name, ghost, ego) (*((ppname *)(name + (ghost)->size + 1)) = ego)
 #endif
 
-#if defined __arm__ || defined __ARM__ || defined ARM || defined __ARM || defined __arm || defined __ARM_ARCH ||defined __aarch64__ 
-#define ppname_get_alter_ego(name) (*((ppname *)( (void*)(name + ppname_size(name) + 1))))
+#if ARM_COMPLIANT
+#define ppname_get_alter_ego(name) (*((ppname *)((name + (ppname_size(name)+1)%sizeof(ppname *) == 0 ? (ppname_size(name)+1) : ( (ppname_size(name)+1)/sizeof(ppname *) + 1 )*sizeof(ppname *)   ))))
 #else
 #define ppname_get_alter_ego(name) (*((ppname *)(name + ppname_size(name) + 1)))
 #endif
-
-
 
 
 
@@ -101,7 +109,16 @@ static ppname ppscan_name (iof *I, ppheap **pheap)
   size_t size;
   const char *p, *e;
   uint8_t v1, v2;
+#if ARM_COMPLIANT
+  ptrdiff_t pad;
+  uint8_t* pos_begin;
+#endif  
+
   O = ppheap_buffer(pheap, sizeof(_ppname), PPNAME_INIT);
+#if ARM_COMPLIANT
+  pad=0;
+  pos_begin = O->pos;
+#endif  
   for (decode = 0, c = iof_char(I); c >= 0 && ppname_byte_lookup[c]; c = iof_next(I))
   {
     if (c == '#')
@@ -112,13 +129,19 @@ static ppname ppscan_name (iof *I, ppheap **pheap)
     return ppname_flush(O, ghost1, size, 0);
   encoded = ppname_flush_with_ego(O, ghost1, size, 0|PPNAME_ENCODED);
   O = ppheap_buffer(pheap, sizeof(_ppname), PPNAME_INIT);
+#if ARM_COMPLIANT
+  pad=0;
+  pos_begin = O->pos;
+#endif  
   for (p = encoded, e = encoded + ghost1->size; p < e; ++p)
   {
-    if (*p == '#' && p + 2 < e ){
+    if (*p == '#' && p + 2 < e) {
       v1 = base16_value(p[1]);
       v2 = base16_value(p[2]);
       iof_put(O, ((v1<<4)+v2));
-    }else
+      p += 2;
+    }
+    else
       iof_put(O, *p);
   }
   decoded = ppname_flush_with_ego(O, ghost2, size, 0|PPNAME_DECODED);
@@ -136,8 +159,15 @@ static ppname ppscan_exec (iof *I, ppheap **pheap, int first)
   size_t size;
   const char *p, *e;
   uint8_t v1, v2;
-
+#if ARM_COMPLIANT
+  ptrdiff_t pad;
+  uint8_t* pos_begin;
+#endif  
   O = ppheap_buffer(pheap, sizeof(_ppname), PPNAME_INIT);
+#if ARM_COMPLIANT
+  pad=0;
+  pos_begin = O->pos;
+#endif  
   iof_put(O, first);
   for (decode = 0, c = iof_char(I); c >= 0 && ppname_byte_lookup[c]; c = iof_next(I))
   {
@@ -149,13 +179,19 @@ static ppname ppscan_exec (iof *I, ppheap **pheap, int first)
     return ppname_flush(O, ghost1, size, PPNAME_EXEC);
   encoded = ppname_flush_with_ego(O, ghost1, size, PPNAME_EXEC|PPNAME_ENCODED);
   O = ppheap_buffer(pheap, sizeof(_ppname), PPNAME_INIT);
+#if ARM_COMPLIANT
+  pad=0;
+  pos_begin = O->pos;
+#endif  
   for (p = encoded, e = encoded + ghost1->size; p < e; ++p)
   {
-    if (*p == '#' && p + 2 < e ){
+    if (*p == '#' && p + 2 < e) {
       v1 = base16_value(p[1]);
       v2 = base16_value(p[2]);
       iof_put(O, ((v1<<4)+v2));
-    }else
+      p += 2;
+    }
+    else
       iof_put(O, *p);
   }
   decoded = ppname_flush_with_ego(O, ghost2, size, PPNAME_EXEC|PPNAME_DECODED);
@@ -199,14 +235,27 @@ ppname ppname_encoded (ppname name)
    ghost->size = siz - sizeof(_ppstring) - 1, \
   (ppstring)(ghost + 1))
 
+#if ARM_COMPLAINT
 #define ppstring_flush_with_ego(O, ghost, siz, flgs) \
   (iof_put(O, '\0'), \
-   iof_ensure(O, sizeof(ppstring *)), \
+   pad=(O->pos - pos_begin)%(sizeof(ppstring*)), \
+   iof_ensure(O, pad+sizeof(ppstring *)),		\
+   O->pos += sizeof(ppstring *), \
+   O->pos += pad, \
+   ghost = (_ppstring *)ppheap_flush(O, &siz), \
+   ghost->flags = flgs, \
+   ghost->size = siz - sizeof(_ppstring) - 1 - pad - sizeof(ppstring *), \
+  (ppstring)(ghost + 1))
+#else
+#define ppstring_flush_with_ego(O, ghost, siz, flgs)	\
+  (iof_put(O, '\0'), \
+   iof_ensure(O, sizeof(ppstring *)),		\
    O->pos += sizeof(ppstring *), \
    ghost = (_ppstring *)ppheap_flush(O, &siz), \
    ghost->flags = flgs, \
    ghost->size = siz - sizeof(_ppstring) - 1 - sizeof(ppstring *), \
   (ppstring)(ghost + 1))
+#endif
 
 #define ppstring_utf16be_bom(decoded) (decoded[0] == ((char)0xFE) && decoded[1] == ((char)0xFF) )
 #define ppstring_utf16le_bom(decoded) (decoded[0] == ((char)0xFF) && decoded[1] == ((char)0xFE))
@@ -221,15 +270,19 @@ ppname ppname_encoded (ppname name)
 
 
 
-#if defined __arm__ || defined __ARM__ || defined ARM || defined __ARM || defined __arm || defined __ARM_ARCH ||defined __aarch64__ 
-#define ppstring_set_alter_ego(string, ghost, ego) (*((ppstring *)((void *)(string + (ghost)->size + 1))) = ego)
+#if ARM_COMPLIANT 
+#define ppstring_set_alter_ego(string, ghost, ego) do{ \
+  size_t t = ((ghost)->size + 1); \
+  t = (t%sizeof(ppstring *))==0?t: (t/sizeof(ppstring *)+1)*sizeof(ppstring *); \
+  (*((ppstring *)(string + t)) = ego);		       \
+}while(0)
 #else
-#define ppstring_set_alter_ego(string, ghost, ego) (*((ppstring *)(string + (ghost)->size + 1)) = ego)
+#define ppstring_set_alter_ego(string, ghost, ego) (*((ppstring *)((string + (ghost)->size + 1))) = ego)
 #endif
 
 
-#if defined __arm__ || defined __ARM__ || defined ARM || defined __ARM || defined __arm || defined __ARM_ARCH ||defined __aarch64__ 
-#define ppstring_get_alter_ego(string) (*((ppstring *)((void *)(string + ppstring_size(string) + 1))))
+#if ARM_COMPLIANT 
+#define ppstring_get_alter_ego(string) (*((ppstring *)((string + (ppstring_size(string)+1)%sizeof(ppstring *) == 0 ? (ppstring_size(string)+1) : ( (ppstring_size(string)+1)/sizeof(ppstring *) + 1 )*sizeof(ppstring *)   ))))
 #else
 #define ppstring_get_alter_ego(string) (*((ppstring *)(string + ppstring_size(string) + 1)))
 #endif
@@ -245,7 +298,16 @@ static ppstring ppscan_string (iof *I, ppheap **pheap)
   uint8_t *p, *e;
   ppstring encoded, decoded;
   size_t size;
+#if ARM_COMPLIANT
+  ptrdiff_t pad;
+  uint8_t* pos_begin;
+#endif  
+
   O = ppheap_buffer(pheap, sizeof(_ppstring), PPSTRING_INIT);
+#if ARM_COMPLIANT
+  pad=0;
+  pos_begin = O->pos;
+#endif  
   for (decode = 0, balance = 0, c = iof_char(I); c >= 0; )
   {
     switch (c)
@@ -288,6 +350,10 @@ static ppstring ppscan_string (iof *I, ppheap **pheap)
   }
   encoded = ppstring_flush_with_ego(O, ghost1, size, 0|PPSTRING_ENCODED);
   O = ppheap_buffer(pheap, sizeof(_ppstring), PPSTRING_INIT);
+#if ARM_COMPLIANT
+  pad=0;
+  pos_begin = O->pos;
+#endif  
   for (p = (uint8_t *)encoded, e = (uint8_t *)encoded + ghost1->size; p < e; ++p)
   {
     if (*p == '\\')
@@ -349,14 +415,25 @@ static ppstring ppscan_base16 (iof *I, ppheap **pheap)
   size_t size;
   ppstring encoded, decoded;
   uint8_t *p, *e;
-
+#if ARM_COMPLIANT
+  ptrdiff_t pad;
+  uint8_t* pos_begin;
+#endif  
   O = ppheap_buffer(pheap, sizeof(_ppstring), PPSTRING_INIT);
+#if ARM_COMPLIANT
+  pad=0;
+  pos_begin = O->pos;
+#endif  
   for (c = iof_char(I); c >= 0 && (base16_digit(c) || ignored_char(c)); c = iof_next(I))
     iof_put(O, c);
   if (c == '>')
     ++I->pos;
   encoded = ppstring_flush_with_ego(O, ghost1, size, PPSTRING_BASE16|PPSTRING_ENCODED);
   O = ppheap_buffer(pheap, sizeof(_ppstring), (ghost1->size >> 1) + 1);
+#if ARM_COMPLIANT
+  pad=0;
+  pos_begin = O->pos;
+#endif  
   for (p = (uint8_t *)encoded, e = (uint8_t *)encoded + ghost1->size; p < e; ++p)
   {
     if ((v1 = base16_value(*p)) < 0) // ignored
@@ -379,9 +456,20 @@ static ppstring ppstring_buffer (iof *O, ppheap **pheap)
    ppstring encoded, decoded;
    uint8_t *p, *e;
    size_t size;
-
+#if ARM_COMPLIANT
+  ptrdiff_t pad;
+  uint8_t* pos_begin;
+#endif  
+#if ARM_COMPLIANT
+  pad=0;
+  pos_begin = O->pos;
+#endif  
    decoded = ppstring_flush_with_ego(O, ghost2, size, 0|PPSTRING_DECODED);
    O = ppheap_buffer(pheap, sizeof(_ppstring), (ghost2->size << 1) + 1);
+#if ARM_COMPLIANT
+  pad=0;
+  pos_begin = O->pos;
+#endif  
    for (p = (uint8_t *)decoded, e = (uint8_t *)decoded + ghost2->size; p < e; ++p)
      iof_set2(O, base16_uc_alphabet[(*p)>>4], base16_uc_alphabet[(*p)&15]);
    encoded = ppstring_flush_with_ego(O, ghost1, size, PPSTRING_BASE16|PPSTRING_ENCODED);
@@ -408,7 +496,15 @@ static ppstring ppscan_base85 (iof *I, ppheap **pheap)
   _ppstring *ghost1, *ghost2;
   size_t size;
   ppstring encoded, decoded;
+#if ARM_COMPLIANT
+  ptrdiff_t pad;
+  uint8_t* pos_begin;
+#endif  
   O = ppheap_buffer(pheap, sizeof(_ppstring), PPSTRING_INIT);
+#if ARM_COMPLIANT
+  pad=0;
+  pos_begin = O->pos;
+#endif  
   for (c = iof_char(I); (c >= '!' && c <= 'u') || c == 'z' || c == 'y'; c = iof_next(I))
     iof_put(O, c);
   if (c == '~')
@@ -417,6 +513,10 @@ static ppstring ppscan_base85 (iof *I, ppheap **pheap)
   encoded = ppstring_flush_with_ego(O, ghost1, size, PPSTRING_BASE85|PPSTRING_ENCODED);
   iof_string_reader(&B, encoded, ghost1->size);
   O = ppheap_buffer(pheap, sizeof(_ppstring), (ghost1->size * 5 / 4) + 1);
+#if ARM_COMPLIANT
+  pad=0;
+  pos_begin = O->pos;
+#endif  
   base85_decode(&B, O);
   decoded = ppstring_flush_with_ego(O, ghost2, size, 0|PPSTRING_DECODED);
   ppstring_check_bom2(decoded, ghost1, ghost2);
@@ -458,8 +558,16 @@ static ppstring ppscan_crypt_string (iof *I, ppcrypt *crypt, ppheap **pheap)
   ppstring encoded, decoded;
   uint8_t *p, *e;
   size_t size;
+#if ARM_COMPLIANT
+  ptrdiff_t pad;
+  uint8_t* pos_begin;
+#endif  
 
   O = ppheap_buffer(pheap, sizeof(_ppstring), PPSTRING_INIT);
+#if ARM_COMPLIANT
+  pad=0;
+  pos_begin = O->pos;
+#endif  
   for (balance = 0, encode = 0, c = iof_char(I); c >= 0; )
   {
     switch (c)
@@ -553,6 +661,10 @@ static ppstring ppscan_crypt_string (iof *I, ppcrypt *crypt, ppheap **pheap)
   }
   decoded = ppstring_flush_with_ego(O, ghost2, size, PPSTRING_DECODED);
   O = ppheap_buffer(pheap, sizeof(_ppstring), ghost2->size);
+#if ARM_COMPLIANT
+  pad=0;
+  pos_begin = O->pos;
+#endif  
   for (p = (uint8_t *)decoded, e = (uint8_t *)decoded + ghost2->size; p < e; ++p)
   {
     switch ((b = ppstring_byte_escape[*p]))
@@ -584,8 +696,15 @@ static ppstring ppscan_crypt_base16 (iof *I, ppcrypt *crypt, ppheap **pheap)
   ppstring encoded, decoded;
   uint8_t *p, *e;
   size_t size;
-
+#if ARM_COMPLIANT
+  ptrdiff_t pad;
+  uint8_t* pos_begin;
+#endif  
   O = ppheap_buffer(pheap, sizeof(_ppstring), PPSTRING_INIT);
+#if ARM_COMPLIANT
+  pad=0;
+  pos_begin = O->pos;
+#endif  
   // base16_decode(I, O); // no info about the last char..
   for (c = iof_char(I); c != '>' && c >= 0; )
   {
@@ -621,6 +740,10 @@ static ppstring ppscan_crypt_base16 (iof *I, ppcrypt *crypt, ppheap **pheap)
   decoded = ppstring_flush_with_ego(O, ghost2, size, PPSTRING_DECODED);
   /* recreate an encoded form */
   O = ppheap_buffer(pheap, sizeof(_ppstring), (ghost2->size << 1) + 1);
+#if ARM_COMPLIANT
+  pad=0;
+  pos_begin = O->pos;
+#endif  
   for (p = (uint8_t *)decoded, e = (uint8_t *)decoded + ghost2->size; p < e; ++p)
     iof_set2(O, base16_uc_alphabet[(*p)>>4], base16_uc_alphabet[(*p)&15]);
   encoded = ppstring_flush_with_ego(O, ghost1, size, PPSTRING_BASE16|PPSTRING_ENCODED);
@@ -1391,13 +1514,17 @@ static int ppscan_start_stream (iof *I, ppdoc *pdf, size_t *streamoffset)
   int c;
   ppscan_find(I);
   if (ppscan_key(I, "stream"))
-  { // skip 1 or 2 whites (here we shouldn't just gobble all blanks)
+  { // PJ20180912 bugfix: we were gobbling white characters (also null byte), while "stream" may be followed by EOL
+    // pdf spec page 60: "CARRIAGE RETURN and a LINE FEED or just a LINE FEED, and not by a CARRIAGE RETURN alone"
     c = iof_char(I);
-    if (ignored_char(c))
+    if (c == 0x0D)
     {
-      c = iof_next(I);
-      if (ignored_char(c))
+      if (iof_next(I) == 0x0A) // should be
         ++I->pos;
+    }
+    else if (c == 0x0A)
+    {
+      ++I->pos;
     }
     *streamoffset = ppdoc_reader_tell(pdf, I);
     return 1;
@@ -1557,12 +1684,7 @@ static ppxref * ppxref_load_stream (iof *I, ppdoc *pdf, size_t xrefoffset)
   if (obj->type != PPDICT || !ppscan_start_stream(I, pdf, &streamoffset))
     return NULL;
   xrefstream = ppstream_create(pdf, obj->dict, streamoffset);
-  /* All normal streams go through ppstream_info(), but it makes no sense for trailer stream (no crypt allowed, no refs yet).
-     So we just record the length and informative flag. Here we have to expect that /Length and /Filter are not indirects. */
-  if (!ppdict_get_uint(obj->dict, "Length", &xrefstream->length))
-    return NULL;
-  if (ppdict_get_obj(obj->dict, "Filter") != NULL)
-    xrefstream->flags |= PPSTREAM_COMPRESSED;
+  ppstream_info(xrefstream, pdf);
   if ((fieldwidths = ppdict_get_array(xrefstream->dict, "W")) != NULL)
   {
     if (!pparray_get_uint(fieldwidths, 0, &w1)) w1 = 0;
@@ -1776,23 +1898,34 @@ Here is the proc:
     - estimate object length to avoid fread-ing more than necessary (not perfect but enough)
     - fseek() to the proper offset, fread() entry data or its part
     - parse the object with ppscan_obj(I, pdf, xref), where xref is not necessarily top pdf->xref
-    - save the actual ref->length (not sure if we need that?)
+      (since v0.98 xref actually no longer matters, see xref_find() notes)
+    - save the actual ref->length (not used so far, but we keep that so..)
     - make a stream if a dict is followed by "stream" keyword, also save the stream offset
   - free the list
+
+PJ2080916: Luigi and Hans fixeed a bug (rev 6491); a document having a stream with /Length being
+a reference, that was stored in /ObjStm, and therefore not yet resolved when caching /Length key
+value as stream->offset (ppstream_info()). At the end, references were resolved propertly, but
+the stream was no readable; stream->offset == 0. In rev6491 ObjStm streams are loaded before
+others streams.
 */
 
 static int ppdoc_load_objstm (ppstream *stream, ppdoc *pdf, ppxref *xref);
 
+#define ppref_is_objstm(ref, stream, type) \
+  ((ref)->xref->trailer.type == PPSTREAM && (type = ppdict_get_name((stream)->dict, "Type")) != NULL && ppname_is(type, "ObjStm"))
+
+
 static void ppdoc_load_entries (ppdoc *pdf)
 {
   size_t objects, sectionindex, refnumber, offindex;
+  size_t streams = 0, object_streams = 0, redundant_indirections = 0;
   ppnum linearized;
   ppref **offmap, **pref, *ref;
   ppxref *xref;
   ppxsec *xsec;
   ppobj *obj;
   ppname type;
-  int redundant_indirection = 0;
   ppcrypt *crypt;
   ppstream *stream;
 
@@ -1835,34 +1968,65 @@ static void ppdoc_load_entries (ppdoc *pdf)
         if (offindex == 1 && ppdict_get_num(obj->dict, "Linearized", &linearized)) // /Linearized value is a version number, default 1.0
           pdf->flags |= PPDOC_LINEARIZED;
         break;
+      case PPSTREAM:
+        ++streams;
+        if (ppref_is_objstm(ref, obj->stream, type))
+          ++object_streams;
+        break;
       case PPREF:
-        redundant_indirection = 1;
+        ++redundant_indirections;
         break;
       default:
         break;
     }
-    // if pdf->crypt crypt->ref = NULL
   }
 
-  /* refs pointngs refs? cut. */
-  if (redundant_indirection)
+  /* cut references pointing to references (rare). doing for all effectively cuts all insane chains */
+  for (pref = offmap; redundant_indirections > 0; )
   {
-    for (offindex = 0, pref = offmap; offindex < objects; ++offindex)
+    ref = *pref++;
+    if (ref->object.type == PPREF)
     {
-      ref = *pref++;
-      if (ref->object.type == PPREF)
-        ref->object = ref->object.ref->object; // doing for all effectively cuts all insane chains
+      --redundant_indirections;
+      ref->object = ref->object.ref->object;
     }
   }
 
-  /* now handle streams; update stream info (eg. /Length), load pdf 1.5 object streams
-     we could do earlier but then we would need to struggle with indirects */
-  for (offindex = 0, pref = offmap; offindex < objects; ++offindex)
+  /* load pdf 1.5 object streams _before_ other streams */
+  for (pref = offmap; object_streams > 0; )
   {
     ref = *pref++;
     obj = &ref->object;
     if (obj->type != PPSTREAM)
       continue;
+    stream = obj->stream;
+    if (ppref_is_objstm(ref, stream, type))
+    {
+      --object_streams;
+      if (crypt != NULL)
+       {
+         ppcrypt_start_ref(crypt, ref);
+         ppstream_info(stream, pdf);
+         ppcrypt_end_ref(crypt);
+       }
+       else
+       {
+         ppstream_info(stream, pdf);
+       }
+       if (!ppdoc_load_objstm(stream, pdf, ref->xref))
+        loggerf("invalid objects stream %s at offset " PPSIZEF, ppref_str(ref->number, ref->version), ref->offset);
+
+    }
+  }
+
+  /* now handle other streams */
+  for (pref = offmap; streams > 0; )
+  {
+    ref = *pref++;
+    obj = &ref->object;
+    if (obj->type != PPSTREAM)
+      continue;
+    --streams;
     stream = obj->stream;
     if (crypt != NULL)
     {
@@ -1874,9 +2038,6 @@ static void ppdoc_load_entries (ppdoc *pdf)
     {
       ppstream_info(stream, pdf);
     }
-    if (ref->xref->trailer.type == PPSTREAM && (type = ppdict_get_name(stream->dict, "Type")) != NULL && ppname_is(type, "ObjStm")) // somewhat dummy..
-      if (!ppdoc_load_objstm(stream, pdf, ref->xref))
-        loggerf("invalid objects stream %s at offset " PPSIZEF, ppref_str(ref->number, ref->version), ref->offset);
   }
   pp_free(offmap);
 }
@@ -1899,7 +2060,7 @@ ppobj * ppdoc_load_entry (ppdoc *pdf, ppref *ref)
     return &ref->object; // PPNONE
   }
   stack = &pdf->stack;
-  xref = ref->xref; // to resolve indirects properly
+  xref = ref->xref;
   if ((obj = ppscan_obj(I, pdf, xref)) == NULL)
   {
     loggerf("invalid %s object at offset " PPSIZEF, ppref_str(ref->number, ref->version), ref->offset);
@@ -2148,7 +2309,7 @@ static pparray * pppage_node (ppdict *dict, ppuint *count, ppname *type)
         break;
       case 'C':
         if (ppname_is(key, "Count"))
-          ppobj_get_uint(obj, *count);
+          ppobj_rget_uint(obj, *count);
         break;
       case 'K':
         if (ppname_is(key, "Kids"))
@@ -2232,8 +2393,10 @@ scan_array:
       dict = o->dict;
       if ((kids = pppage_node(dict, &count, &type)) != NULL)
       {
-        if (index <= count)
+        if (index <= count) {
+          index = count - index + 1;
           goto scan_array;
+        }
         index -= count;
         continue;
       }
