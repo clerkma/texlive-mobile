@@ -1,4 +1,4 @@
-## $Id: Makefile.am 49891 2019-01-31 23:16:40Z kakuto $
+## $Id: Makefile.am 51270 2019-05-30 03:43:42Z kakuto $
 ## Proxy Makefile.am to build harfbuzz for TeX Live.
 ##
 ##   Copyright 2016-2017 Karl Berry <tex-live@tug.org>
@@ -27,10 +27,11 @@ SUBDIRS = . include
 noinst_LIBRARIES = libharfbuzz.a
 
 ## common
-AM_CPPFLAGS = -DHB_NO_MT -DHB_NO_UNICODE_FUNCS -DHAVE_FALLBACK=1 \
+AM_CPPFLAGS = -DHB_NO_MT -DHAVE_FALLBACK=1 \
 	-I$(top_srcdir)/$(HARFBUZZ_SRC)
 libharfbuzz_dependencies =
 libharfbuzz_a_SOURCES =  \
+	@HARFBUZZ_TREE@/src/hb-algs.hh \
 	@HARFBUZZ_TREE@/src/hb-atomic.hh \
 	@HARFBUZZ_TREE@/src/hb-blob.hh \
 	@HARFBUZZ_TREE@/src/hb-blob.cc \
@@ -44,8 +45,9 @@ libharfbuzz_a_SOURCES =  \
 	@HARFBUZZ_TREE@/src/hb-cff1-interp-cs.hh \
 	@HARFBUZZ_TREE@/src/hb-cff2-interp-cs.hh \
 	@HARFBUZZ_TREE@/src/hb-common.cc \
+	@HARFBUZZ_TREE@/src/hb-config.hh \
 	@HARFBUZZ_TREE@/src/hb-debug.hh \
-	@HARFBUZZ_TREE@/src/hb-dsalgs.hh \
+	@HARFBUZZ_TREE@/src/hb-dispatch.hh \
 	@HARFBUZZ_TREE@/src/hb-face.hh \
 	@HARFBUZZ_TREE@/src/hb-face.cc \
 	@HARFBUZZ_TREE@/src/hb-font.hh \
@@ -55,6 +57,7 @@ libharfbuzz_a_SOURCES =  \
 	@HARFBUZZ_TREE@/src/hb-map.hh \
 	@HARFBUZZ_TREE@/src/hb-map.cc \
 	@HARFBUZZ_TREE@/src/hb-machinery.hh \
+	@HARFBUZZ_TREE@/src/hb-meta.hh \
 	@HARFBUZZ_TREE@/src/hb-mutex.hh \
 	@HARFBUZZ_TREE@/src/hb-null.hh \
 	@HARFBUZZ_TREE@/src/hb-object.hh \
@@ -77,17 +80,20 @@ libharfbuzz_a_SOURCES =  \
 	@HARFBUZZ_TREE@/src/hb-ot-hmtx-table.hh \
 	@HARFBUZZ_TREE@/src/hb-ot-kern-table.hh \
 	@HARFBUZZ_TREE@/src/hb-ot-maxp-table.hh \
+	@HARFBUZZ_TREE@/src/hb-ot-name-language-static.hh \
 	@HARFBUZZ_TREE@/src/hb-ot-name-table.hh \
 	@HARFBUZZ_TREE@/src/hb-ot-stat-table.hh \
-	@HARFBUZZ_TREE@/src/hb-ot-name-language.cc \
 	@HARFBUZZ_TREE@/src/hb-ot-name-language.hh \
 	@HARFBUZZ_TREE@/src/hb-ot-name.cc \
 	@HARFBUZZ_TREE@/src/hb-ot-os2-table.hh \
 	@HARFBUZZ_TREE@/src/hb-ot-os2-unicode-ranges.hh \
+	@HARFBUZZ_TREE@/src/hb-pool.hh \
 	@HARFBUZZ_TREE@/src/hb-ot-post-macroman.hh \
 	@HARFBUZZ_TREE@/src/hb-ot-post-table.hh \
 	@HARFBUZZ_TREE@/src/hb-ot-tag.cc \
 	@HARFBUZZ_TREE@/src/hb-ot-tag-table.hh \
+	@HARFBUZZ_TREE@/src/hb-sanitize.hh \
+	@HARFBUZZ_TREE@/src/hb-serialize.hh \
 	@HARFBUZZ_TREE@/src/hb-set-digest.hh \
 	@HARFBUZZ_TREE@/src/hb-set.hh \
 	@HARFBUZZ_TREE@/src/hb-set.cc \
@@ -108,6 +114,8 @@ libharfbuzz_a_SOURCES =  \
 	@HARFBUZZ_TREE@/src/hb-subset-cff2.hh \
 	@HARFBUZZ_TREE@/src/hb-subset-input.hh \
 	@HARFBUZZ_TREE@/src/hb-subset.hh \
+	@HARFBUZZ_TREE@/src/hb-ucd-table.hh \
+	@HARFBUZZ_TREE@/src/hb-ucd.cc \
 	@HARFBUZZ_TREE@/src/hb-unicode.hh \
 	@HARFBUZZ_TREE@/src/hb-unicode.cc \
 	@HARFBUZZ_TREE@/src/hb-unicode-emoji-table.hh \
@@ -195,11 +203,6 @@ libharfbuzz_a_SOURCES += \
 	@HARFBUZZ_TREE@/src/hb-ot-shape-complex-myanmar-machine.hh \
 	@HARFBUZZ_TREE@/src/hb-ot-shape-complex-use-machine.hh
 
-## ICU library
-AM_CPPFLAGS += $(ICU_INCLUDES)
-libharfbuzz_dependencies += $(ICU_DEPEND)
-libharfbuzz_a_SOURCES += @HARFBUZZ_TREE@/src/hb-icu.cc
-
 ## Graphite library
 AM_CPPFLAGS += $(GRAPHITE2_INCLUDES)
 libharfbuzz_dependencies += $(GRAPHITE2_DEPEND)
@@ -219,12 +222,10 @@ hbtest_SOURCES = hbtest.c
 # Force Automake to use CXXLD for linking
 nodist_EXTRA_hbtest_SOURCES = dummy.cxx
 
-hbtest_CPPFLAGS = -Iinclude $(ICU_INCLUDES) $(GRAPHITE2_INCLUDES)
+hbtest_CPPFLAGS = -Iinclude $(GRAPHITE2_INCLUDES)
 
-LDADD = libharfbuzz.a $(ICU_LIBS) $(ICU_LIBS_EXTRA) $(GRAPHITE2_LIBS)
+LDADD = libharfbuzz.a $(GRAPHITE2_LIBS)
 
-## Rebuild libsicuxxx
-@ICU_RULE@
 ## Rebuild libgraphite2
 @GRAPHITE2_RULE@
 

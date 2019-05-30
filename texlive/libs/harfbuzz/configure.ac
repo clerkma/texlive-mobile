@@ -1,4 +1,4 @@
-dnl $Id: configure.ac 48947 2018-10-19 21:35:02Z kakuto $
+dnl $Id: configure.ac 51270 2019-05-30 03:43:42Z kakuto $
 dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl   Copyright 2016-2017 Karl Berry <tex-live@tug.org>
@@ -34,7 +34,6 @@ AX_CXX_COMPILE_STDCXX([11],,[optional])
 KPSE_COMPILER_VISIBILITY
 
 KPSE_GRAPHITE2_FLAGS
-KPSE_ICU_FLAGS
 
 # Functions and headers
 AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l posix_memalign)
@@ -84,13 +83,10 @@ fi
 
 if :; then
   AC_DEFINE([HAVE_OT], 1, [Use native OpenType Layout backend])
-  AC_DEFINE([HAVE_ICU], 1, [Use ICU library])
-  AC_DEFINE([HAVE_ICU_BUILTIN], 1, [ICU support is not a seperate library])
   AC_DEFINE([HAVE_GRAPHITE2], 1, [Use Graphite library])
 else
 dnl add all these to config.h.in but do not define them in config.h
   AC_DEFINE([HAVE_PTHREAD], 1, [Use POSIX threads])
-  AC_DEFINE([HAVE_UCDN], 1, [Use UCDN Unicode functions])
   AC_DEFINE([HAVE_GLIB], 1, [Use glib2 library])
   AC_DEFINE([HAVE_GTHREAD], 1, [Use gthread2 library])
   AC_DEFINE([HAVE_GOBJECT], 1, [Use gobject2 library])

@@ -37,12 +37,6 @@
 /* Use gthread2 library */
 #undef HAVE_GTHREAD
 
-/* Use ICU library */
-#undef HAVE_ICU
-
-/* ICU support is not a seperate library */
-#undef HAVE_ICU_BUILTIN
-
 /* Use Intel __sync_* atomic primitives */
 #undef HAVE_INTEL_ATOMIC_PRIMITIVES
 
@@ -105,9 +99,6 @@
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
-
-/* Use UCDN Unicode functions */
-#undef HAVE_UCDN
 
 /* Use Uniscribe backend */
 #undef HAVE_UNISCRIBE
