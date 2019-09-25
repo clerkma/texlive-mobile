@@ -1,7 +1,7 @@
 #!/usr/bin/env texlua
 -- -----------------------------------------------------------------
 -- checkcites.lua
--- Copyright 2012, 2017, Enrico Gregorio, Paulo Roberto Massa Cereda
+-- Copyright 2012, 2019, Enrico Gregorio, Paulo Roberto Massa Cereda
 --
 -- This work may be distributed and/or modified under the conditions
 -- of the LaTeX  Project Public License, either version  1.3 of this
@@ -145,6 +145,19 @@ local function read(file)
   return lines
 end
 
+-- Gets a pluralized word based on a counter.
+-- @param i Counter.
+-- @param a Word in singular.
+-- @param b Word in plural.
+-- @return Either the first or second word based on the counter.
+local function plural(i, a, b)
+  if i == 1 then
+    return a
+  else
+    return b
+  end
+end
+
 -- Normalizes the string, removing leading and trailing spaces.
 -- @param str String.
 -- @return Normalized string without leading and trailing spaces.
@@ -167,15 +180,28 @@ local function blacklist(a)
   return false
 end
 
+-- Checks if the key is allowed.
+-- @param v The key itself.
+-- @return Boolean value if the key is allowed.
+local function allowed(key)
+  local keys = { 'string', 'comment' }
+  for _, v in ipairs(keys) do
+    if string.lower(key) == v then
+      return false
+    end
+  end
+  return true
+end
+
 -- Extracts the biblographic key.
 -- @param lines Lines of a file.
 -- @return Table containing bibliographic keys.
 local function extract(lines)
   local result = {}
   for _, line in ipairs(lines) do
-    local hit = string.match(line,
-                '^%s*%@%w+%s*{%s*(.+),')
-    if hit then
+    local key, hit = string.match(line,
+                '^%s*%@(%w+%s*){%s*(.+),')
+    if key and allowed(key) then
       if not exists(result, hit) then
         hit = normalize(hit)
         table.insert(result, hit)
@@ -185,17 +211,78 @@ local function extract(lines)
   return result
 end
 
--- Gets a pluralized word based on a counter.
--- @param i Counter.
--- @param a Word in singular.
--- @param b Word in plural.
--- @return Either the first or second word based on the counter.
-local function plural(i, a, b)
-  if i == 1 then
-    return a
-  else
-    return b
+-- Extracts the cross-references found
+-- in lines of the bibligraphy file.
+-- @param lines Line of a file.
+-- @return Table containing cross-references.
+local function crossref(lines)
+  local result, lookup, key, hit = {}, ''
+  for _, line in ipairs(lines) do
+     key, hit = string.match(line,
+                '^%s*%@(%w+%s*){%s*(.+),')
+    if key and allowed(key) then
+      lookup = normalize(hit)
+    else
+      key, hit = string.match(line,
+                 '^%s*(%w+)%s*=%s*(.+)$')
+      if key then
+        key = string.lower(key)
+        if key == 'crossref' then
+          if string.sub(hit, -1) == ',' then
+            hit = string.sub(hit, 2, -3)
+          else
+            hit = string.sub(hit, 2, -2)
+          end
+          result[lookup] = hit
+        end
+      end
+    end
   end
+  return result
+end
+
+-- Adds the extension if the file does not have it.
+-- @param file File.
+-- @param extension Extension.
+-- @return File with proper extension.
+local function sanitize(file, extension)
+  extension = '.' .. extension
+  if string.sub(file, -#extension) ~= extension then
+    file = file .. extension
+  end
+  return file
+end
+
+-- Checks if a file exists.
+-- @param file File.
+-- @return Boolean value indicating if the file exists.
+local function valid(file)
+  local handler = io.open(file, 'r')
+  if handler then
+    handler:close()
+    return true
+  else
+    return false
+  end
+end
+
+-- Wraps a string based on a line width.
+-- @param str String.
+-- @param size Line width.
+-- @return Wrapped string.
+local function wrap(str, size)
+  local parts = split(str, '[^%s]+')
+  local r, l = '', ''
+  for _, v in ipairs(parts) do
+    if (#l + #v) > size then
+      r = r .. '\n' .. l
+      l = v
+    else
+      l = normalize(l .. ' ' .. v)
+    end
+  end
+  r = normalize(r .. '\n' .. l)
+  return r
 end
 
 -- Backend namespace
@@ -203,11 +290,12 @@ local backends = {}
 
 -- Gets data from auxiliary files (BibTeX).
 -- @param lines Lines of a file.
+-- @param rec Recursive switch.
 -- @return Boolean indicating if an asterisk was found.
 -- @return Table containing the citations.
 -- @return Table containing the bibliography files.
-backends.bibtex = function(lines)
-  local citations, bibliography = {}, {}
+backends.bibtex = function(lines, rec)
+  local citations, bibliography, invalid = {}, {}, {}
   local asterisk, parts, hit = false
   for _, line in ipairs(lines) do
     hit = string.match(line, '^%s*\\citation{(.+)}$')
@@ -234,7 +322,40 @@ backends.bibtex = function(lines)
             table.insert(bibliography, v)
           end
         end
+      else
+        hit = string.match(line, '^%s*\\@input{(.+)}$')
+        if rec and hit then
+          hit = sanitize(hit, 'aux')
+          if not valid(hit) then
+            table.insert(invalid, hit)
+          else
+            local a, b, c = backends.bibtex(read(hit), false)
+            asterisk = asterisk or a
+            for _, v in ipairs(b) do
+              if not exists(citations, v) then
+                table.insert(citations, v)
+              end
+            end
+            for _, v in ipairs(c) do
+              if not exists(bibliography, v) then
+                table.insert(bibliography, v)
+              end
+            end
+          end
+        end
       end
+    end
+  end
+  if #invalid ~= 0 then
+    print()
+    print(wrap('Warning: there ' .. plural(#invalid,
+               'is an invalid reference ', 'are ' ..
+               'invalid references ') .. 'to the ' ..
+               'following auxiliary ' .. plural(#invalid,
+               'file ', 'files ') .. 'that could not ' ..
+               'be resolved at runtime:', 74))
+    for _, v in ipairs(invalid) do
+      print('=> ' .. v)
     end
   end
   return asterisk, citations, bibliography
@@ -242,10 +363,11 @@ end
 
 -- Gets data from auxiliary files (Biber).
 -- @param lines Lines of a file.
+-- @param _ To be discarded with biber.
 -- @return Boolean indicating if an asterisk was found.
 -- @return Table containing the citations.
 -- @return Table containing the bibliography files.
-backends.biber = function(lines)
+backends.biber = function(lines, _)
   local citations, bibliography = {}, {}
   local asterisk, parts, hit = false
   for _, line in ipairs(lines) do
@@ -294,26 +416,14 @@ end
 
 -- Repeats the provided char a certain number of times.
 -- @param c Char.
--- @param w Number of times.
+-- @param size Number of times.
 -- @return String with a char repeated a certain number of times.
-local function pad(c, w)
+local function pad(c, size)
   local r = c
-  while #r < w do
+  while #r < size do
     r = r .. c
   end
   return r
-end
-
--- Adds the extension if the file does not have it.
--- @param file File.
--- @param extension Extension.
--- @return File with proper extension.
-local function sanitize(file, extension)
-  extension = '.' .. extension
-  if string.sub(file, -#extension) ~= extension then
-    file = file .. extension
-  end
-  return file
 end
 
 -- Flattens a table of tables into only one table.
@@ -325,6 +435,21 @@ local function flatten(t)
     for _, k in ipairs(v) do
       if not exists(result, k) then
         table.insert(result, k)
+      end
+    end
+  end
+  return result
+end
+
+-- Organizes a key/value table of tables into only one table.
+-- @param t Table.
+-- @return Flattened key/value table.
+local function organize(t)
+  local result = {}
+  for _, v in ipairs(t) do
+    for j, k in pairs(v) do
+      if not result[j] then
+        result[j] = k
       end
     end
   end
@@ -343,23 +468,13 @@ local function apply(c, f)
   return result
 end
 
--- Wraps a string based on a line width.
--- @param str String.
--- @param size Line width.
--- @return Wrapped string.
-local function wrap(str, size)
-  local parts = split(str, '[^%s]+')
-  local r, l = '', ''
-  for _, v in ipairs(parts) do
-    if (#l + #v) > size then
-      r = r .. '\n' .. l
-      l = v
-    else
-      l = normalize(l .. ' ' .. v)
-    end
-  end
-  r = normalize(r .. '\n' .. l)
-  return r
+-- Search the TeX tree for the file.
+-- @param library The library reference.
+-- @param file The filename.
+-- @param extension The extension.
+-- @return String pointing to the file location.
+local function lookup(library, file, extension)
+  return library.find_file(file, extension)
 end
 
 -- Prints the script header.
@@ -370,8 +485,8 @@ print("|  _|   | -_|  _| '_|  _| |  _| -_|_ -|")
 print("|___|_|_|___|___|_,_|___|_|_| |___|___|")
 print()
   print(wrap('checkcites.lua -- a reference ' ..
-             'checker script (v2.0)', 74))
-  print(wrap('Copyright (c) 2012, 2017, ' ..
+             'checker script (v2.4)', 74))
+  print(wrap('Copyright (c) 2012, 2019, ' ..
              'Enrico Gregorio, Paulo ' ..
              'Roberto Massa Cereda', 74))
 end
@@ -383,7 +498,7 @@ local operations = {}
 -- @param citations Citations.
 -- @param references References.
 -- @return Integer representing the status.
-operations.unused = function(citations, references)
+operations.unused = function(citations, references, crossrefs)
   print()
   print(pad('-', 74))
   print(wrap('Report of unused references in your TeX ' ..
@@ -391,6 +506,20 @@ operations.unused = function(citations, references)
              'bibliography files, but not cited in ' ..
              'the TeX source file)', 74))
   print(pad('-', 74))
+
+  local z = {}
+  for _, citation in ipairs(citations) do
+    if crossrefs[citation] then
+      table.insert(z, crossrefs[citation])
+    end
+  end
+
+  for _, i in ipairs(z) do
+    if not exists(i, citations) then
+      table.insert(citations, i)
+    end
+  end
+
   local r = difference(references, citations)
   print()
   print(wrap('Unused references in your TeX document: ' ..
@@ -409,7 +538,7 @@ end
 -- @param citations Citations.
 -- @param references References.
 -- @return Integer value indicating the status.
-operations.undefined = function(citations, references)
+operations.undefined = function(citations, references, crossrefs)
   print()
   print(pad('-', 74))
   print(wrap('Report of undefined references in your TeX ' ..
@@ -417,6 +546,20 @@ operations.undefined = function(citations, references)
              'TeX source file, but not present in the ' ..
              'bibliography files)', 74))
   print(pad('-', 74))
+
+  local z = {}
+  for _, citation in ipairs(citations) do
+    if crossrefs[citation] then
+      table.insert(z, crossrefs[citation])
+    end
+  end
+
+  for _, i in ipairs(z) do
+    if not exists(i, citations) then
+      table.insert(citations, i)
+    end
+  end
+
   local r = difference(citations, references)
   print()
   print(wrap('Undefined references in your TeX document: ' ..
@@ -435,10 +578,10 @@ end
 -- @param citations Citations.
 -- @param references References.
 -- @return Integer value indicating the status.
-operations.all = function(citations, references)
+operations.all = function(citations, references, crossrefs)
   local x, y
-  x = operations.unused(citations, references)
-  y = operations.undefined(citations, references)
+  x = operations.unused(citations, references, crossrefs)
+  y = operations.undefined(citations, references, crossrefs)
   if x + y > 0 then
     return 1
   else
@@ -446,36 +589,37 @@ operations.all = function(citations, references)
   end
 end
 
--- Checks if a file exists.
--- @param file File.
--- @return Boolean value indicating if the file exists.
-local function valid(file)
-  local handler = io.open(file, 'r')
-  if handler then
-    handler:close()
-    return true
-  else
-    return false
-  end
-end
-
 -- Filters a table of files, keeping the inexistent ones.
 -- @param files Table.
+-- @param lib Search library.
+-- @param enabled Boolean switch to enable lookup.
+-- @param extension Extension for lookup.
 -- @return Table of inexistent files.
-local function validate(files)
-  local result = {}
+-- @return Table of existent files.
+local function validate(files, lib, enabled, extension)
+  local bad, good = {}, {}
   for _, v in ipairs(files) do
     if not valid(v) then
-      table.insert(result, v)
+      if enabled and lookup(lib, v, extension) then
+        table.insert(good, lookup(lib, v, extension))
+      else
+        table.insert(bad, v)
+      end
+    else
+      table.insert(good, v)
     end
   end
-  return result
+  return bad, good
 end
 
 -- Main function.
 -- @param args Command line arguments.
 -- @return Integer value indicating the status
 local function checkcites(args)
+
+  local kpse = require('kpse')
+  kpse.set_program_name('texlua')
+
   header()
 
   local parameters = {
@@ -484,6 +628,7 @@ local function checkcites(args)
     { short = 'U', long = 'undefined', argument = false },
     { short = 'v', long = 'version', argument = false },
     { short = 'h', long = 'help', argument = false },
+    { short = 'c', long = 'crossrefs', argument = false },
     { short = 'b', long = 'backend', argument = true }
   }
 
@@ -525,8 +670,8 @@ local function checkcites(args)
   if keys['version'] or keys['help'] then
     if keys['version'] then
       print()
-      print(wrap('checkcites.lua, version 2.0 (dated August ' ..
-                 '25, 2017)', 74))
+      print(wrap('checkcites.lua, version 2.4 (dated September ' ..
+                 '3, 2019)', 74))
 
       print(pad('-', 74))
       print(wrap('You can find more details about this ' ..
@@ -552,6 +697,7 @@ local function checkcites(args)
       print('-a,--all           list all unused and undefined references')
       print('-u,--unused        list only unused references in your bibliography files')
       print('-U,--undefined     list only undefined references in your TeX source file')
+      print('-c,--crossrefs     enable cross-reference checks (disabled by default)')
       print('-b,--backend <arg> set the backend-based file lookup policy')
       print('-h,--help          print the help message')
       print('-v,--version       print the script version')
@@ -611,16 +757,16 @@ local function checkcites(args)
                     return sanitize(a, (backend == 'bibtex'
                     and 'aux') or 'bcf') end)
 
-  local vld = validate(auxiliary)
-  if #vld ~= 0 then
+  local invalid, _ = validate(auxiliary, kpse, false, 'aux')
+  if #invalid ~= 0 then
     print()
     print(pad('-', 74))
     print(wrap('I am sorry, but I was unable to ' ..
-               'locate ' .. plural(#vld, 'this file',
+               'locate ' .. plural(#invalid, 'this file',
                'these files')  .. ' (the extension ' ..
                'is automatically set based on the ' ..
                '"' .. backend .. '" backend):', 74))
-    for _, v in ipairs(vld) do
+    for _, v in ipairs(invalid) do
       print('=> ' .. v)
     end
 
@@ -631,13 +777,13 @@ local function checkcites(args)
                '" to files if not provided.', 74))
 
     print()
-    print(wrap('Please make sure the ' .. plural(#vld,
+    print(wrap('Please make sure the ' .. plural(#invalid,
                'path is', 'paths are') .. ' ' ..
-               'correct and the ' .. plural(#vld,
+               'correct and the ' .. plural(#invalid,
                'file exists', 'files exist') ..  '. ' ..
                'There is nothing I can do at the moment. ' ..
                'Refer to the user documentation for ' ..
-               'details on the file lookup. If ' .. plural(#vld,
+               'details on the file lookup. If ' .. plural(#invalid,
                'this is not the file', 'these are not the ' ..
                'files') .. ' you were expecting, ' ..
                'double-check your source file or ' ..
@@ -647,7 +793,7 @@ local function checkcites(args)
   end
 
   local lines = flatten(apply(auxiliary, read))
-  local asterisk, citations, bibliography = backends[backend](lines)
+  local asterisk, citations, bibliography = backends[backend](lines, true)
 
   print()
   print(wrap('Great, I found ' .. tostring(#citations) .. ' ' ..
@@ -671,27 +817,27 @@ local function checkcites(args)
   bibliography = apply(bibliography, function(a)
                  return sanitize(a, 'bib') end)
 
-  vld = validate(bibliography)
-  if #vld ~= 0 then
+  invalid, bibliography = validate(bibliography, kpse, true, 'bib')
+  if #invalid ~= 0 then
     print()
     print(pad('-', 74))
     print(wrap('I am sorry, but I was unable to locate ' ..
-               plural(#vld, 'this file', 'these files') .. ' ' ..
+               plural(#invalid, 'this file', 'these files') .. ' ' ..
                '(the extension is automatically set to ' ..
                '".bib", if not provided):', 74))
-    for _, v in ipairs(vld) do
+    for _, v in ipairs(invalid) do
       print('=> ' .. v)
     end
 
     print()
-    print(wrap('Please make sure the ' .. plural(#vld,
+    print(wrap('Please make sure the ' .. plural(#invalid,
                'path is', 'paths are') .. ' ' ..
-               'correct and the ' .. plural(#vld,
+               'correct and the ' .. plural(#invalid,
                'file exists', 'files exist') ..  '. ' ..
                'There is nothing I can do at the moment. ' ..
                'Refer to to the user documentation ' ..
                'for details on bibliography lookup. If ' ..
-               plural(#vld, 'this is not the file',
+               plural(#invalid, 'this is not the file',
                'these are not the files') .. ' you were ' ..
                'expecting (wrong bibliography), double-check ' ..
                'your source file. The script will end ' ..
@@ -702,6 +848,9 @@ local function checkcites(args)
   local references = flatten(apply(bibliography, function(a)
                      return extract(read(a)) end))
 
+  local crossrefs = (keys['crossrefs'] and organize(apply(bibliography,
+                    function(a) return crossref(read(a)) end))) or {}
+
   print()
   print(wrap('Fantastic, I found ' .. tostring(#references) ..
              ' ' .. plural(#references, 'reference',
@@ -711,11 +860,10 @@ local function checkcites(args)
              plural(((check == 'all' and 2) or 1), 'report is',
              'reports are') .. ' generated.', 74))
 
-  return operations[check](citations, references)
+  return operations[check](citations, references, crossrefs)
 end
 
 -- Call and exit
 os.exit(checkcites(arg))
 
 -- EOF
-

@@ -1,12 +1,12 @@
 #!/usr/bin/env perl
-# $Id: tlmgr.pl 51716 2019-07-24 04:58:04Z preining $
+# $Id: tlmgr.pl 52123 2019-09-19 18:18:41Z karl $
 #
 # Copyright 2008-2019 Norbert Preining
 # This file is licensed under the GNU General Public License version 2
 # or any later version.
 
-my $svnrev = '$Revision: 51716 $';
-my $datrev = '$Date: 2019-07-24 06:58:04 +0200 (Wed, 24 Jul 2019) $';
+my $svnrev = '$Revision: 52123 $';
+my $datrev = '$Date: 2019-09-19 20:18:41 +0200 (Thu, 19 Sep 2019) $';
 my $tlmgrrevision;
 my $tlmgrversion;
 my $prg;
@@ -5340,6 +5340,8 @@ sub action_check {
     $ret |= check_executes();
     print "Running check runfiles:\n";
     $ret |= check_runfiles();
+    print "Running check texmfdb paths\n";
+    $ret |= check_texmfdbs();
   } elsif ($what =~ m/^files/i) {
     my $tltree = init_tltree($svn);
     $ret |= check_files($tltree);
@@ -5352,6 +5354,8 @@ sub action_check {
     $ret |= check_runfiles();
   } elsif ($what =~ m/^executes/i) {
     $ret |= check_executes();
+  } elsif ($what =~ m/^texmfdbs/i) {
+    $ret |= check_texmfdbs();
   } else {
     print "No idea how to check that: $what\n";
   }
@@ -5458,14 +5462,15 @@ sub check_files {
 sub check_runfiles {
   my $Master = $localtlpdb->root;
 
-  # build a list of all runtime files associated to 'normal' packages
-  (my $non_normal = `ls "$Master/bin"`) =~ s/\n/\$|/g; # binaries
-  $non_normal .= '^0+texlive|^bin-|^collection-|^scheme-|^texlive-|^texworks';
-  $non_normal .= '|^pgf$';  # has lots of intentionally duplicated .lua
+  # build a list of all runtime files associated with normal packages.
+  (my $omit_pkgs = `ls "$Master/bin"`) =~ s/\n/\$|/g; # binaries
+  $omit_pkgs .= '^0+texlive|^bin-|^collection-|^scheme-|^texlive-|^texworks';
+  $omit_pkgs .= '|^pgf$';           # intentionally duplicated .lua
+  $omit_pkgs .= '|^latex-.*-dev$';  # intentionally duplicated base latex
   my @runtime_files = ();
   #
   foreach my $tlpn ($localtlpdb->list_packages) {
-    next if ($tlpn =~ /$non_normal/);
+    next if $tlpn =~ /$omit_pkgs/;
     #
     my $tlp = $localtlpdb->get_package($tlpn);
     my @files = $tlp->runfiles;
@@ -5499,6 +5504,7 @@ sub check_runfiles {
     next if $f
       =~ /^((czech|slovak)\.sty
             |Changes
+            |LICENSE.*
             |Makefile
             |README.*
             |a_.*\.enc
@@ -5840,6 +5846,49 @@ sub check_depends {
   return $ret;
 }
 
+sub check_texmfdbs {
+
+#!/usr/bin/perl
+  my $texmfdbs = `kpsewhich -var-value TEXMFDBS`;
+  my @tfmdbs = glob $texmfdbs;
+  my $tfms = `kpsewhich -var-value TEXMF`;
+  my @tfms = glob $tfms;
+  my %tfmdbs;
+  my $ret = 0;
+
+  print "Checking TEXMFDBS\n";
+  for my $p (@tfmdbs) {
+    print "-> $p\n";
+    if ($p !~ m/^!!/) {
+      printf "Warn: entry $p in TEXMFDBS does not have leading !!\n";
+      $ret++;
+    }
+    $p =~ s/^!!//;
+    $tfmdbs{$p} = 1;
+    if (! -r "$p/ls-R") {
+      printf "Warn: entry $p does not have an associated ls-R\n";
+      $ret++;
+    }
+  }
+
+  print "Checking TEXMF\n";
+  for my $p (@tfms) {
+    print "-> $p\n";
+    my $pnobang = $p;
+    $pnobang =~ s/^!!//;
+    if (! $tfmdbs{$pnobang}) {
+      if ($p =~ m/^!!/) {
+        printf "Warn: tree $p in TEXMF is not in TEXMFDBS but has !!\n";
+        $ret++;
+      }
+      if (-r "$pnobang/ls-R") {
+        printf "Warn: tree $p in TEXMF is not in TEXMFDBS but has ls-R file\n";
+        $ret++;
+      }
+    }
+  }
+  return($ret);
+}
 
 #  POSTACTION
 # 
@@ -6899,14 +6948,14 @@ sub setup_one_remotetlpdb {
         = TeXLive::TLCrypto::verify_checksum($loc_copy_of_remote_tlpdb, $path);
       if ($ret == $VS_CONNECTION_ERROR) {
         info(<<END_NO_INTERNET);
-No connection to the internet.
 Unable to download the checksum of the remote TeX Live database,
-but found a local copy so using that.
+but found a local copy, so using that.
 
-You may want to try specifying an explicit or different CTAN mirror;
+You may want to try specifying an explicit or different CTAN mirror,
+or maybe you need to specify proxy information if you're behind a firewall;
 see the information and examples for the -repository option at
 https://tug.org/texlive/doc/install-tl.html
-(or in the output of install-tl --help).
+(and in the output of install-tl --help).
 
 END_NO_INTERNET
         # above text duplicated in install-tl
@@ -9859,7 +9908,7 @@ This script and its documentation were written for the TeX Live
 distribution (L<https://tug.org/texlive>) and both are licensed under the
 GNU General Public License Version 2 or later.
 
-$Id: tlmgr.pl 51716 2019-07-24 04:58:04Z preining $
+$Id: tlmgr.pl 52123 2019-09-19 18:18:41Z karl $
 =cut
 
 # test HTML version: pod2html --cachedir=/tmp tlmgr.pl >/tmp/tlmgr.html
