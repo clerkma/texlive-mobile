@@ -74,7 +74,7 @@ namespace settings {
   
 using camp::pair;
   
-#ifdef HAVE_GL
+#ifdef HAVE_LIBGLM
 const bool havegl=true;  
 #else
 const bool havegl=false;
@@ -84,6 +84,8 @@ mode_t mask;
   
 string systemDir=ASYMPTOTE_SYSDIR;
 string defaultEPSdriver="eps2write";
+string defaultAsyGL="https://vectorgraphics.github.io/asymptote/base/webgl/asygl-"+
+  AsyGLVersion+".js";
 
 #ifndef __MSDOS__
   
@@ -94,9 +96,11 @@ const char pathSeparator=':';
 #ifdef __APPLE__
 string defaultPSViewer="open";
 string defaultPDFViewer="open";
+string defaultHTMLViewer="open";
 #else  
 string defaultPSViewer="gv";
 string defaultPDFViewer="acroread";
+string defaultHTMLViewer="google-chrome";
 #endif  
 string defaultGhostscript="gs";
 string defaultGhostscriptLibrary="";
@@ -115,6 +119,7 @@ const char pathSeparator=';';
 string defaultPSViewer="cmd";
 //string defaultPDFViewer="AcroRd32.exe";
 string defaultPDFViewer="cmd";
+string defaultHTMLViewer="cmd";
 string defaultGhostscript;
 string defaultGhostscriptLibrary;
 //string defaultDisplay="imdisplay";
@@ -921,8 +926,66 @@ struct versionOption : public option {
   versionOption(string name, char code, string desc)
     : option(name, code, noarg, desc, true) {}
 
+  bool disabled;
+  
+  const void feature(const char *s, bool enabled) {
+    if(enabled ^ disabled)
+      cerr << s << endl;
+  }
+
+  void features(bool enabled) {
+    disabled=!enabled;
+    cerr << endl << (disabled ? "DIS" : "EN") << "ABLED OPTIONS:" << endl;
+
+    bool glm=false;
+    bool gl=false;
+    bool gsl=false;
+    bool fftw3=false;
+    bool xdr=false;
+    bool readline=false;
+    bool sigsegv=false;
+    bool usegc=false;
+
+#if HAVE_LIBGLM
+    glm=true;
+#endif
+#ifdef HAVE_GL
+    gl=true;
+#endif
+#ifdef HAVE_LIBGSL
+    gsl=true;
+#endif
+#ifdef HAVE_LIBFFTW3
+    fftw3=true;
+#endif
+#ifdef HAVE_RPC_RPC_H
+    xdr=true;
+#endif
+#ifdef HAVE_LIBREADLINE
+    readline=true;
+#endif
+#ifdef HAVE_LIBSIGSEGV
+    sigsegv=true;
+#endif
+#ifdef USEGC
+    usegc=true;
+#endif
+
+    feature("WebGL    3D HTML rendering",glm);
+    feature("OpenGL   3D OpenGL rendering",gl);
+    feature("GSL      GNU Scientific Library (special functions)",gsl);
+    feature("FFTW3    Fast Fourier transforms",fftw3);
+    feature("XDR      external data representation (portable binary file format)",xdr);
+    feature("Readline interactive history and editing",readline);
+    feature("Sigsegv  distinguish stack overflows from segmentation faults",
+            sigsegv);
+    feature("GC       Boehm garbage collector",usegc);
+  }
+  
   bool getOption() {
     version();
+    features(1);
+    features(0);
     exit(0);
 
     // Unreachable code.
@@ -939,7 +1002,7 @@ struct divisorOption : public option {
 #ifdef USEGC
       Int n=lexical::cast<Int>(optarg);
       if(n > 0) GC_set_free_space_divisor((GC_word) n);
-#endif      
+#endif
     } catch (lexical::bad_cast&) {
       error("option requires an int as an argument");
       return false;
@@ -1132,6 +1195,11 @@ void initSettings() {
                             "Initial 3D rendering screen position"));
   addOption(new pairSetting("maxviewport", 0, "pair",
                             "Maximum viewport size",pair(2048,2048)));
+  addOption(new pairSetting("viewportmargin", 0, "pair",
+                            "Horizontal and vertical 3D viewport margin",
+                            pair(0.5,0.5)));
+  addOption(new boolSetting("absolute", 0,
+                            "Use absolute WebGL dimensions", false));
   addOption(new pairSetting("maxtile", 0, "pair",
                             "Maximum rendering tile size",pair(1024,768)));
   addOption(new boolSetting("iconify", 0,
@@ -1261,6 +1329,8 @@ void initSettings() {
   addOption(new boolSetting("autorotate", 0,
                             "Enable automatic PDF page rotation",
                             false));
+  addOption(new boolSetting("offline", 0,
+                            "Produce offline html files",false));
   addOption(new boolSetting("pdfreload", 0,
                             "Automatically reload document in pdfviewer",
                             false));
@@ -1274,22 +1344,32 @@ void initSettings() {
   addOption(new userSetting("user", 'u', "string",
                             "General purpose user string"));
   
-  addOption(new IntSetting("maxvertices", 0, "n", "Maximum number of vertices to queue", 0));
   addOption(new realSetting("zoomfactor", 0, "factor", "Zoom step factor",
                             1.05));
+  addOption(new realSetting("zoomPinchFactor", 0, "n",
+                            "WebGL zoom pinch sensitivity", 10));
+  addOption(new realSetting("zoomPinchCap", 0, "limit",
+                            "WebGL maximum zoom pinch", 100));
   addOption(new realSetting("zoomstep", 0, "step", "Mouse motion zoom step",
                             0.1));
+  addOption(new realSetting("shiftHoldDistance", 0, "n",
+                            "WebGL touch screen distance limit for shift mode",
+                            20));
+  addOption(new realSetting("shiftWaitTime", 0, "ms",
+                            "WebGL touch screen shift mode delay",
+                            200));
+  addOption(new realSetting("vibrateTime", 0, "ms",
+                            "WebGL shift mode vibrate duration",
+                            25));
   addOption(new realSetting("spinstep", 0, "deg/s", "Spin speed",
                             60.0));
   addOption(new realSetting("framerate", 0, "frames/s", "Animation speed",
                             30.0));
   addOption(new realSetting("framedelay", 0, "ms",
                             "Additional frame delay", 0.0));
-  addOption(new realSetting("arcballradius", 0, "pixels",
-                            "Arcball radius", 750.0));
   addOption(new realSetting("resizestep", 0, "step", "Resize step", 1.2));
-  addOption(new IntSetting("doubleclick", 0, "ms",
-                           "Emulated double-click timeout", 200));
+  addOption(new IntSetting("digits", 0, "n",
+                           "Default output file precision", 6));
   
   addOption(new realSetting("paperwidth", 0, "bp", ""));
   addOption(new realSetting("paperheight", 0, "bp", ""));
@@ -1298,6 +1378,7 @@ void initSettings() {
   addOption(new stringSetting("dvisvgmOptions", 0, "string", ""));
   addOption(new stringSetting("convertOptions", 0, "string", ""));
   addOption(new stringSetting("gsOptions", 0, "string", ""));
+  addOption(new stringSetting("htmlviewerOptions", 0, "string", ""));
   addOption(new stringSetting("psviewerOptions", 0, "string", ""));
   addOption(new stringSetting("pdfviewerOptions", 0, "string", ""));
   addOption(new stringSetting("pdfreloadOptions", 0, "string", ""));
@@ -1306,11 +1387,13 @@ void initSettings() {
                               "","setpagesize=false,unicode,pdfborder=0 0 0"));
   
   addOption(new envSetting("config","config."+suffix));
+  addOption(new envSetting("htmlviewer", defaultHTMLViewer));
   addOption(new envSetting("pdfviewer", defaultPDFViewer));
   addOption(new envSetting("psviewer", defaultPSViewer));
   addOption(new envSetting("gs", defaultGhostscript));
   addOption(new envSetting("libgs", defaultGhostscriptLibrary));
   addOption(new envSetting("epsdriver", defaultEPSdriver));
+  addOption(new envSetting("asygl", defaultAsyGL));
   addOption(new envSetting("texpath", ""));
   addOption(new envSetting("texcommand", ""));
   addOption(new envSetting("dvips", "dvips"));
