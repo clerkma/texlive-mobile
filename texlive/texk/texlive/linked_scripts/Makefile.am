@@ -1,4 +1,4 @@
-## $Id: Makefile.am 51944 2019-08-23 22:51:26Z karl $
+## $Id: Makefile.am 53254 2019-12-29 19:18:55Z karl $
 ## Makefile.am for the TeX Live subdirectory texk/texlive/linked_scripts/
 ##
 ## Copyright 2016-2019 Karl Berry <tex-live@tug.org>
@@ -67,18 +67,7 @@ texmf_shell_scripts = \
 	ltxfileinfo/ltxfileinfo \
 	lua2dox/lua2dox_filter \
 	pdfbook2/pdfbook2 \
-	pdfjam/pdf180 \
-	pdfjam/pdf270 \
-	pdfjam/pdf90 \
-	pdfjam/pdfbook \
-	pdfjam/pdfflip \
 	pdfjam/pdfjam \
-	pdfjam/pdfjam-pocketmod \
-	pdfjam/pdfjam-slides3up \
-	pdfjam/pdfjam-slides6up \
-	pdfjam/pdfjoin \
-	pdfjam/pdfnup \
-	pdfjam/pdfpun \
 	pdftex-quiet/pdftex-quiet \
 	pdfxup/pdfxup \
 	pst-pdf/ps4pdf \
@@ -94,6 +83,7 @@ texmf_other_scripts = \
 	accfonts/vpl2ovp \
 	accfonts/vpl2vpl \
 	arara/arara.sh \
+	attachfile2/pdfatfi.pl \
 	authorindex/authorindex \
 	bib2gls/bib2gls.sh \
 	bib2gls/convertgls2bib.sh \
@@ -101,6 +91,7 @@ texmf_other_scripts = \
 	bundledoc/bundledoc \
 	cachepic/cachepic.tlu \
 	checkcites/checkcites.lua \
+	chklref/chklref.pl \
 	cjk-gs-integrate/cjk-gs-integrate.pl \
 	clojure-pamphlet/pamphletangler \
 	cluttex/cluttex.lua \
@@ -135,6 +126,7 @@ texmf_other_scripts = \
 	glossaries/makeglossaries \
 	glossaries/makeglossaries-lite.lua \
 	jfmutil/jfmutil.pl \
+	ketcindy/ketcindy.pl \
 	kotex-utils/jamo-normalize.pl \
 	kotex-utils/komkindex.pl \
 	kotex-utils/ttf2kotexfont.pl \
@@ -167,7 +159,6 @@ texmf_other_scripts = \
 	multibibliography/multibibliography.pl \
 	musixtex/musixflx.lua \
 	musixtex/musixtex.lua \
-	oberdiek/pdfatfi.pl \
 	pax/pdfannotextractor.pl \
 	pdfcrop/pdfcrop.pl \
 	pdflatexpicscale/pdflatexpicscale.pl \
@@ -204,6 +195,10 @@ texmf_other_scripts = \
 	texlive/fmtutil-sys.sh \
 	texlive/fmtutil-user.sh \
 	texlive/fmtutil.pl \
+	texlive/mktexlsr \
+	texlive/mktexmf \
+	texlive/mktexpk \
+	texlive/mktextfm \
 	texlive/rungs.tlu \
 	texlive/tlmgr.pl \
 	texlive/updmap-sys.sh \
@@ -243,6 +238,7 @@ bin_links = \
 	cluttex:clxelatex \
 	cluttex:cllualatex \
 	epstopdf:repstopdf \
+	mktexlsr:texhash \
 	pdfcrop:rpdfcrop \
 	texdef:latexdef
 

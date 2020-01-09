@@ -11,18 +11,7 @@ listings-ext/listings-ext.sh
 ltxfileinfo/ltxfileinfo
 lua2dox/lua2dox_filter
 pdfbook2/pdfbook2
-pdfjam/pdf180
-pdfjam/pdf270
-pdfjam/pdf90
-pdfjam/pdfbook
-pdfjam/pdfflip
 pdfjam/pdfjam
-pdfjam/pdfjam-pocketmod
-pdfjam/pdfjam-slides3up
-pdfjam/pdfjam-slides6up
-pdfjam/pdfjoin
-pdfjam/pdfnup
-pdfjam/pdfpun
 pdftex-quiet/pdftex-quiet
 pdfxup/pdfxup
 pst-pdf/ps4pdf
@@ -37,6 +26,7 @@ accfonts/mkt1font
 accfonts/vpl2ovp
 accfonts/vpl2vpl
 arara/arara.sh
+attachfile2/pdfatfi.pl
 authorindex/authorindex
 bib2gls/bib2gls.sh
 bib2gls/convertgls2bib.sh
@@ -44,6 +34,7 @@ bundledoc/arlatex
 bundledoc/bundledoc
 cachepic/cachepic.tlu
 checkcites/checkcites.lua
+chklref/chklref.pl
 cjk-gs-integrate/cjk-gs-integrate.pl
 clojure-pamphlet/pamphletangler
 cluttex/cluttex.lua
@@ -78,6 +69,7 @@ getmap/getmapdl.lua
 glossaries/makeglossaries
 glossaries/makeglossaries-lite.lua
 jfmutil/jfmutil.pl
+ketcindy/ketcindy.pl
 kotex-utils/jamo-normalize.pl
 kotex-utils/komkindex.pl
 kotex-utils/ttf2kotexfont.pl
@@ -110,7 +102,6 @@ mkpic/mkpic
 multibibliography/multibibliography.pl
 musixtex/musixflx.lua
 musixtex/musixtex.lua
-oberdiek/pdfatfi.pl
 pax/pdfannotextractor.pl
 pdfcrop/pdfcrop.pl
 pdflatexpicscale/pdflatexpicscale.pl

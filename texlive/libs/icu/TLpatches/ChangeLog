@@ -1,3 +1,15 @@
+2020-01-04  Karl Berry  <karl@freefriends.org>
+
+	* patch-10-ES: new patch from Mojca.
+	https://tug.org/pipermail/tlbuild/2020q1/004599.html
+	https://tug.org/pipermail/tlbuild/2020q1/004599.html
+	https://docs.oracle.com/cd/E19253-01/816-5174/proc-4/index.html
+
+2019-12-12  Karl Berry  <karl@freefriends.org>
+
+	* Update for icu-65.1.
+	* patch-03-gcc-atomic: apparently no longer relevant.
+
 2019-02-10  Karl Berry  <karl@tug.org>
 
 	* patch-12-mingw: also patch numberrangeformatter.h

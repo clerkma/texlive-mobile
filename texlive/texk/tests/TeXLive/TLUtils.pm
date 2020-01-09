@@ -5,7 +5,7 @@
 
 package TeXLive::TLUtils;
 
-my $svnrev = '$Revision: 50493 $';
+my $svnrev = '$Revision: 53225 $';
 my $_modulerevision = ($svnrev =~ m/: ([0-9]+) /) ? $1 : "unknown";
 sub module_revision { return $_modulerevision; }
 
@@ -13,7 +13,7 @@ sub module_revision { return $_modulerevision; }
 
 =head1 NAME
 
-C<TeXLive::TLUtils> -- utilities used in TeX Live infrastructure
+C<TeXLive::TLUtils> - utilities used in TeX Live infrastructure
 
 =head1 SYNOPSIS
 
@@ -38,7 +38,7 @@ C<TeXLive::TLUtils> -- utilities used in TeX Live infrastructure
   TeXLive::TLUtils::wsystem($msg,@args);
   TeXLive::TLUtils::xsystem(@args);
   TeXLive::TLUtils::run_cmd($cmd);
-  TeXLive::TLUtils::system_pipe($prog, $infile, $outfile, $removeIn, @extraargs);
+  TeXLive::TLUtils::system_pipe($prog, $infile, $outfile, $removeIn, @args);
 
 =head2 File utilities
 
@@ -79,6 +79,20 @@ C<TeXLive::TLUtils> -- utilities used in TeX Live infrastructure
   TeXLive::TLUtils::w32_remove_from_path($bindir, $multiuser);
   TeXLive::TLUtils::setup_persistent_downloads();
 
+=head2 Logging and debugging
+
+  TeXLive::TLUtils::info($str1, ...);    # output unless -q
+  TeXLive::TLUtils::debug($str1, ...);   # output if -v
+  TeXLive::TLUtils::ddebug($str1, ...);  # output if -vv
+  TeXLive::TLUtils::dddebug($str1, ...); # output if -vvv
+  TeXLive::TLUtils::log($str1, ...);     # only to log file
+  TeXLive::TLUtils::tlwarn($str1, ...);  # warn on stderr and log
+  TeXLive::TLUtils::tldie($str1, ...);   # tlwarn and die
+  TeXLive::TLUtils::debug_hash_str($label, HASH); # stringified HASH
+  TeXLive::TLUtils::debug_hash($label, HASH);   # warn stringified HASH
+  TeXLive::TLUtils::backtrace();                # return call stack as string
+  TeXLive::TLUtils::process_logging_options($texdir); # handle -q -v* -logfile
+
 =head2 Miscellaneous
 
   TeXLive::TLUtils::sort_uniq(@list);
@@ -114,7 +128,7 @@ C<TeXLive::TLUtils> -- utilities used in TeX Live infrastructure
 # avoid -warnings.
 our $PERL_SINGLE_QUOTE; # we steal code from Text::ParseWords
 use vars qw(
-  $::LOGFILENAME @::LOGLINES 
+  $::LOGFILE $::LOGFILENAME @::LOGLINES 
     @::debug_hook @::ddebug_hook @::dddebug_hook @::info_hook 
     @::install_packages_hook @::warn_hook
   $TeXLive::TLDownload::net_lib_avail
@@ -202,7 +216,8 @@ BEGIN {
     &SshURIRegex
   );
   @EXPORT = qw(setup_programs download_file process_logging_options
-               tldie tlwarn info log debug ddebug dddebug debug_hash
+               tldie tlwarn info log debug ddebug dddebug debug
+               debug_hash_str debug_hash
                win32 xchdir xsystem run_cmd system_pipe sort_archs);
 }
 
@@ -817,7 +832,7 @@ sub dir_creatable {
 
 Tests whether its argument is writable by trying to write to
 it. This function is necessary because the built-in C<-w> test just
-looks at mode and uid/guid, which on Windows always returns true and
+looks at mode and uid/gid, which on Windows always returns true and
 even on Unix is not always good enough for directories mounted from
 a fileserver.
 
@@ -1088,18 +1103,25 @@ sub rmtree {
 
 =item C<copy("-f", $file, $destfile)>
 
+=item C<copy("-L", $file, $destfile)>
+
 Copy file C<$file> to directory C<$target_dir>, or to the C<$destfile>
-in the second case.  No external programs are involved.  Since we need
-C<sysopen()>, the Perl module C<Fcntl.pm> is required.  The time stamps
-are preserved and symlinks are created on Unix systems.  On Windows,
-C<(-l $file)> will never return 'C<true>' and so symlinks will be
-(uselessly) copied as regular files.
+if the first argument is C<"-f">. No external programs are involved.
+Since we need C<sysopen()>, the Perl module C<Fcntl.pm> is required. The
+time stamps are preserved and symlinks are created on Unix systems. On
+Windows, C<(-l $file)> will never return 'C<true>' and so symlinks will
+be (uselessly) copied as regular files.
+
+If the argument is C<"-L"> and C<$file> is a symlink, the link is
+dereferenced before the copying is done. (If both C<"-f"> and C<"-L">
+are desired, they must be given in that order, although the current code
+has no need to do this.)
 
 C<copy> invokes C<mkdirhier> if target directories do not exist.  Files
 have mode C<0777> if they are executable and C<0666> otherwise, with
 the set bits in I<umask> cleared in each case.
 
-C<$file> can begin with a file:/ prefix.
+C<$file> can begin with a C<file:/> prefix.
 
 If C<$file> is not readable, we return without copying anything.  (This
 can happen when the database and files are not in perfect sync.)  On the
@@ -1109,13 +1131,23 @@ that is a fatal error.
 =cut
 
 sub copy {
+  #too verbose ddebug("TLUtils::copy(", join (",", @_), "\n");
   my $infile = shift;
   my $filemode = 0;
+  my $dereference = 0;
   if ($infile eq "-f") { # second argument is a file
     $filemode = 1;
     $infile = shift;
   }
+  if ($infile eq "-L") {
+    $dereference = 1;
+    $infile = shift;
+  }
   my $destdir=shift;
+
+  # while we're trying to figure out the versioned containers.
+  #debug("copy($infile, $destdir, filemode=$filemode)\n");
+  #debug("copy: backtrace:\n", backtrace(), "copy: end backtrace\n");
 
   my $outfile;
   my @stat;
@@ -1141,9 +1173,25 @@ sub copy {
     die "mkdirhier($destdir) failed: $err\n" if ! $ret;
   }
 
-  if (-l "$infile") {
-    symlink (readlink $infile, "$destdir/$filename")
-    || die "symlink(readlink $infile, $destdir/$filename) failed: $!";
+  # if we should dereference, change $infile to refer to the link target.
+  if (-l $infile && $dereference) {
+    my $linktarget = readlink($infile);
+    # The symlink target should always be relative, and we need to
+    # prepend the directory containing the link in that case.
+    # (Although it should never happen, if the symlink target happens
+    # to already be absolute, do not prepend.)
+    if ($linktarget !~ m,^/,) {
+      $infile = Cwd::abs_path(dirname($infile)) . "/$linktarget";
+    }
+    ddebug("TLUtils::copy: dereferencing symlink $infile -> $linktarget");
+  }
+
+  if (-l $infile) {
+    my $linktarget = readlink($infile);
+    my $dest = "$destdir/$filename";
+    ddebug("TLUtils::copy: doing symlink($linktarget,$dest)"
+          . " [from readlink($infile)]\n");
+    symlink($linktarget, $dest) || die "symlink($linktarget,$dest) failed: $!";
   } else {
     if (! open (IN, $infile)) {
       warn "open($infile) failed, not copying: $!";
@@ -1271,6 +1319,7 @@ sub collapse_dirs {
 
       my $item = "$d/$dirent";  # prepend directory for comparison
       if (! exists $seen{$item}) {
+        ddebug("   no collapse of $d because of: $dirent\n");
         $ok_to_collapse = 0;
         last;  # no need to keep looking after the first.
       }
@@ -1287,21 +1336,25 @@ sub collapse_dirs {
 
 =item C<removed_dirs(@files)>
 
-returns all the directories from which all content will be removed
+Returns all the directories from which all content will be removed.
 
+Here is the idea:
+
+=over 4
+
+=item create a hashes by_dir listing all files that should be removed
+   by directory, i.e., key = dir, value is list of files
+
+=item for each of the dirs (keys of by_dir and ordered deepest first)
+   check that all actually contained files are removed
+   and all the contained dirs are in the removal list. If this is the
+   case put that directory into the removal list
+
+=item return this removal list
+
+=back
 =cut
 
-# return all the directories from which all content will be removed
-#
-# idea:
-# - create a hashes by_dir listing all files that should be removed
-#   by directory, i.e., key = dir, value is list of files
-# - for each of the dirs (keys of by_dir and ordered deepest first)
-#   check that all actually contained files are removed
-#   and all the contained dirs are in the removal list. If this is the
-#   case put that directory into the removal list
-# - return this removal list
-#
 sub removed_dirs {
   my (@files) = @_;
   my %removed_dirs;
@@ -2101,14 +2154,21 @@ sub w32_remove_from_path {
 
 =pod
 
-=item C<check_file($what, $checksum, $checksize>
+=item C<check_file_and_remove($what, $checksum, $checksize>
 
-Remove C<$what> if either the given C<$checksum> or C<$checksize> does
-not agree. If a check argument is not given, that check is not performed.
+Remove the file C<$what> if either the given C<$checksum> or
+C<$checksize> for C<$what> does not agree with our recomputation using
+C<TLCrypto::tlchecksum> and C<stat>, respectively. If a check argument
+is not given, that check is not performed. If the checksums agree, the
+size is not checked. The return status is random.
+
+This unusual behavior (removing the given file) is because this is used
+for newly-downloaded files; see the calls in the C<unpack> routine
+(which is the only caller).
 
 =cut
 
-sub check_file {
+sub check_file_and_remove {
   my ($xzfile, $checksum, $checksize) = @_;
   debug("check_file $xzfile, $checksum, $checksize\n");
   if (!$checksum && !$checksize) {
@@ -2116,12 +2176,23 @@ sub check_file {
            "available for $xzfile, cannot check integrity"); 
     return;
   }
+  
+  # The idea is that if one of the tests fail, we want to save a copy of
+  # the input file for debugging. But we can't just omit removing the
+  # file, since the caller depends on the removal. So we copy it to a
+  # new temporary directory, which we want to persist, so can't use tl_tmpdir.
+  my $check_file_tmpdir = undef;
+
   # only run checksum tests if we can actually compute the checksum
   if ($checksum && ($checksum ne "-1") && $::checksum_method) {
     my $tlchecksum = TeXLive::TLCrypto::tlchecksum($xzfile);
     if ($tlchecksum ne $checksum) {
-      tlwarn("TLUtils::check_file: removing $xzfile, checksums differ:\n");
-      tlwarn("TLUtils::check_file:   TL=$tlchecksum, arg=$checksum\n");
+      tlwarn("TLUtils::check_file: checksums differ for $xzfile:\n");
+      tlwarn("TLUtils::check_file:   tlchecksum=$tlchecksum, arg=$checksum\n");
+      $check_file_tmpdir = File::Temp::tempdir("tlcheckfileXXXXXXXX");
+      tlwarn("TLUtils::check_file:   removing $xzfile, "
+             . "but saving copy in $check_file_tmpdir\n");
+      copy($xzfile, $check_file_tmpdir);
       unlink($xzfile);
       return;
     } else {
@@ -2134,7 +2205,14 @@ sub check_file {
     my $filesize = (stat $xzfile)[7];
     if ($filesize != $checksize) {
       tlwarn("TLUtils::check_file: removing $xzfile, sizes differ:\n");
-      tlwarn("TLUtils::check_file:   TL=$filesize, arg=$checksize\n");
+      tlwarn("TLUtils::check_file:   tlfilesize=$filesize, arg=$checksize\n");
+      if (!defined($check_file_tmpdir)) {
+        # the tmpdir should always be undefined, since we shouldn't get
+        # here if the checksums failed, but test anyway.
+        $check_file_tmpdir = File::Temp::tempdir("tlcheckfileXXXXXXXX");
+        tlwarn("TLUtils::check_file:  saving copy in $check_file_tmpdir\n");
+        copy($xzfile, $check_file_tmpdir);
+      }
       unlink($xzfile);
       return;
     }
@@ -2149,10 +2227,11 @@ sub check_file {
 
 If necessary, downloads C$what>, and then unpacks it into C<$targetdir>.
 C<@opts> is assigned to a hash and can contain the following 
-options: C<tmpdir> (use this directory for downloaded files), 
+keys: C<tmpdir> (use this directory for downloaded files), 
 C<checksum> (check downloaded file against this checksum), 
 C<size> (check downloaded file against this size),
 C<remove> (remove temporary files after operation).
+
 Returns a pair of values: in case of error return 0 and an additional
 explanation, in case of success return 1 and the name of the package.
 
@@ -2202,26 +2281,26 @@ sub unpack {
     # we are installing from the NET
     # check for the presence of $what in $tempdir
     if (-r $containerfile) {
-      check_file($containerfile, $checksum, $size);
+      check_file_and_remove($containerfile, $checksum, $size);
     }
     # if the file is now not present, we can use it
     if (! -r $containerfile) {
       # try download the file and put it into temp
       if (!download_file($what, $containerfile)) {
-        return(0, "downloading did not succeed");
+        return(0, "downloading did not succeed (download_file failed)");
       }
       # remove false downloads
-      check_file($containerfile, $checksum, $size);
+      check_file_and_remove($containerfile, $checksum, $size);
       if ( ! -r $containerfile ) {
-        return(0, "downloading did not succeed");
+        return(0, "downloading did not succeed (check_file_and_remove failed)");
       }
     }
   } else {
     # we are installing from local compressed files
-    # copy it to temp
-    TeXLive::TLUtils::copy($what, $tempdir);
+    # copy it to temp with dereferencing of link target
+    TeXLive::TLUtils::copy("-L", $what, $tempdir);
 
-    check_file($containerfile, $checksum, $size);
+    check_file_and_remove($containerfile, $checksum, $size);
     if (! -r $containerfile) {
       return (0, "consistency checks failed");
     }
@@ -2451,7 +2530,7 @@ END_COMPRESSOR_BAD
     $::progs{'compressor'} = $ENV{'TEXLIVE_COMPRESSOR'};
   }
 
-  if ($::opt_verbosity >= 1) {
+  if ($::opt_verbosity >= 2) {
     require Data::Dumper;
     use vars qw($Data::Dumper::Indent $Data::Dumper::Sortkeys
                 $Data::Dumper::Purity); # -w pain
@@ -2485,10 +2564,10 @@ sub setup_one {
 sub setup_system_one {
   my ($p, $arg) = @_;
   my $nulldev = nulldev();
-  debug("trying to set up system $p, arg $arg\n");
+  ddebug("trying to set up system $p, arg $arg\n");
   my $ret = system("$p $arg >$nulldev 2>&1");
   if ($ret == 0) {
-    debug("program $p found in the path\n");
+    debug("program $p found in path\n");
     $::progs{$p} = $p;
     return(1);
   } else {
@@ -2532,16 +2611,16 @@ sub setup_unix_tl_one {
   debug("(unix) trying to set up $p, default $def, arg $arg\n");
   if (-r $def) {
     if (-x $def) {
-      ddebug("default $def has executable permissions\n");
+      ddebug(" Default $def has executable permissions\n");
       # we have to check for actual "executability" since a "noexec"
       # mount option may interfere, which is not taken into account by -x.
       my $ret = system("'$def' $arg >/dev/null 2>&1" ); # we are on Unix
       if ($ret == 0) {
         $::progs{$p} = $def;
-        debug("Using shipped $def for $p (tested).\n");
+        debug(" Using shipped $def for $p (tested).\n");
         return(1);
       } else {
-        ddebug("Shipped $def has -x but cannot be executed, "
+        ddebug(" Shipped $def has -x but cannot be executed, "
                . "trying tmp copy.\n");
       }
     }
@@ -2562,19 +2641,19 @@ sub setup_unix_tl_one {
     if (! -x $tmpprog) {
       # hmm, something is going really bad, not even the copy is
       # executable. Fall back to normal path element
-      ddebug("Copied $p $tmpprog does not have -x bit, strange!\n");
+      ddebug(" Copied $p $tmpprog does not have -x bit, strange!\n");
       return(0);
     } else {
       # check again for executability
       my $ret = system("$tmpprog $arg > /dev/null 2>&1");
       if ($ret == 0) {
         # ok, the copy works
-        debug("Using copied $tmpprog for $p (tested).\n");
+        debug(" Using copied $tmpprog for $p (tested).\n");
         $::progs{$p} = $tmpprog;
         return(1);
       } else {
         # even the copied prog is not executable, strange
-        ddebug("Copied $p $tmpprog has x bit but not executable?!\n");
+        ddebug(" Copied $p $tmpprog has x bit but not executable?!\n");
         return(0);
       }
     }
@@ -3210,124 +3289,23 @@ sub parse_AddFormat_line {
   return %ret;
 }
 
-
 =back
 
-=head2 Miscellaneous
+=head2 Logging
 
-Ideas from Fabrice Popineau's C<FileUtils.pm>.
+Logging and debugging messages.
 
 =over 4
 
-=item C<sort_uniq(@list)>
+=item C<logit($out,$level,@rest)>
 
-The C<sort_uniq> function sorts the given array and throws away multiple
-occurrences of elements. It returns a sorted and unified array.
-
-=cut
-
-sub sort_uniq {
-  my (@l) = @_;
-  my ($e, $f, @r);
-  $f = "";
-  @l = sort(@l);
-  foreach $e (@l) {
-    if ($e ne $f) {
-      $f = $e;
-      push @r, $e;
-    }
-  }
-  return @r;
-}
-
-
-=item C<push_uniq(\@list, @new_items)>
-
-The C<push_uniq> function pushes the last argument @ITEMS to the $LIST
-referenced by the first argument, if they are not already in the list.
+Internal routine to write message to both C<$out> (references to
+filehandle) and C<$::LOGFILE>, at level C<$level>, of concatenated items
+in C<@rest>. If the log file is not initialized yet, the message is
+saved to be logged later (unless the log file never comes into existence).
 
 =cut
 
-sub push_uniq {
-  my ($l, @new_items) = @_;
-  for my $e (@new_items) {
-    if (! &member($e, @$l)) {
-      push (@$l, $e);
-    }
-  }
-}
-
-=item C<member($item, @list)>
-
-The C<member> function returns true if the first argument 
-is also inclued in the list of the remaining arguments.
-
-=cut
-
-sub member {
-  my $what = shift;
-  return scalar grep($_ eq $what, @_);
-}
-
-
-=item C<merge_into(\%to, \%from)>
-
-Merges the keys of %from into %to.
-
-=cut
-
-sub merge_into {
-  my ($to, $from) = @_;
-  foreach my $k (keys %$from) {
-    if (defined($to->{$k})) {
-      push @{$to->{$k}}, @{$from->{$k}};
-    } else {
-      $to->{$k} = [ @{$from->{$k}} ];
-    }
-  }
-}
-
-
-=item C<texdir_check($texdir)>
-
-Test whether installation with TEXDIR set to $texdir would succeed due to
-writing permissions.
-
-Writable or not, we will not allow installation to the root
-directory (Unix) or the root of a drive (Windows).
-
-=cut
-
-sub texdir_check {
-  my $texdir = shift;
-  return 0 unless defined $texdir;
-  # convert to absolute, for safer parsing.
-  # The return value may still contain symlinks,
-  # but no unnecessary terminating '/'.
-  $texdir = tl_abs_path($texdir);
-  return 0 unless defined $texdir;
-  # also reject the root of a drive,
-  # assuming that only the canonical form of the root ends with /
-  return 0 if $texdir =~ m!/$!;
-  # win32: for now, reject the root of a samba share
-  return 0 if win32() && $texdir =~ m!^//[^/]+/[^/]+$!;
-  my $texdirparent;
-  my $texdirpparent;
-
-  return dir_writable($texdir) if (-d $texdir);
-  ($texdirparent = $texdir) =~ s!/[^/]*$!!;
-  #print STDERR "Checking $texdirparent".'[/]'."\n";
-  return  dir_creatable($texdirparent) if -d dir_slash($texdirparent);
-  # try another level up the tree
-  ($texdirpparent = $texdirparent) =~ s!/[^/]*$!!;
-  #print STDERR "Checking $texdirpparent".'[/]'."\n";
-  return dir_creatable($texdirpparent) if -d dir_slash($texdirpparent);
-  return 0;
-}
-
-
-# no newlines or spaces are added, multiple args are just concatenated.
-#
 sub logit {
   my ($out, $level, @rest) = @_;
   _logit($out, $level, @rest) unless $::opt_quiet;
@@ -3353,7 +3331,6 @@ sub _logit {
   }
 }
 
-
 =item C<info ($str1, $str2, ...)>
 
 Write a normal informational message, the concatenation of the argument
@@ -3377,7 +3354,6 @@ sub info {
   }
 }
 
-
 =item C<debug ($str1, $str2, ...)>
 
 Write a debugging message, the concatenation of the argument strings.
@@ -3398,7 +3374,6 @@ sub debug {
     &{$i}($str);
   }
 }
-
 
 =item C<ddebug ($str1, $str2, ...)>
 
@@ -3495,14 +3470,19 @@ sub tldie {
   }
 }
 
-=item C<debug_hash ($label, hash))>
+=item C<debug_hash_str($label, HASH)>
 
-Write LABEL followed by HASH elements, all on one line, to stderr.
-If HASH is a reference, it is followed.
+Return LABEL followed by HASH elements, followed by a newline, as a
+single string. If HASH is a reference, it is followed (but no recursive
+derefencing).
+
+=item C<debug_hash($label, HASH)>
+
+Write the result of C<debug_hash_str> to stderr.
 
 =cut
 
-sub debug_hash {
+sub debug_hash_str {
   my ($label) = shift;
   my (%hash) = (ref $_[0] && $_[0] =~ /.*HASH.*/) ? %{$_[0]} : @_;
 
@@ -3510,6 +3490,7 @@ sub debug_hash {
   my @items = ();
   for my $key (sort keys %hash) {
     my $val = $hash{$key};
+    $val = ".undef" if ! defined $val;
     $key =~ s/\n/\\n/g;
     $val =~ s/\n/\\n/g;
     push (@items, "$key:$val");
@@ -3517,10 +3498,33 @@ sub debug_hash {
   $str .= join (",", @items);
   $str .= "}";
 
-  warn "$str\n";
+  return "$str\n";
 }
 
-
+sub debug_hash {
+  warn &debug_hash_str(@_);
+}
+
+=item C<backtrace()>
+
+Return call(er) stack, as a string.
+
+=cut
+
+sub backtrace {
+  my $ret = "";
+
+  my ($line, $subr);
+  my $stackframe = 1;  # skip ourselves
+  while ((undef,$filename,$line,$subr) = caller ($stackframe)) {
+    # the undef is for the package, which is already included in $subr.
+    $ret .= " -> ${filename}:${line}: ${subr}\n";
+    $stackframe++;
+  }
+
+  return $ret;
+}
+
 =item C<process_logging_options ($texdir)>
 
 This function handles the common logging options for TeX Live scripts.
@@ -3591,6 +3595,152 @@ sub process_logging_options {
     $::LOGFILE = \*TLUTILS_LOGFILE;
     $::LOGFILENAME = $opt_logfile;
   }
+}
+
+=back
+
+=head2 Miscellaneous
+
+Some ideas from Fabrice Popineau's C<FileUtils.pm>.
+
+=over 4
+
+=item C<sort_uniq(@list)>
+
+The C<sort_uniq> function sorts the given array and throws away multiple
+occurrences of elements. It returns a sorted and unified array.
+
+=cut
+
+sub sort_uniq {
+  my (@l) = @_;
+  my ($e, $f, @r);
+  $f = "";
+  @l = sort(@l);
+  foreach $e (@l) {
+    if ($e ne $f) {
+      $f = $e;
+      push @r, $e;
+    }
+  }
+  return @r;
+}
+
+
+=item C<push_uniq(\@list, @new_items)>
+
+The C<push_uniq> function pushes each element in the last argument
+@ITEMS to the $LIST referenced by the first argument, if it is not
+already in the list.
+
+=cut
+
+sub push_uniq {
+  my ($l, @new_items) = @_;
+  for my $e (@new_items) {
+   # turns out this is one of the most-used functions when updating the
+   # tlpdb, with hundreds of thousands of calls. So let's write it out
+   # to eliminate the sub overhead.
+   #if (! &member($e, @$l)) {
+    if (! scalar grep($_ eq $e, @$l)) {
+      push (@$l, $e);
+    }
+  }
+}
+
+=item C<member($item, @list)>
+
+The C<member> function returns true if the first argument 
+is also inclued in the list of the remaining arguments.
+
+=cut
+
+sub member {
+  my $what = shift;
+  return scalar grep($_ eq $what, @_);
+}
+
+=item C<merge_into(\%to, \%from)>
+
+Merges the keys of %from into %to.
+
+=cut
+
+sub merge_into {
+  my ($to, $from) = @_;
+  foreach my $k (keys %$from) {
+    if (defined($to->{$k})) {
+      push @{$to->{$k}}, @{$from->{$k}};
+    } else {
+      $to->{$k} = [ @{$from->{$k}} ];
+    }
+  }
+}
+
+=item C<texdir_check($texdir)>
+
+Test whether installation with TEXDIR set to $texdir should be ok, e.g.,
+would be a creatable directory. Return 1 if ok, 0 if not.
+
+Writable or not, we will not allow installation to the root
+directory (Unix) or the root of a drive (Windows).
+
+We also do not allow paths containing various special characters, and
+print a message about this if second argument WARN is true. (We only
+want to do this for the regular text installer, since spewing output in
+a GUI program wouldn't be good; the generic message will have to do for
+them.)
+
+=cut
+
+sub texdir_check {
+  my ($orig_texdir,$warn) = @_;
+  return 0 unless defined $orig_texdir;
+
+  # convert to absolute, for safer parsing.
+  # also replaces backslashes with slashes on w32.
+  # The return value may still contain symlinks,
+  # but no unnecessary terminating '/'.
+  my $texdir = tl_abs_path($orig_texdir);
+  return 0 unless defined $texdir;
+
+  # reject the root of a drive,
+  # assuming that only the canonical form of the root ends with /
+  return 0 if $texdir =~ m!/$!;
+
+  # Unfortunately we have lots of special characters.
+  # On Windows, backslashes are normal but will already have been changed
+  # to slashes by tl_abs_path. And we should only check for : on Unix.
+  my $colon = win32() ? "" : ":";
+  if ($texdir =~ /[,$colon;\\{}\$]/) {
+    if ($warn) {
+      print "     !! TEXDIR value has problematic characters: $orig_texdir\n";
+      print "     !! (such as comma, colon, semicolon, backslash, braces\n";
+      print "     !!  and dollar sign; sorry)\n";
+    }
+    # although we could check each character individually and give a
+    # specific error, it seems plausibly useful to report all the chars
+    # that cause problems, regardless of which was there. Simpler too.
+    return 0;
+  }
+  # w32: for now, reject the root of a samba share
+  return 0 if win32() && $texdir =~ m!^//[^/]+/[^/]+$!;
+
+  # if texdir already exists, make sure we can write into it.
+  return dir_writable($texdir) if (-d $texdir);
+
+  # if texdir doesn't exist, make sure we can write the parent.
+  (my $texdirparent = $texdir) =~ s!/[^/]*$!!;
+  #print STDERR "Checking $texdirparent".'[/]'."\n";
+  return dir_creatable($texdirparent) if -d dir_slash($texdirparent);
+  
+  # ditto for the next level up the tree
+  (my $texdirpparent = $texdirparent) =~ s!/[^/]*$!!;
+  #print STDERR "Checking $texdirpparent".'[/]'."\n";
+  return dir_creatable($texdirpparent) if -d dir_slash($texdirpparent);
+  
+  # doesn't look plausible.
+  return 0;
 }
 
 =pod
@@ -3940,17 +4090,20 @@ sub download_to_temp_or_file {
   return;
 }
 
-# compare_tlpobjs 
-# returns a hash
-#   $ret{'revision'} = "leftRev:rightRev"     if revision differ
-#   $ret{'removed'} = \[ list of files removed from A to B ]
-#   $ret{'added'} = \[ list of files added from A to B ]
-#
+
+=item C<< compare_tlpobjs($tlpA, $tlpB) >>
+
+Compare the two passed L<TLPOBJ> objects.  Returns a hash:
+
+  $ret{'revision'}  = "revA:revB" # if revisions differ
+  $ret{'removed'}   = \[ list of files removed from A to B ]
+  $ret{'added'}     = \[ list of files added from A to B ]
+
+=cut
+
 sub compare_tlpobjs {
   my ($tlpA, $tlpB) = @_;
   my %ret;
-  my @rem;
-  my @add;
 
   my $rA = $tlpA->revision;
   my $rB = $tlpB->revision;
@@ -3970,20 +4123,27 @@ sub compare_tlpobjs {
   for my $f (@fA) { $removed{$f} = 1; }
   for my $f (@fB) { delete($removed{$f}); $added{$f} = 1; }
   for my $f (@fA) { delete($added{$f}); }
-  @rem = sort keys %removed;
-  @add = sort keys %added;
+  my @rem = sort keys %removed;
+  my @add = sort keys %added;
   $ret{'removed'} = \@rem if @rem;
   $ret{'added'} = \@add if @add;
+
   return %ret;
 }
 
-#
-# compare_tlpdbs
-# return several hashes
-# @{$ret{'removed_packages'}} = list of removed packages from A to B
-# @{$ret{'added_packages'}} = list of added packages from A to B
-# $ret{'different_packages'}->{$package} = output of compare_tlpobjs
-#
+
+=item C<< compare_tlpdbs($tlpdbA, $tlpdbB, @more_ignored_pkgs) >>
+
+Compare the two passed L<TLPDB> objects, ignoring the packages
+C<00texlive.installer>, C<00texlive.image>, and any passed
+C<@more_ignore_pkgs>. Returns a hash:
+
+  $ret{'removed_packages'} = \[ list of removed packages from A to B ]
+  $ret{'added_packages'}   = \[ list of added packages from A to B ]
+  $ret{'different_packages'}->{$package} = output of compare_tlpobjs
+
+=cut
+
 sub compare_tlpdbs {
   my ($tlpdbA, $tlpdbB, @add_ignored_packs) = @_;
   my @ignored_packs = qw/00texlive.installer 00texlive.image/;
@@ -4165,6 +4325,7 @@ sub parse_line {
   return(@pieces);
 }
 
+
 =item C<mktexupd ()>
 
 Append entries to C<ls-R> files.  Usage example:
@@ -4262,7 +4423,7 @@ sub mktexupd {
   return $hash;
 }
 
-
+
 =item C<check_sys_user_mode($user,$sys,$tmfc, $tmfsc, $tmfv, $tmfsv)>
 
 =cut
@@ -4314,6 +4475,7 @@ sub setup_sys_user_mode {
   return ($texmfconfig, $texmfvar);
 }
 
+
 =item C<prepend_own_path()>
 
 Prepend the location of the TeX Live binaries to the PATH environment
@@ -4335,7 +4497,7 @@ sub prepend_own_path {
   }
 }
 
-
+
 =item C<repository_to_array($r)>
 
 Return hash of tags to urls for space-separated list of repositories
@@ -4376,6 +4538,7 @@ sub repository_to_array {
   return %r;
 }
 
+
 =item C<encode_json($ref)>
 
 Returns the JSON representation of the object C<$ref> is pointing at.
@@ -4401,8 +4564,8 @@ our $jsonmode = "";
 =item C<True()>
 =item C<False()>
 
-these two function must be used to get proper JSON C<true> and C<false> 
-in the output independent of the backend used.
+These two crazy functions must be used to get proper JSON C<true> and
+C<false> in the output independent of the backend used.
 
 =cut
 
@@ -4546,20 +4709,16 @@ sub array_to_json {
   my $ret = "[" . join(",", map { encode_json(\$_) } @$hr) . "]";
   return($ret);
 }
-
-
-
 =back
 =cut
-
 1;
 __END__
 
 =head1 SEE ALSO
 
-The modules L<TeXLive::TLConfig>, L<TeXLive::TLCrypto>,
-L<TeXLive::TLDownload>, L<TeXLive::TLWinGoo>, etc., and the
-documentation in the repository: C<Master/tlpkg/doc/>.
+The other modules in C<Master/tlpkg/TeXLive/> (L<TeXLive::TLConfig> and
+the rest), and the scripts in C<Master/tlpg/bin/> (especially
+C<tl-update-tlpdb>), the documentation in C<Master/tlpkg/doc/>, etc.
 
 =head1 AUTHORS AND COPYRIGHT
 
