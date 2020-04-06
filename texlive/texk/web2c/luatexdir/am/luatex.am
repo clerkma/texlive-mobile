@@ -24,7 +24,10 @@ noinst_PROGRAMS += call_luahbtex
 install_exe_links += install-luahbtex-links
 uninstall_exe_links += uninstall-luahbtex-links
 else !WIN32
+if !LUATEX
+# keep texlua[c] as links to luatex unless luatex is not installed.
 bin_links += luahbtex$(EXEEXT):texlua luahbtex$(EXEEXT):texluac
+endif !LUATEX
 endif !WIN32
 endif LUAHBTEX
 
@@ -46,7 +49,10 @@ noinst_PROGRAMS += call_luajithbtex
 install_exe_links += install-luajithbtex-links
 uninstall_exe_links += uninstall-luajithbtex-links
 else !WIN32
+if !LUAJITTEX
+# keep texluajit[c] as links to luajittex unless luajittex is not installed.
 bin_links += luajithbtex$(EXEEXT):texluajit luajithbtex$(EXEEXT):texluajitc
+endif !LUAJITTEX
 endif !WIN32
 endif LUAJITHBTEX
 
@@ -113,8 +119,8 @@ luatex_DEPENDENCIES = $(luatex_depend) libluatex.a libluatexspecific.a
 luajittex_DEPENDENCIES = $(luatex_depend) libluajittex.a libluajittexspecific.a
 
 luahbtex_depend = $(proglib) $(KPATHSEA_DEPEND) $(LIBPNG_DEPEND) libmputil.a libmd5.a
-luahbtex_DEPENDENCIES = $(luahbtex_depend) libluatex.a libluahbtexspecific.a
-luajithbtex_DEPENDENCIES = $(luatex_depend) libluajittex.a libluajithbtexspecific.a
+luahbtex_DEPENDENCIES = $(luahbtex_depend) libluatex.a libluahbtexspecific.a libluaharfbuzz.a
+luajithbtex_DEPENDENCIES = $(luatex_depend) libluajittex.a libluajithbtexspecific.a libluajitharfbuzz.a
 
 
 

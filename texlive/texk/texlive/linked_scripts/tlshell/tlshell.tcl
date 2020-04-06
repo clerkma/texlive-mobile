@@ -1,6 +1,6 @@
 #!/usr/bin/env wish
 
-# Copyright 2017-2019 Siep Kroonenberg
+# Copyright 2017-2020 Siep Kroonenberg
 
 # This file is licensed under the GNU General Public License version 2
 # or any later version.
@@ -14,10 +14,6 @@ catch {rename send {}}
 # on windows, a wrapper takes care of this.
 if {$::tcl_platform(platform) ne "windows"} {
   set texbin [file dirname [file normalize [info script]]]
-  set savedir [pwd]
-  cd $texbin
-  set texbin [pwd]
-  cd $savedir
   # prepend texbin to PATH, unless it is already the _first_
   # path component
   set dirs [split $::env(PATH) ":"]
@@ -25,7 +21,6 @@ if {$::tcl_platform(platform) ne "windows"} {
     set ::env(PATH) "${texbin}:$::env(PATH)"
   }
   unset texbin
-  unset savedir
   unset dirs
 }
 
@@ -78,10 +73,14 @@ if $ddebug {set dbg_log {}}
 
 proc do_debug {s} {
   if $::ddebug {
-    puts stderr $s
+    if {$::tcl_platform(platform) ne "windows"} {puts stderr $s}
     # On windows, stderr output goes nowhere.
     # Therefore also debug output for the log dialog.
     lappend ::dbg_log $s
+    file mkdir ${::instroot}/temp
+    set dbg [open "${::instroot}/temp/mydbglog" a]
+    puts $dbg "TCL: $s"
+    chan close $dbg
     # Track debug output in the log dialog if it is running:
     if [winfo exists .tllg.dbg.tx] {
       .tllg.dbg.tx configure -state normal
@@ -103,7 +102,7 @@ proc maketemp {ext} {
     # create empty file. although we just want a name,
     # we must make sure that it can be created.
     set fid [open $fname w]
-    close $fid
+    chan close $fid
     if {! [file exists $fname]} {error "Cannot create temporary file"}
     if {$::tcl_platform(platform) eq "unix"} {
       file attributes $fname -permissions 0600
@@ -328,20 +327,22 @@ set ::show_output 0
 # EOF is indicated by a return value of -1.
 
 proc read_err_tempfile {} {
-  set len 0
-  while 1 {
-    set len [chan gets $::err l]
-    if {$len >= 0} {
-      lappend ::err_log $l
-    } else {
-      break
+  if [info exists ::err] {
+    set len 0
+    while 1 {
+      set len [chan gets $::err l]
+      if {$len >= 0} {
+        lappend ::err_log $l
+      } else {
+        break
+      }
     }
   }
 } ; # read_err_tempfile
 
 proc err_exit {{m ""}} {
   do_debug "error exit"
-  if [info exists ::err] read_err_tempfile
+  read_err_tempfile
   if {$m ne ""} {
     set ::err_log [linsert $::err_log 0 $m]
   }
@@ -358,6 +359,12 @@ proc start_tlmgr {{args ""}} {
   # to process initial tlmgr output before continuing.
   unset -nocomplain ::done_waiting
   do_debug "opening tlmgr"
+  # -gui -. -gui-lang
+  for {set i 0} {$i < [llength $args]} {incr i} {
+    if {[lindex $args $i] eq "-lang"} {
+      set args [lreplace $args $i $i "-gui-lang"]
+    }
+  }
   set cmd [list "|tlmgr" {*}$args "--machine-readable" "shell" 2>>$::err_file]
   if [catch {open $cmd w+} ::tlshl] {
     tk_messageBox -message [get_stacktrace]
@@ -678,22 +685,19 @@ proc collect_filtered {} {
   display_packages_info
 } ; # collect_filtered
 
-# derive the set of platforms from the dictionary of packages:
-# collect the values $plname from packages 'tex\.$plname'
 proc get_platforms {} {
   # guarantee fresh start
   foreach k $::platforms {dict unset ::platforms $k}
   set ::platforms [dict create]
-  # glob-style matching: $k should start with "tex."
-  foreach k [dict keys $::pkgs "tex.*"] {
-    set plname [string range $k 4 end]
-    if {$plname eq ""} continue
-    set pl [dict create "cur" 0 "fut" 0]
-    if {[dict get $::pkgs $k "localrev"] > 0} {
-      dict set pl "cur" 1
-      dict set pl "fut" 1
+  run_cmd_waiting "platform list"
+  foreach l $::out_log {
+    if [regexp {^\(i\)\s+(\S+)\s*$} $l dum plname] {
+      set pl [dict create "cur" 1 "fut" 1]
+      dict set ::platforms $plname $pl
+    } elseif [regexp {^\s+(\S+)\s*$} $l dum plname] {
+      set pl [dict create "cur" 0 "fut" 0]
+      dict set ::platforms $plname $pl
     }
-    dict set ::platforms $plname $pl
   }
 }
 
@@ -749,13 +753,11 @@ proc abort_load {} {
     catch {exec -ignorestderr taskkill /pid [pid] /t /f}
   } else {
     catch {exec -ignorestderr kill -9 [pid]}
-    # kill -9 should also be ok for darwin
   }
 } ; # abort load
 
-# activate abort button
 # toplevel with abort button in case loading of a repository takes too long.
-# it should disappear if loading finishes
+# it can be closed when loading finishes
 proc splash_loading {} {
 
   create_dlg .loading .
@@ -765,37 +767,23 @@ proc splash_loading {} {
   # wallpaper
   pack [ttk::frame .loading.bg -padding 3] -fill both -expand 1
 
-  set ::do_track_loading \
-      [expr {[dict get $::pkgs texlive.infra localrev] >= 51676}]
-
-  if $::do_track_loading {
-    set lbl [__ \
-                 "If loading takes too long, press Abort and choose another repository."]
-  } else {
-    set lbl [__ "Trying to load %s.
-
-If this takes too long, press Abort and choose another repository." \
-              $::repos(main)]
-  }
+  set lbl [__ \
+       "If loading takes too long, press Abort and choose another repository."]
   append lbl "\n([__ "Options"] \/ [__ "Repositories"] ...)"
   ppack [ttk::label .loading.l0 -text $lbl \
-             -wraplength [expr {60*$::cw}] -justify left] \
-      -in .loading.bg -anchor w
+           -wraplength [expr {60*$::cw}] -justify left] \
+    -in .loading.bg -anchor w
 
-  if $::do_track_loading {
-    pack [ttk::frame .loading.tfr] -in .loading.bg -expand 1 -fill x
-    pack [ttk::scrollbar .loading.scroll -command ".loading.tx yview"] \
-        -in .loading.tfr -side right -fill y
-    ppack [text .loading.tx -height 5 -wrap word \
-              -yscrollcommand ".loading.scroll set"] \
-        -in .loading.tfr -expand 1 -fill both
-  }
+  pack [ttk::frame .loading.tfr] -in .loading.bg -expand 1 -fill x
+  pack [ttk::scrollbar .loading.scroll -command ".loading.tx yview"] \
+      -in .loading.tfr -side right -fill y
+  ppack [text .loading.tx -height 5 -wrap word \
+            -yscrollcommand ".loading.scroll set"] \
+      -in .loading.tfr -expand 1 -fill both
   pack [ttk::frame .loading.buttons] -in .loading.bg -expand 1 -fill x
-  if $::do_track_loading {
-    ttk::button .loading.close -text [__ "Close"] -command {end_dlg "" .loading}
-    ppack .loading.close -in .loading.buttons -side right
-    .loading.close configure -state disabled
-  }
+  ttk::button .loading.close -text [__ "Close"] -command {end_dlg "" .loading}
+  ppack .loading.close -in .loading.buttons -side right
+  .loading.close configure -state disabled
   ttk::button .loading.abo -text [__ "Abort"] -command abort_load
   ppack .loading.abo -in .loading.buttons -side right
   wm protocol .loading {cancel_or_destroy .loading.abo .loading}
@@ -803,22 +791,24 @@ If this takes too long, press Abort and choose another repository." \
   place_dlg .loading .
 } ; # splash_loading
 
+
 proc track_err {} {
-  if $::do_track_loading {
-    set inx0 [llength $::err_log]
-    #puts stderr "track_err: $inx0"
-    read_err_tempfile
+  set inx0 [llength $::err_log]
+  read_err_tempfile
+  .loading.tx configure -state normal
+  for {set i $inx0} {$i < [llength $::err_log]} {incr i} {
+    .loading.tx insert end "[lindex $::err_log $i]\n"
+  }
+  .loading.tx configure -state disabled
+  update idletasks
+  if {![info exists ::loaded]} {
+    after 500 track_err
+  } else {
+    .loading.close state !disabled
+    .loading.abo state disabled
     .loading.tx configure -state normal
-    for {set i $inx0} {$i < [llength $::err_log]} {incr i} {
-      .loading.tx insert end "[lindex $::err_log $i]\n"
-    }
+    .loading.tx insert end [__ "Done loading"]
     .loading.tx configure -state disabled
-    if {![info exists ::loaded]} {
-      after 500 track_err
-    } else {
-      .loading.close state !disabled
-      .loading.abo state disabled
-    }
   }
 }
 
@@ -837,7 +827,7 @@ proc get_packages_info_remote {} {
   splash_loading
 
   unset -nocomplain ::loaded
-  track_err ; # is a no-op unless $::do_track_loading
+  track_err
   if [catch {run_cmd \
     "info --data name,localrev,remoterev,cat-version,category,shortdesc"}] {
     do_debug [get_stacktrace]
@@ -846,9 +836,6 @@ proc get_packages_info_remote {} {
   }
   vwait ::done_waiting
   set ::loaded 1
-  if {! $::do_track_loading} {
-    destroy .loading
-  } ; # otherwise, .loading destroyed by close button of track_err
   set re {^([^,]+),([0-9]+),([0-9]+),([^,]*),([^,]*),(.*)$}
   foreach l $::out_log {
     if [regexp $re $l m nm lrev rrev rcatv catg pdescr] {
@@ -1136,10 +1123,11 @@ proc show_repos {} {
 proc repos_commit {} {
   set changes 0
   # set repositories then add pinning if appropriate
-  if {! [regexp {^\s*$} [.tlr.new get]]} {
-    # repository entry widget non-empty: retrieve it
-    if {$::repos(main) ne [.tlr.new get]} {
-      set ::repos(main) [.tlr.new get]
+  set new_repo [forward_slashify [.tlr.new get]]
+  if {! [regexp {^\s*$} $new_repo]} {
+    # repository entry widget non-empty: use it
+    if {$::repos(main) ne $new_repo} {
+      set ::repos(main) $new_repo
       set changes 1
     }
   }
@@ -1587,16 +1575,16 @@ proc restore_backups_dialog {} {
 
 ##### package-related #####
 
-proc update_self_w32 {} {
-  if $::multiuser {
-    set mess \
-        [__ "Close this shell and run in an administrative command-prompt:"]
-  } else {
-    set mess [__ "Close this shell and run in a command-prompt:"]
-  }
-  set mess [string cat $mess "\n\ntlmgr update --self"]
-  tk_messageBox -message $mess
-  return
+### updating
+
+proc update_tlmgr_w32 {} {
+  close_tlmgr
+  # don't try pipes or capturing, because of
+  # tlmgr's acrobatics with nested command prompts
+  wm iconify .
+  exec -ignorestderr cmd /k "start cmd /k tlmgr update --self"
+  exec $::progname &
+  destroy .
 }
 
 proc update_tlmgr {} {
@@ -1605,7 +1593,7 @@ proc update_tlmgr {} {
     return
   }
   if {$::tcl_platform(platform) eq "windows"} {
-    update_self_w32
+    update_tlmgr_w32
     return
   }
   run_cmd "update --self" 1
@@ -2165,6 +2153,13 @@ proc populate_main {} {
   # top of main window
   ppack [ttk::frame .topf] -in .bg -side top -anchor w -fill x
 
+  if $::ddebug {
+    ppack [ttk::label .topf.test -text [info nameofexecutable]]
+    ppack [ttk::label .topf.test2 -text $::progname]
+    ppack [ttk::label .topf.test3 -text \
+           [string range $::env(PATH) 0 59]]
+  }
+
   # left frame
   pack [ttk::frame .topfl] -in .topf -side left -anchor nw
 
@@ -2392,14 +2387,14 @@ proc initialize {} {
   populate_main
 
   # testing writablilty earlier led to sizing problems
-  if {! [file writable $::instroot]} {
+  if {! [dir_writable $::instroot]} {
     set ans [tk_messageBox -type yesno -icon warning -message \
          [__ "%s is not writable. You can probably not do much.
   Are you sure you want to continue?" $::instroot]]
     if {$ans ne "yes"} {exit}
   }
 
-  start_tlmgr
+  start_tlmgr {*}$::argv
   if {$::tcl_platform(platform) eq "windows"} {
     run_cmd_waiting "option multiuser"
     set ::multiuser 0

@@ -2,7 +2,7 @@
 ** Matrix.cpp                                                           **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2019 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -169,7 +169,7 @@ Matrix& Matrix::rotate (double deg) {
 
 
 Matrix& Matrix::xskewByAngle (double deg) {
-	if (fmod(fabs(deg)-90, 180) != 0)
+	if (fmod(abs(deg)-90, 180) != 0)
 		return xskewByRatio(tan(deg2rad(deg)));
 	return *this;
 }
@@ -186,7 +186,7 @@ Matrix& Matrix::xskewByRatio (double xyratio) {
 
 
 Matrix& Matrix::yskewByAngle (double deg) {
-	if (fmod(fabs(deg)-90, 180) != 0)
+	if (fmod(abs(deg)-90, 180) != 0)
 		return yskewByRatio(tan(deg2rad(deg)));
 	return *this;
 }
@@ -246,17 +246,17 @@ Matrix& Matrix::lmultiply (const Matrix &tm) {
 
 Matrix& Matrix::invert () {
 	Matrix ret;
-	if (double denom = det(*this)) {
-		for (int i=0; i < 3; ++i) {
-			for (int j=0; j < 3; ++j) {
-				ret._values[i][j] = det(*this, i, j)/denom;
-				if ((i+j)%2 != 0)
-					ret._values[i][j] *= -1;
-			}
+	double denom = det(*this);
+	if (abs(denom) < 1e-12)
+		throw exception();
+	for (int i=0; i < 3; ++i) {
+		for (int j=0; j < 3; ++j) {
+			ret._values[j][i] = det(*this, i, j)/denom;
+			if ((i+j)%2 != 0)
+				ret._values[j][i] *= -1;
 		}
-		return *this = ret;
 	}
-	throw exception();
+	return *this = ret;
 }
 
 
@@ -469,7 +469,7 @@ static const char* ord_suffix (int n) {
 
 static void skip_comma_wsp (istream &is) {
 	is >> ws;
-	if (is.peek() == ',') is.ignore(1);
+	if (is.peek() == ',') is.get();
 	is >> ws;
 }
 
@@ -494,13 +494,13 @@ static size_t parse_transform_cmd (istream &is, string cmd, size_t minparams, si
 		params.push_back(val);
 		is >> ws;
 		if (i == minparams && is.peek() == ')') {
-			is.ignore(1);
+			is.get();
 			return i;
 		}
 		if (i == maxparams) {
 			if (is.peek() != ')')
 				throw ParserException("missing ')' at end of command '"+cmd+"'");
-			is.ignore(1);
+			is.get();
 		}
 		skip_comma_wsp(is);
 	}
@@ -538,7 +538,7 @@ Matrix Matrix::parseSVGTransform (const string &transform) {
 		}
 		else if (parse_transform_cmd(iss, "scale", 1, 2, params)) {
 			if (params.size() == 1)
-				params.push_back(1);
+				params.push_back(params[0]);
 			if (ne(params[0], 1) || ne(params[1], 1))
 				matrix.rmultiply(ScalingMatrix(params[0], params[1]));
 		}

@@ -1,7 +1,7 @@
 #!/usr/bin/env texlua
 
 NAME = "ptex2pdf[.lua]"
-VERSION = "20181212.0"
+VERSION = "20200307.0"
 AUTHOR = "Norbert Preining"
 AUTHOREMAIL = "norbert@preining.info"
 SHORTDESC = "Convert Japanese TeX documents to pdf"
@@ -13,25 +13,26 @@ programs (ptex, uptex, eptex, euptex, platex, uplatex) followed
 by dvipdfmx.
 ]]
 USAGE = [[
-[texlua] ptex2pdf[.lua] { option | basename[.tex] } ... 
-options: -v  version
-         -h  help
-         -help print full help (installation, TeXworks setup)
-         -e  use eptex class of programs
-         -u  use uptex class of programs
-         -l  use latex based formats
-         -s  stop at dvi
-         -i  retain intermediate files
-         -ot '<opts>' extra options for TeX
-         -od '<opts>' extra options for dvipdfmx
-         -output-directory '<dir>' directory for created files]]
+[texlua] ptex2pdf[.lua] { option | basename[.tex] } ...
+options: -v     version
+         -h     help
+         -help  print full help (installation, TeXworks setup)
+         -e     use eptex class of programs
+         -u     use uptex class of programs
+         -l     use latex based formats
+         -ld    use latex-dev based formats
+         -s     stop at dvi
+         -i     retain intermediate files
+         -ot '<opts>'   extra options for TeX
+         -od '<opts>'   extra options for dvipdfmx
+         -output-directory '<dir>'   directory for created files]]
 
 LICENSECOPYRIGHT = [[
 Originally based on musixtex.lua from Bob Tennent.
 
-(c) Copyright 2016-2018 Japanese TeX Development Community
-(c) Copyright 2013-2018 Norbert Preining norbert@preining.info
-(c) Copyright 2012      Bob Tennent rdt@cs.queensu.ca
+(c) Copyright 2016-2020 Japanese TeX Development Community  
+(c) Copyright 2013-2020 Norbert Preining norbert@preining.info  
+(c) Copyright 2012      Bob Tennent rdt@cs.queensu.ca  
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
@@ -174,11 +175,15 @@ CHANGELOG = [[
   first replace all backslash chars to slash chars  
 - version 20170622.0  
   pass all non-optional arguments before filename to TeX engine  
-- version 20180514.0
+- version 20180514.0  
   Windows: for uptex use command_line_encoding=utf8, for all other turn
   it off (set to none)
-- version 20181212.0
+- version 20181212.0  
   support directories containing dots (thanks kn1cht)
+- version 20200119.0  
+  check invalid PATH string beforehand on windows
+- version 20200307.0  
+  add -ld option to run (u)platex-dev
 ]]
 
 
@@ -276,6 +281,7 @@ intermediate = 1
 use_eptex = 0
 use_uptex = 0
 use_latex = 0
+use_latexdev = 0
 outputdir = "."
 prefilename = ""
 filename = ""
@@ -313,6 +319,9 @@ repeat
     use_uptex = 1
   elseif this_arg == "-l" then
     use_latex = 1
+  elseif this_arg == "-ld" then
+    use_latex = 1
+    use_latexdev = 1
   elseif this_arg == "-s" then
     dvipdf = ""
   elseif this_arg == "-i" then
@@ -338,34 +347,34 @@ repeat
     end
   end --if this_arg == ...
   narg = narg+1
-until narg > #arg 
+until narg > #arg
 
 whoami()
 
-if use_eptex == 1 then
+if use_latex == 1 then
   if use_uptex == 1 then
-    if use_latex == 1 then
-      tex = "uplatex"	-- uplatex already as etex extension
+    if use_latexdev == 1 then
+      tex = "uplatex-dev"
     else
-      tex = "euptex"
+      tex = "uplatex"	-- uplatex already as etex extension
     end
   else
-    if use_latex == 1 then
-      tex = "platex"    -- latex needs etex anyway
+    if use_latexdev == 1 then
+      tex = "platex-dev"
     else
-      tex = "eptex"
+      tex = "platex"    -- latex needs etex anyway
     end
   end
 else
-  if use_uptex == 1 then
-    if use_latex == 1 then
-      tex = "uplatex"
+  if use_eptex == 1 then
+    if use_uptex == 1 then
+      tex = "euptex"
     else
-      tex = "uptex"
+      tex = "eptex"
     end
   else
-    if use_latex == 1 then
-      tex = "platex"
+    if use_uptex == 1 then
+      tex = "uptex"
     else
       tex = "ptex"
     end
@@ -424,9 +433,17 @@ if (outputdir ~= ".") then
   dvipdfopts = "-o \"" .. bname .. ".pdf\""
 end
 print("Processing ".. filename)
-if (os.execute(tex .. " " .. texopts .. prefilename .. " \"" .. filename .. "\"") == 0) and
-   (dvipdf == "" or  (os.execute(dvipdf .. " " .. dvipdfopts .. " \"" .. bname .. ".dvi" .. "\"") == 0)) then 
-  if dvipdf ~= "" then 
+texcmd = tex .. " " .. texopts .. prefilename .. " \"" .. filename .. "\""
+tex_return = os.execute(texcmd)
+-- if os.execute(texcmd) returns -1 on Windows, then
+-- cmd.exe is not included in PATH, or some invalid string found before cmd.exe
+if os.type == 'windows' and tex_return == -1 then
+  print("Invalid PATH setting found. Please ensure that cmd.exe can be found.\n")
+end
+dvipdfcmd = dvipdf .. " " .. dvipdfopts .. " \"" .. bname .. ".dvi" .. "\""
+if tex_return == 0 and
+   (dvipdf == "" or (os.execute(dvipdfcmd) == 0)) then
+  if dvipdf ~= "" then
     print(bname .. ".pdf generated by " .. dvipdf .. ".")
   end
   if intermediate == 1 then -- clean-up:
@@ -436,8 +453,8 @@ if (os.execute(tex .. " " .. texopts .. prefilename .. " \"" .. filename .. "\""
   end
 else
   print("ptex2pdf processing of " .. filename .. " failed.\n")
-  print_ifdebug("tex = " .. tex)
-  print_ifdebug("dvipdf = " .. dvipdf)
+  print_ifdebug("tex = " .. texcmd)
+  print_ifdebug("dvipdf = " .. dvipdfcmd)
   os.exit(2)
 end
 

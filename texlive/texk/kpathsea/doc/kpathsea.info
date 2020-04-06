@@ -3,7 +3,7 @@ kpathsea.texi.
 
 This file documents the Kpathsea library for path searching.
 
-   Copyright (C) 1996-2019 Karl Berry & Olaf Weber.
+   Copyright (C) 1996-2020 Karl Berry & Olaf Weber.
 
    Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
@@ -37,7 +37,7 @@ Kpathsea library
 ****************
 
 This manual documents the Kpathsea library for path searching.  It
-corresponds to version 6.3.2, released in December 2019.
+corresponds to version 6.3.2, released in March 2020.
 
 * Menu:
 
@@ -62,7 +62,7 @@ File: kpathsea.info,  Node: Introduction,  Next: unixtex.ftp,  Prev: Top,  Up: T
 **************
 
 This manual corresponds to version 6.3.2 of the Kpathsea library,
-released in December 2019.
+released in March 2020.
 
    The library's fundamental purpose is to return a filename from a list
 of directories specified by the user, similar to what shells do when
@@ -80,7 +80,7 @@ this library:
 Other software that we do not maintain also uses it.
 
    Kpathsea is now maintained as part of the TeX Live distribution
-(<http://tug.org/texlive>), which includes several more Kpathsea-using
+(<https://tug.org/texlive>), which includes several more Kpathsea-using
 programs.  For information on configuration, building, installing, and
 more, *note (tlbuild)::.
 
@@ -95,7 +95,7 @@ changes you have made, and allow anyone to modify the library source and
 distribute their modifications.  It does not mean you have to distribute
 the source to your program using the library, although we hope you will.
 See accompanying files for the text of the GNU licenses, or
-<http2://www.gnu.org/licenses>.
+<https://gnu.org/licenses>.
 
    If you know enough about TeX to be reading this manual, then you (or
 your institution) should consider joining the TeX Users Group (if you're
@@ -201,24 +201,25 @@ File: kpathsea.info,  Node: unixtex.ftp,  Next: Security,  Prev: Introduction,  
 2 'unixtex.ftp': Obtaining TeX
 ******************************
 
-This is <https://tug.org/tex/unixtex.ftp>, last updated 28 November
-2017.  Email <tex-k@tug.org> with comments or questions.
+This is <ftp://tug.org/tex/unixtex.ftp>, a.k.a.
+<https://tug.org/unixtex.ftp>, last updated 29 February 2020.  Email
+<tex-k@tug.org> with comments or questions.
 
    The principal free TeX distribution for Unix-like systems is TeX
 Live, on the web at <http://tug.org/texlive>.  The pages there describe
-many ways to acquire and.or build TeX, over the Internet or on physical
+many ways to acquire and/or build TeX, over the Internet or on physical
 media, both the sources and precompiled binaries for many systems,
 either standalone or as part of various operating system distributions.
 
-   Web2c, Kpathsea, Dvips, and Dviljk are no longer released as a
-separate packages.  Their sources are now maintained as part of TeX
-Live.
+   Web2c, Kpathsea, Dvips, and Dviljk, among others, are no longer
+released as a separate packages.  Their sources are now maintained as
+part of TeX Live.
 
    The host ftp.cs.stanford.edu is the original source for the files for
 which Donald Knuth is directly responsible: 'tex.web', 'plain.tex', etc.
 However, unless you want to undertake the project of building your TeX
-installation from scratch, it is more reliable and less work to retrieve
-these files as part of a larger package.
+system from scratch, it is more reliable and less work to retrieve these
+files as part of a larger package.
 
    In any case, the Stanford ftp site is not the canonical source for
 anything except what was created as part of Knuth's original TeX, so do
@@ -291,8 +292,8 @@ This section describes the default installation hierarchy of the
 distribution.  It conforms to both the GNU coding standards and the TeX
 directory structure (TDS) standard.  For rationale and further
 explanation, please see those documents.  The GNU document is available
-from <http://www.gnu.org/prep/standards>.  The TDS document is available
-from <http://www.mirror.ctan.org/tds> (*note unixtex.ftp::).
+from <https://gnu.org/prep/standards>.  The TDS document is available
+from <http://mirror.ctan.org/tds> (*note unixtex.ftp::).
 
    In short, here is a skeleton of the default directory structure,
 extracted from the TDS document:
@@ -879,8 +880,8 @@ only to differences in case.
 
    This same problematic scenario has always existed on Windows, but for
 whatever reason, it has become much more common since Apple also went to
-a case-insensitive filesystem.  Hence the move to change the Kpathsea
-behavior now.
+a case-insensitive filesystem.  Hence the relatively late change to the
+Kpathsea behavior.
 
    The fallback case-insensitive search is omitted at compile-time on
 Windows, where (for practical purposes) all file names are
@@ -970,7 +971,7 @@ steps:
    Sorry that it's annoyingly lengthy, but implementing this inside
 Kpathsea would be a lot of error-prone trouble for something that is
 only useful for debugging.  If your 'find' does not support '-iname',
-you can get GNU Find from <https://www.gnu.org/software/findutils>.
+you can get GNU Find from <https://gnu.org/software/findutils>.
 
    The casefolding search is implemented in the source file
 'kpathsea/pathsearch.c'.  Two implementation points:
@@ -1651,14 +1652,14 @@ Auxiliary tasks::).
 
 'bltxml'
      (BibLaTeXML bibliography files for Biber,
-     <http://ctan.org/pkg/biber>) 'BLTXMLINPUTS' suffix '.bltxml'.
+     <https://ctan.org/pkg/biber>) 'BLTXMLINPUTS' suffix '.bltxml'.
 
 'bst'
      (BibTeX style, *note Basic BibTeX style files: (web2c)Basic BibTeX
      style files.) 'BSTINPUTS'; suffix '.bst'.
 
 'clua'
-     (dynamic libraries for Lua, <http://ctan.org/pkg/luatex>)
+     (dynamic libraries for Lua, <https://ctan.org/pkg/luatex>)
      'CLUAINPUTS' suffixes '.dll' and '.so'.
 
 'cmap'
@@ -1790,7 +1791,7 @@ Auxiliary tasks::).
 
 'ris'
      (RIS bibliography files, primarily for Biber,
-     <http://ctan.org/pkg/biber>) 'RISINPUTS' suffix '.ris'.
+     <https://ctan.org/pkg/biber>) 'RISINPUTS' suffix '.ris'.
 
 'subfont definition files'
      (subfont definition files) 'SFDFONTS' suffix '.sfd'.
@@ -2523,7 +2524,7 @@ library.)
 different systems.  You will almost certainly want to use Autoconf and
 probably Automake for configuring and building your software if you use
 Kpathsea; I strongly recommend using Autoconf and Automake regardless.
-They are available from <http://www.gnu.org/software>.
+They are available from <https://gnu.org/software>.
 
 
 File: kpathsea.info,  Node: Program-specific files,  Next: Programming with config files,  Prev: Calling sequence,  Up: Programming
@@ -2663,7 +2664,7 @@ investigation, your report should include the following:
 
    * If the bug involved is an actual crash (i.e., core dump), it is
      easy and useful to include a stack trace from a debugger (I
-     recommend the GNU debugger GDB (<http://www.gnu.org/software/gdb>).
+     recommend the GNU debugger GDB (<https://gnu.org/software/gdb>).
      If the cause is apparent (a 'NULL' value being dereferenced, for
      example), please send the details along.  If the program involved
      is TeX or Metafont, and the crash is happening at apparently-sound
@@ -2682,7 +2683,7 @@ File: kpathsea.info,  Node: Mailing lists,  Next: Debugging,  Prev: Bug checklis
 
 Web2c and Kpathsea in general are discussed on the mailing list
 <tex-k@tug.org>.  You can subscribe and peruse the archives on the web
-<http://lists.tug.org/tex-k>.
+<https://lists.tug.org/tex-k>.
 
    You do not need to join to submit a report, nor will it affect
 whether you get a response.  Be aware that large data files are
@@ -2691,7 +2692,7 @@ join the list.
 
    If you are looking for general TeX help, such as how to install a
 full TeX system or how to use LaTeX, please see
-<http://tug.org/begin.html>.
+<https://tug.org/begin.html>.
 
 
 File: kpathsea.info,  Node: Debugging,  Next: Logging,  Prev: Mailing lists,  Up: Reporting bugs
@@ -2978,7 +2979,7 @@ configuration file:
 the wrong device, most likely 'mktexpk''s built-in guess for the mode is
 wrong, and you should override it as above.
 
-   See <http://ctan.org/pkg/modes> for a list of resolutions and mode
+   See <https://ctan.org/pkg/modes> for a list of resolutions and mode
 names for most devices (additional submissions are welcome).
 
    If Metafont runs but generates fonts at a resolution of 2602dpi (and
@@ -3448,7 +3449,7 @@ Index
                                                               (line 239)
 * fopen, redefined:                      Debugging.           (line  54)
 * format of external database:           Database format.     (line   6)
-* ftp.cs.stanford.edu:                   unixtex.ftp.         (line  19)
+* ftp.cs.stanford.edu:                   unixtex.ftp.         (line  20)
 * ftp.tug.org:                           unixtex.ftp.         (line   6)
 * fundamental purpose of Kpathsea:       Introduction.        (line   6)
 * gdb, recommended:                      Bug checklist.       (line  58)
@@ -3489,7 +3490,7 @@ Index
 * kdebug::                               Debugging.           (line 105)
 * kdefault.c:                            Default expansion.   (line  48)
 * Knuth, Donald E.:                      History.             (line   6)
-* Knuth, Donald E., archive of programs by: unixtex.ftp.      (line  19)
+* Knuth, Donald E., archive of programs by: unixtex.ftp.      (line  20)
 * Kpathsea config file, source for path: Path sources.        (line  20)
 * kpathsea.h:                            Programming overview.
                                                               (line  26)
@@ -3806,7 +3807,7 @@ Index
                                                               (line  26)
 * tex-k@tug.org:                         Mailing lists.       (line   6)
 * tex-k@tug.org (bug address):           Reporting bugs.      (line   6)
-* tex.web:                               unixtex.ftp.         (line  19)
+* tex.web:                               unixtex.ftp.         (line  20)
 * TEXBIB:                                Supported file formats.
                                                               (line  30)
 * TEXBIB <1>:                            Supported file formats.
@@ -3955,62 +3956,62 @@ Index
 
 Tag Table:
 Node: Top1480
-Node: Introduction2263
-Node: History4336
-Node: unixtex.ftp8932
-Node: Security10357
-Node: TeX directory structure12861
-Node: Path searching16909
-Node: Searching overview17867
-Node: Path sources21686
-Node: Config files22912
-Node: Path expansion28175
-Node: Default expansion29128
-Node: Variable expansion31198
-Node: Tilde expansion32599
-Node: Brace expansion33579
-Node: KPSE_DOT expansion34518
-Node: Subdirectory expansion35031
-Node: Casefolding search37379
-Node: Casefolding rationale38148
-Node: Casefolding examples39487
-Node: Filename database44537
-Node: ls-R45519
-Node: Filename aliases49195
-Node: Database format50373
-Node: Invoking kpsewhich51386
-Node: Path searching options52341
-Node: Specially-recognized files61939
-Node: Auxiliary tasks63294
-Node: Standard options67019
-Node: TeX support67375
-Node: Supported file formats68729
-Node: File lookup76394
-Node: Glyph lookup78143
-Node: Basic glyph lookup79267
-Node: Fontmap80147
-Node: Fallback font82676
-Node: Suppressing warnings83588
-Node: mktex scripts84715
-Node: mktex configuration85930
-Node: mktex script names91733
-Node: mktex script arguments93119
-Node: Programming93998
-Node: Programming overview94571
-Node: Calling sequence97432
-Node: Program-specific files103964
-Node: Programming with config files104987
-Node: Reporting bugs106574
-Node: Bug checklist107252
-Node: Mailing lists110724
-Node: Debugging111399
-Node: Logging116476
-Node: Common problems118343
-Node: Unable to find files118820
-Node: Slow path searching121230
-Node: Unable to generate fonts122605
-Node: TeX or Metafont failing125076
-Node: Index126278
+Node: Introduction2260
+Node: History4327
+Node: unixtex.ftp8923
+Node: Security10393
+Node: TeX directory structure12897
+Node: Path searching16938
+Node: Searching overview17896
+Node: Path sources21715
+Node: Config files22941
+Node: Path expansion28204
+Node: Default expansion29157
+Node: Variable expansion31227
+Node: Tilde expansion32628
+Node: Brace expansion33608
+Node: KPSE_DOT expansion34547
+Node: Subdirectory expansion35060
+Node: Casefolding search37408
+Node: Casefolding rationale38177
+Node: Casefolding examples39523
+Node: Filename database44569
+Node: ls-R45551
+Node: Filename aliases49227
+Node: Database format50405
+Node: Invoking kpsewhich51418
+Node: Path searching options52373
+Node: Specially-recognized files61971
+Node: Auxiliary tasks63326
+Node: Standard options67051
+Node: TeX support67407
+Node: Supported file formats68761
+Node: File lookup76429
+Node: Glyph lookup78178
+Node: Basic glyph lookup79302
+Node: Fontmap80182
+Node: Fallback font82711
+Node: Suppressing warnings83623
+Node: mktex scripts84750
+Node: mktex configuration85965
+Node: mktex script names91768
+Node: mktex script arguments93154
+Node: Programming94033
+Node: Programming overview94606
+Node: Calling sequence97467
+Node: Program-specific files103996
+Node: Programming with config files105019
+Node: Reporting bugs106606
+Node: Bug checklist107284
+Node: Mailing lists110753
+Node: Debugging111430
+Node: Logging116507
+Node: Common problems118374
+Node: Unable to find files118851
+Node: Slow path searching121261
+Node: Unable to generate fonts122636
+Node: TeX or Metafont failing125108
+Node: Index126310
 
 End Tag Table
 

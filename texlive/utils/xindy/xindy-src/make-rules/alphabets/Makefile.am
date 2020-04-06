@@ -2,6 +2,7 @@
 ## autoconf/automake files.
 ## Or, call `automake Makefile' to create only Makefile.in.
 
+## Copyright 2020 by Karl Berry <tex-live@tug.org>
 ## Copyright (C) 2004-2005 by Gour.
 ##
 ## This program is free software; you can redistribute it and/or
@@ -245,7 +246,9 @@ DOCS = $(DOCS_CPS) $(DOCS_LAT) $(DOCS_CYR) $(DOCS_OTHER) $(DOCS_UTF8)
 
 alphabets-inc.tex : $(DOCS)
 	$(RM) $@
-	echo '\chapter{Latin scripts}' >>$@
+# zsh, dash, others make echo '\f' output a form feed. Likewise they
+# interpret \c (no further output). Sigh.
+	printf '\%s{Latin scripts}' "chapter" >>$@
 	echo '\ienc{cp1252}' >>$@
 	echo '\section{Codepage 1252}' >>$@
 	for i in $(DOCS_CP1252); do echo "\\input{$$i}" >>$@; done
@@ -274,8 +277,8 @@ alphabets-inc.tex : $(DOCS)
 	echo '\section{Codepage latin9}' >>$@
 	for i in $(DOCS_LATIN9); do echo "\\input{$$i}" >>$@; done
 	echo '\ienc{cp1251}' >>$@
-	echo '\fenc{T2A}' >>$@
-	echo '\chapter{Cyrillic scripts}' >>$@
+	printf '\%s{T2A}\n' "fenc" >>$@
+	printf '\%s{Cyrillic scripts}' "chapter" >>$@
 	echo '\section{Codepage 1251}' >>$@
 	for i in $(DOCS_CYR_1251); do echo "\\input{$$i}" >>$@; done
 #	echo '\ienc{iso-8859-7}' >>$@

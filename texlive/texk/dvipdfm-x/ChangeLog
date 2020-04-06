@@ -1,3 +1,56 @@
+2020-03-27  Karl Berry  <karl@tug.org>
+
+	* TeX Live 2020.
+
+2020-03-15  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* tfm.c, tfm.h, vf.c: Fallback multibyte character
+	in virtual font for (u)pTeX.
+	* configure.ac: version 20200315.
+
+2020-02-29  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* pdfdev.c: Revert the commit on 2019-06-30: see
+	https://tug.org/pipermail/tex-live/2020-February/044855.html.
+	Note that the problem with fake-bold reappears!
+	https://tug.org/pipermail/dvipdfmx/2019-June/000014.html.
+
+2020-02-12  Akira Kakuto  <kakuto@w32tex.org>
+
+	* dvipdfmx.c: Fix a potential bug in set_default_pdf_filename().
+	see https://tug.org/pipermail/tex-live/2020-February/044731.html
+
+2020-02-06  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* pdfobj.c: In pdf_new_string(), the supplied string was
+	checked and dvipdfmx aborted when it was NULL. This check
+	is removed since it is actually not necessary. The string is
+	regarded simply as an empty string if it is NULL from now on.
+	See https://tex.stackexchange.com/questions/522794/problem-in-updated-tex-live,
+	although we can't reproduce the problem.
+	* spc_pdfm.c: Add two pdftex specials which are basically
+	similar to the existing dvipdfmx special "pdf:literal",
+	"pdf:page:" and "pdf:direct:". It is not possible to test
+	properly since exact spec is unknown to us. Currently,
+	"pdf:direct:" is just an alias of "pdf:page:". It cannot be
+	properly implemented at present.
+
+2020-01-24  Akira Kakuto  <kakuto@w32tex.org>
+
+	* dvi.c: Forgot to null-terminate strings in the previous
+	changes.
+
+2020-01-22  Akira Kakuto  <kakuto@w32tex.org>
+
+	* dvi.c: Correct wrong sizes of opassword and upassword
+	in scan_special_encrypt().
+
+2020-01-16  Karl Berry  <karl@freefriends.org>
+
+	* xbb.c (show_version),
+	* dvipdfmx.c (show_version): copyright 2020.
+	* configure.ac: version 20200116 for TL'20.
+
 2019-11-14  Akira Kakuto  <kakuto@w32tex.org>
 
 	* mt19937ar.c: Add to support common font names in all

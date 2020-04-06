@@ -1,6 +1,6 @@
-# $Id: kpse-setup.m4 49495 2018-12-24 23:17:30Z karl $
+# $Id: kpse-setup.m4 54307 2020-03-14 22:22:16Z karl $
 # Private macros for the TeX Live (TL) tree.
-# Copyright 2017-2018 Karl Berry <tex-live@tug.org>
+# Copyright 2017-2020 Karl Berry <tex-live@tug.org>
 # Copyright 2009-2015 Peter Breitenlohner <tex-live@tug.org>
 #
 # This file is free software; the copyright holder
@@ -77,18 +77,18 @@ KPSE_WEB2C_PREPARE
 KPSE_CHECK_WIN32
 AS_CASE([$with_x:$kpse_cv_have_win32],
         [yes:no | no:*], [:],
-        [yes:*], [AC_MSG_ERROR([you can not use `--with-x' for WIN32])],
+        [yes:*], [AC_MSG_ERROR([you can not use `--with-x' for Windows])],
         [*:no], [with_x=yes
                  AC_MSG_NOTICE([Assuming `--with-x'])
                  ac_configure_args="$ac_configure_args '--with-x'"],
         [with_x=no
          AC_MSG_NOTICE([WIN32 -> `--without-x'])
          ac_configure_args="$ac_configure_args '--without-x'"])
-AC_FOREACH([Kpse_Pkg], [luajittex mfluajit], [dnl
-AS_CASE([$enable_]Kpse_Pkg,
+AC_FOREACH([Kpse_Pkg], [luajittex luajithbtex mfluajit mfluajit-nowin], [dnl
+AS_CASE([$enable_[]AS_TR_SH([Kpse_Pkg])],
         [yes | no], [:],
           [AS_CASE([$host],
-                   [alpha* | sparc* | x86_64-*-solaris* | powerpc-*-darwin* ],
+                   [alpha* | sparc* | x86_64-*-solaris* | powerpc* ],
                      [AC_MSG_NOTICE([$host -> `--disable-]Kpse_Pkg['])
                       ac_configure_args="$ac_configure_args '--disable-]Kpse_Pkg['"])])
 ])

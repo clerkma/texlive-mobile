@@ -389,7 +389,19 @@ static double ds(double t)
   return sqrt(dx*dx+dy*dy+dz*dz);
 }
 
-// Calculates arclength of a cubic using adaptive simpson integration.
+// Calculates arclength of a cubic Bezier curve using adaptive Simpson
+// integration.
+double arcLength(const triple& z0, const triple& c0, const triple& c1,
+                 const triple& z1)
+{
+  double integral;
+  derivative(a,b,c,z0,c0,c1,z1);
+  
+  if(!simpson(integral,ds,0.0,1.0,DBL_EPSILON,1.0))
+    reportError("nesting capacity exceeded in computing arclength");
+  return integral;
+}
+
 double path3::cubiclength(Int i, double goal) const
 {
   const triple& z0=point(i);
@@ -399,14 +411,9 @@ double path3::cubiclength(Int i, double goal) const
     L=(z1-z0).length();
     return (goal < 0 || goal >= L) ? L : -goal/L;
   }
-  const triple& c0=postcontrol(i);
-  const triple& c1=precontrol(i+1);
   
-  double integral;
-  derivative(a,b,c,z0,c0,c1,z1);
+  double integral=arcLength(z0,postcontrol(i),precontrol(i+1),z1);
   
-  if(!simpson(integral,ds,0.0,1.0,DBL_EPSILON,1.0))
-    reportError("nesting capacity exceeded in computing arclength");
   L=3.0*integral;
   if(goal < 0 || goal >= L) return L;
   
@@ -612,7 +619,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     // Overlapping bounding boxes
 
     --depth;
-    fuzz *= 2;
+//    fuzz *= 2;
 
     if((maxp-minp).length()+(maxq-minq).length() <= fuzz || depth == 0) {
       if(single) {
@@ -630,7 +637,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     
     std::vector<double> S1,T1;
     
-    fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
+//    fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
     
     if(lp <= 1) {
       if(lp == 1) p.halve(p1,p2);
@@ -1191,7 +1198,7 @@ bool intersections(double& U, double& V, const triple& v, triple *P,
      v.getz()+fuzz >= z) { // Overlapping bounding boxes
     
     --depth;
-    fuzz *= 2;
+//    fuzz *= 2;
 
     if(abs2(X-x,Y-y,Z-z) <= fuzz*fuzz || depth == 0) {
       U=0.5;
@@ -1258,6 +1265,8 @@ bool intersections(std::vector<double>& T, std::vector<double>& U,
 {
   if(errorstream::interrupt) throw interrupted();
   
+  double fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
+  
   triple pmin=p.min();
   triple pmax=p.max();
   
@@ -1286,7 +1295,7 @@ bool intersections(std::vector<double>& T, std::vector<double>& U,
      pmax.getz()+fuzz >= z) { // Overlapping bounding boxes
     
     --depth;
-    fuzz *= 2;
+//    fuzz *= 2;
 
     if(((pmax-pmin).length()+sqrt(abs2(X-x,Y-y,Z-z)) <= fuzz) || depth == 0) {
       T.push_back(0.5);
@@ -1303,8 +1312,6 @@ bool intersections(std::vector<double>& T, std::vector<double>& U,
     std::vector<double> T1,U1,V1;
     double tscale,toffset;
 
-    double fuzz2=max(fuzzFactor*fuzz*fuzz,Fuzz2);
-  
     if(lp <= 1) {
       if(lp == 1) p.halve(p0,p1);
       if(lp == 0 || p0 == p || p1 == p) {

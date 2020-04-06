@@ -1,3 +1,29 @@
+2020-03-14  Karl Berry  <karl@freefriends.org>
+
+	* kpse-setup.m4 (KPSE_SETUP): make that powerpc*, not powerpc-*.
+	Johannes H tlbuild mail, 16 Feb 2020 23:09:54.
+
+2020-03-12  Karl Berry  <karl@freefriends.org>
+
+	* kpse-setup.m4 (KPSE_SETUP): disable jit programs on any
+	powerpc-*, not just powerpc-darwin, since jit is also unavailable
+	on powerpc-linux (specifically powerpc64le-unknown-linux-gnu),
+	per Johannes Hielscher. Although apparently there are patches to
+	"floating around" to make jit work on powerpc, they are not in TL,
+	and let's await anyone who actually needs them before refining.
+	https://tug.org/pipermail/tlbuild/2020q1/004627.html (item 1).
+
+2020-01-13  Karl Berry  <karl@tug.org>
+
+	* kpse-setup.m4 (KPSE_SETUP): use AS_TR_SH on the argument when
+	disabling the jit packages, for the sake of making mfluajit-nowin
+	into mfluajit_nowin for shell usage.
+	Also change one "WIN32" to "Windows" in an error message.
+
+2020-01-12  Mojca Miklavec  <mojca.miklavec.lists@gmail.com>
+
+	* kpse-setup.m4 (KPSE_SETUP): also disable mfluajit and mfluajit-nowin.
+
 2019-06-26  Karl Berry  <karl@freefriends.org>
 
 	* kpse-harfbuzz-flags.m4 (KPSE_HARFBUZZ_FLAGS): omit KPSE_ICU_FLAGS.
