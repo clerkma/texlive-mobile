@@ -246,8 +246,6 @@ can also be replaced by a string. For example,
 $$\.{@@\$printf "<stdio.h>" \\zip@@>}$$
 will generate a mini-index entry like `\\{printf}, \.{<stdio.h>}.'.
 
-\vfill\eject
-
 A special ``proofmode'' is provided so that you can check \.{CTWILL}'s
 conclusions about cross-references. Run \.{CTWILL} with the
 flag \.{+P}, and \TeX\ will produce a specially formatted document
@@ -289,13 +287,6 @@ char **av; /* argument values */
 int main (@t\1\1@>
 int ac, /* argument count */
 char **av@t\2\2@>) /* argument values */
-@z
-
-@x
-  argc=ac; argv=av;
-@y
-  extern const char *use_language; /* prefix to \.{cwebmac.tex} in \TEX/ output */
-  argc=ac; argv=av;
 @z
 
 @x
@@ -3152,6 +3143,12 @@ static void skip_limbo(void);@/
 static void squash(scrap_pointer,short,eight_bits,short,short);@/
 static void update_node(name_pointer p);@/
 
+@* Language setting.  This global variable is defined and set in \.{COMMON} by
+the `\.{+l}' (or `\.{-l}') command-line option.
+
+@<Global var...@>=
+extern const char *use_language; /* prefix to \.{cwebmac.tex} in \TEX/ output */
+
 @* Output file update.  Most \CEE/ projects are controlled by a
 \.{Makefile} that automatically takes care of the temporal dependecies
 between the different source modules.  It is suitable that \.{CWEB} doesn't
@@ -3163,13 +3160,13 @@ be found in the program \.{NUWEB} by Preston Briggs, to whom credit is due.
 @<Update the result...@>=
 if((tex_file=fopen(tex_file_name,"r"))!=NULL) {
   char x[BUFSIZ],y[BUFSIZ];
-  int x_size,y_size,comparison;
+  int x_size,y_size,comparison=false;
 
   if((check_file=fopen(check_file_name,"r"))==NULL)
     fatal(_("! Cannot open output file "),check_file_name);
 @.Cannot open output file@>
 
-  @<Compare the temporary output to the previous output@>@;
+  if (temporary_output) @<Compare the temporary output...@>@;
 
   fclose(tex_file); tex_file=NULL;
   fclose(check_file); check_file=NULL;
@@ -3182,7 +3179,7 @@ strcpy(check_file_name,""); /* We want to get rid of the temporary file */
 
 @ We hope that this runs fast on most systems.
 
-@<Compare the temp...@>=
+@<Compare the temporary output to the previous output@>=
 do {
   x_size = fread(x,1,BUFSIZ,tex_file);
   y_size = fread(y,1,BUFSIZ,check_file);

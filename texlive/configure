@@ -24021,7 +24021,9 @@ $as_echo X/"$am_mf" |
     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "Something went wrong bootstrapping makefile fragments
-    for automatic dependency tracking.  Try re-running configure with the
+    for automatic dependency tracking.  If GNU make was not used, consider
+    re-running the configure script with MAKE=\"gmake\" (or whatever is
+    necessary).  You can also try re-running configure with the
     '--disable-dependency-tracking' option to at least be able to build
     the package (albeit without support for automatic dependency tracking).
 See \`config.log' for more details" "$LINENO" 5; }
@@ -24961,11 +24963,11 @@ msg_compiling="$msg_compiling
 test "x$srcdir" = x. || msg_compiling="$msg_compiling
       from sources in $kpse_src"
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:
-** Configuration summary for $PACKAGE_STRING (2020$with_banner_add):
+** Configuration summary for $PACKAGE_STRING (2021/dev$with_banner_add):
 
    $msg_compiling" >&5
 $as_echo "
-** Configuration summary for $PACKAGE_STRING (2020$with_banner_add):
+** Configuration summary for $PACKAGE_STRING (2021/dev$with_banner_add):
 
    $msg_compiling" >&6; }
 case $kpse_src$kpse_bld in

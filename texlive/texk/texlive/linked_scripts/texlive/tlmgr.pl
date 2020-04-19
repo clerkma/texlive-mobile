@@ -1,12 +1,12 @@
 #!/usr/bin/env perl
-# $Id: tlmgr.pl 54446 2020-03-21 16:45:22Z karl $
+# $Id: tlmgr.pl 54766 2020-04-16 11:50:17Z preining $
 #
 # Copyright 2008-2020 Norbert Preining
 # This file is licensed under the GNU General Public License version 2
 # or any later version.
 
-my $svnrev = '$Revision: 54446 $';
-my $datrev = '$Date: 2020-03-21 17:45:22 +0100 (Sat, 21 Mar 2020) $';
+my $svnrev = '$Revision: 54766 $';
+my $datrev = '$Date: 2020-04-16 13:50:17 +0200 (Thu, 16 Apr 2020) $';
 my $tlmgrrevision;
 my $tlmgrversion;
 my $prg;
@@ -6625,8 +6625,16 @@ sub action_shell {
         init_local_db();
         print "OK\n";
       } elsif ($what eq "remote") {
-        init_tlmedia_or_die();
-        print "OK\n";
+        my ($ret, $err) = init_tlmedia();
+        if ($ret) {
+          print("OK\n");
+        } else {
+          if ($::machinereadable) {
+            # replace \n with \\n to get single line
+            $err =~ s/\n/\\n/g;
+          }
+          print("ERROR $err\n");
+        }
       } else {
         print "ERROR can only load 'local' or 'remote', not $what\n";
       }
@@ -7349,6 +7357,9 @@ sub load_options_from_config {
       } else {
         tlwarn("$prg: $fn: unknown value for no-checksums: $val\n");
       }
+
+    } elsif ($key eq "tkfontscale") {
+      $config{'tkfontscale'} = $val;
 
     } elsif ($sysmode) {
       # keys here are only allowed in sys mode
@@ -9263,6 +9274,9 @@ command-line option.
 =item C<require-verification>, value 0 or 1 (default 0), same as
 command-line option.
 
+=item C<tkfontscale>, value any float.
+Controls the scaling of fonts in the Tk based frontends.
+
 =item C<update-exclude>, value: comma-separated list of packages
 (no space allowed). Same as the command line option C<--exclude>
 for the action C<update>.
@@ -10023,7 +10037,7 @@ This script and its documentation were written for the TeX Live
 distribution (L<https://tug.org/texlive>) and both are licensed under the
 GNU General Public License Version 2 or later.
 
-$Id: tlmgr.pl 54446 2020-03-21 16:45:22Z karl $
+$Id: tlmgr.pl 54766 2020-04-16 11:50:17Z preining $
 =cut
 
 # test HTML version: pod2html --cachedir=/tmp tlmgr.pl >/tmp/tlmgr.html
