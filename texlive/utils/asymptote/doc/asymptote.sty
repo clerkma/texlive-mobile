@@ -9,7 +9,7 @@
 %% The ASYMPTOTE package
 %% 
 %% (C) 2003 Tom Prince
-%% (C) 2003-2020 John Bowman
+%% (C) 2003-2021 John Bowman
 %% (C) 2010 Will Robertson
 %% 
 %% Adapted from comment.sty
@@ -17,9 +17,9 @@
 %% Licence: GPL2+
 %% 
 \ProvidesPackage{asymptote}
-  [2020/01/12 v1.35 Asymptote style file for LaTeX]
+  [2024/02/26 v1.38 Asymptote style file for LaTeX]
 \def\Asymptote{{\tt Asymptote}}
-\InputIfFileExists{\jobname.pre}{}{}
+\InputIfFileExists{\jobname.pre}{}{\typeout{No file \jobname.pre.}}
 \newbox\ASYbox
 \newdimen\ASYdimen
 \newcounter{asy}
@@ -31,7 +31,7 @@
 \ASYkeepAspecttrue
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
-\RequirePackage{color,graphicx}
+\RequirePackage{graphicx}
 \IfFileExists{ifpdf.sty}{
   \RequirePackage{ifpdf}
 }{
@@ -101,7 +101,6 @@
 \newif\ifASYPDF
 \ifxetex
   \ASYPDFtrue
-  \usepackage{everypage}
 \else
   \ifpdf
     \ASYPDFtrue

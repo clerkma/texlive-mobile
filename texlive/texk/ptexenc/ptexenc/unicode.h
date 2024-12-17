@@ -14,18 +14,32 @@ extern boolean isUTF8(int length, int nth, int c);
 
 extern int UTF8length(int first_byte);
 extern int UTF8Slength(unsigned char *buff, int buff_len);
+extern int UTF8Slengthshort(unsigned short *buff, int buff_len);
 extern long UTF8StoUCS(unsigned char *s);
 extern long PTENCDLL UCStoUTF8(long ucs);
 
 extern long UCStoUPTEX(long ucs);
 extern long UPTEXtoUCS(long uptex);
 
+extern int  UVS_get_codepoint_length(long ucv);
+extern long UVS_get_codepoint_in_sequence(long ucv, int n);
+extern long UVS_combine_code(long ucv, long uvs);
+extern long UVS_divide_code(long code, long* uvs);
+
+extern long ptenc_ucs_to_8bit_code(short enc, long uch);
+extern long ptenc_8bit_code_to_ucs(short enc, long ech);
+
 #define LONG(a,b,c,d) ( ((long)(a)<<24) | ((long)(b)<<16) | ((c)<<8) | (d) )
 #define BYTE1(x) (((x)>>24) & 0xff)
 #define BYTE2(x) (((x)>>16) & 0xff)
 #define BYTE3(x) (((x)>> 8) & 0xff)
 #define BYTE4(x) ( (x)      & 0xff)
- 
+
+/* used only for debug */
+#ifdef DEBUG
+extern int UCStoUTF8S(long ucs, unsigned char *s);
+#endif
+
 
 /* UTF-8 -> UCS */
 #define UTF8BtoUCS(a,b)   ((((a)&0x1f) << 6) | ((b)&0x3f))

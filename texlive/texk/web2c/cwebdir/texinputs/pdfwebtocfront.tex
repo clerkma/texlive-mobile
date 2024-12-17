@@ -1,0 +1,106 @@
+% pdfwebtocfront.tex
+% Code from knuth.drv in https://github.com/oberdiek/latex-tds
+% 2024/05/25 v3.1 by Andreas Scherer.
+%
+% This file is part of project https://github.com/ascherer/cwebbin
+% and may be distributed under the MIT License or the LaTeX Project
+% Public License.
+%
+% Move table-of-contents page to the front in PDF output.
+% Works with pdftex/xetex/luatex and plain tex/dvipdf in connection
+% with either 'pwebmac.tex' for Pascal/WEB programs or 'cwebmac.tex'
+% for C/CWEB programs.
+%
+\ifx\detokenize\undefined\endinput\fi
+\ifx\twodigits\undefined\endinput\fi
+\def\contentsfile{\jobname.toc} % file that gets table of contents info
+\newif\iftexmf\texmffalse % special toc treatment for TeX, Metafont, etc.
+\newread\testread
+\openin\testread=\contentsfile\relax
+\ifeof\testread % First run
+\else\closein\testread % Second run
+  % Fix page numbers in the PDF bootmarks with 'Page Labels'
+  \def\tocpages{1} % Most programs have one-page Table-of-Contents
+  \def\tocstart{2} % so we start with (fake) page 2 for the rest
+  \def\pagemode{/PageMode /UseOutlines}
+  \def\pagelabels{/PageLabels << /Nums [
+    \ifnum\contentspagenumber=0 0 << /P(Contents) >> \tocpages << /S/D/St 1 >>
+    \else 0 << /S/D/St \contentspagenumber >> \fi ] >> }
+  \def\startpdf{\ifpdflua\pdfcatalog{\pagemode\space\pagelabels}
+    \else {\special{pdf: docview << \pagemode\space\pagelabels >>}}\fi}
+  % Redefine '\con' to be invoked before the first '\N' (starred section).
+  \let\ORGcon\con
+  \def\con{%
+    % reduce size of PDF pages for more screen space
+    \pdfpagewidth=\pagewidth \advance\pdfpagewidth by 1in
+    \pdfpageheight=\fullpageheight \advance\pdfpageheight by 1in
+    \iftexmf \advance\pdfpageheight by 0.5in
+      \gtitle={Table of Contents} % overwrite default 'WEB output'
+      \mark{\noexpand\nullsec{\the\gtitle}} \fi
+    \ifpdflua \pdfhorigin=0.5in \pdfvorigin=0.5in
+    \else \global\pageshift=-0.5in
+      \global\hoffset=-0.5in \global\voffset=-0.5in \fi
+    \begingroup
+      \let\end\relax
+      \ORGcon
+    \endgroup
+    \let\con\end
+  }%
+  % Special variant for 'mf.web' and 'tex.web' (et al.).
+  % They all define a peculiar version of '\N' in their preamble.
+  % And they put their tables-of-contents on sparse 'Contents' page(s)
+  % and start the main body on page '3'.
+  \edef\x{\jobname}%
+  \edef\y{\detokenize{tex}}%
+  \ifx\x\y \texmftrue\else
+  \edef\y{\detokenize{mf}}%
+  \ifx\x\y \texmftrue\else
+  \edef\y{\detokenize{pdftex}}%
+  \ifx\x\y \texmftrue \def\tocpages{2}\else
+  \edef\y{\detokenize{xetex}}%
+  \ifx\x\y \texmftrue\fi\fi\fi\fi
+  \iftexmf
+    % These main programs start on page '3' (after any number of ToC pages)
+    \def\pagelabels{/PageLabels << /Nums [
+      0 << /P(Contents) >> \tocpages << /S/D/St 3 >> ] >> }
+    \expandafter\let\csname ORGN\expandafter\endcsname
+                    \csname N\endcsname
+    \expandafter\outer\expandafter\def\csname N\endcsname{%
+      \titletrue \con \pageno=\tocstart
+      \expandafter\let\csname N\expandafter\endcsname
+                      \csname ORGN\endcsname
+      \csname N\endcsname
+    }%
+  \else % Much more general approach for WEB and CWEB programs.
+    \edef\y{\detokenize{mp}}%
+    % This main program starts on page '3' (after any number of ToC pages)
+    \ifx\x\y \def\pagelabels{/PageLabels << /Nums [
+        0 << /P(Contents) >> \tocpages << /S/D/St 3 >> ] >> } \fi
+    % In fact, '\con' will be invoked _inside_ the first '\N' right _after_
+    % '\MN', but _before_ '\eject'.  And '\topofcontents' gets in the twist
+    % as well.
+    \let\ORGtopofcontents\topofcontents \let\ORGrheader\rheader
+    \def\topofcontents{%
+      \def\:{\par\hangindent 2em} % Fix for 'bibtex.web'; from '\def\fin'.
+      \ORGtopofcontents
+      \let\topofcontents\relax
+    }%
+    % Squeeze '\con' between '\MN' and '\eject' in the very first '\N'.
+    \expandafter\let\csname ORGvfil\expandafter\endcsname
+                    \csname vfil\endcsname
+    \expandafter\let\csname ORGeject\expandafter\endcsname
+                    \csname eject\endcsname
+    \expandafter\outer\expandafter\def\csname vfil\endcsname{%
+      \let\eject\relax
+      \titletrue % prepare to output the table of contents
+      \topofcontents \con
+      \advance\pageno by -1\relax
+      \expandafter\let\csname vfil\expandafter\endcsname
+                      \csname ORGvfil\endcsname
+      \expandafter\let\csname eject\expandafter\endcsname
+                      \csname ORGeject\endcsname
+      \vfil\eject
+      \let\rheader\ORGrheader
+    }%
+  \fi
+\fi

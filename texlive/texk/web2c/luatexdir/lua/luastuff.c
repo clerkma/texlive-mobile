@@ -323,7 +323,8 @@ void luainterpreter(void)
     /*tex
         The socket and mime libraries are a bit tricky to open because they use a
         load-time dependency that has to be worked around for luatex, where the C
-        module is loaded way before the lua module.
+        module is loaded way before the lua module. 
+        The mime library is always available, even if the socket library is not enabled.
     */
     if (!nosocket_option) {
         /* todo: move this to common */
@@ -348,6 +349,23 @@ void luainterpreter(void)
         lua_pop(L, 2);
         /*tex preload the pure \LUA\ modules */
         luatex_socketlua_open(L);
+    } else {
+        lua_getglobal(L, "package");
+        lua_getfield(L, -1, "loaded");
+        if (!lua_istable(L, -1)) {
+            lua_newtable(L);
+            lua_setfield(L, -2, "loaded");
+            lua_getfield(L, -1, "loaded");
+        }
+        /*tex |package.loaded.mime = nil| */
+        luaopen_mime_core(L);
+        lua_setfield(L, -2, "mime.core");
+        lua_pushnil(L);
+        lua_setfield(L, -2, "mime");
+        /*tex pop the table */
+        lua_pop(L, 1);
+        /*tex preload the pure \LUA\ mime module */
+        luatex_socketlua_safe_open(L);
     }
     luaopen_zlib(L);
     luaopen_gzip(L);
@@ -442,7 +460,7 @@ int lua_traceback(lua_State * L)
     return 1;
 }
 
-static void luacall(int p, int nameptr, boolean is_string)
+static void luacall(int p, int nameptr, boolean is_string, halfword w)
 {
     LoadS ls;
     int i;
@@ -466,7 +484,8 @@ static void luacall(int p, int nameptr, boolean is_string)
             /*tex put it under chunk  */
             lua_insert(Luas, base);
             ++late_callback_count;
-            i = lua_pcall(Luas, 0, 0, base);
+            lua_nodelib_push_fast(Luas, w);
+            i = lua_pcall(Luas, 1, 0, base);
             /*tex remove traceback function */
             lua_remove(Luas, base);
             if (i != 0) {
@@ -599,13 +618,13 @@ void late_lua(PDF pdf, halfword p)
     t = late_lua_type(p);
     if (t == normal) {
         /*tex sets |def_ref| */
-        expand_macros_in_tokenlist(p);
-        luacall(def_ref, late_lua_name(p), false);
+        expand_macros_in_tokenlist(late_lua_data(p));
+        luacall(def_ref, late_lua_name(p), false, p);
         flush_list(def_ref);
     } else if (t == lua_refid_call) {
         luafunctioncall(late_lua_data(p));
     } else if (t == lua_refid_literal) {
-        luacall(late_lua_data(p), late_lua_name(p), true);
+        luacall(late_lua_data(p), late_lua_name(p), true, p);
     } else {
         /*tex Let's just ignore it, could be some user specific thing. */
     }

@@ -1,8 +1,8 @@
 #!/usr/bin/env texlua
 
--- Copyright 2016-2020 Brian Dunn
+-- Copyright 2016-2024 Brian Dunn
 
-printversion = "v0.83"
+printversion = "v0.916"
 requiredconfversion = "2" -- also at *lwarpmk.conf
 
 function printhelp ()
@@ -32,10 +32,11 @@ lwarpmk pdftohtml [-p project]:
 lwarpmk pdftosvg <list of file names>: Converts each PDF file to SVG.
 lwarpmk epstopdf <list of file names>: Converts each EPS file to PDF.
 lwarpmk clean [-p project]: Remove *.aux, *.toc, *.lof/t,
-    *.idx, *.ind, *.log, *_html_inc.*, .gl*,
+    *.idx, *.ind, *.bbl, *.log, *_html_inc.*, .gl*,
     *_html.pdf, *_html.html, *_html.sidetoc
 lwarpmk cleanall [-p project]: Remove auxiliary files, project.pdf, *.html
 lwarpmk cleanlimages: Removes all images from the "lateximages" directory.
+lwarpmk -v: Print the version number.
 lwarpmk -h: Print this help message.
 lwarpmk --help: Print this help message.
 
@@ -65,7 +66,9 @@ function splitfile (destfile,sourcefile)
 -- Split one large sourcefile into a number of files,
 -- starting with destfile.
 -- The file is split at each occurance of <!--|Start file|newfilename|*
+-- If lwarp is in use, sets usinglwarp.
 --
+usinglwarp = false ;
 print ("lwarpmk: Splitting " .. sourcefile .. " into " .. destfile) ;
 local sfile = io.open(sourcefile)
 io.output(destfile)
@@ -75,11 +78,23 @@ if ( (i~= nil) and (copen == "<!--") and (cstart == "Start file")) then
     -- split the file
     io.output(newfilename) ;
 else
+if ( (i~= nil) and (copen == "<!--") and (cstart == "Using lwarp")) then
+    -- verified the use of \usepackage{lwarp}
+    usinglwarp = true ;
+else
     -- not a splitpoint
     io.write (line .. "\n") ;
-end
+end end
 end -- do
 io.close(sfile)
+if ( usinglwarp == false ) then
+    print ("lwarpmk: ===")
+    print ("lwarpmk: \\usepackage{lwarp} was not detected.")
+    print ("lwarpmk: The HTML output will not be correct.")
+    print ("lwarpmk: Ensured that \\usepackage{lwarp} is enabled,")
+    print ("lwarpmk: then lwarpmk print and lwarpmk html again.")
+    print ("lwarpmk: ===")
+end
 end -- function
 
 function cvalueerror ( line, linenum , cvalue )
@@ -368,8 +383,15 @@ function pdftohtml ()
 -- Convert to text:
 print ("lwarpmk: Converting " .. sourcename
     .."_html.pdf to " .. sourcename .. "_html.html")
-os.execute("pdftotext  -enc " .. pdftotextenc .. "  -nopgbrk  -layout "
+err = os.execute("pdftotext  -enc " .. pdftotextenc .. "  -nopgbrk  -layout "
     .. sourcename .. "_html.pdf " .. sourcename .. "_html.html")
+if ( err ~= 0 ) then
+    print ("lwarpmk: ===")
+    print ("lwarpmk: Ensure that the Poppler utilities are installed." )
+    print ("lwarpmk: See the Lwarp manual: `Installing additional utilities'." )
+    print ("lwarpmk: ===")
+    os.exit(1)
+end
 -- Split the result into individual HTML files:
 splitfile (homehtmlfilename .. ".html" , sourcename .. "_html.html")
 end
@@ -379,12 +401,13 @@ function removeaux ()
 -- Remove auxiliary files:
 -- All .aux files are removed since there may be many bbl*.aux files.
 -- Also removes sourcename_html.pdf, sourcename_html.html,
--- and sourcename_html.sidetoc.
+-- and sourcename_html.sidetoc, plus comment_*.cut.
 --
 os.execute ( rmname .. " *.aux " ..
     sourcename ..".toc " .. sourcename .. "_html.toc " ..
     sourcename ..".lof " .. sourcename .. "_html.lof " ..
     sourcename ..".lot " .. sourcename .. "_html.lot " ..
+    sourcename ..".bbl " .. sourcename .. "_html.bbl " ..
     " *.idx " ..
     " *.ind " ..
     sourcename ..".ps " .. sourcename .."_html.ps " ..
@@ -393,7 +416,8 @@ os.execute ( rmname .. " *.aux " ..
     sourcename .. "_html.pdf " ..
     sourcename .. "_html.html " ..
     sourcename .. "_html.sidetoc " ..
-    " *_html_inc.* "
+    " *_html_inc.* " ..
+    " comment_*.cut"
     )
 end
 
@@ -491,7 +515,7 @@ executecheckerror (
         imagesdirectory .. dirslash .."lateximagetemp-%d" .. ".pdf" ..
         seqname ..
     -- Crop the image:
-    "pdfcrop  --hires  " .. imagesdirectory .. dirslash .. "lateximagetemp-" ..
+    "pdfcrop  --hires  --margins \"0 1 0 0\"  " .. imagesdirectory .. dirslash .. "lateximagetemp-" ..
         lwimgpage .. ".pdf " ..
         imagesdirectory .. dirslash .. lwimgname .. ".pdf" ..
         seqname ..
@@ -889,6 +913,12 @@ print ("lwarpmk: Done.")
 
 elseif (arg[1] == nil) then
 printhelp ()
+
+-- lwarpmk -v:
+
+elseif (arg[1] == "-v" ) then
+-- The version number has already been printed
+-- by the lwarpmk intro.
 
 -- lwarpmk -h or lwarpmk --help :
 

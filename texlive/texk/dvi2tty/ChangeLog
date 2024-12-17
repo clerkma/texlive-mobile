@@ -1,3 +1,69 @@
+2023-08-11  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvi2tty.h:
+	Enable to build with MS Visual C on Windows.
+	* dvi2tty.test, disdvi.test:
+	Make easier to test on Windows.
+
+2022-05-01  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	dvi2tty-6.0.2.
+	* dvi2tty.[ch], version.ac: Bump version to 6.0.2 20220501
+	Use VERSION in c-auto.h.
+	* disdvi.c: Bump version to 2.27 20220501
+	* disdvi.c: Add new options -u, -Eenc to support printing
+	multibite characters for SET[23] with PTEXENC library.
+	* dvi2tty.c: Exit with no error code by -h option.
+	* output/*.tty, output/*.dis: Moved the directory.
+	* dvi2tty.test, disdvi.test, Makefile.am,
+	test/ptex[12].{tex,dvi}, test/uptex[12].{tex,dvi},
+	output/ptex1Eu.tty, output/uptex1.tty,
+	output/ptex{1,2Eu}.dis, output/uptex{1,2Eu}.dis:
+	Add new tests.
+	* dvi2tty.1, disdvi.1: Update manuals.
+	* README.MAC, README.VMS, dvi2tty.DCL, UNIXtoMacLib/*:
+	Remove obsolete files.
+	* dvi2tty.[ch], dvistuff.c, disdvi.c:
+	Remove obsolete #defined VMS, THINK_C, AMIGA, MSDOS.
+
+2022-04-09  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	dvi2tty-6.0.1.
+	* dvistuff.c:
+	Accept FNTDEF between PRE--BOP and between EOP--BOP.
+	* test/fntdef0.tex, test/fntdef[0123].dvi,
+	  dvi2tty.test, fntdef0.tty, Makefile.am:
+	Add new tests.
+	* version.ac: Update version number.
+	https://github.com/texjporg/tex-jp-build/issues/138
+
+2022-03-11  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvi2tty.[ch], dvistuff.c: Error exit if fail to get font,
+	to avoid segmentation fault (do not occur in TeX-DVI, but
+	erroneously created in some situation).
+	https://github.com/aminophen/dviasm/issues/20
+	https://github.com/texjporg/tex-jp-build/issues/138
+
+2021-07-18  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvi2tty.c, disdvi.c: Apply patch of W32TeX by Kakuto-san.
+	(Windows only)
+
+2021-03-04  Karl Berry  <karl@freefriends.org>
+
+	* dvi2tty-src/dvi2tty.1: Fixes from Bjarni Ingi Gislason (and
+	further tweaks by me), bugs.debian.org/958728.
+
+2020-12-13  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvistuff.c: Avoid compiler warnings.
+
+2020-12-11  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvistuff.c: Allow output of Unicode strings on Windows console.
+	It works with "-Eu -q" option. (Windows only)
+
 2017-03-27  Karl Berry  <karl@freefriends.org>
 
 	* Makefile.am (AM_TESTS_ENVIRONMENT): use instead of TESTS_ENVIRONMENT.

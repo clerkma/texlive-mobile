@@ -1,3 +1,205 @@
+2024-11-09  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* configure.ac, version.h:
+	Version 3.7 [09-Nov-2024].
+	* fwrite.c: Better treatment of "item_12"
+	for compatibility with makeindex.
+	https://github.com/t-tk/upmendex-package/pull/9
+	* fread.c: Improve error message when reading index entries.
+	https://github.com/t-tk/upmendex-package/issues/13
+	* tests/{mendex,pprec,encode}.test: Split test scripts.
+	* tests/nest.test, tests/nested3.{ist,idx,ind},
+	tests/toodeep.idx: Add new tests for nested depth.
+	* tests/mendex.test, tests/tort{,W}.idx, tests/ok-tort.ind:
+	Add new tests for error/warning.
+	* Makefile.am: Adjust.
+
+2024-03-10  Karl Berry  <karl@tug.org>
+
+	* TL'24 release.
+
+2024-02-05  Karl Berry  <karl@freefriends.org>
+
+	* COPYRIGHT,
+	* main.c: 2024.
+
+2023-08-11  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* tests/mendex.test:
+	Make easier to test on Windows.
+
+2023-03-09  Karl Berry  <karl@tug.org>
+
+	* TL'23 release.
+
+2022-09-24  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* tests/mendex.test, tests/enc-{e,j,s,u}.idx, tests/enc.dic,
+	tests/jis.ist, tests/enc-x.ind, Makefile.am:
+	Add tests for guessing file encodings.
+
+2022-09-01 Hironori Kitagawa <h_kitagawa2001@yahoo.co.jp>
+
+	* main.c:
+	Initialization of infile_enc_auto is moved to ptexenc.
+	Moved calls of KP_entry_filetype() (after checking options).
+	These changes prevent unwanted looking for texmf.cnf.
+	https://github.com/texjporg/tex-jp-build/pull/144
+
+2022-06-12  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* main.c:
+	Support guessing input file encodings.
+	https://github.com/texjporg/tex-jp-build/issues/142
+	* tests/mendex.test, tests/{sjis,euc}.ist, Makefile.am:
+	Update tests.
+	* version.h: Date [12-Jun-2022]
+
+2022-05-22  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* fread.c:
+	Modify heuristic detection of page number types
+	for ambiguous ones between roman number and alphabet.
+	* tests/mendex.test, tests/pprec[567].ist,
+	tests/romalp[ABCD].idx, tests/romalpA-[56].ind,
+	tests/romalp[BD]-[567].ind, tests/romalpC-5.ind, Makefile.am:
+	Update tests.
+	* version.h: Date [22-May-2022]
+
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2022-03-07  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* fwrite.c: output to file instead of accumulating too much.
+	https://github.com/texjporg/tex-jp-build/issues/137
+
+2022-01-22  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* fread.c: Adapt to arguments of input_line2() in ptexenc-1.4.0.
+
+2022-01-18  Karl Berry  <karl@freefriends.org>
+
+	* COPYRIGHT,
+	* main.c: 2022.
+
+2021-09-19  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* fread.c:
+	Modify heuristic detection of page number types.
+	* tests/mendex.test, tests/range.idx, tests/range[123].ind,
+	tests/pprecB.idx, tests/pprec[34].ist, tests/pprecB-[034].ind:
+	Update tests.
+	* version.h: Date [19-Sep-2021]
+
+2021-09-18  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* fread.c, fwrite.c, sort.c, mendex.h, {,ex}var.h:
+	Extend levels of page numbers from 3 to 10
+	for compatibility with makeindex.
+	Fix a bug of page ranges with multi-level page numbers.
+	* fread.c:
+	Strict check for "page_precedence" and "page_compositor" in style file.
+	* fwrite.c:
+	Do not break lines before "delim_n".
+	* tests/mendex.test, tests/range.idx, tests/range[123].{ist,ind},
+	removed tests/rangetwo.*:
+	Update tests.
+	* version.h: Date [18-Sep-2021]
+
+2021-09-04  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* configure.ac, version.h:
+	Version 3.6 [4-Sep-2021].
+	* styfile.c, sort.c, fwrite.c, mendex.h, {,ex}var.h:
+	Support output order of symbols and numbers separately
+	when "symbol_flag" is 2 in style file.
+
+2021-08-29  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* sort.c:
+	Strict check for "character_order" in style file.
+	* fwrite.c:
+	Fix a bug when "symbol_flag" is 0.
+	* version.h: Date [29-Aug-2021]
+
+2021-08-28  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* styfile.c:
+	Add a alias "headings_flag" of the keyword "heading_flag"
+	in style file for compatibility with makeindex.
+	Warn if specifier in style file is unknown.
+	* version.h: Date [28-Aug-2021]
+
+2021-06-13  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* fwrite.c: Avoid segmentation fault for unwritable fopen.
+	Recognize symhead_{positive,negative} for non-default
+	character_order. 
+	* pageread.c, styfile.c: Exit code 255 for non-existent
+	style/log file.
+	* version.h: Date [13-Jun-2021], but still Version 3.5 (bugfix
+	only).
+
+2021-06-06  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* configure.ac, version.h:
+	Version 3.5 [6-Jun-2021].
+	* main.c, styfile.c:
+	Accept multiple numbers of style files by option '-s'.
+	* tests/mendex.test, tests/uni[12].ist:
+	Add a new test.
+	* mendex.1{,ja}, mendex.ja.txt:
+	Update documents.
+
+2021-05-19  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* main.c, configure.ac, version.h:
+	Version 3.4 [19-May-2021].
+	* styfile.c, var.h, exvar.h:
+	Fix a bug of reading keywords "setpage_prefix", "setpage_suffix"
+	in style file.
+	More strictly check string length.
+
+2021-05-09  Karl Berry  <karl@freefriends.org>
+
+	* mendex.h (page.attr): use int, not char, since we do signed
+	comparison and aarch64 apparently treats char as unsigned.
+	(index.words): use unsigned char for consistency.
+	* fwrite.c (printpage): factor out beginning/end page values.
+	* tests/rangetwo.idx,
+	* tests/rangetwo.ind,
+	* tests/rangetwo.ist: new simple test.
+	* tests/mendex.test: run the rangetwo test.
+	Report from Johannes Hielscher,
+	https://tug.org/pipermail/tlbuild/2021q1/004873.html.
+
+2021-03-23  Karl Berry  <karl@tug.org>
+
+	* TL'21.
+
+2021-03-21  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* main.c, configure.ac, version.h:
+	Version 3.3 [21-Mar-2021].
+	* fread.c: Fix a bug about page_precedence in style.
+	Thanks to Suzana Sagadin for the report.
+	* tests/pprec[012].ist, tests/pprecA.idx, tests/pprecA-[012].ind,
+	tests/mendex.test, Makefile.am:
+	Add new tests.
+
+2020-01-16  Karl Berry  <karl@freefriends.org>
+
+	* COPYRIGHT,
+	* main.c: 2021.
+
+2020-05-01  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* main.c, version.h, Makefile.{am.in}: Add bug report addresses
+	on command line help.
+	* main.c: Remove option "T" from command line help (w32 only).
+
 2020-01-16  Karl Berry  <karl@freefriends.org>
 
 	* configure.ac,

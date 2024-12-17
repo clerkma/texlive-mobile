@@ -51,12 +51,13 @@ struct DataMap
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
+			  hb_barrier () &&
 			  dataZ.sanitize (c, base, dataLength)));
   }
 
   protected:
   Tag		tag;		/* A tag indicating the type of metadata. */
-  LOffsetTo<UnsizedArrayOf<HBUINT8>>
+  NNOffset32To<UnsizedArrayOf<HBUINT8>>
 		dataZ;		/* Offset in bytes from the beginning of the
 				 * metadata table to the data for this tag. */
   HBUINT32	dataLength;	/* Length of the data. The data is not required to
@@ -71,9 +72,9 @@ struct meta
 
   struct accelerator_t
   {
-    void init (hb_face_t *face)
+    accelerator_t (hb_face_t *face)
     { table = hb_sanitize_context_t ().reference_table<meta> (face); }
-    void fini () { table.destroy (); }
+    ~accelerator_t () { table.destroy (); }
 
     hb_blob_t *reference_entry (hb_tag_t tag) const
     { return table->dataMaps.lsearch (tag).reference_entry (table.get_blob ()); }
@@ -84,7 +85,7 @@ struct meta
     {
       if (count)
       {
-	+ table->dataMaps.sub_array (start_offset, count)
+	+ table->dataMaps.as_array ().sub_array (start_offset, count)
 	| hb_map (&DataMap::get_tag)
 	| hb_map ([](hb_tag_t tag) { return (hb_ot_meta_tag_t) tag; })
 	| hb_sink (hb_array (entries, *count))
@@ -101,6 +102,7 @@ struct meta
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
+			  hb_barrier () &&
 			  version == 1 &&
 			  dataMaps.sanitize (c, this)));
   }
@@ -108,17 +110,20 @@ struct meta
   protected:
   HBUINT32	version;	/* Version number of the metadata table — set to 1. */
   HBUINT32	flags;		/* Flags — currently unused; set to 0. */
-  HBUINT32	dataOffset;	/* Per Apple specification:
+  HBUINT32	dataOffset;
+				/* Per Apple specification:
 				 * Offset from the beginning of the table to the data.
 				 * Per OT specification:
 				 * Reserved. Not used; should be set to 0. */
-  LArrayOf<DataMap>
-		dataMaps;	/* Array of data map records. */
+  Array32Of<DataMap>
+		dataMaps;/* Array of data map records. */
   public:
   DEFINE_SIZE_ARRAY (16, dataMaps);
 };
 
-struct meta_accelerator_t : meta::accelerator_t {};
+struct meta_accelerator_t : meta::accelerator_t {
+  meta_accelerator_t (hb_face_t *face) : meta::accelerator_t (face) {}
+};
 
 } /* namespace OT */
 

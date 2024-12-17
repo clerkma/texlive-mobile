@@ -2,7 +2,7 @@
 ** DVIToSVGActions.cpp                                                  **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -33,8 +33,7 @@ using namespace std;
 
 
 void DVIToSVGActions::reset() {
-	_usedChars.clear();
-	_usedFonts.clear();
+	FontManager::instance().resetUsedChars();
 	_bbox = BoundingBox();
 	_currentFontNum = -1;
 	_bgcolor = Color::TRANSPARENT;
@@ -93,10 +92,7 @@ void DVIToSVGActions::setChar (double x, double y, unsigned c, bool vertical, co
 	// record font names and chars. The various font sizes can be ignored here.
 	// For a given font object, Font::uniqueFont() returns the same unique font object for
 	// all fonts with the same name.
-	_usedChars[SVGTree::USE_FONTS ? font.uniqueFont() : &font].insert(c);
-
-	// However, we record all required fonts
-	_usedFonts.insert(&font);
+	FontManager::instance().addUsedChar(font, c);
 	_svg.appendChar(c, x, y);
 
 	static string fontname;
@@ -105,7 +101,7 @@ void DVIToSVGActions::setChar (double x, double y, unsigned c, bool vertical, co
 
 	GlyphMetrics metrics;
 	font.getGlyphMetrics(c, vertical, metrics);
-	auto pf = dynamic_cast<const PhysicalFont*>(&font);
+	auto pf = font_cast<const PhysicalFont*>(&font);
 	if (PhysicalFont::EXACT_BBOX && pf) {
 		GlyphMetrics exact_metrics;
 		pf->getExactGlyphBox(c, exact_metrics, vertical, &callback);
@@ -122,7 +118,7 @@ void DVIToSVGActions::setChar (double x, double y, unsigned c, bool vertical, co
 		bbox.transform(getMatrix());
 	embed(bbox);
 #if 0
-	XMLElement *rect = new XMLElement("rect");
+	auto rect = util::make_unique<XMLElement>("rect");
 	rect->addAttribute("x", x-metrics.wl);
 	rect->addAttribute("y", y-metrics.h);
 	rect->addAttribute("width", metrics.wl+metrics.wr);
@@ -130,26 +126,26 @@ void DVIToSVGActions::setChar (double x, double y, unsigned c, bool vertical, co
 	rect->addAttribute("fill", "none");
 	rect->addAttribute("stroke", "red");
 	rect->addAttribute("stroke-width", "0.5");
-	_svg.appendToPage(rect);
+	_svg.appendToPage(std::move(rect));
 	if (metrics.d > 0) {
-		XMLElement *line = new XMLElement("line");
+		auto line = util::make_unique<XMLElement>("line");
 		line->addAttribute("x1", x-metrics.wl);
 		line->addAttribute("y1", y);
 		line->addAttribute("x2", x+metrics.wr);
 		line->addAttribute("y2", y);
 		line->addAttribute("stroke", "blue");
 		line->addAttribute("stroke-width", "0.5");
-		_svg.appendToPage(line);
+		_svg.appendToPage(std::move(line));
 	}
 	if (metrics.wl > 0) {
-		XMLElement *line = new XMLElement("line");
+		auto line = util::make_unique<XMLElement>("line");
 		line->addAttribute("x1", x);
 		line->addAttribute("y1", y-metrics.h);
 		line->addAttribute("x2", x);
 		line->addAttribute("y2", y+metrics.d);
 		line->addAttribute("stroke", "blue");
 		line->addAttribute("stroke-width", "0.5");
-		_svg.appendToPage(line);
+		_svg.appendToPage(std::move(line));
 	}
 #endif
 }
@@ -166,15 +162,13 @@ void DVIToSVGActions::setRule (double x, double y, double height, double width) 
 		return;
 
 	// (x,y) is the lower left corner of the rectangle
-	auto rect = util::make_unique<XMLElement>("rect");
+	auto rect = util::make_unique<SVGElement>("rect");
 	rect->addAttribute("x", x);
 	rect->addAttribute("y", y-height);
 	rect->addAttribute("height", height);
 	rect->addAttribute("width", width);
-	if (!getMatrix().isIdentity())
-		rect->addAttribute("transform", getMatrix().toSVG());
-	if (getColor() != Color::BLACK)
-		rect->addAttribute("fill", _svg.getColor().svgColorString());
+	rect->setTransform(getMatrix());
+	rect->setFillColor(_svg.getColor());
 	_svg.appendToPage(std::move(rect));
 
 	// update bounding box
@@ -218,26 +212,31 @@ void DVIToSVGActions::special (const string &spc, double dvi2bp, bool preprocess
  *  @param[in] c array with 10 components representing \\count0 ... \\count9. c[0] contains the
  *               current (printed) page number (may differ from page count) */
 void DVIToSVGActions::beginPage (unsigned pageno, const vector<int32_t>&) {
-	SpecialManager::instance().notifyBeginPage(pageno, *this);
 	_svg.newPage(++_pageCount);
 	_bbox = BoundingBox();  // clear bounding box
 	_boxes.clear();
+	SpecialManager::instance().notifyBeginPage(pageno, *this);
 }
 
 
 /** This method is called when an "end of page (eop)" command was found in the DVI file. */
 void DVIToSVGActions::endPage (unsigned pageno) {
-	SpecialManager::instance().notifyEndPage(pageno, *this);
+	try {
+		SpecialManager::instance().notifyEndPage(pageno, *this);
+	}
+	catch (const SpecialException &e) {
+		Message::estream(true) << "error in special: " << e.what() << '\n';
+	}
 	Matrix matrix = _dvireader->getPageTransformation();
 	_svg.transformPage(matrix);
 	if (_bgcolor != Color::TRANSPARENT) {
 		// create a rectangle filled with the background color
-		auto rect = util::make_unique<XMLElement>("rect");
+		auto rect = util::make_unique<SVGElement>("rect");
 		rect->addAttribute("x", _bbox.minX());
 		rect->addAttribute("y", _bbox.minY());
 		rect->addAttribute("width", _bbox.width());
 		rect->addAttribute("height", _bbox.height());
-		rect->addAttribute("fill", _bgcolor.svgColorString());
+		rect->setFillColor(_bgcolor);
 		_svg.prependToPage(std::move(rect));
 	}
 }

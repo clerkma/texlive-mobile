@@ -1,17 +1,17 @@
 ## Makefile.am for the TeX Live subdirectory texk/dviout-util/
 ##
-## Copyright (C) 2018-2019 Japanese TeX Development Community <issue@texjp.org>
+## Copyright (C) 2018-2021 Japanese TeX Development Community <issue@texjp.org>
 ## You may freely use, modify and/or distribute this file.
 ##
-AM_CPPFLAGS = $(PTEXENC_INCLUDES) $(KPATHSEA_INCLUDES) -DUNIX -DKPATHSEA -DPTEXENC
+AM_CPPFLAGS = $(PTEXENC_INCLUDES) $(KPATHSEA_INCLUDES) -DKPATHSEA -DPTEXENC
 AM_CFLAGS = $(WARNING_CFLAGS)
 
 $(dviout_util_OBJECTS): $(KPATHSEA_DEPEND) $(PTEXENC_DEPEND)
 
 bin_PROGRAMS = dvispc chkdvifont
 
-dvispc_SOURCES  = dvispc.c
-chkdvifont_SOURCES = chkdvifont.c dd.h msvcdir.h
+dvispc_SOURCES  = dvispc.c common.h
+chkdvifont_SOURCES = chkdvifont.c dd.h msvcdir.h common.h
 
 LDADD = $(KPATHSEA_LIBS)
 dvispc_LDADD = $(PTEXENC_LIBS) $(LDADD)
@@ -47,7 +47,16 @@ EXTRA_DIST += tests/oldindep.spc \
 	tests/firstpn.dry \
 	tests/annot.tex tests/annot.dvi \
 	tests/longspec.tex tests/longspec.dvi \
-	tests/flatnest.tex tests/flatnest.dvi
+	tests/flatnest.tex tests/flatnest.dvi \
+	tests/jisx0208.dvi tests/jisx0208.txt \
+	tests/putj.dump.dvi tests/putj.txt \
+	tests/put.dump.dvi tests/put.txt \
+	tests/fntdef0.tex \
+	tests/fntdef0.dvi tests/fntdef0.txt \
+	tests/fntdef1.dvi tests/fntdef1.txt \
+	tests/fntdef2.dvi tests/fntdef2.txt \
+	tests/fntdef3.dvi tests/fntdef3.txt \
+	tests/fntdef0-dtl.txt tests/fntdef3-dtl.txt
 DISTCLEANFILES = x*oldindep.spc \
 	x*oldindepa.txt x*oldindepax.dvi \
 	x*oldindep.dry x*oldindepout.dvi \
@@ -57,7 +66,8 @@ DISTCLEANFILES = x*oldindep.spc \
 	x*reverse.dry x*reverseout.dvi \
 	x*first.dry x*firstout.dvi \
 	x*firstpn.dry \
-	x*write.dvi x*writeout.dvi
+	x*write.dvi x*writeout.dvi \
+	*.da.txt *.da.dvi
 
 ## chkdvifont.test
 EXTRA_DIST += tests/oldindep.cfn \

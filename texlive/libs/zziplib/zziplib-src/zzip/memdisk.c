@@ -1,4 +1,3 @@
-
 /*
  * NOTE: this is part of libzzipmmapped (i.e. it is not libzzip).
  *                                            ==================
@@ -52,15 +51,7 @@
 #endif
 
 #define ZZIP_EXTRA_zip64 0x0001
-typedef struct _zzip_extra_zip64
-{                               /* ZIP64 extended information extra field */
-    zzip_byte_t z_datatype[2];  /* Tag for this "extra" block type */
-    zzip_byte_t z_datasize[2];  /* Size of this "extra" block */
-    zzip_byte_t z_usize[8];     /* Original uncompressed file size */
-    zzip_byte_t z_csize[8];     /* Size of compressed data */
-    zzip_byte_t z_offset[8];    /* Offset of local header record */
-    zzip_byte_t z_diskstart[4]; /* Number of the disk for file start */
-} zzip_extra_zip64;
+typedef struct zzip_extra_zip64 zzip_extra_zip64;
 
 /*forward*/
 
@@ -114,7 +105,7 @@ zzip_mem_disk_fdopen(int fd)
     ___ ZZIP_MEM_DISK *dir = zzip_mem_disk_new();
     if (zzip_mem_disk_load(dir, disk) == -1)
     {
-       debug2("unable to load disk fd %s", fd);
+       debug2("unable to load disk fd %i", fd);
     }
     return dir;
     ____;
@@ -222,6 +213,14 @@ zzip_mem_entry_new(ZZIP_DISK * disk, ZZIP_DISK_ENTRY * entry)
     item->zz_filetype = zzip_disk_entry_get_filetype(entry);
 
     /*
+     * If zz_data+zz_csize exceeds the size of the file, bail out
+     */
+    if ((item->zz_data + item->zz_csize) < disk->buffer ||
+	(item->zz_data + item->zz_csize) >= disk->endbuf)
+    {
+	goto error;
+    }
+   /*
      * If the file is uncompressed, zz_csize and zz_usize should be the same
      * If they are not, we cannot guarantee that either is correct, so ...
      */
@@ -236,10 +235,10 @@ zzip_mem_entry_new(ZZIP_DISK * disk, ZZIP_DISK_ENTRY * entry)
     }
 
     {   /* copy the extra blocks to memory as well (maximum 64K each) */
-        zzip_size_t /*    */ ext1_len = zzip_disk_entry_get_extras(entry);
-        char *_zzip_restrict ext1_ptr = zzip_disk_entry_to_extras(entry);
-        zzip_size_t /*    */ ext2_len = zzip_file_header_get_extras(header);
-        char *_zzip_restrict ext2_ptr = zzip_file_header_to_extras(header);
+        zzip_size_t /*           */ ext1_len = zzip_disk_entry_get_extras(entry);
+        zzip_byte_t *_zzip_restrict ext1_ptr = zzip_disk_entry_to_extras(entry);
+        zzip_size_t /*           */ ext2_len = zzip_file_header_get_extras(header);
+        zzip_byte_t *_zzip_restrict ext2_ptr = zzip_file_header_to_extras(header);
 
         if (ext1_len > 0 && ext1_len <= 65535)
         {
@@ -272,14 +271,14 @@ zzip_mem_entry_new(ZZIP_DISK * disk, ZZIP_DISK_ENTRY * entry)
     }
     {
         /* override sizes/offsets with zip64 values for largefile support */
-        zzip_extra_zip64 *block = (zzip_extra_zip64 *)
-            zzip_mem_entry_find_extra_block(item, ZZIP_EXTRA_zip64, sizeof(zzip_extra_zip64));
+        struct zzip_extra_zip64 *block = (struct zzip_extra_zip64 *)
+            zzip_mem_entry_find_extra_block(item, ZZIP_EXTRA_ZIP64_MAGIC, sizeof(struct zzip_extra_zip64));
         if (block)
         {
-            item->zz_usize = ZZIP_GET64(block->z_usize);
-            item->zz_csize = ZZIP_GET64(block->z_csize);
-            item->zz_offset = ZZIP_GET64(block->z_offset);
-            item->zz_diskstart = ZZIP_GET32(block->z_diskstart);
+            item->zz_usize = zzip_extra_zip64_usize(block);
+            item->zz_csize = zzip_extra_zip64_csize(block);
+            item->zz_offset = zzip_extra_zip64_offset(block);
+            item->zz_diskstart = zzip_extra_zip64_diskstart(block);
         }
     }
     /* NOTE:
@@ -305,7 +304,7 @@ zzip_mem_entry_extra_block(ZZIP_MEM_ENTRY * entry, short datatype)
    return zzip_mem_entry_find_extra_block(entry, datatype, 16);
 }
 
-/* get extra block.
+/** get extra block.
  * This function finds an extra block for the given datatype code.
  * The returned EXTRA_BLOCK is still in disk-encoding but
  * already a pointer into an allocated heap space block.
@@ -352,7 +351,7 @@ zzip_mem_entry_find_extra_block(ZZIP_MEM_ENTRY * entry, short datatype, zzip_siz
     }
 }
 
-/** => zzip_mem_disk_unload
+/** => zzip_mem_disk_close
  * This function ends usage of a file entry in a disk.
  */
 void
@@ -371,7 +370,7 @@ zzip_mem_entry_free(ZZIP_MEM_ENTRY * _zzip_restrict item)
     }
 }
 
-/* => zzip_mem_disk_close
+/** => zzip_mem_disk_close
  * This function will trigger an underlying disk_close 
  */
 void
@@ -389,7 +388,7 @@ zzip_mem_disk_unload(ZZIP_MEM_DISK * dir)
     dir->disk = 0;
 }
 
-/* end usage.
+/** end usage.
  * This function closes the dir and disk handles.
  */
 void
@@ -537,7 +536,7 @@ error:
     return NULL;
 }
 
-/** => zzip_mem_entry_open
+/** => zzip_mem_disk_open
  * This function opens a file by name from an openend disk.
  */
 zzip__new__ ZZIP_MEM_DISK_FILE *

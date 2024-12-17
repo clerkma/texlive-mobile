@@ -2,7 +2,7 @@
 ** XMLNode.hpp                                                          **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -62,6 +62,7 @@ class XMLNode {
 		XMLNode* parent () const  {return _parent;}
 		XMLNode* prev () const    {return _prev;}
 		XMLNode* next () const    {return _next.get();}
+		XMLElement* nextElement () const;
 
 		static bool KEEP_ENCODED_FILES;
 
@@ -118,6 +119,7 @@ class XMLElement : public XMLNode {
 	public:
 		struct Attribute {
 			Attribute (std::string nam, std::string val) : name(std::move(nam)), value(std::move(val)) {}
+			bool inheritable () const;
 			std::string name;
 			std::string value;
 		};
@@ -128,7 +130,7 @@ class XMLElement : public XMLNode {
 		explicit XMLElement (std::string name);
 		XMLElement (const XMLElement &node);
 		XMLElement (XMLElement &&node) noexcept;
-		~XMLElement ();
+		~XMLElement () override;
 		std::unique_ptr<XMLNode> clone () const override {return util::make_unique<XMLElement>(*this);}
 		void clear () override;
 		void addAttribute (const std::string &name, const std::string &value);
@@ -146,7 +148,7 @@ class XMLElement : public XMLNode {
 		XMLNode* firstChild () const {return _firstChild.get();}
 		XMLNode* lastChild () const {return _lastChild;}
 		std::ostream& write (std::ostream &os) const override;
-		bool empty () const {return !_firstChild;}
+		bool empty (bool ignoreWhitespace=false) const;
 		Attributes& attributes () {return _attributes;}
 		const Attributes& attributes () const {return _attributes;}
 		XMLNodeIterator begin () {return XMLNodeIterator(_firstChild.get());}
@@ -157,7 +159,7 @@ class XMLElement : public XMLNode {
 		const XMLElement* toElement () const override {return this;}
 		const Attribute* getAttribute (const std::string &name) const;
 
-		static std::unique_ptr<XMLNode> remove (XMLNode *child);
+		static std::unique_ptr<XMLNode> detach (XMLNode *node);
 		static XMLElement* wrap (XMLNode *first, XMLNode *last, const std::string &name);
 		static XMLNode* unwrap (XMLElement *child);
 

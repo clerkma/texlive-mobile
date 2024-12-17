@@ -1,11 +1,16 @@
 ## This file is part of dvisvgm
-## Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>
+## Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>
 ##
 ## Process this file with automake.
 
+include $(top_srcdir)/dvisvgm-src/aminclude_static.am
+
 AUTOMAKE_OPTIONS = foreign
 EXTRA_DIST = COPYING
-SUBDIRS = libs src #not for TL: m4 tests doc
+SUBDIRS = libs src
+if !TEXLIVE_BUILD
+SUBDIRS += tests doc
+endif
 ACLOCAL_AMFLAGS = -I m4
 
 if USE_BUNDLED_LIBS

@@ -2,7 +2,7 @@
 ** PathClipper.hpp                                                      **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -36,16 +36,18 @@ class PathClipper {
 		using CurvedPath = GraphicsPath<double>;
 
 	public:
-		void intersect (const CurvedPath &p1, const CurvedPath &p2, CurvedPath &result);
+		CurvedPath intersect (const CurvedPath &p1, const CurvedPath &p2);
+		CurvedPath unite (const CurvedPath &p1, const CurvedPath &p2);
 
 	protected:
+		CurvedPath combine (ClipperLib::ClipType op, const CurvedPath &p1, const CurvedPath &p2);
 		void flatten (const CurvedPath &gp, ClipperLib::Paths &polygons);
 		void reconstruct (const ClipperLib::Path &polygon, CurvedPath &path);
 		void reconstruct (const ClipperLib::Paths &polygons, CurvedPath &path);
 		static void callback (IntPoint &e1bot, IntPoint &e1top, IntPoint &e2bot, IntPoint &e2top, IntPoint &ip);
 
 	private:
-		std::vector<Bezier> _curves;
+		std::vector<CubicBezier> _curves;
 		int _numLines=0;  ///< negative number of straight line segments in path been processed
 };
 

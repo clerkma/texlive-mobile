@@ -4,6 +4,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.3.3] - 2021-09-12
+
+### Fixed
+
+- [#759](https://github.com/libgd/libgd/issues/759) update cmake to generate config.h in the build dir
+- [#756](https://github.com/libgd/libgd/issues/756) 2.3.3 release
+- [#750](https://github.com/libgd/libgd/issues/750) gdPutBuf return value check
+- [#729](https://github.com/libgd/libgd/issues/729) HEIF builds fail with latest distros
+- [#678](https://github.com/libgd/libgd/issues/678) segfault in heif tests due to missing label.heic
+- [#677](https://github.com/libgd/libgd/issues/677) Test failure avif/compare_avif_to_png with libavif-0.8.2
+- [#661](https://github.com/libgd/libgd/issues/661) imagecopyresampled() produce artifacts on transparent PNG
+- [#611](https://github.com/libgd/libgd/issues/611) Fixes to build v2.3.0 on Windows with MinGW-w64
+- [#415](https://github.com/libgd/libgd/issues/415) optimize option in gif animation causes segfault
+- [#331](https://github.com/libgd/libgd/issues/331) _gdContributionsCalc() always uses DEFAULT_BOX_RADIUS
+- [#320](https://github.com/libgd/libgd/issues/320) gdImageRotateInterpolated() converts the source image to truecolor
+- [#249](https://github.com/libgd/libgd/issues/249) CMake and Makefiles build broken on Windows
+- [#93 ](https://github.com/libgd/libgd/issues/93) gdImageScaleTwoPass() looses top row and left column
+
+## [2.3.2] - 2021-03-06
+
+### Fixed
+
+- gif: allow decodin when both Global and Local Colormaps (#494)
+
+### Added
+
+- avif: Support for AVIF images via libavif (#557)
+- heif: Support for HEIF/AVIF images via libheif (#395) (#557)
+- webp: Drop ../deps/ search when building with cmake
+- Windows: Remove unused snprintf fallback
+
+## [2.3.1] - 2021-01-30
+
+### Fixed
+
+- Fix potential integer overflow detected by oss-fuzz
+- Fix #615 using libraqm
+- Fix #303: gdlib.pc: use Requires instead of Libs (#537)
+- Fixed #472: Adjusting CMakeLists.txt (#582)
+- Fix #615: gdImageStringFT() fails for empty strings as of libgd 2.3.0 (#633)
+- Fix typo but preserve BC
+- Compute average in gdGuessBackgroundColorFromCorners properly (#483)
+- CMakeLists.txt: zlib is enabled implicitly
+- src/config.h.cmake: replace #cmakedefine01 with #define in macro ENABLE_GD_FOORMATS (#622)
+- gdlib.pc: use prefixes for pkgconfig file
+- cmake: remove required host includes (#617)
+- Move initial declaration out of `for` loop
+- distribute getlib script
+- Make gd_nnquant.c less likely to introduce duplicate definitions (#601)
+- webp: support pkg-config file
+- gd_io: replace internal Putchar with gdPutC
+- gd_io: trim unused Putword function
+
+### Added
+
+- Add REQUIRED to FIND_PACKAGE(ZLIB)
+- README: add some libraries info (#631)
+- VMS/README.VMS: Add dropping support information (#614)
+
 ## [2.3.0] - 2020-03-22
 
 ### Security

@@ -1,6 +1,7 @@
+dnl $Id: configure.ac 70884 2024-04-07 22:16:46Z karl $
 dnl Process this file with autoconf to produce a configure script.
 dnl
-dnl   Copyright (C) 2016 Karl Berry <tex-live@tug.org>
+dnl   Copyright (C) 2016-2024 Karl Berry <tex-live@tug.org>
 dnl   Copyright (C) 2009-2013 Peter Breitenlohner <tex-live@tug.org>
 dnl
 dnl   This file is free software; the copyright holder
@@ -14,9 +15,12 @@ AC_CONFIG_SRCDIR([zlib-src/zlib.h])
 AC_CONFIG_AUX_DIR([../../build-aux])
 AC_CONFIG_MACRO_DIR([../../m4])
 
+
 KPSE_BASIC([zlib])
 
 AC_PROG_CC
+AM_PROG_AS
+AM_PROG_AR
 AC_PROG_RANLIB
 AC_PROG_LN_S
 
@@ -25,15 +29,6 @@ KPSE_COMPILER_VISIBILITY
 AC_CONFIG_HEADERS([config.h])[]dnl unused, to avoid zillions of -D's on command line
 
 AM_CONDITIONAL([build], [test "x$enable_build" != xno])
-
-if test "x$GCC" = xyes; then
-  CFLAGS=${CFLAGS-"-O3"}
-fi
-
-AC_HEADER_STDC
-if test "x$ac_cv_header_stdc" != xyes; then
-  AC_MSG_ERROR([Sorry, can't do anything for you without header_stdc])
-fi
 
 AC_CHECK_HEADER([errno.h],
                 [ZLIB_DEFINES=],

@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////
 // This file is part of dvisvgm -- a fast DVI to SVG converter          //
-// Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   //
+// Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   //
 //                                                                      //
 // This program is free software; you can redistribute it and/or        //
 // modify it under the terms of the GNU General Public License as       //
@@ -22,20 +22,20 @@ Martin Gieseking <@PACKAGE_BUGREPORT@>
 :man source: dvisvgm
 :man version: @VERSION@
 :man manual: dvisvgm Manual
-:revdate: 2020-03-19 22:06 +0100
+:revdate: 2024-02-04 15:33 +0100
 
 Name
 ----
-dvisvgm - converts DVI and EPS files to the XML-based SVG format
+dvisvgm - converts DVI, EPS, and PDF files to the XML-based SVG format
 
 
 Synopsis
 --------
-*dvisvgm* [ 'options' ] 'file' [.dvi]
+*dvisvgm* ['options'] 'file'[.dvi]
 
-*dvisvgm* --eps [ 'options' ] 'file' [.eps]
+*dvisvgm* --eps ['options'] 'file1'[.eps] 'file2'[.eps] ...
 
-*dvisvgm* --pdf [ 'options' ] 'file' [.pdf]
+*dvisvgm* --pdf ['options'] 'file'[.pdf]
 
 
 Description
@@ -69,9 +69,11 @@ to embed the font data into the SVG files. Unfortunately, only few SVG renderers
 elements yet. Most web browsers and vector graphics applications don't evaluate them properly so
 that the text components of the resulting graphics might look strange. In order to create more
 compatible SVG files, command-line option *--no-fonts* can be given to replace the font elements
-by plain graphics paths. Most web browsers (but only few external SVG renderers) also suppport
+by plain graphics paths. Most web browsers (but only few external SVG renderers) also support
 WOFF and WOFF2 fonts that can be used instead of the default SVG fonts. Option *--font-format*
-offers the functionality to change the format applied to the fonts being embedded.
+offers the functionality to change the format applied to the fonts being embedded. This, however,
+only works when converting DVI files. Text present in PDF and PostScript files is always
+converted to path elements.
 
 
 Options
@@ -91,9 +93,12 @@ to +--exact+, +--exa+, or +--ex+. In case of an ambiguous abbreviation, dvisvgm 
 message together with all matching option names.
 
 *-b, --bbox*='fmt'::
-Sets the bounding box of the generated graphic to the specified format. The parameter 'fmt'
-takes either one of the format specifiers listed below, or a sequence of four comma- or
-whitespace-separated length values 'x1', 'y1', 'x2' and 'y2'. The latter define the absolute
+Sets the bounding box of the generated SVG graphic to the specified format. This option only affects
+the conversion of DVI files. SVG documents generated from PDF and PostScript always inherit the
+bounding boxes of the input files.
++
+Parameter 'fmt' takes either one of the format specifiers listed below, or a sequence of four comma-
+or whitespace-separated length values 'x1', 'y1', 'x2' and 'y2'. The latter define the absolute
 coordinates of two diagonal corners of the bounding box. Each length value consists of a floating
 point number and an optional length unit (pt, bp, cm, mm, in, pc, dd, cc, or sp). If the unit is
 omitted, TeX points (pt) are assumed.
@@ -201,10 +206,28 @@ In order to apply these color names rather than their RGB values, call dvisvgm w
 Adds comments with further information about selected data to the SVG file. Currently, only
 font elements and font CSS rules related to native fonts are annotated.
 
+*--currentcolor*[='color']::
+This option tells dvisvgm to replace the specified color with CSS variable `currentColor` which
+holds the current foreground color set by CSS property `color`. This way an application or website
+can change the color via CSS without the need to modify the SVG code.
++
+The optional argument of `--currentcolor` specifies the RGB color value to be replaced and must
+be given as either https://www.w3.org/TR/css-color/#typedef-hex-color[six or three digit hex color value]
+preceded by character `#`, e.g. `#0000ff` or `#00f` for blue. If the optional argument is omitted, black
+is assumed.
+
+*--embed-bitmaps*::
+Embeds the contents of bitmap files into the generated SVG files instead of adding file references.
+Because of the base64-encoded data, the SVG files are usually much bigger but at the same time
+more portable because they don't rely on external bitmap files.
++
+This option only affects bitmaps referenced in DVI/XDV files, e.g. added by +\includegraphics+.
+Bitmaps in PostScript or PDF files are always embedded. Also see option *bitmap-format*.
+
 *-E, --eps*::
-If this option is given, dvisvgm does not expect a DVI but an EPS input file, and tries to convert
-it to SVG. In order to do so, a single 'psfile' special command is created and forwarded to the
-PostScript special handler.
+If this option is given, dvisvgm does not expect a DVI but a single or multiple EPS input files,
+and tries to convert them to SVG. In order to do so, a single 'psfile' special command is created
+and forwarded to the PostScript special handler.
 This option is only available if dvisvgm was built with PostScript support enabled, and requires
 Ghostscript to be available. See option *--libgs* for further information.
 
@@ -216,15 +239,24 @@ dimensions, they don't necessarily correspond with the bounds of the visual glyp
 and/or height of some glyphs may be larger (or smaller) than the respective TFM values. As a result,
 this can lead to clipped characters at the bounds of the SVG graphics. With option *--exact-bbox*
 given, dvisvgm analyzes the actual shape of each character and derives a usually tight bounding box.
++
+This option only affects the processing of DVI files. When converting EPS or PDF files, the bounding
+box information stored in these files are used to derive the SVG bounding box.
 
 *-f, --font-format*='format'::
-Selects the file format used to embed the font data into the SVG files. Following formats are
-supported: +SVG+ (that's the default), +TTF+ (TrueType), +WOFF+, and +WOFF2+ (Web Open Font Format
-version 1 and 2).
+Selects the file format used to embed font data into the generated SVG output when converting DVI
+or PDF files. The latter require the new mutool-based PDF handler introduced with dvisvgm 3.0 (also
+see option *--pdf*). Option *--font-format* has no effect when converting PDF or PostScript files
+using Ghostscript. Text fragments present in these files are then always converted to path elements.
++
+Following formats are supported: +SVG+ (that's the default), +TTF+ (TrueType), +WOFF+, and +WOFF2+
+(Web Open Font Format version 1 and 2).
 By default, dvisvgm creates unhinted fonts that might look bad on low-resolution devices. In order to
 improve the display quality, the generated TrueType, WOFF, or WOFF2 fonts can be autohinted. The
 autohinter is enabled by appending +,autohint+ or +,ah+ to the font format,
-e.g. +--font-format=woff,autohint+ or +--fwoff,ah+.
+e.g. +--font-format=woff,autohint+ or +--fwoff,ah+. This functionality requires the
+https://freetype.org/ttfautohint[ttfautohint library]. If it's not available or can't be found,
+dvisvgm issues a corresponding warning message.
 +
 Option *--font-format* is only available if dvisvgm was built with WOFF support enabled.
 
@@ -348,18 +380,27 @@ yellow filled rectangles with blue frames.
 
 *-l, --list-specials*::
 Prints a list of registered special handlers and exits. Each handler processes a set of special
-statements belonging to the same category. In most cases, the categories are identified by the
-prefix of the special statements. It's usually a leading string followed by a colon or a blank,
+statements belonging to the same category. In most cases, these categories are identified by the
+prefix of the special statements which is usually a leading string followed by a colon or a blank,
 e.g. 'color' or 'ps'. The listed handler names, however, don't need to match these prefixes, e.g.
 if there is no common prefix or if functionality is split into separate handlers in order to allow
-to disable them separately with option *--no-specials*. All special statements not covered by one
-of the special handlers are silently ignored.
+them to be disabled separately using option *--no-specials*. All special statements not covered by
+one of the special handlers are silently ignored.
 
 *-M, --mag*='factor'::
 Sets the magnification factor applied in conjunction with Metafont calls prior tracing the glyphs.
 The larger this value, the better the tracing results. Nevertheless, large magnification values
 can cause Metafont arithmetic errors due to number overflows. So, use this option with care.
 The default setting usually produces nice results.
+
+*--message*='text'::
+Prints a given message to the console after an SVG file has been written. Argument 'text' may consist
+of static text and the macros listed below in the description of special command +dvisvgm:raw+.
+For example, +--message="page {?pageno} written to {?svgfile}"+ prints the message with the macros
+expanded after the conversion of each page of a DVI or PDF file or after processing an EPS file.
++
+The output of option *--message* is not affected by the specified verbosity level, i.e. it prints
+the text even with +--verbosity=0+.
 
 *--no-merge*::
 Puts every single character in a separate 'text' element with corresponding 'x' and 'y' attributes.
@@ -401,6 +442,10 @@ are performed by running separate optimizer modules specified by optional argume
 It may consist of a single module name or a comma-separated list of several module names.
 The corresponding modules are executed one by one in the given order and thus transform the
 XML tree gradually.
+A leading hyphen (+-+) can be used to exclude a module from processing. For example
++-Oall,-collapse-groups+ performs all optimizations except +collapse-groups+. If the first
+module name in the list starts with a hyphen, dvisvgm automatically inserts +all+ at the
+beginning, i.e. +-O-collapse-groups+ is identical to +-Oall,-collapse-groups+.
 +
 The following list describes the currently available optimizer modules.
 
@@ -413,8 +458,8 @@ The following list describes the currently available optimizer modules.
 
   *all*;;
   Performs all optimizations listed below. This is also the default if option *--optimize* is
-  used without argument. The modules are executed in a predefined order that usually leads to the
-  best results. *all* can't be combined with other module names.
+  used without any arguments. The modules are executed in a predefined order that usually leads
+  to the best results. *all* must be the only or the first entry in the list of module names.
 
   *collapse-groups*;;
   Combines nested group elements (+<g>+...+</g>+) that contain only a single group each. If possible,
@@ -428,7 +473,12 @@ The following list describes the currently available optimizer modules.
   inheritable properties, such as +fill+ or +stroke-width+, into account and only removes them from
   an element if none of the other attributes, like +id+, prevents this.
 
-  *remove-clippath*;;
+  *reassign-clippaths*;;
+  Collects all +clipPath+ elements that differ only by their IDs. Afterwards, the duplicates are
+  removed so that only one remains. All +clip-path+ attributes referencing one of the duplicates
+  are updated accordingly.
+
+  *remove-clippaths*;;
   Removes all redundant 'clipPath' elements. This optimization was already present in former versions
   of dvisvgm and was always applied by default. This behavior is retained, i.e. dvisvgm executes
   this module even if option *--optimize* is not given. You can use argument 'none' to prevent that.
@@ -446,16 +496,24 @@ The following list describes the currently available optimizer modules.
   expression is used.
 
 *-o, --output*='pattern'::
-Sets the pattern specifying the names of the generated SVG files. Parameter 'pattern' is a string
-that may contain static character sequences as well as the variables +%f+, +%p+, +%P+, +%hd+,
-+%ho+, and +%hc+. +%f+ expands to the base name of the DVI file, i.e. the filename without
-suffix, +%p+ is the current page number, and +%P+ the total number of pages in the DVI file. An
-optional number (0-9) given directly after the percent sign specifies the minimal number of digits
-to be written. If a particular value consists of less digits, the number is padded with leading
-zeros. Example: +%3p+ enforces 3 digits for the current page number (001, 002, etc.). Without an
-explicit width specifier, +%p+ gets the same number of digits as +%P+.
+Sets the pattern that determines the names of the generated SVG files, optionally including the file
+path. The required parameter 'pattern' may consist of an arbitrary sequence of characters which make
+up the filenames or file paths relative to the current working directory. With the exception of the
+following mentioned variables and expressions, all characters are treated as static parts of the
+filenames/folders and are therefore identical for all pages processed during a run of dvisvgm.
+The strings +%f+, +%p+, +%P+, +%n+, +%N+, +%hd+, +%ho+, and +%hc+ are variables that can be used as
+part of the pattern. +%f+ expands to the base name of the DVI file, i.e. the filename without suffix,
++%p+ is the current page number, and +%P+ the total number of pages in the DVI file. The variables
++%n+ and +%N+ expand to the number of the current file being converted (starting at 1) and the total
+number of files given, respectively.
 +
-If you need more control over the numbering, you can use arithmetic expressions as part of a pattern.
+An optional number (0-9) specified directly after the percent sign of a variable holding a numeric
+value denotes the minimal number of digits to be created. If a particular value consists of less
+digits, the number is padded with leading zeros.
+Example: +%3p+ enforces 3 digits for the current page number (001, 002, etc.). Without an explicit
+width specifier, +%p+ gets the same number of digits as +%P+.
++
+If you need more control over the numbering, you can use arithmetic expressions as part of the pattern.
 The syntax is +%(+'expr'+)+ where 'expr' may contain additions, subtractions, multiplications, and
 integer divisions with common precedence. The variables *p* and *P* contain the current page number
 and the total number of pages, respectively. For example, +--output="%f-%(p-1)"+ creates filenames
@@ -463,7 +521,8 @@ where the numbering starts with 0 rather than 1.
 +
 The variables +%hX+ contain different hash values computed from the DVI page data and the options
 given on the command-line. +%hd+ and +%hc+ are only set if option *--page-hashes* is present.
-Otherwise, it's empty. For further information, see the description of option *--page-hashes* below.
+Otherwise, they are empty. For further information, see the description of option *--page-hashes*
+below.
 +
 The default pattern is +%f-%p.svg+ if the DVI file consists of more than one page, and
 +%f.svg+ otherwise. That means, a DVI file 'foo.dvi' is converted to 'foo.svg' if 'foo.dvi'
@@ -477,6 +536,7 @@ list of single page numbers and/or page ranges. A page range is a pair of number
 a hyphen, e.g. 5-12. Thus, a page sequence might look like this: 2-4,6,9-12,15. It doesn't matter
 if a page is given more than once or if page ranges overlap. dvisvgm always extracts the page
 numbers in ascending order and converts them only once.
++
 In order to stay compatible with previous versions, the default page sequence is 1. dvisvgm
 therefore converts only the first page and not the whole document if option *--page* is omitted.
 Usually, page ranges consist of two numbers denoting the first and last page to be converted.
@@ -486,6 +546,10 @@ pages up to page 10, +--page=10-+ converts all pages starting with page 10.
 Please consider that the page values don't refer to the page numbers printed on the
 corresponding page. Instead, the physical page count is expected, where the first page always
 gets number 1.
++
+At the end of the range sequence an optional filter specifier can be added. Currently, the two
+filters +:even+ and +:odd+ are supported which restrict the preceding values to even or odd
+numbers. For example, +--page=1-11,20:even+ is equivalent to +--page=2,4,6,8,10,20+.
 
 *-H, --page-hashes*[='params']::
 If this option is given, dvisvgm computes hash values of all pages to be processed. As long as the
@@ -518,9 +582,10 @@ By default, dvisvgm uses the fast XXH64 hash algorithm to compute the values pro
 XXH32 and MD5 can be used as well. The desired algorithm is specified by argument 'params' of option
 *--page-hashes*. It takes one of the strings +MD5+, +XXH32+, and +XXH64+, where the names can be given
 in lower case too, like +--page-hashes=md5+. Since version 0.7.1, xxHash provides an experimental 128-bit
-hash function, whose algorithm may still change with the next versions of the library. If the
-corresponding API is available, dvisvgm supports the new hash function and option *--page-hashes*
-additionally accepts the algorithm specifier +XXH128+.
+hash function whose algorithm has been stabilized as of version 0.8. When using a version prior to 0.8,
+the 128-bit hash values can vary depending on the used xxHash version. If the corresponding API is
+available, dvisvgm supports the new hash function, and option *--page-hashes* additionally accepts the
+algorithm specifier +XXH128+.
 +
 Finally, option *--page-hashes* can take a second argument that must be separated by a comma.
 Currently, only the two parameters 'list' and 'replace' are evaluated, e.g. +--page-hashes=md5,list+
@@ -532,10 +597,21 @@ forces dvisvgm to convert a DVI page even if a file with the target name already
 If this option is given, dvisvgm does not expect a DVI but a PDF input file, and tries to convert
 it to SVG. Similar to the conversion of DVI files, only the first page is processed by default.
 Option *--page* can be used to select different pages, page ranges, and/or page sequences.
-The conversion is realized by creating a single 'pdffile' special command which is forwarded to
-the PostScript special handler. Therefore, this option is only available if dvisvgm was built
-with PostScript support enabled, and requires Ghostscript to be accessible. See option *--libgs*
-for further information.
++
+If a Ghostcript version < 10.01.0 is found, dvisvgm uses Ghostscript to process the PDF file. In
+this case, the conversion is realized by creating a single 'pdffile' special command which is
+forwarded to dvisvgm's PostScript special handler. Therefore, this option is only available if
+dvisvgm was built with PostScript support enabled, and requires Ghostscript to be accessible.
+See option *--libgs* for further information.
++
+As of Ghostscript 10.01.0, this will no longer work due to the introduction of a new PDF interpreter.
+Therefore, an alternative conversion module based on _mutool_, a utility which is part of the
+https://mupdf.com[MuPDF] package, has been introduced. It's automatically invoked if Ghostscript
+can't be used and if a working +mutool+ executable is present in a directory which is part of the
+system's search path.
++
+Alternatively, environment variable +DVISVGM_PDF_PROC+ can be used to select the PDF processor.
+The currently supported values are +gs+ and +mutool+.
 
 *-d, --precision*='digits'::
 Specifies the maximal number of decimal places applied to floating-point attribute values.
@@ -554,7 +630,7 @@ Rotates the page content clockwise by 'angle' degrees around the page center.
 This option is equivalent to *-TR*'angle'.
 
 *-R, --relative*::
-SVG allows to define graphics paths by a sequence of absolute and/or relative path commands,
+SVG allows you to define graphics paths by a sequence of absolute and/or relative path commands,
 i.e. each command expects either absolute coordinates or coordinates relative to the
 current drawing position. By default, dvisvgm creates paths made up of absolute commands.
 If option *--relative* is given, relative commands are created instead. This slightly reduces
@@ -569,13 +645,20 @@ is 'stdin.svg' which can be changed with option *--output*.
 Don't write the SVG output to a file but redirect it to *stdout*.
 
 *--tmpdir*[='path']::
-In some cases, dvisvgm needs to create temporary files to work properly. These files go to
-the system's temporary folder by default, e.g. +/tmp+ on Linux systems. Option *--tmpdir*
-allows to specify a different location if necessary for some reason. Please note that dvisvgm
-does not create this folder, so you must ensure that it actually exists before running dvisvgm.
+In some cases, dvisvgm needs to create temporary files to work properly. These files go to the
+system's temporary folder by default, e.g. +/tmp+ on Linux systems. Option *--tmpdir* can be used
+to specify a different location. Please note that dvisvgm does not create this folder if it doesn't
+exist. Therefore, you must ensure that it's actually present before running dvisvgm.
 +
-If the optional parameter 'path' is omitted, dvisvgm prints the location of the system's
-temp folder and exits.
+In order to prevent colliding files caused by parallel calls of dvisvgm, the program doesn't write
+the files directly in the specified directory but furthermore creates a uniquely named subfolder in
+there, where the temporary files will be placed. This can be prevented by appending +//+ or +\\+
+(on Windows) to the specified directory name. For example, +--tmpdir=.//+ creates the temporary files
+directly in the current working directory, while +--tmpdir=.+ places them in a dedicated subfolder of
+the current working directory.
++
+If the optional parameter 'path' of option *--tmpdir* is omitted, dvisvgm prints the location of the
+system's temp folder and exits.
 
 *-a, --trace-all*=['retrace']::
 This option forces dvisvgm to vectorize not only the glyphs actually required to render the
@@ -675,10 +758,11 @@ Controls the type of messages printed during a dvisvgm run:
   *1*;; error messages only
   *2*;; warning messages only
   *4*;; informational messages only
+  *8*;; user messages only (e.g. created by special +dvisvgm:message+)
 
 +
 [NOTE]
-By adding these values you can combine the categories. The default level is 7, i.e. all
+By adding these values you can combine the categories. The default level is 15, i.e. all
 messages are printed.
 +
 
@@ -699,34 +783,50 @@ graphics accordingly. If a negative zoom factor is given, the 'width' and 'heigh
 [[specials]]
 Supported Specials
 ------------------
-dvisvgm supports several sets of 'special commands' that can be used to enrich DVI files with additional
-features, like color, graphics, and hyperlinks. The evaluation of special commands is delegated to dedicated
-handlers provided by dvisvgm. Each handler is responsible for all special statements of the same command set,
-i.e. commands beginning with the same prefix. To get a list of the actually provided special handlers, use
-option *--list-specials* (see above). This section gives an overview of the special commands currently
-supported.
+dvisvgm supports several 'special commands' that enrich the DVI command set with additional instructions
+for features, like color, graphics, and hyperlinks. The term 'special command', or just 'special', originates
+from the TeX command +\special{...}+ which does almost nothing. TeX only forwards the argument of this command
+to the DVI file using the corresponding 'xxx' opcode, thus delegating its execution to the DVI driver. The
+driver can then decide to either process or ignore it, depending on the supported statements. The parameter
+of TeX's +\special+ command is given in curly braces and may consist of an arbitrary character sequence
+representing the actual instruction, for example +color Red+.
+
+It might be worth mentioning that specials are only evaluated when processing DVI files. PS/EPS and PDF
+don't know anything about the concept of specials and therefore don't provide means to represent them.
+
+In order to evaluate the special commands, dvisvgm implements several dedicated handlers. Each handler is
+responsible for all special statements belonging to the same command set, i.e. commands usually &#x2013;
+but not necessarily &#x2013; beginning with a common prefix. For example, all PDF specials start with the
+prefix +pdf:+, while the TPIC special set consists of 13 different commands without common identifier. The
+PDF specials are processed by dvisvgm's 'pdf' handler, the TPIC ones by the 'tpic' handler. To get a list of
+the actually provided special handlers, use option *--list-specials* (see above). The following list gives an
+overview of the special sets currently supported. The names of the handlers can also be used to disable the
+processing of individual sets of specials. For further information on this, see option *--no-specials*.
 
 *bgcolor*::
-Special statement for changing the background/page color. Since SVG 1.1 doesn't support background colors,
-dvisvgm inserts a rectangle of the chosen color into the generated SVG document. This rectangle always gets
-the same size as the selected or computed bounding box. This background color command is part of the color
-special set but is handled separately in order to let the user turn it off. For an overview of the command
-syntax, see the documentation of dvips, for instance.
+Special statements for changing the background/page color. Currently, dvisvgm only supports the +background+
+statement as specified in the https://tug.org/texinfohtml/dvips.html#Color-specifications[dvips manual].
+Since SVG 1.1 doesn't support background colors, dvisvgm inserts a rectangle of the chosen color into the
+generated SVG document. This rectangle always gets the same size as the selected or computed bounding box.
+This background color command is part of the color special set but is handled separately in order to let
+the user turn it off.
 
 *color*::
 Statements of this command set provide instructions to change the text/paint color. For an overview of the
 exact syntax, see the documentation of dvips, for instance.
 
 *dvisvgm*::
-dvisvgm offers its own small set of specials. The following list gives a brief overview.
-  *dvisvgm:raw* 'text';;
+The following list gives a brief overview of dvisvgm's own set of currently supported specials.
+*dvisvgm:raw* 'text';;
   Adds an arbitrary sequence of XML nodes to the page section of the SVG document. dvisvgm checks syntax and
   proper nesting of the inserted elements but does not perform any validation, thus the user has to ensure
   that the resulting SVG is still valid. Opening and closing tags may be distributed among different 'raw'
   specials. The tags themselves can also be split but must be continued with the immediately following 'raw'
   special. Both syntactically incorrect and wrongly nested tags lead to error messages.
-  Parameter 'text' may also contain the expressions *{?x}*, *{?y}*, *{?color}*, and *{?matrix}* that expand to
-  the current 'x' or 'y' coordinate, the current color, and current transformation matrix, respectively.
+  Parameter 'text' may also contain the expressions *{?x}*, *{?y}*, *{?color}*, *{?matrix}*, *{?pageno}*,
+  *{?svgfile}*, and *{?svgpath}* that expand to the current 'x' or 'y' coordinate, the current color, the
+  current transformation matrix, the current page number, and the relative and absolute path of the SVG file
+  being created, respectively.
   Character sequence *{?nl}* expands to a newline character. Finally, constructions of the form *{?(__expr__)}*
   enable the evaluation of mathematical expressions which may consist of basic arithmetic operations including
   modulo. Like above, the variables 'x' and 'y' represent the current coordinates.
@@ -815,6 +915,15 @@ The following TeX snippet adds two raw SVG elements to the output and updates th
 \special{dvisvgm:bbox abs 10bp 200bp 100bp 250bp transform}
 -------------------------------------------------------------------------------------
 +
+  *dvisvgm:currentcolor* [on|off];;
+  This special works similar to option `--currentcolor` but doesn't require an explicit color argument. Instead,
+  it takes the currently active color and replaces it with `currentColor`. Therefore, the result depends on the
+  placement of the special and the preceding color changes. Argument `on` &#x2013; which activates the 'currentColor'
+  functionality &#x2013; can be omitted. When called with argument `off`, the functionality is deactivated again.
+
+  *dvisvgm:message* 'msg';;
+  Prints the given text 'msg' to the console. It may also contain the macros '{?...}' mentioned above
+  (see *dvisvgm:raw*).
 
 *em*::
 These specials were introduced with the 'emTeX' distribution by Eberhard Mattes. They provide line drawing
@@ -826,7 +935,7 @@ https://ctan.org/pkg/emtex[emTeX].
 *html*::
 The hyperref specification defines several variants on how to mark hyperlinked areas in a DVI file. dvisvgm
 supports the plain HyperTeX special constructs as created with hyperref package option 'hypertex'.
-By default, all linked areas of the document are marked by a rectangle. Option *--linkmark* allows to change
+By default, all linked areas of the document are marked by a rectangle. Option *--linkmark* allows you to change
 this behavior. See above for further details. Information on syntax and semantics of the HyperTeX specials can be
 found in the https://ctan.org/pkg/hyperref[hyperref manual].
 
@@ -844,7 +953,7 @@ only 'pdf:mapfile', 'pdf:mapline', 'pdf:pagesize', and PDF hyperlink specials ar
 The latter are the PDF pendants to the HTML HyperTeX specials generated by the hyperref package in PDF mode.
 +
 'pdf:pagesize' is similar to the 'papersize' special (see above) which specifies the size of the current
-and all folowing pages. In order to actually apply the extents to the generated SVG files,
+and all following pages. In order to actually apply the extents to the generated SVG files,
 option *--bbox=papersize* must be given.
 +
 'pdf:mapfile' and 'pdf:mapline' allow for modifying the font map tree while processing the DVI file.
@@ -957,6 +1066,12 @@ All malformed entries in the list are silently ignored.
 *Example:* +er=01:pi=\*5+ sets the colors of error messages (+er+) to red (+1+) on black (+0+), and those
 of progress indicators (+pi+) to cyan (+5+) on default background (+*+).
 
+Variable *DVISVGM_PDF_PROC* allows you to select the desired PDF processor. dvisvgm requires either
+Ghostscript (version < 10.01.0) or mutool to process PDF files. IF *DVISVGM_PDF_PROC* is not set, dvisvgm
+tries to detect the available processors. See option *--pdf* for further information. To select a
+specific PDF processor, you can set *DVISVGM_PDF_PROC* to +gs+ or +mutool+ which forces the use of
+Ghostscript and mutool respectively.
+
 Files
 -----
 The location of the following files is determined by the kpathsea library.
@@ -992,7 +1107,7 @@ Written by {author} <{email}>
 
 Copying
 -------
-Copyright (C) 2005-2020 Martin Gieseking. Free use of this software is
+Copyright (C) 2005-2024 Martin Gieseking. Free use of this software is
 granted under the terms of the GNU General Public License (GPL) version 3
 or, (at your option) any later version.
 

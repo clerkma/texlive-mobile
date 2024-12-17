@@ -35,6 +35,10 @@ extern boolean is_char_kanji (integer c);
 extern boolean ismultiprn (integer c);
 extern integer calc_pos (integer c);
 #define calcpos calc_pos
+extern integer ktoken_to_cmd (integer c);
+extern integer ktoken_to_chr (integer c);
+#define ktokentocmd ktoken_to_cmd
+#define ktokentochr ktoken_to_chr
 extern integer kcatcodekey (integer c);
 extern integer multilenbuffchar (integer c);
 
@@ -44,6 +48,9 @@ extern void init_default_kanji_select (void);
 #define initkanji() init_default_kanji_select()
 /* for upDVItype */
 #define setpriorfileenc() set_prior_file_enc()
+/* for upBibTeX */
+#define enableguessfileenc()  set_guess_file_enc(1)
+#define disableguessfileenc() set_guess_file_enc(0)
 
 /* number of rest of multi-char for kcode_pos */
 #define nrestmultichr(x)  ( (x)!=0 ? ((x) / 8) + 2 - ((x) % 8) : -1 )
@@ -59,10 +66,16 @@ extern void init_default_kanji_select (void);
 #endif /* !PRESERVE_FPUTS */
 
 #ifdef UPBIBTEX
-#define inputline2(fp,buff,pos,size,ptr) input_line2(fp,buff,pos,size,ptr)
+#define inputline2(fp,buff,pos,size,ptr) input_line2(fp,buff,NULL,pos,size,ptr)
 #else
-#define inputline2(fp,buff,pos,size) input_line2(fp,buff,pos,size,NULL)
+#define inputline2(fp,buff,pos,size) input_line2(fp,buff,NULL,pos,size,NULL)
 #endif
+#define ptencconvfirstline(pos,limit,buff,size) ptenc_conv_first_line(pos,limit,buff,size)
+#define UVScombinecode(ucv,uvs) UVS_combine_code(ucv,uvs)
+#define UVSgetcodepointlength(ucv) UVS_get_codepoint_length(ucv)
+#define UVSgetcodepointinsequence(ucv,n) UVS_get_codepoint_in_sequence(ucv,n)
+#define ptencucsto8bitcode(enc,uch) ptenc_ucs_to_8bit_code(enc,uch)
+#define ptenc8bitcodetoucs(enc,ech) ptenc_8bit_code_to_ucs(enc,ech)
 
 extern void init_kanji (const_string file_str, const_string internal_str);
 extern void dump_kanji (gzFile fp);

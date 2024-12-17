@@ -13,13 +13,15 @@
 
 #if !UCONFIG_NO_FORMATTING
 
+#include "unicode/dtptngen.h"
+#include "unicode/ustring.h"
 #include "intltest.h"
 
 /**
  * Test basic functionality of various API functions
  **/
 class IntlTestDateTimePatternGeneratorAPI : public IntlTest {
-    void runIndexedTest( int32_t index, UBool exec, const char* &name, char* par = NULL );
+    void runIndexedTest( int32_t index, UBool exec, const char* &name, char* par = nullptr ) override;
 
 private:
     /**
@@ -35,6 +37,19 @@ private:
     void testJjMapping();
     void test20640_HourCyclArsEnNH();
     void testFallbackWithDefaultRootLocale();
+    void testGetDefaultHourCycle_OnEmptyInstance();
+    void test_jConsistencyOddLocales();
+    void testBestPattern();
+    void testDateTimePatterns();
+    void testISO8601();
+    void testRegionOverride();
+
+    enum { kNumDateTimePatterns = 4 };
+    typedef struct {
+        const char* localeID;
+        const UnicodeString expectPat[kNumDateTimePatterns];
+    } DTPLocaleAndResults;
+    void doDTPatternTest(DateTimePatternGenerator* dtpg, UnicodeString* skeletons, DTPLocaleAndResults* localeAndResultsPtr);
 };
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

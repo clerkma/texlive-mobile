@@ -2,7 +2,7 @@
 ** StreamReader.hpp                                                     **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -46,10 +46,12 @@ class StreamReader {
 		std::string readString (int length, HashFunction &hashfunc);
 		std::vector<uint8_t> readBytes (int n);
 		std::vector<uint8_t> readBytes (int n, HashFunction &hash);
+		std::vector<char> readBytesAsChars (int n);
 		int readByte ()                 {return _is->get();}
 		int readByte (HashFunction &hashfunc);
 		void seek (std::streampos pos, std::ios::seekdir dir) {_is->seekg(pos, dir);}
 		void seek (std::streampos pos)  {_is->seekg(pos);}
+		void skip (std::streampos n)    {_is->seekg(n, std::ios::cur);}
 		std::streampos tell () const    {return _is->tellg();}
 		int peek () const               {return _is->peek();}
 

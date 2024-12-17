@@ -25,13 +25,14 @@
 % Version 3.61 [p18] --- Andreas Scherer, July 2000
 % Version 3.63 [p19] --- Andreas Scherer, January 2001
 % Version 3.64 [p20] --- Andreas Scherer, March 2002
-% Version 3.64 [p21] --- Andreas Scherer, Octobre 2005
+% Version 3.64 [p21] --- Andreas Scherer, October 2005
 % Version 3.64 [p22] --- Andreas Scherer, March 2016
+% Version 4.9  --- Andreas Scherer, June 2022
+% Version 4.12 --- Andreas Scherer, August 2024
 
 % french translations --- Denis Roegel, 18 September 1994
 
-\ifx\undefined\documentclass\input Xcwebmac.tex
-\else\endinput\fi % LaTeX will use other macros
+\ifx\undefined\botofcontents\input cwebmac.tex\fi
 
 \def\.#1{\leavevmode\hbox{\tentex % typewriter type for strings
   \ifx\Cstringchars\undefined\else\Cstringchars\fi % special string characters
@@ -47,11 +48,10 @@
 
 \def\postATL#1 #2 {\bf La lettre \\{\uppercase{\char"#1}}
    est \string`\string`tanglee\string'\string' en \tentex "#2"\egroup\par}
-\def\ATH{{\acrofalse\X\kern-.5em:D\'efinitions du pr\'eprocesseur\X}}
+\def\ATH{{\acrohintfalse\X\kern-.5em:D\'efinitions du pr\'eprocesseur\X}}
 
 \def\A{\note{Voir aussi la section}} % xref for doubly defined section name
-\def\As{\note{Voir aussi les sections}} % xref for multiply defined 
-                                        % section name
+\def\As{\note{Voir aussi les sections}} % xref for multiply defined section name
 
 \def\ET{ et~} % conjunction between two section numbers
 \def\ETs{ et~} % conjunction between the last two of several section numbers
@@ -75,45 +75,46 @@
 \def\fin{\par\vfill\eject % this is done when we are ending the index
   \ifpagesaved\null\vfill\eject\fi % output a null index column
   \if L\lr\else\null\vfill\eject\fi % finish the current page
-  \ifpdftex \makebookmarks \fi % added in Version 3.68
+  \ifpdf \ifpdflua \makebookmarks % added in Version 3.68
+    \countsections \fi\fi % and in Version 4.9
   \parfillskip 0pt plus 1fil
   \def\grouptitle{NOMS DES SECTIONS}
   \let\topsecno=\nullsec
   \message{Noms des sections:}
   \output={\normaloutput\page\lheader\rheader}
   \setpage
-  \def\note##1##2.{\quad{\eightrm##1~\ifacro{\pdfnote##2.}\else{##2}\fi.}}
+  \def\note##1##2.{\quad{\eightrm##1~\ifacrohint{\pdfnote##2.}\else{##2}\fi.}}
   \def\Q{\note{Cit\'e dans la section}} % crossref for mention of a section
   \def\Qs{\note{Cit\'e dans les sections}} % crossref for mentions of a section
   \def\U{\note{Utilis\'e dans la section}} % crossref for use of a section
   \def\Us{\note{Utilis\'e dans les sections}} % crossref for uses of a section
   \def\I{\par\hangindent 2em}\let\*=*
-  \ifacro \def\outsecname{Noms des sections} \let\Xpdf\X
-%  \ifpdftex \makebookmarks \pdfdest name {NOS} fitb % in versions < 3.68
-  \ifpdftex \pdfdest name {NOS} fith % changed in version 3.69
-    \pdfoutline goto name {NOS} count -\secno {\outsecname}
+  \ifpdf \def\outsecname{Noms des sections} \let\Xpdf\X
+%  \ifpdflua \makebookmarks \pdfdest name {NOS} fitb % in versions < 3.68
+  \ifpdflua \pdfdest name {NOS} fith % changed in version 3.69
+    \pdfoutline goto name {NOS} count -\the\countD {\outsecname}
     \def\X##1:##2\X{\Xpdf##1:##2\X \firstsecno##1.%
       {\toksF={}\makeoutlinetoks##2\outlinedone\outlinedone}%
       \pdfoutline goto num \the\toksA \expandafter{\the\toksE}}
-  \else\ifpdf
-    \special{pdf: outline -1 << /Title (\outsecname)
+  \else \special{pdf: outline -1 << /Title (\outsecname)
       /Dest [ @thispage /FitH @ypos ] >>}
     \def\X##1:##2\X{\Xpdf##1:##2\X \firstsecno##1.%
       {\toksF={}\makeoutlinetoks##2\outlinedone\outlinedone}%
       \special{pdf: outline 0 << /Title (\the\toksE)
         /A << /S /GoTo /D (\romannumeral\the\toksA) >> >>}}
-  \fi\fi\fi
+  \fi\fi
   \readsections}
 \def\con{\par\vfill\eject % finish the section names
 % \ifodd\pageno\else\titletrue\null\vfill\eject\fi % for duplex printers
   \rightskip 0pt \hyphenpenalty 50 \tolerance 200
   \setpage \output={\normaloutput\page\lheader\rheader}
-  \titletrue % prepare to output the table of contents
+  \ifpdf\startpdf\fi \titletrue % prepare to output the table of contents
   \pageno=\contentspagenumber
   \def\grouptitle{SOMMAIRE:}
   \message{Sommaire:}
-  \topofcontents \startpdf
-  \line{\hfil Section\hbox to3em{\hss Page}}
+  \ifhint\HINThome\fi% Mark the Table of contents as home page
+  \topofcontents
+  \line{\hfil Section\ifhint\else\hbox to3em{\hss Page}\fi}% No Page in HINT
   \let\ZZ=\contentsline
   \readcontents\relax % read the contents info
   \botofcontents \end} % print the contents page(s) and terminate

@@ -11,12 +11,15 @@
 
 #if !UCONFIG_NO_FORMATTING
 
+#include "unicode/testlog.h"
 #include "ustrfmt.h"
 #include "charstr.h"
 #include "cstring.h"
 #include "cmemory.h"
 
-static NumberFormatTestTuple *gNullPtr = NULL;
+static NumberFormatTestTuple emptyObject;
+
+static NumberFormatTestTuple *gNullPtr = &emptyObject;
 
 #define FIELD_OFFSET(fieldName) ((int32_t) (((char *) &gNullPtr->fieldName) - ((char *) gNullPtr)))
 #define FIELD_FLAG_OFFSET(fieldName) ((int32_t) (((char *) &gNullPtr->fieldName##Flag) - ((char *) gNullPtr)))
@@ -36,7 +39,10 @@ static Numberformattesttuple_EnumConversion gRoundingEnum[] = {
     {"halfEven", DecimalFormat::kRoundHalfEven},
     {"halfDown", DecimalFormat::kRoundHalfDown},
     {"halfUp", DecimalFormat::kRoundHalfUp},
-    {"unnecessary", DecimalFormat::kRoundUnnecessary}};
+    {"unnecessary", DecimalFormat::kRoundUnnecessary},
+    {"halfOdd", DecimalFormat::kRoundHalfOdd},
+    {"halfCeiling", DecimalFormat::kRoundHalfCeiling},
+    {"halfFloor", DecimalFormat::kRoundHalfFloor}};
 
 static Numberformattesttuple_EnumConversion gCurrencyUsageEnum[] = {
     {"standard", UCURR_USAGE_STANDARD},
@@ -134,9 +140,9 @@ static void strToInt(
     }
     int32_t len = str.length();
     int32_t start = 0;
-    UBool neg = FALSE;
+    UBool neg = false;
     if (len > 0 && str[0] == 0x2D) { // negative
-        neg = TRUE;
+        neg = true;
         start = 1;
     }
     if (start == len) {
@@ -145,12 +151,12 @@ static void strToInt(
     }
     int64_t value = 0;
     for (int32_t i = start; i < len; ++i) {
-        UChar ch = str[i];
+        char16_t ch = str[i];
         if (ch < 0x30 || ch > 0x39) {
             status = U_ILLEGAL_ARGUMENT_ERROR;
             return;
         }
-        value = value * 10 - 0x30 + (int32_t) ch;
+        value = value * 10 - 0x30 + static_cast<int32_t>(ch);
     }
     int32_t signedValue = neg ? static_cast<int32_t>(-value) : static_cast<int32_t>(value);
     *static_cast<int32_t *>(intPtr) = signedValue;
@@ -158,12 +164,12 @@ static void strToInt(
 
 static void intToStr(
         const void *intPtr, UnicodeString &appendTo) {
-    UChar buffer[20];
+    char16_t buffer[20];
     // int64_t such that all int32_t values can be negated
     int64_t xSigned = *static_cast<const int32_t *>(intPtr);
     uint32_t x;
     if (xSigned < 0) {
-        appendTo.append((UChar)0x2D);
+        appendTo.append(static_cast<char16_t>(0x2D));
         x = static_cast<uint32_t>(-xSigned);
     } else {
         x = static_cast<uint32_t>(xSigned);
@@ -189,7 +195,7 @@ static void doubleToStr(
         const void *doublePtr, UnicodeString &appendTo) {
     char buffer[256];
     double x = *static_cast<const double *>(doublePtr);
-    sprintf(buffer, "%f", x);
+    snprintf(buffer, sizeof(buffer), "%f", x);
     appendTo.append(buffer);
 }
 
@@ -197,7 +203,7 @@ static void strToERounding(
         const UnicodeString &str, void *roundPtr, UErrorCode &status) {
     int32_t val = toEnum(
             gRoundingEnum, UPRV_LENGTHOF(gRoundingEnum), str, status);
-    *static_cast<DecimalFormat::ERoundingMode *>(roundPtr) = (DecimalFormat::ERoundingMode) val;
+    *static_cast<DecimalFormat::ERoundingMode*>(roundPtr) = static_cast<DecimalFormat::ERoundingMode>(val);
 }
 
 static void eRoundingToStr(
@@ -215,7 +221,7 @@ static void strToCurrencyUsage(
         const UnicodeString &str, void *currencyUsagePtr, UErrorCode &status) {
     int32_t val = toEnum(
             gCurrencyUsageEnum, UPRV_LENGTHOF(gCurrencyUsageEnum), str, status);
-    *static_cast<UCurrencyUsage *>(currencyUsagePtr) = (UCurrencyUsage) val;
+    *static_cast<UCurrencyUsage*>(currencyUsagePtr) = static_cast<UCurrencyUsage>(val);
 }
 
 static void currencyUsageToStr(
@@ -234,7 +240,7 @@ static void strToEPadPosition(
     int32_t val = toEnum(
             gPadPositionEnum, UPRV_LENGTHOF(gPadPositionEnum), str, status);
     *static_cast<DecimalFormat::EPadPosition *>(padPositionPtr) =
-            (DecimalFormat::EPadPosition) val;
+            static_cast<DecimalFormat::EPadPosition>(val);
 }
 
 static void ePadPositionToStr(
@@ -252,7 +258,7 @@ static void strToFormatStyle(
         const UnicodeString &str, void *formatStylePtr, UErrorCode &status) {
     int32_t val = toEnum(
             gFormatStyleEnum, UPRV_LENGTHOF(gFormatStyleEnum), str, status);
-    *static_cast<UNumberFormatStyle *>(formatStylePtr) = (UNumberFormatStyle) val;
+    *static_cast<UNumberFormatStyle*>(formatStylePtr) = static_cast<UNumberFormatStyle>(val);
 }
 
 static void formatStyleToStr(
@@ -343,19 +349,19 @@ NumberFormatTestTuple::setField(
         const UnicodeString &fieldValue,
         UErrorCode &status) {
     if (U_FAILURE(status)) {
-        return FALSE;
+        return false;
     }
     if (fieldId == kNumberFormatTestTupleFieldCount) {
         status = U_ILLEGAL_ARGUMENT_ERROR;
-        return FALSE;
+        return false;
     }
     gFieldData[fieldId].ops->toValue(
             fieldValue, getMutableFieldAddress(fieldId), status);
     if (U_FAILURE(status)) {
-        return FALSE;
+        return false;
     }
-    setFlag(fieldId, TRUE);
-    return TRUE;
+    setFlag(fieldId, true);
+    return true;
 }
 
 UBool
@@ -363,20 +369,20 @@ NumberFormatTestTuple::clearField(
         ENumberFormatTestTupleField fieldId, 
         UErrorCode &status) {
     if (U_FAILURE(status)) {
-        return FALSE;
+        return false;
     }
     if (fieldId == kNumberFormatTestTupleFieldCount) {
         status = U_ILLEGAL_ARGUMENT_ERROR;
-        return FALSE;
+        return false;
     }
-    setFlag(fieldId, FALSE);
-    return TRUE;
+    setFlag(fieldId, false);
+    return true;
 }
 
 void
 NumberFormatTestTuple::clear() {
     for (int32_t i = 0; i < kNumberFormatTestTupleFieldCount; ++i) {
-        setFlag(i, FALSE);
+        setFlag(i, false);
     }
 }
 
@@ -384,7 +390,7 @@ UnicodeString &
 NumberFormatTestTuple::toString(
         UnicodeString &appendTo) const {
     appendTo.append("{");
-    UBool first = TRUE;
+    UBool first = true;
     for (int32_t i = 0; i < kNumberFormatTestTupleFieldCount; ++i) {
         if (!isFlag(i)) {
             continue;
@@ -392,7 +398,7 @@ NumberFormatTestTuple::toString(
         if (!first) {
             appendTo.append(", ");
         }
-        first = FALSE;
+        first = false;
         appendTo.append(gFieldData[i].name);
         appendTo.append(": ");
         gFieldData[i].ops->toString(getFieldAddress(i), appendTo);
@@ -420,7 +426,7 @@ NumberFormatTestTuple::getFieldByName(
     if (result == -1) {
         return kNumberFormatTestTupleFieldCount;
     }
-    return (ENumberFormatTestTupleField) result;
+    return static_cast<ENumberFormatTestTupleField>(result);
 }
 
 const void *

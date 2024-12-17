@@ -1,6 +1,6 @@
 /* mpfr_lngamma -- lngamma function
 
-Copyright 2005-2019 Free Software Foundation, Inc.
+Copyright 2005-2023 Free Software Foundation, Inc.
 Contributed by the AriC and Caramba projects, INRIA.
 
 This file is part of the GNU MPFR Library.
@@ -31,11 +31,11 @@ https://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
    precision should be >= 4.
 */
 static void
-mpfr_gamma_alpha (mpfr_t s, mpfr_prec_t p)
+mpfr_gamma_alpha (mpfr_ptr s, mpfr_prec_t p)
 {
   MPFR_LOG_FUNC
-    (("p=%Pu", p),
-     ("s[%Pu]=%.*Rg", mpfr_get_prec (s), mpfr_log_prec, s));
+    (("p=%Pd", p),
+     ("s[%Pd]=%.*Rg", mpfr_get_prec (s), mpfr_log_prec, s));
 
   if (p <= 100)
     mpfr_set_ui_2exp (s, 614, -10, MPFR_RNDN); /* about 0.6 */
@@ -179,8 +179,8 @@ GAMMA_FUNC (mpfr_ptr y, mpfr_srcptr z0, mpfr_rnd_t rnd)
   MPFR_ZIV_DECL (loop);
 
   MPFR_LOG_FUNC
-    (("x[%Pu]=%.*Rg rnd=%d", mpfr_get_prec (z0), mpfr_log_prec, z0, rnd),
-     ("y[%Pu]=%.*Rg inexact=%d",
+    (("x[%Pd]=%.*Rg rnd=%d", mpfr_get_prec (z0), mpfr_log_prec, z0, rnd),
+     ("y[%Pd]=%.*Rg inexact=%d",
       mpfr_get_prec (y), mpfr_log_prec, y, inexact));
 
   compared = mpfr_cmp_ui (z0, 1);
@@ -275,7 +275,7 @@ GAMMA_FUNC (mpfr_ptr y, mpfr_srcptr z0, mpfr_rnd_t rnd)
           mpfr_const_euler (g, MPFR_IS_POS(z0) ? MPFR_RNDD : MPFR_RNDU); /* cached */
           mpfr_mul (g, g, z0, MPFR_RNDU);
           mpfr_sub (h, h, g, MPFR_RNDD);
-          mpfr_mul (g, z0, z0, MPFR_RNDU);
+          mpfr_sqr (g, z0, MPFR_RNDU);
           mpfr_add (h, h, g, MPFR_RNDU);
           inex1 = mpfr_prec_round (l, MPFR_PREC(y), rnd);
           inex2 = mpfr_prec_round (h, MPFR_PREC(y), rnd);
@@ -284,7 +284,7 @@ GAMMA_FUNC (mpfr_ptr y, mpfr_srcptr z0, mpfr_rnd_t rnd)
              case if we assume lngamma(z0) cannot be exact, the other flag
              should be correct. We are conservative here and request that both
              inexact flags agree. */
-          ok = SAME_SIGN (inex1, inex2) && mpfr_cmp (l, h) == 0;
+          ok = SAME_SIGN (inex1, inex2) && mpfr_equal_p (l, h);
           if (ok)
             mpfr_set (y, h, rnd); /* exact */
           mpfr_clear (l);
@@ -494,7 +494,7 @@ GAMMA_FUNC (mpfr_ptr y, mpfr_srcptr z0, mpfr_rnd_t rnd)
       mpfr_set (v, t, MPFR_RNDN);        /* (1+u)^2, v < 2^(-5) */
       mpfr_add (s, s, v, MPFR_RNDN);     /* (1+u)^15 */
 
-      mpfr_mul (u, u, u, MPFR_RNDN); /* 1/z^2 * (1+u)^3 */
+      mpfr_sqr (u, u, MPFR_RNDN);        /* 1/z^2 * (1+u)^3 */
 
       /* m <= maxm ensures that 2*m*(2*m+1) <= ULONG_MAX */
       maxm = 1UL << (sizeof(unsigned long) * CHAR_BIT / 2 - 1);
@@ -628,7 +628,7 @@ GAMMA_FUNC (mpfr_ptr y, mpfr_srcptr z0, mpfr_rnd_t rnd)
       /* now t: (1+u)^(2k-1) */
       /* instead of computing log(sqrt(2*Pi)/t), we compute
          1/2*log(2*Pi/t^2), which trades a square root for a square */
-      mpfr_mul (t, t, t, MPFR_RNDN); /* (z0*...*(z0+k-1))^2, (1+u)^(4k-1) */
+      mpfr_sqr (t, t, MPFR_RNDN); /* (z0*...*(z0+k-1))^2, (1+u)^(4k-1) */
       mpfr_div (v, v, t, MPFR_RNDN);
       /* 2*Pi/(z0*...*(z0+k-1))^2 (1+u)^(4k+1) */
 #ifdef IS_GAMMA
@@ -723,8 +723,8 @@ mpfr_lngamma (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
   int inex;
 
   MPFR_LOG_FUNC
-    (("x[%Pu]=%.*Rg rnd=%d", mpfr_get_prec (x), mpfr_log_prec, x, rnd),
-     ("y[%Pu]=%.*Rg inexact=%d",
+    (("x[%Pd]=%.*Rg rnd=%d", mpfr_get_prec (x), mpfr_log_prec, x, rnd),
+     ("y[%Pd]=%.*Rg inexact=%d",
       mpfr_get_prec (y), mpfr_log_prec, y, inex));
 
   /* special cases */
@@ -736,7 +736,7 @@ mpfr_lngamma (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
           MPFR_SET_NAN (y);
           MPFR_RET_NAN;
         }
-      else /* lngamma(+/-Inf) = lngamma(nonpositive integer) = +Inf */
+      else /* lngamma(+/-Inf) = lngamma(non-positive integer) = +Inf */
         {
           if (!MPFR_IS_INF (x))
             MPFR_SET_DIVBY0 ();
@@ -763,8 +763,8 @@ mpfr_lgamma (mpfr_ptr y, int *signp, mpfr_srcptr x, mpfr_rnd_t rnd)
   int inex;
 
   MPFR_LOG_FUNC
-    (("x[%Pu]=%.*Rg rnd=%d", mpfr_get_prec (x), mpfr_log_prec, x, rnd),
-     ("y[%Pu]=%.*Rg signp=%d inexact=%d",
+    (("x[%Pd]=%.*Rg rnd=%d", mpfr_get_prec (x), mpfr_log_prec, x, rnd),
+     ("y[%Pd]=%.*Rg signp=%d inexact=%d",
       mpfr_get_prec (y), mpfr_log_prec, y, *signp, inex));
 
   *signp = 1;  /* most common case */

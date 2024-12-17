@@ -1,6 +1,6 @@
 /* __gmpfr_invsqrt_limb_approx -- reciprocal approximate square root of a limb
 
-Copyright 2017-2019 Free Software Foundation, Inc.
+Copyright 2017-2023 Free Software Foundation, Inc.
 Contributed by the AriC and Caramba projects, INRIA.
 
 This file is part of the GNU MPFR Library.
@@ -29,7 +29,7 @@ https://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
 /* For 257 <= d10 <= 1024, T[d10-257] = floor(sqrt(2^30/d10)).
    Sage code:
    T = [floor(sqrt(2^30/d10)) for d10 in [257..1024]] */
-static const mp_limb_t T[768] =
+static const unsigned short T[768] =
   {       2044, 2040, 2036, 2032, 2028, 2024, 2020, 2016, 2012, 2009, 2005,
     2001, 1997, 1994, 1990, 1986, 1983, 1979, 1975, 1972, 1968, 1965, 1961,
     1958, 1954, 1951, 1947, 1944, 1941, 1937, 1934, 1930, 1927, 1924, 1920,
@@ -228,20 +228,8 @@ static const mp_limb_t T3[768] =
     1083206683, 1080045576, 1080045576, 1076890625, 1076890625, 1073741824,
     1073741824 };
 
-/* umul_hi(h, x, y) puts in h the high part of x*y */
-#ifdef HAVE_MULX_U64
-#include <immintrin.h>
-#define umul_hi(h, x, y) _mulx_u64 (x, y, (unsigned long long *) &h)
-#else
-#define umul_hi(h, x, y)                        \
-  do {                                          \
-    mp_limb_t _l;                               \
-    umul_ppmm (h, _l, x, y);                    \
-  } while (0)
-#endif
-
 /* given 2^62 <= d < 2^64, put in r an approximation of
-   s = floor(2^96/sqrt(r)) - 2^64, with r <= s <= r + 15 */
+   s = floor(2^96/sqrt(d)) - 2^64, with r <= s <= r + 15 */
 #define __gmpfr_invsqrt_limb_approx(r, d)                               \
   do {                                                                  \
     mp_limb_t _d, _i, _v0, _e0, _d37, _v1, _e1, _h, _v2, _e2;           \
@@ -285,7 +273,7 @@ static const mp_limb_t T3[768] =
   } while (0)
 
 /* given 2^62 <= n < 2^64, put in s an approximation of sqrt(2^64*n),
-   with: s <= floor(sqrt(2^64*u)) <= s + 7 */
+   with: s <= floor(sqrt(2^64*n)) <= s + 7 */
 #define __gmpfr_sqrt_limb_approx(s, n)                                  \
   do {                                                                  \
     mp_limb_t _n, _x, _y, _z, _t;                                       \

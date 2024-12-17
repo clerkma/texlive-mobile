@@ -1,21 +1,25 @@
 #! /bin/sh -vx
-# $Id: pdfprimitive.test 48633 2018-09-09 17:56:55Z karl $
+# $Id: pdfprimitive.test 70943 2024-04-14 05:29:13Z takuji $
 # Copyright 2017-2018 Karl Berry <tex-live@tug.org>#
 # Copyright 2015 Peter Breitenlohner <tex-live@tug.org>
 # You may freely use, modify and/or distribute this file.
 
+BinDir=${BinDir:-.}
+ExeExt=${ExeExt:-}
+_euptex=$BinDir/euptex$ExeExt
+
 LC_ALL=C; export LC_ALL;  LANGUAGE=C; export LANGUAGE
 
 TEXMFCNF=$srcdir/../kpathsea; export TEXMFCNF
-TEXINPUTS=.; exoprt TEXINPUTS
+TEXINPUTS=.; export TEXINPUTS
 
 FILE=pdfprimitive-euptex
 
 # get same filename in log
 rm -f $FILE.*
-$LN_S $srcdir/eptexdir/tests/pdfprimitive-test.tex $FILE.tex
+$LN_S $srcdir/euptexdir/tests/pdfprimitive-test.tex $FILE.tex
 
-./euptex -ini -etex $FILE && exit 1
+$_euptex -ini -etex $FILE && exit 1
 
 sed 1d $FILE.log >$FILE.out
 

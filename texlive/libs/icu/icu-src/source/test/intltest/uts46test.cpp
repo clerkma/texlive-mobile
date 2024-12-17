@@ -29,16 +29,21 @@
 #include "charstr.h"
 #include "cmemory.h"
 #include "intltest.h"
+#include "punycode.h"
 #include "uparse.h"
 
 class UTS46Test : public IntlTest {
 public:
-    UTS46Test() : trans(NULL), nontrans(NULL) {}
+    UTS46Test() : trans(nullptr), nontrans(nullptr) {}
     virtual ~UTS46Test();
 
-    void runIndexedTest(int32_t index, UBool exec, const char *&name, char *par=NULL);
+    void runIndexedTest(int32_t index, UBool exec, const char *&name, char *par=nullptr) override;
     void TestAPI();
     void TestNotSTD3();
+    void TestInvalidPunycodeDigits();
+    void TestACELabelEdgeCases();
+    void TestDefaultNontransitional();
+    void TestTooLong();
     void TestSomeCases();
     void IdnaTest();
 
@@ -63,7 +68,7 @@ UTS46Test::~UTS46Test() {
 void UTS46Test::runIndexedTest(int32_t index, UBool exec, const char *&name, char * /*par*/) {
     if(exec) {
         logln("TestSuite UTS46Test: ");
-        if(trans==NULL) {
+        if(trans==nullptr) {
             IcuTestErrorCode errorCode(*this, "init/createUTS46Instance()");
             uint32_t commonOptions=
                 UIDNA_USE_STD3_RULES|UIDNA_CHECK_BIDI|
@@ -82,10 +87,16 @@ void UTS46Test::runIndexedTest(int32_t index, UBool exec, const char *&name, cha
     TESTCASE_AUTO_BEGIN;
     TESTCASE_AUTO(TestAPI);
     TESTCASE_AUTO(TestNotSTD3);
+    TESTCASE_AUTO(TestInvalidPunycodeDigits);
+    TESTCASE_AUTO(TestACELabelEdgeCases);
+    TESTCASE_AUTO(TestDefaultNontransitional);
+    TESTCASE_AUTO(TestTooLong);
     TESTCASE_AUTO(TestSomeCases);
     TESTCASE_AUTO(IdnaTest);
     TESTCASE_AUTO_END;
 }
+
+namespace {
 
 const uint32_t severeErrors=
     UIDNA_ERROR_LEADING_COMBINING_MARK|
@@ -94,29 +105,31 @@ const uint32_t severeErrors=
     UIDNA_ERROR_LABEL_HAS_DOT|
     UIDNA_ERROR_INVALID_ACE_LABEL;
 
-static UBool isASCII(const UnicodeString &str) {
-    const UChar *s=str.getBuffer();
+UBool isASCII(const UnicodeString &str) {
+    const char16_t *s=str.getBuffer();
     int32_t length=str.length();
     for(int32_t i=0; i<length; ++i) {
         if(s[i]>=0x80) {
-            return FALSE;
+            return false;
         }
     }
-    return TRUE;
+    return true;
 }
 
 class TestCheckedArrayByteSink : public CheckedArrayByteSink {
 public:
     TestCheckedArrayByteSink(char* outbuf, int32_t capacity)
-            : CheckedArrayByteSink(outbuf, capacity), calledFlush(FALSE) {}
-    virtual CheckedArrayByteSink& Reset() {
+            : CheckedArrayByteSink(outbuf, capacity), calledFlush(false) {}
+    virtual CheckedArrayByteSink& Reset() override {
         CheckedArrayByteSink::Reset();
-        calledFlush = FALSE;
+        calledFlush = false;
         return *this;
     }
-    virtual void Flush() { calledFlush = TRUE; }
+    virtual void Flush() override { calledFlush = true; }
     UBool calledFlush;
 };
+
+}  // namespace
 
 void UTS46Test::TestAPI() {
     UErrorCode errorCode=U_ZERO_ERROR;
@@ -127,7 +140,7 @@ void UTS46Test::TestAPI() {
     trans->nameToASCII(input, result, info, errorCode);
     if(U_FAILURE(errorCode) || info.hasErrors() || result!=expected) {
         errln("T.nameToASCII(www.example.com) info.errors=%04lx result matches=%d %s",
-              (long)info.getErrors(), result==expected, u_errorName(errorCode));
+              static_cast<long>(info.getErrors()), result == expected, u_errorName(errorCode));
     }
     errorCode=U_USELESS_COLLATOR_ERROR;
     trans->nameToUnicode(input, result, info, errorCode);
@@ -160,9 +173,9 @@ void UTS46Test::TestAPI() {
     char buffer[100];
     TestCheckedArrayByteSink sink(buffer, UPRV_LENGTHOF(buffer));
     errorCode=U_ZERO_ERROR;
-    nontrans->labelToUnicodeUTF8(StringPiece(NULL, 5), sink, info, errorCode);
+    nontrans->labelToUnicodeUTF8(StringPiece((const char *)nullptr, 5), sink, info, errorCode);
     if(errorCode!=U_ILLEGAL_ARGUMENT_ERROR || sink.NumberOfBytesWritten()!=0) {
-        errln("N.labelToUnicodeUTF8(StringPiece(NULL, 5)) did not set illegal-argument-error ",
+        errln("N.labelToUnicodeUTF8(StringPiece(nullptr, 5)) did not set illegal-argument-error ",
               "or did output something - %s",
               u_errorName(errorCode));
     }
@@ -175,7 +188,7 @@ void UTS46Test::TestAPI() {
               u_errorName(errorCode));
     }
 
-    static const char s[]={ 0x61, (char)0xc3, (char)0x9f };
+    static const char s[] = { 0x61, static_cast<char>(0xc3), static_cast<char>(0x9f) };
     sink.Reset();
     errorCode=U_USELESS_COLLATOR_ERROR;
     nontrans->nameToUnicodeUTF8(StringPiece(s, 3), sink, info, errorCode);
@@ -227,7 +240,7 @@ void UTS46Test::TestNotSTD3() {
     ) {
         prettify(result).extract(0, 0x7fffffff, buffer, UPRV_LENGTHOF(buffer));
         errln("notSTD3.nameToUnicode(non-LDH ASCII) unexpected errors %04lx string %s",
-              (long)info.getErrors(), buffer);
+              static_cast<long>(info.getErrors()), buffer);
     }
     // A space (BiDi class WS) is not allowed in a BiDi domain name.
     input=UNICODE_STRING_SIMPLE("a z.xn--4db.edu");
@@ -235,15 +248,150 @@ void UTS46Test::TestNotSTD3() {
     if(result!=input || info.getErrors()!=UIDNA_ERROR_BIDI) {
         errln("notSTD3.nameToASCII(ASCII-with-space.alef.edu) failed");
     }
-    // Characters that are canonically equivalent to sequences with non-LDH ASCII.
-    input=UNICODE_STRING_SIMPLE("a\\u2260b\\u226Ec\\u226Fd").unescape();
-    not3->nameToUnicode(input, result, info, errorCode);
-    if(result!=input || info.hasErrors()) {
-        prettify(result).extract(0, 0x7fffffff, buffer, UPRV_LENGTHOF(buffer));
-        errln("notSTD3.nameToUnicode(equiv to non-LDH ASCII) unexpected errors %04lx string %s",
-              (long)info.getErrors(), buffer);
+}
+
+void UTS46Test::TestInvalidPunycodeDigits() {
+    IcuTestErrorCode errorCode(*this, "TestInvalidPunycodeDigits()");
+    LocalPointer<IDNA> idna(IDNA::createUTS46Instance(0, errorCode));
+    if(errorCode.isFailure()) {
+        return;
+    }
+    UnicodeString result;
+    {
+        IDNAInfo info;
+        idna->nameToUnicode(u"xn--pleP", result, info, errorCode);  // P=U+0050
+        assertFalse("nameToUnicode() should succeed",
+                    (info.getErrors()&UIDNA_ERROR_PUNYCODE)!=0);
+        assertEquals("normal result", u"ᔼᔴ", result);
+    }
+    {
+        IDNAInfo info;
+        idna->nameToUnicode(u"xn--pleѐ", result, info, errorCode);  // ends with non-ASCII U+0450
+        assertTrue("nameToUnicode() should detect non-ASCII",
+                   (info.getErrors()&UIDNA_ERROR_PUNYCODE)!=0);
+    }
+
+    // Test with ASCII characters adjacent to LDH.
+    {
+        IDNAInfo info;
+        idna->nameToUnicode(u"xn--ple/", result, info, errorCode);
+        assertTrue("nameToUnicode() should detect '/'",
+                   (info.getErrors()&UIDNA_ERROR_PUNYCODE)!=0);
+    }
+
+    {
+        IDNAInfo info;
+        idna->nameToUnicode(u"xn--ple:", result, info, errorCode);
+        assertTrue("nameToUnicode() should detect ':'",
+                   (info.getErrors()&UIDNA_ERROR_PUNYCODE)!=0);
+    }
+
+    {
+        IDNAInfo info;
+        idna->nameToUnicode(u"xn--ple@", result, info, errorCode);
+        assertTrue("nameToUnicode() should detect '@'",
+                   (info.getErrors()&UIDNA_ERROR_PUNYCODE)!=0);
+    }
+
+    {
+        IDNAInfo info;
+        idna->nameToUnicode(u"xn--ple[", result, info, errorCode);
+        assertTrue("nameToUnicode() should detect '['",
+                   (info.getErrors()&UIDNA_ERROR_PUNYCODE)!=0);
+    }
+
+    {
+        IDNAInfo info;
+        idna->nameToUnicode(u"xn--ple`", result, info, errorCode);
+        assertTrue("nameToUnicode() should detect '`'",
+                   (info.getErrors()&UIDNA_ERROR_PUNYCODE)!=0);
+    }
+
+    {
+        IDNAInfo info;
+        idna->nameToUnicode(u"xn--ple{", result, info, errorCode);
+        assertTrue("nameToUnicode() should detect '{'",
+                   (info.getErrors()&UIDNA_ERROR_PUNYCODE)!=0);
     }
 }
+
+void UTS46Test::TestACELabelEdgeCases() {
+    // In IDNA2008, these labels fail the round-trip validation from comparing
+    // the ToUnicode input with the back-to-ToASCII output.
+    IcuTestErrorCode errorCode(*this, "TestACELabelEdgeCases()");
+    LocalPointer<IDNA> idna(IDNA::createUTS46Instance(0, errorCode));
+    if(errorCode.isFailure()) {
+        return;
+    }
+    UnicodeString result;
+    {
+        IDNAInfo info;
+        idna->labelToUnicode(u"xn--", result, info, errorCode);
+        assertTrue("empty xn--", (info.getErrors()&UIDNA_ERROR_INVALID_ACE_LABEL)!=0);
+    }
+    {
+        IDNAInfo info;
+        idna->labelToUnicode(u"xN--ASCII-", result, info, errorCode);
+        assertTrue("nothing but ASCII", (info.getErrors()&UIDNA_ERROR_INVALID_ACE_LABEL)!=0);
+    }
+    {
+        // Different error: The Punycode decoding procedure does not consume the last delimiter
+        // if it is right after the xn-- so the main decoding loop fails because the hyphen
+        // is not a valid Punycode digit.
+        IDNAInfo info;
+        idna->labelToUnicode(u"Xn---", result, info, errorCode);
+        assertTrue("empty Xn---", (info.getErrors()&UIDNA_ERROR_PUNYCODE)!=0);
+    }
+
+    {
+        // Unicode 15.1 UTS #46:
+        // Added an additional condition in 4.1 Validity Criteria to
+        // disallow labels such as xn--xn---epa., which do not round-trip.
+        // --> Validity Criteria new criterion 4:
+        // If not CheckHyphens, the label must not begin with “xn--”.
+        IDNAInfo info;
+        idna->labelToUnicode("xn--xn---epa", result, info, errorCode);
+        assertTrue("error for xn--xn---epa",
+                (info.getErrors()&UIDNA_ERROR_INVALID_ACE_LABEL)!=0);
+    }
+}
+
+void UTS46Test::TestDefaultNontransitional() {
+    IcuTestErrorCode errorCode(*this, "TestDefaultNontransitional()");
+    // Unicode 15.1 UTS #46 deprecated transitional processing.
+    // ICU 76 changed UIDNA_DEFAULT to set the nontransitional options.
+    LocalPointer<IDNA> forZero(IDNA::createUTS46Instance(0, errorCode));
+    LocalPointer<IDNA> forDefault(IDNA::createUTS46Instance(UIDNA_DEFAULT, errorCode));
+    if(errorCode.isFailure()) {
+        return;
+    }
+    UnicodeString result;
+    IDNAInfo info;
+    forZero->labelToUnicode(u"Fⓤßẞ", result, info, errorCode);
+    assertEquals("forZero.toUnicode(Fⓤßẞ)", u"fussss", result);
+    forZero->labelToASCII(u"Fⓤßẞ", result, info, errorCode);
+    assertEquals("forZero.toASCII(Fⓤßẞ)", u"fussss", result);
+    forDefault->labelToUnicode(u"Fⓤßẞ", result, info, errorCode);
+    assertEquals("forDefault.toUnicode(Fⓤßẞ)", u"fußß", result);
+    forDefault->labelToASCII(u"Fⓤßẞ", result, info, errorCode);
+    assertEquals("forDefault.toASCII(Fⓤßẞ)", u"xn--fu-hiaa", result);
+}
+
+void UTS46Test::TestTooLong() {
+    // ICU-13727: Limit input length for n^2 algorithm
+    // where well-formed strings are at most 59 characters long.
+    int32_t count = 50000;
+    UnicodeString s(count, u'a', count);  // capacity, code point, count
+    char16_t dest[60000];
+    UErrorCode errorCode = U_ZERO_ERROR;
+    u_strToPunycode(s.getBuffer(), s.length(), dest, UPRV_LENGTHOF(dest), nullptr, &errorCode);
+    assertEquals("encode: expected an error for too-long input", U_INPUT_TOO_LONG_ERROR, errorCode);
+    errorCode = U_ZERO_ERROR;
+    u_strFromPunycode(s.getBuffer(), s.length(), dest, UPRV_LENGTHOF(dest), nullptr, &errorCode);
+    assertEquals("decode: expected an error for too-long input", U_INPUT_TOO_LONG_ERROR, errorCode);
+}
+
+namespace {
 
 struct TestCase {
     // Input string and options string (Nontransitional/Transitional/Both).
@@ -253,7 +401,7 @@ struct TestCase {
     uint32_t errors;
 };
 
-static const TestCase testCases[]={
+const TestCase testCases[] = {
     { "www.eXample.cOm", "B",  // all ASCII
       "www.example.com", 0 },
     { "B\\u00FCcher.de", "B",  // u-umlaut
@@ -303,10 +451,6 @@ static const TestCase testCases[]={
     { "\\u65E5\\u672C\\u8A9E\\u3002\\uFF2A\\uFF30", "B",  // Japanese with fullwidth ".jp"
       "\\u65E5\\u672C\\u8A9E.jp", 0 },
     { "\\u2615", "B", "\\u2615", 0 },  // Unicode 4.0 HOT BEVERAGE
-    // some characters are disallowed because they are canonically equivalent
-    // to sequences with non-LDH ASCII
-    { "a\\u2260b\\u226Ec\\u226Fd", "B",
-      "a\\uFFFDb\\uFFFDc\\uFFFDd", UIDNA_ERROR_DISALLOWED },
     // many deviation characters, test the special mapping code
     { "1.a\\u00DF\\u200C\\u200Db\\u200C\\u200Dc\\u00DF\\u00DF\\u00DF\\u00DFd"
       "\\u03C2\\u03C3\\u00DF\\u00DF\\u00DF\\u00DF\\u00DF\\u00DF\\u00DF\\u00DFe"
@@ -491,13 +635,13 @@ static const TestCase testCases[]={
       UIDNA_ERROR_EMPTY_LABEL|UIDNA_ERROR_LEADING_HYPHEN|UIDNA_ERROR_TRAILING_HYPHEN|
       UIDNA_ERROR_HYPHEN_3_4 },
     { "a..c", "B", "a..c", UIDNA_ERROR_EMPTY_LABEL },
-    { "a.xn--.c", "B", "a..c", UIDNA_ERROR_EMPTY_LABEL },
+    { "a.xn--.c", "B", "a.xn--\\uFFFD.c", UIDNA_ERROR_INVALID_ACE_LABEL },
     { "a.-b.", "B", "a.-b.", UIDNA_ERROR_LEADING_HYPHEN },
     { "a.b-.c", "B", "a.b-.c", UIDNA_ERROR_TRAILING_HYPHEN },
     { "a.-.c", "B", "a.-.c", UIDNA_ERROR_LEADING_HYPHEN|UIDNA_ERROR_TRAILING_HYPHEN },
     { "a.bc--de.f", "B", "a.bc--de.f", UIDNA_ERROR_HYPHEN_3_4 },
     { "\\u00E4.\\u00AD.c", "B", "\\u00E4..c", UIDNA_ERROR_EMPTY_LABEL },
-    { "\\u00E4.xn--.c", "B", "\\u00E4..c", UIDNA_ERROR_EMPTY_LABEL },
+    { "\\u00E4.xn--.c", "B", "\\u00E4.xn--\\uFFFD.c", UIDNA_ERROR_INVALID_ACE_LABEL },
     { "\\u00E4.-b.", "B", "\\u00E4.-b.", UIDNA_ERROR_LEADING_HYPHEN },
     { "\\u00E4.b-.c", "B", "\\u00E4.b-.c", UIDNA_ERROR_TRAILING_HYPHEN },
     { "\\u00E4.-.c", "B", "\\u00E4.-.c", UIDNA_ERROR_LEADING_HYPHEN|UIDNA_ERROR_TRAILING_HYPHEN },
@@ -596,6 +740,8 @@ static const TestCase testCases[]={
     //   "", 0 },
 };
 
+}  // namespace
+
 void UTS46Test::TestSomeCases() {
     IcuTestErrorCode errorCode(*this, "TestSomeCases");
     char buffer[400], buffer2[400];
@@ -612,7 +758,7 @@ void UTS46Test::TestSomeCases() {
         nontrans->nameToASCII(input, aN, aNInfo, errorCode);
         nontrans->nameToUnicode(input, uN, uNInfo, errorCode);
         if(errorCode.errIfFailureAndReset("first-level processing [%d/%s] %s",
-                                          (int)i, testCase.o, testCase.s)
+                                          static_cast<int>(i), testCase.o, testCase.s)
         ) {
             continue;
         }
@@ -624,36 +770,36 @@ void UTS46Test::TestSomeCases() {
         if(mode=='B' || mode=='N') {
             if(uNInfo.getErrors()!=uniErrors) {
                 errln("N.nameToUnicode([%d] %s) unexpected errors %04lx",
-                      (int)i, testCase.s, (long)uNInfo.getErrors());
+                      static_cast<int>(i), testCase.s, static_cast<long>(uNInfo.getErrors()));
                 continue;
             }
             if(uN!=expected) {
                 prettify(uN).extract(0, 0x7fffffff, buffer, UPRV_LENGTHOF(buffer));
                 errln("N.nameToUnicode([%d] %s) unexpected string %s",
-                      (int)i, testCase.s, buffer);
+                      static_cast<int>(i), testCase.s, buffer);
                 continue;
             }
             if(aNInfo.getErrors()!=testCase.errors) {
                 errln("N.nameToASCII([%d] %s) unexpected errors %04lx",
-                      (int)i, testCase.s, (long)aNInfo.getErrors());
+                      static_cast<int>(i), testCase.s, static_cast<long>(aNInfo.getErrors()));
                 continue;
             }
         }
         if(mode=='B' || mode=='T') {
             if(uTInfo.getErrors()!=uniErrors) {
                 errln("T.nameToUnicode([%d] %s) unexpected errors %04lx",
-                      (int)i, testCase.s, (long)uTInfo.getErrors());
+                      static_cast<int>(i), testCase.s, static_cast<long>(uTInfo.getErrors()));
                 continue;
             }
             if(uT!=expected) {
                 prettify(uT).extract(0, 0x7fffffff, buffer, UPRV_LENGTHOF(buffer));
                 errln("T.nameToUnicode([%d] %s) unexpected string %s",
-                      (int)i, testCase.s, buffer);
+                      static_cast<int>(i), testCase.s, buffer);
                 continue;
             }
             if(aTInfo.getErrors()!=testCase.errors) {
                 errln("T.nameToASCII([%d] %s) unexpected errors %04lx",
-                      (int)i, testCase.s, (long)aTInfo.getErrors());
+                      static_cast<int>(i), testCase.s, static_cast<long>(aTInfo.getErrors()));
                 continue;
             }
         }
@@ -661,24 +807,24 @@ void UTS46Test::TestSomeCases() {
         if((aNInfo.getErrors()&severeErrors)==0 && !isASCII(aN)) {
             prettify(aN).extract(0, 0x7fffffff, buffer, UPRV_LENGTHOF(buffer));
             errln("N.nameToASCII([%d] %s) (errors %04lx) result is not ASCII %s",
-                  (int)i, testCase.s, aNInfo.getErrors(), buffer);
+                  static_cast<int>(i), testCase.s, aNInfo.getErrors(), buffer);
             continue;
         }
         if((aTInfo.getErrors()&severeErrors)==0 && !isASCII(aT)) {
             prettify(aT).extract(0, 0x7fffffff, buffer, UPRV_LENGTHOF(buffer));
             errln("T.nameToASCII([%d] %s) (errors %04lx) result is not ASCII %s",
-                  (int)i, testCase.s, aTInfo.getErrors(), buffer);
+                  static_cast<int>(i), testCase.s, aTInfo.getErrors(), buffer);
             continue;
         }
         if(verbose) {
             char m= mode=='B' ? mode : 'N';
             prettify(aN).extract(0, 0x7fffffff, buffer, UPRV_LENGTHOF(buffer));
             logln("%c.nameToASCII([%d] %s) (errors %04lx) result string: %s",
-                  m, (int)i, testCase.s, aNInfo.getErrors(), buffer);
+                  m, static_cast<int>(i), testCase.s, aNInfo.getErrors(), buffer);
             if(mode!='B') {
                 prettify(aT).extract(0, 0x7fffffff, buffer, UPRV_LENGTHOF(buffer));
                 logln("T.nameToASCII([%d] %s) (errors %04lx) result string: %s",
-                      (int)i, testCase.s, aTInfo.getErrors(), buffer);
+                      static_cast<int>(i), testCase.s, aTInfo.getErrors(), buffer);
             }
         }
         // second-level processing
@@ -689,7 +835,7 @@ void UTS46Test::TestSomeCases() {
         nontrans->nameToUnicode(aN, aNuN, aNuNInfo, errorCode);
         nontrans->nameToASCII(uN, uNaN, uNaNInfo, errorCode);
         if(errorCode.errIfFailureAndReset("second-level processing [%d/%s] %s",
-                                          (int)i, testCase.o, testCase.s)
+                                          static_cast<int>(i), testCase.o, testCase.s)
         ) {
             continue;
         }
@@ -698,7 +844,7 @@ void UTS46Test::TestSomeCases() {
             prettify(uNaN).extract(0, 0x7fffffff, buffer2, UPRV_LENGTHOF(buffer2));
             errln("N.nameToASCII([%d] %s)!=N.nameToUnicode().N.nameToASCII() "
                   "(errors %04lx) %s vs. %s",
-                  (int)i, testCase.s, aNInfo.getErrors(), buffer, buffer2);
+                  static_cast<int>(i), testCase.s, aNInfo.getErrors(), buffer, buffer2);
             continue;
         }
         if(aT!=uTaN) {
@@ -706,7 +852,7 @@ void UTS46Test::TestSomeCases() {
             prettify(uTaN).extract(0, 0x7fffffff, buffer2, UPRV_LENGTHOF(buffer2));
             errln("T.nameToASCII([%d] %s)!=T.nameToUnicode().N.nameToASCII() "
                   "(errors %04lx) %s vs. %s",
-                  (int)i, testCase.s, aNInfo.getErrors(), buffer, buffer2);
+                  static_cast<int>(i), testCase.s, aNInfo.getErrors(), buffer, buffer2);
             continue;
         }
         if(uN!=aNuN) {
@@ -714,7 +860,7 @@ void UTS46Test::TestSomeCases() {
             prettify(aNuN).extract(0, 0x7fffffff, buffer2, UPRV_LENGTHOF(buffer2));
             errln("N.nameToUnicode([%d] %s)!=N.nameToASCII().N.nameToUnicode() "
                   "(errors %04lx) %s vs. %s",
-                  (int)i, testCase.s, uNInfo.getErrors(), buffer, buffer2);
+                  static_cast<int>(i), testCase.s, uNInfo.getErrors(), buffer, buffer2);
             continue;
         }
         if(uT!=aTuN) {
@@ -722,7 +868,7 @@ void UTS46Test::TestSomeCases() {
             prettify(aTuN).extract(0, 0x7fffffff, buffer2, UPRV_LENGTHOF(buffer2));
             errln("T.nameToUnicode([%d] %s)!=T.nameToASCII().N.nameToUnicode() "
                   "(errors %04lx) %s vs. %s",
-                  (int)i, testCase.s, uNInfo.getErrors(), buffer, buffer2);
+                  static_cast<int>(i), testCase.s, uNInfo.getErrors(), buffer, buffer2);
             continue;
         }
         // labelToUnicode
@@ -733,71 +879,71 @@ void UTS46Test::TestSomeCases() {
         nontrans->labelToASCII(input, aNL, aNLInfo, errorCode);
         nontrans->labelToUnicode(input, uNL, uNLInfo, errorCode);
         if(errorCode.errIfFailureAndReset("labelToXYZ processing [%d/%s] %s",
-                                          (int)i, testCase.o, testCase.s)
+                                          static_cast<int>(i), testCase.o, testCase.s)
         ) {
             continue;
         }
-        if(aN.indexOf((UChar)0x2e)<0) {
+        if (aN.indexOf(static_cast<char16_t>(0x2e)) < 0) {
             if(aN!=aNL || aNInfo.getErrors()!=aNLInfo.getErrors()) {
                 prettify(aN).extract(0, 0x7fffffff, buffer, UPRV_LENGTHOF(buffer));
                 prettify(aNL).extract(0, 0x7fffffff, buffer2, UPRV_LENGTHOF(buffer2));
                 errln("N.nameToASCII([%d] %s)!=N.labelToASCII() "
                       "(errors %04lx vs %04lx) %s vs. %s",
-                      (int)i, testCase.s, aNInfo.getErrors(), aNLInfo.getErrors(), buffer, buffer2);
+                      static_cast<int>(i), testCase.s, aNInfo.getErrors(), aNLInfo.getErrors(), buffer, buffer2);
                 continue;
             }
         } else {
             if((aNLInfo.getErrors()&UIDNA_ERROR_LABEL_HAS_DOT)==0) {
                 errln("N.labelToASCII([%d] %s) errors %04lx missing UIDNA_ERROR_LABEL_HAS_DOT",
-                      (int)i, testCase.s, (long)aNLInfo.getErrors());
+                      static_cast<int>(i), testCase.s, static_cast<long>(aNLInfo.getErrors()));
                 continue;
             }
         }
-        if(aT.indexOf((UChar)0x2e)<0) {
+        if (aT.indexOf(static_cast<char16_t>(0x2e)) < 0) {
             if(aT!=aTL || aTInfo.getErrors()!=aTLInfo.getErrors()) {
                 prettify(aT).extract(0, 0x7fffffff, buffer, UPRV_LENGTHOF(buffer));
                 prettify(aTL).extract(0, 0x7fffffff, buffer2, UPRV_LENGTHOF(buffer2));
                 errln("T.nameToASCII([%d] %s)!=T.labelToASCII() "
                       "(errors %04lx vs %04lx) %s vs. %s",
-                      (int)i, testCase.s, aTInfo.getErrors(), aTLInfo.getErrors(), buffer, buffer2);
+                      static_cast<int>(i), testCase.s, aTInfo.getErrors(), aTLInfo.getErrors(), buffer, buffer2);
                 continue;
             }
         } else {
             if((aTLInfo.getErrors()&UIDNA_ERROR_LABEL_HAS_DOT)==0) {
                 errln("T.labelToASCII([%d] %s) errors %04lx missing UIDNA_ERROR_LABEL_HAS_DOT",
-                      (int)i, testCase.s, (long)aTLInfo.getErrors());
+                      static_cast<int>(i), testCase.s, static_cast<long>(aTLInfo.getErrors()));
                 continue;
             }
         }
-        if(uN.indexOf((UChar)0x2e)<0) {
+        if (uN.indexOf(static_cast<char16_t>(0x2e)) < 0) {
             if(uN!=uNL || uNInfo.getErrors()!=uNLInfo.getErrors()) {
                 prettify(uN).extract(0, 0x7fffffff, buffer, UPRV_LENGTHOF(buffer));
                 prettify(uNL).extract(0, 0x7fffffff, buffer2, UPRV_LENGTHOF(buffer2));
                 errln("N.nameToUnicode([%d] %s)!=N.labelToUnicode() "
                       "(errors %04lx vs %04lx) %s vs. %s",
-                      (int)i, testCase.s, uNInfo.getErrors(), uNLInfo.getErrors(), buffer, buffer2);
+                      static_cast<int>(i), testCase.s, uNInfo.getErrors(), uNLInfo.getErrors(), buffer, buffer2);
                 continue;
             }
         } else {
             if((uNLInfo.getErrors()&UIDNA_ERROR_LABEL_HAS_DOT)==0) {
                 errln("N.labelToUnicode([%d] %s) errors %04lx missing UIDNA_ERROR_LABEL_HAS_DOT",
-                      (int)i, testCase.s, (long)uNLInfo.getErrors());
+                      static_cast<int>(i), testCase.s, static_cast<long>(uNLInfo.getErrors()));
                 continue;
             }
         }
-        if(uT.indexOf((UChar)0x2e)<0) {
+        if (uT.indexOf(static_cast<char16_t>(0x2e)) < 0) {
             if(uT!=uTL || uTInfo.getErrors()!=uTLInfo.getErrors()) {
                 prettify(uT).extract(0, 0x7fffffff, buffer, UPRV_LENGTHOF(buffer));
                 prettify(uTL).extract(0, 0x7fffffff, buffer2, UPRV_LENGTHOF(buffer2));
                 errln("T.nameToUnicode([%d] %s)!=T.labelToUnicode() "
                       "(errors %04lx vs %04lx) %s vs. %s",
-                      (int)i, testCase.s, uTInfo.getErrors(), uTLInfo.getErrors(), buffer, buffer2);
+                      static_cast<int>(i), testCase.s, uTInfo.getErrors(), uTLInfo.getErrors(), buffer, buffer2);
                 continue;
             }
         } else {
             if((uTLInfo.getErrors()&UIDNA_ERROR_LABEL_HAS_DOT)==0) {
                 errln("T.labelToUnicode([%d] %s) errors %04lx missing UIDNA_ERROR_LABEL_HAS_DOT",
-                      (int)i, testCase.s, (long)uTLInfo.getErrors());
+                      static_cast<int>(i), testCase.s, static_cast<long>(uTLInfo.getErrors()));
                 continue;
             }
         }
@@ -812,7 +958,7 @@ void UTS46Test::TestSomeCases() {
                 uNLInfo.isTransitionalDifferent() ||
                 uTLInfo.isTransitionalDifferent()
             ) {
-                errln("B.process([%d] %s) isTransitionalDifferent()", (int)i, testCase.s);
+                errln("B.process([%d] %s) isTransitionalDifferent()", static_cast<int>(i), testCase.s);
                 continue;
             }
             if( aN!=aT || uN!=uT || aNL!=aTL || uNL!=uTL ||
@@ -820,7 +966,7 @@ void UTS46Test::TestSomeCases() {
                 aNLInfo.getErrors()!=aTLInfo.getErrors() || uNLInfo.getErrors()!=uTLInfo.getErrors()
             ) {
                 errln("N.process([%d] %s) vs. T.process() different errors or result strings",
-                      (int)i, testCase.s);
+                      static_cast<int>(i), testCase.s);
                 continue;
             }
         } else {
@@ -834,12 +980,12 @@ void UTS46Test::TestSomeCases() {
                 !uTLInfo.isTransitionalDifferent()
             ) {
                 errln("%s.process([%d] %s) !isTransitionalDifferent()",
-                      testCase.o, (int)i, testCase.s);
+                      testCase.o, static_cast<int>(i), testCase.s);
                 continue;
             }
             if(aN==aT || uN==uT || aNL==aTL || uNL==uTL) {
                 errln("N.process([%d] %s) vs. T.process() same result strings",
-                      (int)i, testCase.s);
+                      static_cast<int>(i), testCase.s);
                 continue;
             }
         }
@@ -853,7 +999,7 @@ void UTS46Test::TestSomeCases() {
         nontrans->nameToASCII_UTF8(input8, aN8Sink, aN8Info, errorCode);
         nontrans->nameToUnicodeUTF8(input8, uN8Sink, uN8Info, errorCode);
         if(errorCode.errIfFailureAndReset("UTF-8 processing [%d/%s] %s",
-                                          (int)i, testCase.o, testCase.s)
+                                          static_cast<int>(i), testCase.o, testCase.s)
         ) {
             continue;
         }
@@ -865,21 +1011,21 @@ void UTS46Test::TestSomeCases() {
             uN8Info.getErrors()!=uNInfo.getErrors()
         ) {
             errln("N.xyzUTF8([%d] %s) vs. UTF-16 processing different errors %04lx vs. %04lx",
-                  (int)i, testCase.s,
-                  (long)aN8Info.getErrors(), (long)aNInfo.getErrors());
+                  static_cast<int>(i), testCase.s,
+                  static_cast<long>(aN8Info.getErrors()), static_cast<long>(aNInfo.getErrors()));
             continue;
         }
         if( aT8Info.getErrors()!=aTInfo.getErrors() ||
             uT8Info.getErrors()!=uTInfo.getErrors()
         ) {
             errln("T.xyzUTF8([%d] %s) vs. UTF-16 processing different errors %04lx vs. %04lx",
-                  (int)i, testCase.s,
-                  (long)aT8Info.getErrors(), (long)aTInfo.getErrors());
+                  static_cast<int>(i), testCase.s,
+                  static_cast<long>(aT8Info.getErrors()), static_cast<long>(aTInfo.getErrors()));
             continue;
         }
         if(aT16!=aT || uT16!=uT || aN16!=aN || uN16!=uN) {
             errln("%s.xyzUTF8([%d] %s) vs. UTF-16 processing different string results",
-                  testCase.o, (int)i, testCase.s, (long)aTInfo.getErrors());
+                  testCase.o, static_cast<int>(i), testCase.s, static_cast<long>(aTInfo.getErrors()));
             continue;
         }
         if( aT8Info.isTransitionalDifferent()!=aTInfo.isTransitionalDifferent() ||
@@ -888,7 +1034,7 @@ void UTS46Test::TestSomeCases() {
             uN8Info.isTransitionalDifferent()!=uNInfo.isTransitionalDifferent()
         ) {
             errln("%s.xyzUTF8([%d] %s) vs. UTF-16 processing different isTransitionalDifferent()",
-                  testCase.o, (int)i, testCase.s);
+                  testCase.o, static_cast<int>(i), testCase.s);
             continue;
         }
     }
@@ -905,16 +1051,22 @@ idnaTestLineFn(void *context,
     reinterpret_cast<UTS46Test *>(context)->idnaTestOneLine(fields, *pErrorCode);
 }
 
-UnicodeString s16FromField(char *(&field)[2]) {
-    int32_t length = (int32_t)(field[1] - field[0]);
-    return UnicodeString::fromUTF8(StringPiece(field[0], length)).trim().unescape();
+UnicodeString s16FromField(char *(&field)[2], const UnicodeString &sameAs) {
+    int32_t length = static_cast<int32_t>(field[1] - field[0]);
+    UnicodeString s = UnicodeString::fromUTF8(StringPiece(field[0], length)).trim().unescape();
+    if (s.isEmpty()) {
+        s = sameAs;  // blank means same as another string
+    } else if (s == u"\"\"") {
+        s.remove();  // explicit empty string (new in Unicode 16)
+    }
+    return s;
 }
 
 std::string statusFromField(char *(&field)[2]) {
     const char *start = u_skipWhitespace(field[0]);
     std::string status;
     if (start != field[1]) {
-        int32_t length = (int32_t)(field[1] - start);
+        int32_t length = static_cast<int32_t>(field[1] - start);
         while (length > 0 && (start[length - 1] == u' ' || start[length - 1] == u'\t')) {
             --length;
         }
@@ -930,18 +1082,32 @@ void UTS46Test::checkIdnaTestResult(const char *line, const char *type,
                                     const char *status, const IDNAInfo &info) {
     // An error in toUnicode or toASCII is indicated by a value in square brackets,
     // such as "[B5 B6]".
-    UBool expectedHasErrors = FALSE;
+    UBool expectedHasErrors = false;
     if (*status != 0) {
         if (*status != u'[') {
             errln("%s  status field does not start with '[': %s\n    %s", type, status, line);
         }
-        if (strcmp(status, u8"[]") != 0) {
-            expectedHasErrors = TRUE;
+        if (strcmp(status, reinterpret_cast<const char*>(u8"[]")) != 0) {
+            expectedHasErrors = true;
+        }
+        // ICU workaround:
+        // We do effectively VerifyDnsLength (we always check for lengths), except,
+        // based on past bug reports, we do not do the following in UTS #46 ToASCII:
+        // When VerifyDnsLength is true, the empty root label is disallowed.
+        // Ignore the expected error if it is the only one.
+        // TODO: ICU-22882 - Report the empty root label separately from empty non-root labels.
+        if (strncmp(type, "toASCII", 7) == 0 &&  // startsWith
+                strcmp(status, "[A4_2]") == 0 && !info.hasErrors()) {
+            if (result.endsWith(UnicodeString::readOnlyAlias(u".")) &&
+                    // !contains
+                    result.indexOf(UnicodeString::readOnlyAlias(u"..")) < 0) {
+                expectedHasErrors = false;
+            }
         }
     }
     if (expectedHasErrors != info.hasErrors()) {
         errln("%s  expected errors %s %d != %d = actual has errors: %04lx\n    %s",
-              type, status, expectedHasErrors, info.hasErrors(), (long)info.getErrors(), line);
+              type, status, expectedHasErrors, info.hasErrors(), static_cast<long>(info.getErrors()), line);
     }
     if (!expectedHasErrors && expected != result) {
         errln("%s  expected != actual\n    %s", type, line);
@@ -953,16 +1119,15 @@ void UTS46Test::checkIdnaTestResult(const char *line, const char *type,
 void UTS46Test::idnaTestOneLine(char *fields[][2], UErrorCode &errorCode) {
     // IdnaTestV2.txt (since Unicode 11)
     // Column 1: source
-    // The source string to be tested
-    UnicodeString source = s16FromField(fields[0]);
+    // The source string to be tested.
+    // "" means the empty string.
+    UnicodeString source = s16FromField(fields[0], UnicodeString());
 
     // Column 2: toUnicode
     // The result of applying toUnicode to the source, with Transitional_Processing=false.
     // A blank value means the same as the source value.
-    UnicodeString toUnicode = s16FromField(fields[1]);
-    if (toUnicode.isEmpty()) {
-        toUnicode = source;
-    }
+    // "" means the empty string.
+    UnicodeString toUnicode = s16FromField(fields[1], source);
 
     // Column 3: toUnicodeStatus
     // A set of status codes, each corresponding to a particular test.
@@ -972,10 +1137,8 @@ void UTS46Test::idnaTestOneLine(char *fields[][2], UErrorCode &errorCode) {
     // Column 4: toAsciiN
     // The result of applying toASCII to the source, with Transitional_Processing=false.
     // A blank value means the same as the toUnicode value.
-    UnicodeString toAsciiN = s16FromField(fields[3]);
-    if (toAsciiN.isEmpty()) {
-        toAsciiN = toUnicode;
-    }
+    // "" means the empty string.
+    UnicodeString toAsciiN = s16FromField(fields[3], toUnicode);
 
     // Column 5: toAsciiNStatus
     // A set of status codes, each corresponding to a particular test.
@@ -988,10 +1151,8 @@ void UTS46Test::idnaTestOneLine(char *fields[][2], UErrorCode &errorCode) {
     // Column 6: toAsciiT
     // The result of applying toASCII to the source, with Transitional_Processing=true.
     // A blank value means the same as the toAsciiN value.
-    UnicodeString toAsciiT = s16FromField(fields[5]);
-    if (toAsciiT.isEmpty()) {
-        toAsciiT = toAsciiN;
-    }
+    // "" means the empty string.
+    UnicodeString toAsciiT = s16FromField(fields[5], toAsciiN);
 
     // Column 7: toAsciiTStatus
     // A set of status codes, each corresponding to a particular test.
@@ -1015,10 +1176,13 @@ void UTS46Test::idnaTestOneLine(char *fields[][2], UErrorCode &errorCode) {
                         toAsciiTStatus.c_str(), aTInfo);
 }
 
+namespace {
+
 // TODO: de-duplicate
 U_DEFINE_LOCAL_OPEN_POINTER(LocalStdioFilePointer, FILE, fclose);
 
-// http://www.unicode.org/Public/idna/latest/IdnaTest.txt
+}  // namespace
+
 void UTS46Test::IdnaTest() {
     IcuTestErrorCode errorCode(*this, "IdnaTest");
     const char *sourceTestDataPath = getSourceTestData(errorCode);
@@ -1039,7 +1203,7 @@ void UTS46Test::IdnaTest() {
     // Comments are indicated with hash marks.
     char *fields[kNumFields][2];
     u_parseDelimitedFile(path.data(), ';', fields, kNumFields, idnaTestLineFn, this, errorCode);
-    if (errorCode.errIfFailureAndReset("error parsing IdnaTest.txt")) {
+    if (errorCode.errIfFailureAndReset("error parsing IdnaTestV2.txt")) {
         return;
     }
 }

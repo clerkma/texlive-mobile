@@ -1,7 +1,7 @@
 #!/usr/bin/env texlua
 kpse.set_program_name("luatex")
 -- ctanbib -- export ctan entries to bib format
--- Copyright: Michal Hoftich <michal.h21@gmail.com> (2014-2018)
+-- Copyright: Michal Hoftich <michal.h21@gmail.com> (2014-2023)
 --
 -- This work may be distributed and/or modified under the
 -- conditions of the LaTeX Project Public License, either version 1.3
@@ -15,58 +15,99 @@ kpse.set_program_name("luatex")
 -- 
 -- The Current Maintainer of this work is Michal Hoftich
 
+local lapp = require "lapp-mk4"
+
 local bibtype = "manual"
-if #arg < 1 or arg[1]=="--help" or arg[1]=="-h" then
-  print([[ctanbib - convert ctan package information to bibtex format
+local pkgurl = false
+local msg = [[ctanbib - convert ctan package information to bibtex format
 Usage:
-ctanbib [options] <package name>
+ctanbib [options] PKGNAME1 PKGNAME2 ...
+
+Look up the Catalogue entry for each PKGNAME on CTAN (at
+https://ctan.org/xml/2.0/pkg/PKGNAME), and convert relevant information
+to a BibTeX entry.
+
+By default, the url field in the output entry is the package's home
+field value if that is specified in the Catalogue entry; if it isn't,
+https://ctan.org/pkg/PKGNAME is used.
+
 Available options:
-  -c,--ctan       Use @ctan type instead of @manual
+  -c,--ctan       Always use CTAN /pkg/ url instead of the package homepage 
+  -C,--ctanpath   Use the package's CTAN path as url (e.g.: /support/ctanbib)
+  -e,--entrytype  (default manual)  Change entry type
   -h,--help       Print this message
+  -p,--pkgname    Wrap the package name in a \ctanbibpkgname command
   -v,--version    Print version info
-  ]])
-  os.exit(1)
-elseif arg[1]=="--version" or arg[1]=="-v" then
-  print "ctanbib version 0.1d"
-  os.exit(1)
-elseif arg[1]=="--ctan" or arg[1]=="-c" then
-  table.remove(arg, 1)
-  bibtype = "ctan"
+
+ctanbib package page: https://ctan.org/pkg/ctanbib]]
+local args = lapp(msg)
+if args.help then
+  print(msg)
+  os.exit(0)
+elseif args.version then
+  print "ctanbib version 0.2d"
+  os.exit(0)
+elseif args.ctan then
+  pkgurl = true
 end
 
-local pkgname = arg[1]
-local url = "https://www.ctan.org/xml/2.0/pkg/" .. pkgname .. "?author-name=true"
+-- manual is set by default in --entrytype, we don't want it to override the --ctan option
+if args.entrytype~="manual" then
+  bibtype = args.entrytype
+end
+
+
+
+
+local pkgname = args[1]
+
+if not pkgname then 
+  print "[ctanbib] Error: missing package name"
+  print(msg)
+  os.exit(1)
+end
+
 local authors_url = "https://ctan.org/xml/2.0/authors"
+local license_url = "https://www.ctan.org/xml/2.0/licenses"
 
 -- change that for different title scheme
 local titleformat = "The %s package"
 
 local bibtexformat = [[
 @manual{$package,
-title = {$title},
-subtitle = {$subtitle},
-author = {$author},
-url = {$url},
-urldate = {$urldate}, 
-date = {$date},
-version = {$version}
+  title = {$title},
+  subtitle = {$subtitle},
+  author = {$author},
+  url = {$url},
+  urldate = {$urldate}, 
+  date = {$date},
+  version = {$version},
 }
 ]]
 
+if args.pkgname then
+  titleformat = "The \\ctanbibpkgname{%s} package"
+  preamble = [[@preamble{ "\providecommand\ctanbibpkgname[1]{\textsl{#1}}" }
+]] 
+  bibtexformat = preamble .. bibtexformat
+end
+
 local dom = require('luaxml-domobject')
 
-
-local load_xml =  function(url)
+local load_xml =  function(url, verification)
   -- local command = io.popen("wget -qO- ".. url,"r")
-  local command = io.popen("curl -sS ".. url,"r")
+  local command = io.popen("curl --ssl-no-revoke -sS ".. url,"r")
+  local verification = verification or ""
+
+  if not command then return nil, "Cannot open Curl" end
 
   local info = command:read("*all")
   command:close()
 
-  if string.len(info) == 0 then
-    return false
+  if not info or string.len(info) == 0 or not info:match(verification) then
+    return nil, "Cannot load XML", info 
   end
-  return dom.parse(info)
+  return dom.parse(info ), info
 end
 
 local bibtex_escape = function(a)
@@ -82,7 +123,11 @@ end
 local author_list
 local fetch_author_list = function()
   if author_list then return author_list end
-  local authors = load_xml(authors_url)
+  local authors, msg = load_xml(authors_url, "<authors")
+  if not authors then 
+    print(msg)
+    os.exit()
+  end
   author_list = {}
   for _, author in ipairs(authors:query_selector("author")) do
     -- save all authors under they ID 
@@ -124,6 +169,10 @@ local get_authors = function(a)
   for _, author in ipairs(a) do
     table.insert(retrieved_authors, get_author(author))
   end
+  -- CTAN returns authors in the random order. to fix that, we sort them. 
+  -- I know that it is not a good solution for non-latin and accented names.
+  -- We could use Lua-UCA for the sorting, but I feel it is a bit of overkill.
+  table.sort(retrieved_authors)
   return table.concat(retrieved_authors," and ")
 end
 
@@ -131,18 +180,24 @@ local get_title = function(record)
   local title = record:query_selector("name")[1]
   if title then
     title = title:get_text()
-    title = title:gsub("^(.)", function(a) return unicode.utf8.upper(a) end)
+    -- don't uppercase package name, as suggested by Karl Berry and Boris Veytsman
+    -- title = title:gsub("^(.)", function(a) return unicode.utf8.upper(a) end)
   else
     title = pkgname
   end
   return string.format(titleformat, bibtex_escape(title))
 end
 
+local function verify_record(record)
+  -- verify that we found a package
+  if not record then return false end
+  return #record:query_selector("name") > 0
+end
 
-local get_url = function(record)
+local get_url = function(record,pkgname)
   local home = record:query_selector("home")[1]
   if home then return home:get_attribute("href") end
-  return "http://www.ctan.org/pkg/"..pkgname
+  return "https://ctan.org/pkg/"..pkgname
 end
 
 local get_caption = function(record)
@@ -158,8 +213,29 @@ local get_version = function(record)
   end
 end
 
-local ctan_url = function(record)
-  local ctan = record:query_selector("ctan")[1] 
+
+local get_copyright_date = function(record)
+  -- we must get the latest <copyright>, because it contains the latest date
+  local copyright_tbl = record:query_selector("copyright")
+  local copyright = copyright_tbl[#copyright_tbl]
+  if copyright  then
+    local year = copyright:get_attribute("year") 
+    if year then
+      -- year can hold a range of year. we will chose the newest date
+      return year:match("(%d+)$")
+    end
+
+  end
+  
+end
+
+
+local ctan_url = function(record, pkgname)
+  return "https://ctan.org/pkg/"..pkgname
+end
+
+local ctan_path = function(record)
+  local ctan = record:query_selector("ctan")[1]
   -- some package don't contain the CTAN path
   if not ctan then return get_url(record) end
   local path = ctan:get_attribute("path")
@@ -173,32 +249,40 @@ local compile = function(template, records)
   end)
 end
 
-local record = load_xml(url)
+for _, pkgname in ipairs(args) do
+  local url = "https://ctan.org/xml/2.0/pkg/" .. pkgname .. "?author-name=true"
+  local record, info = load_xml(url, "%<entry")
 
-if not record then
-  print("Cannot find entry for package "..pkgname)
-  os.exit(1)
+  if not verify_record(record) then
+    print("% Cannot find entry for package "..pkgname)
+    break
+  end
+
+  -- root element is also saved, so we use this trick 
+  -- local record = entry.entry
+
+  local e = {}
+
+  e.author = get_authors(record:query_selector("authorref"))
+  e.package = pkgname
+  e.title = get_title(record)
+  e.subtitle = get_caption(record)
+  e.url = get_url(record, pkgname)
+  -- use the CTAN path as url for the CTAN type
+  if pkgurl then
+    e.url = ctan_url(record, pkgname)
+  elseif args.ctanpath then
+    e.url = ctan_path(record)
+  end
+  e.version, e.date = get_version(record)
+  if not e.date then 
+    e.date = get_copyright_date(record)
+  end
+  e.urldate = os.date("%Y-%m-%d")
+
+  local result = compile(bibtexformat, e)
+  -- update the bibliography type
+  result = result:gsub("^@manual", "@" .. bibtype)
+
+  print(result)
 end
-
--- root element is also saved, so we use this trick 
--- local record = entry.entry
-
-local e = {}
-
-e.author = get_authors(record:query_selector("authorref"))
-e.package = pkgname
-e.title = get_title(record)
-e.subtitle = get_caption(record)
-e.url = get_url(record)
--- use the CTAN path as url for the CTAN type
-if bibtype == "ctan" then
-  e.url = ctan_url(record)
-end
-e.version, e.date = get_version(record)
-e.urldate = os.date("%Y-%m-%d")
-
-local result = compile(bibtexformat, e)
--- update the bibliography type
-result = result:gsub("^@manual", "@" .. bibtype)
-
-print(result)

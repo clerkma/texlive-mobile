@@ -2,7 +2,7 @@
 ** DvisvgmSpecialTest.cpp                                               **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -30,27 +30,34 @@ using namespace std;
 
 class MyDvisvgmSpecialHandler : public DvisvgmSpecialHandler {
 	public:
+		explicit MyDvisvgmSpecialHandler (EmptySpecialActions &actions) : _actions(actions) {}
 		void finishPreprocessing () {dviPreprocessingFinished();}
+		void beginPage ()           {dviBeginPage(0, _actions);}
 		void finishPage ()          {dviEndPage(0, _actions);}
 
 	protected:
-		EmptySpecialActions _actions;
+		EmptySpecialActions &_actions;
 };
 
 
 class DvisvgmSpecialTest : public ::testing::Test {
+	public:
+		DvisvgmSpecialTest () : handler(recorder) {}
+
 	protected:
 		class ActionsRecorder : public EmptySpecialActions {
 			public:
-				void embed (const BoundingBox &bb) override   {bbox.embed(bb);}
-				double getX () const override                 {return -42;}
-				double getY () const override                 {return 14;}
-				bool defsEquals (const string &str) const     {return defsString() == str;}
-				bool pageEquals (const string &str) const     {return pageString() == str;}
-				bool bboxEquals (const string &str) const     {return bbox.toSVGViewBox() == str;}
-				string bboxString () const                    {return bbox.toSVGViewBox();}
-				string defsString () const                    {return toString(svgTree().defsNode());}
-				string pageString () const                    {return toString(svgTree().pageNode());}
+				void embed (const BoundingBox &bb) override    {bbox.embed(bb);}
+				double getX () const override                  {return -42;}
+				double getY () const override                  {return 14;}
+				unsigned getCurrentPageNumber() const override {return 1;}
+				FilePath getSVGFilePath(unsigned pageno) const override {return FilePath("test.svg");}
+				bool defsEquals (const string &str) const      {return defsString() == str;}
+				bool pageEquals (const string &str) const      {return pageString() == str;}
+				bool bboxEquals (const string &str) const      {return bbox.svgViewBoxString() == str;}
+				string bboxString () const                     {return bbox.svgViewBoxString();}
+				string defsString () const                     {return toString(svgTree().defsNode());}
+				string pageString () const                     {return toString(svgTree().pageNode());}
 
 				void clear () {
 					SpecialActions::svgTree().reset();
@@ -59,7 +66,7 @@ class DvisvgmSpecialTest : public ::testing::Test {
 				}
 
 			protected:
-				string toString (const XMLNode *node) const {
+				static string toString (const XMLNode *node) {
 					ostringstream oss;
 					if (node)
 						node->write(oss);
@@ -72,12 +79,13 @@ class DvisvgmSpecialTest : public ::testing::Test {
 
 		void SetUp () override {
 			recorder.clear();
+			handler.beginPage();
 			XMLElement::WRITE_NEWLINES = false;
 		}
 
 	protected:
-		MyDvisvgmSpecialHandler handler;
 		ActionsRecorder recorder;
+		MyDvisvgmSpecialHandler handler;
 };
 
 
@@ -92,10 +100,10 @@ TEST_F(DvisvgmSpecialTest, rawText) {
 	EXPECT_TRUE(recorder.defsEquals(""));
 	EXPECT_TRUE(recorder.pageEquals("<g id='page1'>first\n-42,14</g>")) << recorder.pageString();
 
-	iss.clear(); iss.str("raw \t ;{?(-x+2*y-5)}second {?bbox dummy} \t");
+	iss.clear(); iss.str("raw \t ;{?(-x+2*y-5)}{?(-y+2*x-5)}second {?bbox dummy} \t");
 	handler.process("", iss, recorder);
 	EXPECT_TRUE(recorder.defsEquals(""));
-	EXPECT_TRUE(recorder.pageEquals("<g id='page1'>first\n-42,14;65second 0 0 0 0</g>")) << recorder.pageString();
+	EXPECT_TRUE(recorder.pageEquals("<g id='page1'>first\n-42,14;65-103second 0 0 0 0</g>")) << recorder.pageString();
 }
 
 
@@ -189,21 +197,21 @@ TEST_F(DvisvgmSpecialTest, rawPI) {
 
 TEST_F(DvisvgmSpecialTest, rawPageFail) {
 	istringstream iss("raw <elem attr1='1' attr2='20'");
-	EXPECT_THROW({handler.process("", iss, recorder); handler.finishPage();}, SpecialException);  // incomplete opening tag
+	EXPECT_THROW({handler.process("", iss, recorder); handler.finishPage();}, XMLParserException);  // incomplete opening tag
 	iss.clear(); iss.str("raw </elem>");
-	EXPECT_THROW(handler.process("", iss, recorder), SpecialException);  // spurious closing tag
+	EXPECT_THROW(handler.process("", iss, recorder), XMLParserException);  // spurious closing tag
 	iss.clear(); iss.str("raw <open>text</close>");
-	EXPECT_THROW(handler.process("", iss, recorder), SpecialException);  // mismatching tags
+	EXPECT_THROW(handler.process("", iss, recorder), XMLParserException);  // mismatching tags
 }
 
 
 TEST_F(DvisvgmSpecialTest, rawDefsFail) {
 	istringstream iss("rawdef <elem attr1='1' attr2='20'");
-	EXPECT_THROW({handler.process("", iss, recorder); handler.finishPage();}, SpecialException);  // incomplete opening tag
+	EXPECT_THROW({handler.process("", iss, recorder); handler.finishPage();}, XMLParserException);  // incomplete opening tag
 	iss.clear(); iss.str("rawdef </elem>");
-	EXPECT_THROW(handler.process("", iss, recorder), SpecialException);  // spurious closing tag
+	EXPECT_THROW(handler.process("", iss, recorder), XMLParserException);  // spurious closing tag
 	iss.clear(); iss.str("rawdef <open>text</close>");
-	EXPECT_THROW(handler.process("", iss, recorder), SpecialException);  // mismatching tags
+	EXPECT_THROW(handler.process("", iss, recorder), XMLParserException);  // mismatching tags
 }
 
 
@@ -360,6 +368,14 @@ TEST_F(DvisvgmSpecialTest, processBBox) {
 	iss.str("bbox new name");
 	handler.process("", iss, recorder);
 	EXPECT_TRUE(recorder.bboxEquals("0 0 0 0"));
+}
+
+
+TEST_F(DvisvgmSpecialTest, expandText) {
+	EXPECT_EQ(recorder.expandText(""), "");
+	EXPECT_EQ(recorder.expandText("static text"), "static text");
+	EXPECT_EQ(recorder.expandText("x={?x}, y={?y}"), "x=-42, y=14");
+	EXPECT_EQ(recorder.expandText("page:{?pageno}, file:{?svgfile}"), "page:1, file:test.svg");
 }
 
 

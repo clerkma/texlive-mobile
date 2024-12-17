@@ -2,7 +2,7 @@
 ** GroupCollapser.cpp                                                   **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -22,12 +22,13 @@
 #include <array>
 #include <string>
 #include <vector>
-#include "AttributeExtractor.hpp"
 #include "GroupCollapser.hpp"
+#include "TransformSimplifier.hpp"
 #include "../XMLNode.hpp"
 
 using namespace std;
 
+bool GroupCollapser::COMBINE_TRANSFORMS = true;
 
 const char* GroupCollapser::info () const {
 	return "join nested group elements";
@@ -61,7 +62,7 @@ static void remove_ws_nodes (XMLElement *elem) {
 			node = node->next();
 		else {
 			XMLNode *next = node->next();
-			XMLElement::remove(node);
+			XMLElement::detach(node);
 			node = next;
 		}
 	}
@@ -69,31 +70,38 @@ static void remove_ws_nodes (XMLElement *elem) {
 
 
 /** Recursively removes all redundant group elements from the given context element
- *  and moves their attributes to the corresponding parent element.
- *  @param[in] context root of the subtree to process */
-void GroupCollapser::execute (XMLElement *context) {
+ *  and moves their attributes to the corresponding parent elements.
+ *  @param[in] context root of the subtree to process
+ *  @param[in] depth depth of tree node being processed (0 = root of local tree) */
+void GroupCollapser::execute (XMLElement *context, int depth) {
 	if (!context)
 		return;
-	XMLNode *node=context->firstChild();
-	while (node) {
-		XMLNode *next = node->next();  // keep safe pointer to next node
-		if (XMLElement *elem = node->toElement())
-			execute(elem);
-		node = next;
-	}
-	if (context->name() == "g" && context->attributes().empty()) {
-		// unwrap group without attributes
-		remove_ws_nodes(context);
-		XMLElement::unwrap(context);
-	}
-	else {
-		XMLElement *child = only_child_element(context);
-		if (child && collapsible(*context)) {
-			if (child->name() == "g" && unwrappable(*child, *context) && moveAttributes(*child, *context)) {
-				remove_ws_nodes(context);
-				XMLElement::unwrap(child);
+
+	XMLNode *child=context->firstChild();
+	while (child) {
+		XMLNode *next=child->next();
+		if (XMLElement *childElement = child->toElement()) {
+			execute(childElement, depth+1);
+			// remove empty groups and groups without attributes
+			if (childElement->name() == "g" && (childElement->attributes().empty() || (!childElement->hasAttribute("id") && childElement->empty(true)))) {
+				remove_ws_nodes(childElement);
+				if (XMLNode *firstUnwrappedNode = XMLElement::unwrap(childElement))
+					next = firstUnwrappedNode;
 			}
 		}
+		child = next;
+	}
+	if (XMLElement *childElement = only_child_element(context)) {
+		if (collapsible(*context)) {
+			if (childElement->name() == "g" && unwrappable(*childElement, *context) && moveAttributes(*childElement, *context)) {
+				remove_ws_nodes(context);
+				XMLElement::unwrap(childElement);
+			}
+		}
+	}
+	if (depth == 0 && COMBINE_TRANSFORMS && _transformCombined) {
+		TransformSimplifier().execute(context);
+		_transformCombined = false;
 	}
 }
 
@@ -105,17 +113,20 @@ void GroupCollapser::execute (XMLElement *context) {
  *  @return true if all attributes have been moved */
 bool GroupCollapser::moveAttributes (XMLElement &source, XMLElement &dest) {
 	vector<string> movedAttributes;
-	for (const XMLElement::Attribute &attr : source.attributes()) {
+	for (const auto &attr : source.attributes()) {
 		if (attr.name == "transform") {
 			string transform;
-			if (const char *destvalue = dest.getAttributeValue("transform"))
+			if (const char *destvalue = dest.getAttributeValue("transform")) {
 				transform = destvalue+attr.value;
-			else
+				_transformCombined = true;
+			}
+			else {
 				transform = attr.value;
+			}
 			dest.addAttribute("transform", transform);
 			movedAttributes.emplace_back("transform");
 		}
-		else if (AttributeExtractor::inheritable(attr)) {
+		else if (attr.inheritable()) {
 			dest.addAttribute(attr.name, attr.value);
 			movedAttributes.emplace_back(attr.name);
 		}
@@ -147,12 +158,15 @@ bool GroupCollapser::collapsible (const XMLElement &element) {
  *  @param[in] source element whose children and attributes should be moved
  *  @param[in] dest element that should receive the children and attributes */
 bool GroupCollapser::unwrappable (const XMLElement &source, const XMLElement &dest) {
-	// check for colliding clip-path attributes
-	if (const char *cp1 = source.getAttributeValue("clip-path")) {
-		if (const char *cp2 = dest.getAttributeValue("clip-path")) {
-			if (string(cp1) != cp2)
-				return false;
-		}
+	const char *cp1 = source.getAttributeValue("clip-path");
+	const char *cp2 = dest.getAttributeValue("clip-path");
+	if (cp2) {
+		// check for colliding clip-path attributes
+		if (cp1 && string(cp1) != string(cp2))
+			return false;
+		// don't apply inner transformations to outer clipping paths
+		if (source.hasAttribute("transform"))
+			return false;
 	}
 	// these attributes prevent a group from being unwrapped
 	static const char *attribs[] = {

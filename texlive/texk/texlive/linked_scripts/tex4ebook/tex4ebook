@@ -23,7 +23,7 @@ local tex4ht_sty_par=""
 local tex4ht_par=""
 local t4ht_par=""
 local latex_par=""
-local output_formats={epub=true,mobi=true,epub3=true}
+local output_formats={epub=true,mobi=true,epub3=true,azw=true, azw3=true}
 local executor=nil
 local tidy = false
 local include_fonts = false
@@ -37,13 +37,14 @@ tex4ebook [switches] filename ["tex4ht.sty op."] ["tex4ht op."] ["t4ht op"] ["la
                 possible values: debug, info, status, warning, error, fatal
   -c,--config (default xhtml) Custom config file
   -d,--output-dir (default nil)  Output directory
+  -B,--build-dir (default nil)  Build directory
   -e,--build-file (default nil)  If build file is different than `filename`.mk4
   -f,--format (default epub) Output format. Supported values: epub, epub3, mobi
   -h,--help  Display help message
   -j,--jobname (default nil)  Set the jobname
   -l,--lua  Use lualatex for document compilation
   -m,--mode (default default) Switch which can be used in the makefile
-  -r,--resolution (default 167)
+  -r,--resolution (default nil)  This option is obsolete, use build files instead!
   -s,--shell-escape  Enable shell escape in htlatex run
   -t,--tidy Run html tidy on html output. May result in wrong spacing!
   -x,--xetex Use xelatex for document compilation
@@ -67,7 +68,7 @@ else
 end
 
 if args.version then
-  print "tex4ebook v0.3a"
+  print "tex4ebook v0.4"
   return 
 end
 
@@ -125,11 +126,18 @@ local input = params.input
 log:status("Conversion started")
 log:status("Input file: ".. params.tex_file)
 
+if params.builddir ~= "" then
+  mkutils.make_path(params.builddir)
+end
+
+
 
 local output_format = params.output_format 
 -- use epub as default output_format
 output_format = output_format or "epub"
-local extensions = ebookutils.load_extensions(params.extensions, output_format)
+-- load common_domfilters extension by default
+local extensions = ebookutils.add_extensions("+common_domfilters", params.extensions)
+extensions = ebookutils.load_extensions(extensions, output_format)
 -- but also support tex4ebook!s own parameters
 local oldparams = {
   -- htlatex=latex_cmd
@@ -147,6 +155,11 @@ local oldparams = {
   ,resolution=args.resolution
   ,packages="\\RequirePackage{tex4ebook}"
 }  
+
+if oldparams.resolution~="nil" then
+  log:warning("The resolution parameter is deprecated. Please use a build file")
+  log:warning("See information about Make:image() command in Make4ht documenation")
+end
 
 -- extend params
 for k,v in pairs(oldparams) do
@@ -199,4 +212,5 @@ executor.run(input,params)
 executor.writeContainer()
 executor.clean()
 log:status("Conversion finished")
+logging.exit_status()
 --print(args[1])

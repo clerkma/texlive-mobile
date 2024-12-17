@@ -1,7 +1,276 @@
+2024-10-20  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* ofm-lmr.test, testdata/lm.map, testdata/upjf_ucs2.map,
+	testdata/lmr0.tex, testdata/lmr0-{al,up}.dvi,
+	upjf_{full,omit}.{cnf,vf}, upjf1_{full,omit}.{vf,zvp0},
+	upjv_{full,omit}.vf, Makefile.am:
+	Add tests for upTeX and OFM.
+	https://github.com/texjporg/tex-jp-build/issues/170
+
+2024-09-30  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* uptex-upjf2.test, testdata/upjf2.{tex,dvi},
+	testdata/upj{f,v}-c.{pl,tfm},
+	testdata/upj{f,v}2_full.{vf,zvp0}, testdata/upjf.map,
+	testdata/Makefile_upjf, Makefile.am:
+	Add a test for upTeX new encoding.
+	https://github.com/texjporg/tex-jp-build/issues/46
+
+2024-09-22  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* virtualfont.c, dvips.h: Support upTeX new encoding
+	for combining characters via virtual fonts.
+	https://github.com/texjporg/tex-jp-build/issues/46
+	* {virtualfont,dopage,tfmload}.c:
+	More strict check to interpret OFM FONTDIR
+	as pTeX vertical writing.
+	https://github.com/texjporg/tex-jp-build/issues/170#issuecomment-2295037307
+	https://github.com/texjporg/tex-jp-build/issues/99
+
+2024-03-10  Karl Berry  <karl@tug.org>
+
+	* TL'24 release.
+
+2024-02-05  Karl Berry  <karl@freefriends.org>
+
+	* NEWS,
+	* afm2tfm.c,
+	* dvips.c,
+	* dvips.h,
+	* dvips.texi,
+	* configure.ac: version 2024.1 and copyright 2024.
+
+2023-08-26  Karl Berry  <karl@freefriends.org>
+
+	* writet1.c (t1_builtin_enc): sync change from pdftexdir/writet1.c
+	(r68069).
+
+2023-08-11  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* beginfontk1.test, eepic-nan.test, pfbincl.test, same-name.test,
+	test-{afm2tfm,dvips,missing-image,overflow-buffers}.test,
+	uptex-vf.test: Make easier to test on Windows.
+
+2023-04-29  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* {virtualfont,pprescan,scanpage,dopage,tfmload}.c, dvips.h:
+	Fallback multibyte characters in virtual fonts to
+	OFM fonts for (u)pTeX.
+	https://github.com/texjporg/tex-jp-build/issues/99
+	* tfmload.c: Accept maximum EC 0x10FFFF for OFM level 1.
+	* uptex-vf.test, Makefile_upjf, testdata/upjf-r00.{ofm,opl},
+	testdata/upjv-r00.{ofm,opl}, testdata/upjf1-r.{tfm,pl},
+	testdata/upjf1_{full,omit}.{vf,zvp0}, Makefile.am:
+	Add new tests for fallback virtual font to OFM.
+
+	The rule for virtual fonts (VF) fallback is extended:
+	If a VF has no entry of a codepoint and the first
+	MAPFONT designates an OFM for (u)pTeX, then we designate the
+	glyph (usually with a fullwidth metric) of the same codepoint
+	with the same metrics of the codepoint in the OFM.
+
+2023-03-09  Karl Berry  <karl@tug.org>
+
+	* TL'23 release.
+
+2022-01-18  Karl Berry  <karl@freefriends.org>
+
+	* NEWS,
+	* afm2tfm.c,
+	* dvips.c,
+	* dvips.h,
+	* dvips.texi,
+	* configure.ac: version 2023.1 and copyright 2023.
+
+2022-09-02  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvips.c:
+	Check options --help and --version before getdefaults(CONFIGFILE).
+	This change prevents unwanted looking for texmf.cnf.
+
+2022-04-06  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* tfmload.c:
+	Warn if interpreting OFM FONTDIR as pTeX vertical writing
+	with option -d 4.
+
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2022-03-10  Karl Berry  <karl@freefriends.org>
+
+	* tfmload.c (tfmopen): include area when searching, as with pkopen.
+	Report from Igor Liferenko, 9 Mar 2022 13:43:48.
+	
+	* loadfont.c (pkopen): "PK font" in error message when not found.
+
+2022-02-27  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* tfmload.c:
+	Interpret FONTDIR RT in OFM as pTeX vertical writing.
+	https://github.com/texjporg/tex-jp-build/issues/135
+	* Makefile.{am,in}, uptex-vf.test,
+	testdata/Makefile_upjf, testdata/upjf-g00.{opl,ofm},
+	testdata/upjf-g00.{opl,ofm}:
+	Add a new test for pTeX & OFM FONTDIR.
+
+2022-02-24  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* Makefile.{am,in}, uptex-vf.test,
+	testdata/Makefile_upjf, testdata/upjv{,-r,-g}.tfm,
+	testdata/upjf.{tex,dvi,map}, testdata/upjv_{full,omit}.vf:
+	Add a new test for upTeX vertical writing.
+
+2022-01-22  Tomas Rokicki  <rokicki@gmail.com>
+	
+	* dvips.c (landscaperotate): define new global for new option.
+	(helparr): mention it in help message.
+	(main): recognize -landscaperotate command-line option.
+	* protos.h (landscaperotate): declare it.
+	* dvips.texi (Option details, Configuration file commands,
+	Config file paper sizes): document it.
+	* output.c (findpapersize): only do the rotation auto-matching
+	if option is set.
+	* resident.c (getdefaults): recognize "landscaperotate" in config file.
+	* NEWS: mention it.
+	Report from Ulrike Fischer, 26 Jul 2021 09:11:29 ff.
+
+2022-01-18  Karl Berry  <karl@freefriends.org>
+
+	* NEWS,
+	* afm2tfm.c,
+	* dvips.c,
+	* dvips.h,
+	* dvips.texi,
+	* configure.ac: version 2022.1 and copyright 2022.
+
+2021-11-03  Karl Berry  <karl@freefriends.org>
+
+	* dvips.texi: PostScript not Postscript; remove broken urls;
+	a couple other typos.
+
+2021-10-24  Karl Berry  <karl@freefriends.org>
+
+	* dvips.texi (Option details) <-l>: describe [.PAGESEQ] subvalue.
+	<-p>: Just refer to -l instead of duplicating.
+	* dvips.1: likewise.
+	Report from Igor Liferenko, 20 Aug 2021 10:13:32.
+
+2021-09-28  Karl Berry  <karl@freefriends.org>
+
+	* dvips.texi (Option details) <-h>: mention that inclusion happens
+	in the order given.
+	(Configuration file commands) <h>: emphasize that standard headers
+	are not included.
+	Report from Igor Liferenko, tex-k 28 Sep 2021 14:39:22.
+
+2021-04-11  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvips.h, configure.ac:
+	Add TeX Live version to banner.
+
+2021-04-10  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* {pprescan,scanpage}.c:
+	Fix bug in fallback multibyte character in virtual font for (u)pTeX.
+	Thanks 流橋 利樹-san for the report.
+	https://oku.edu.mie-u.ac.jp/tex/mod/forum/discuss.php?d=3068
+
+2021-03-23  Karl Berry  <karl@tug.org>
+
+	* TL'21.
+
+2021-02-17  Karl Berry  <karl@freefriends.org>
+
+	* NEWS,
+	* afm2tfm.c,
+	* dvips.c,
+	* dvips.h,
+	* dvips.texi,
+	* configure.ac: version 2021.1 and copyright 2021.
+
+2021-02-09  Karl Berry  <karl@freefriends.org>
+
+	* test-afm2tfm.test: rewrite as shell script.
+	* afm2tfm-test.pl: remove.
+	* Makefile.am (TESTS, etc.): adapt accordingly.
+
+2021-02-08  Karl Berry  <karl@freefriends.org>
+
+	* configure.ac (AC_INIT): TeX Live not TeXLive.
+
+	* dvips.c (found_problems): define.
+	(main): final exit status depends on its value.
+	* protos.h (found_problems): declare.
+	* output.c (copyfile_general): set found_problems=1 if image not found.
+	This is to match the new behavior of dvipdfmx.
+	https://tug.org/pipermail/dvipdfmx/2021-January/000159.html (thread)
+	
+	* test-missing-image.test: corresponding test.
+	* testdata/missing-image.dvi,
+	* testdata/missing-image.tex: files for new test.
+
+2020-12-05  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* NEWS: Mention new/jfm feature.
+	* dospecial.c:
+	Output error of html special not to STDOUT but to STDERR.
+	* dvips.h, {bitmapenc,color,dopage,dospecial,download,dvips,
+	emspecial,finclude,fontdef,header,loadfont,output,pprescan,prescan,
+	resident,scanpage,search,t1part,virtualfont,writet1}.c:
+	Allow Unicode error messages on Windows console. (Windows only)
+
+2020-11-28  Akira Kakuto  <kakuto@w32tex.org>
+
+	* protos.h (titlename): new global.
+	* dvips.c (titlename): new global.
+	(helparr): new option -title.
+	(main): recognize it.
+	* output.c (initprinter) <%%Title>: use xbasename(iname) instead of
+	iname by default.
+
+2020-11-28  Karl Berry  <karl@freefriends.org>
+
+	* dvips.texi (Option details): document -title.
+
+2020-11-28  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* virtualfont.c:
+	Accept Japanese virtual fonts without character definitions.
+	https://github.com/texjporg/tex-jp-build/issues/99
+
+2020-05-20  Karl Berry  <karl@freefriends.org>
+
+	* dvips.texi (Virtual fonts): add brief mention of this new vf/jfm
+	feature, from Takuji. Update all ctan links while here.
+
+2020-05-10  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* uptex-vf.test, testdata/upjf.{tex,dvi,tfm},
+	testdata/upjf_{full,omit}.vf, testdata/upjf_{full,omit}.cnf:
+	Update the test.
+
+2020-04-26  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* Makefile.{am,in}, uptex-vf.test,
+	testdata/Makefile_upjf, testdata/upjf{,-r,-g}.tfm,
+	testdata/upjf.{tex,dvi,map}, testdata/upjf_{full,omit}.vf,
+	testdata/upjf_{full,omit}.cnf:
+	Add a new test for fallback of virtual fonts.
+
 2020-04-19  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
 
 	* {virtualfont,pprescan,scanpage,dopage}.c, dvips.h:
 	Fallback multibyte character in virtual font for (u)pTeX.
+	https://github.com/texjporg/tex-jp-build/issues/99
+
+	A new rule for virtual fonts is implemented:
+	If a virtual font has no entry of a codepoint and the first
+	MAPFONT designates a (u)pTeX TFM(JFM), then we designate the
+	glyph (usually with a fullwidth metric) of the same codepoint
+	in the TFM(JFM) with the smallest font ID.
+	The new rule helps to shrink size of Japanese virtual fonts.
 
 2020-04-10  Akira Kakuto  <kakuto@w32tex.org>
 

@@ -119,6 +119,7 @@ void initialize_commands(void)
     primitive_tex("floatingpenalty", assign_int_cmd, int_base + floating_penalty_code, int_base);
     primitive_tex("globaldefs", assign_int_cmd, int_base + global_defs_code, int_base);
     primitive_tex("fam", assign_int_cmd, int_base + cur_fam_code, int_base);
+    primitive_luatex("variablefam", assign_int_cmd, int_base + var_fam_code, int_base);
     primitive_tex("escapechar", assign_int_cmd, int_base + escape_char_code, int_base);
     primitive_tex("defaulthyphenchar", assign_int_cmd, int_base + default_hyphen_char_code, int_base);
     primitive_tex("defaultskewchar", assign_int_cmd, int_base + default_skew_char_code, int_base);
@@ -175,6 +176,10 @@ void initialize_commands(void)
     primitive_luatex("breakafterdirmode", assign_int_cmd, int_base + break_after_dir_mode_code, int_base);
     primitive_luatex("exceptionpenalty", assign_int_cmd, int_base + exception_penalty_code, int_base);
     primitive_luatex("fixupboxesmode", assign_int_cmd, int_base + fixup_boxes_code, int_base);
+    primitive_luatex("glyphdimensionsmode", assign_int_cmd, int_base + glyph_dimensions_code, int_base);
+    primitive_luatex("mathdefaultsmode", assign_int_cmd, int_base + math_defaults_mode_code, int_base);
+    primitive_luatex("discretionaryligaturemode", assign_int_cmd, int_base + discretionary_ligature_mode_code, int_base);
+    primitive_etex("partokencontext", assign_int_cmd, int_base + partoken_context_code, int_base);
 
     /*tex
 
@@ -190,6 +195,7 @@ void initialize_commands(void)
     primitive_tex("advance", advance_cmd, 0, 0);
     primitive_tex("afterassignment", after_assignment_cmd, 0, 0);
     primitive_tex("aftergroup", after_group_cmd, 0, 0);
+    primitive_etex("partokenname", partoken_name_cmd, 0, 0);
     primitive_tex("begingroup", begin_group_cmd, 0, 0);
     primitive_tex("char", char_num_cmd, 0, 0);
     primitive_tex("csname", cs_name_cmd, 0, 0);
@@ -708,7 +714,8 @@ void initialize_commands(void)
     primitive_tex("special", extension_cmd, special_code, 0);
     cs_text(frozen_special) = maketexstring("special");
     eqtb[frozen_special] = eqtb[cur_val];
-    primitive_tex("immediate", extension_cmd, immediate_code, 0);
+    primitive_tex("immediate", extension_cmd, reserved_immediate_code, 0);
+    primitive_tex("deferred", extension_cmd, reserved_deferred_code, 0);
     primitive_luatex("localinterlinepenalty", assign_int_cmd, int_base + local_inter_line_penalty_code, int_base);
     primitive_luatex("localbrokenpenalty", assign_int_cmd, int_base + local_broken_penalty_code, int_base);
     primitive_luatex("pagedir", assign_dir_cmd, int_base + page_direction_code, dir_base);
@@ -794,6 +801,7 @@ void initialize_etex_commands(void)
     primitive_luatex("mathnolimitsmode", assign_int_cmd, int_base + math_nolimits_mode_code, int_base);
     primitive_luatex("mathitalicsmode", assign_int_cmd, int_base + math_italics_mode_code, int_base);
     primitive_luatex("mathrulesmode", assign_int_cmd, int_base + math_rules_mode_code, int_base);
+    primitive_luatex("matheqdirmode", assign_int_cmd, int_base + math_eq_dir_mode_code, int_base);
     primitive_luatex("mathrulesfam", assign_int_cmd, int_base + math_rules_fam_code, int_base);
     primitive_luatex("synctex", assign_int_cmd, int_base + synctex_code, int_base);
 
@@ -814,6 +822,15 @@ void initialize_etex_commands(void)
 
     primitive_luatex("shapemode", assign_int_cmd, int_base + shape_mode_code, int_base);
     primitive_luatex("hyphenationbounds", assign_int_cmd, int_base + hyphenation_bounds_code, int_base);
+
+    /*tex
+
+        The \.{\\showstream} parameter allows to redirect the output of |xray_cmd|
+        commands to any write stream.
+
+    */
+
+    primitive_tex("showstream", assign_int_cmd, int_base + show_stream_code, int_base);
 
     primitive_etex("showgroups", xray_cmd, show_groups, 0);
 

@@ -1,3 +1,772 @@
+2024-11-18  Karl Berry  <karl@freefriends.org>
+
+	* Makefile.am (bin_links): no longer make symlinks for ebb and
+	extractbb, as extractbb is now a separate package, reimplemented
+	in Lua: https://ctan.org/pkg/extractbb. This is because the
+	previous symlink to dvipdfmx could be exploited using -D.
+	(man1_links): likewise.
+	(install-bin-links, uninstall-bin-links) [WIN32]: likewise.
+
+2024-10-20  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvipdfmx-lmr{0,1}.test, tests/UPJF-UTF16-{H,V},
+	tests/lm.map, tests/psfonts.map,
+	tests/lmr0.tex, tests/lmr0-{al,up}.dvi,
+	upjf_{full,omit}.{cnf,vf}, upjf1_{full,omit}.{vf,zvp0},
+	upjf2_full.{vf,zvp0}, upjv_{full,omit}.vf, Makefile.am:
+	Add tests for upTeX and OFM.
+	https://github.com/texjporg/tex-jp-build/issues/170
+
+2024-10-19  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvipdfmx-upjf{,2,3}.test, tests/upjf.tex,
+	tests/upjf{,-{hara,ipa,noto}}.map, tests/Makefike_upjf:
+	Update tests. Search system texmf for tfm/otf fonts
+	if kpathsearch is installed in the system.
+
+2024-09-22  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* tfm.c: More strict check to interpret OFM FONTDIR
+	as pTeX vertical writing.
+	https://github.com/texjporg/tex-jp-build/issues/170#issuecomment-2295037307
+	https://github.com/texjporg/tex-jp-build/issues/99
+	* configure.ac: version 20240922.
+
+2024-05-18  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvi.c: Remove obsolete comments.
+	* dvipdfmx-upjf3.test, tests/upj{f,v}4_full.{vf,zvp0},
+	tests/upjf-ipa.map, tests/Makefile_upjf, Makefile.am: Add
+	a test for upTeX new encoding. It requires IPA MJ Mincho font.
+	https://github.com/texjporg/tex-jp-build/issues/46
+
+2024-05-11  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvi.c: Ensure enc_name "UTF16" prior to encoding conversion
+	from UTF32 to UTF16.
+	* dvipdfmx-upjf3.test, tests/upjf3.{tex,dvi},
+	tests/upj{f,v}-h{u,i}.tfm,
+	tests/upj{f,v}3_full.{vf,zvp0}, tests/upjf-noto.map,
+	tests/Makefile_upjf, Makefile.am: Add a test for
+	upTeX new encoding. It requires Noto Hentaigana fonts.
+	https://github.com/texjporg/tex-jp-build/issues/46
+	* configure.ac: version 20240511.
+
+2024-04-29  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* tfm.c: Fix segfaults.
+	* dvipdfmx-upjf2.test, tests/UPJF-UTF16-{H,V},
+	tests/upjf-hara.map: Update tests.
+	https://github.com/texjporg/tex-jp-build/issues/46
+	* configure.ac: version 20240429.
+
+2024-04-27  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* tfm.{c,h}, vf.c: Support upTeX new encoding
+	for combining characters via virtual fonts.
+	* cidtype2.c: Enable to treat Combining Katakana-Hiragana
+	(Semi-)Voiced Sound Mark in cid_to_code().
+	* dvipdfmx-upjf2.test, tests/upjf2.{tex,dvi}, tests/upj{f,v}.pl,
+	tests/upj{f,v}-c.{pl,tfm}, tests/upjf1-r.{pl,tfm},
+	tests/upj{f,v}2_full.{vf,zvp0}, tests/upjf{,-hara}.map,
+	tests/Makefile_upjf, Makefile.am: Add a test for
+	upTeX new encoding. It requires HaranoAji fonts.
+	https://github.com/texjporg/tex-jp-build/issues/46
+	* configure.ac: version 20240427.
+
+2024-04-09  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvipdfmx-incl.test, tests/multi_incl.{tex,dvi},
+	tests/sue-mp.pdf, Makefile.am:
+	Add tests for including images multiple times
+	from Hironori Kitagawa <h_kitagawa2001@yahoo.co.jp>.
+
+2024-04-07  Yukimasa Morimi  <h20y6m@yahoo.co.jp>
+
+	* pdfximage.c: fix an issue where the PDF becomes large when
+	inserting the same image multiple times.
+	https://github.com/texjporg/tex-jp-build/pull/169
+	* configure.ac: version 20240407.
+
+2024-03-10  Karl Berry  <karl@tug.org>
+
+	* TL'24 release.
+
+2024-03-06  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* configure.ac: version 20240305.
+
+2024-03-05  Max Chernoff  <mseven@telus.net>
+
+	* pdfximage.c (pdf_ximage_load_image): check that strcmp args
+	are not non-null. Report from Hartmut Henkel,
+	https://tug.org/pipermail/tex-live/2024-March/050136.html
+
+2024-02-25  Max Chernoff  <mseven@telus.net>
+ 
+ 	* spc_util.{c,h}: Add "named" keyword to "pdf:image" special
+ 	* pdfdoc.{c,h}: Allow selecting a page by named destination
+ 	* {epdf,pdfximage,spc_pdfm,xbb}.{c,h}: Refactor to support above.
+ 
+2024-02-10  Yukimasa Morimi  <h20y6m@yahoo.co.jp>
+
+	* cidtype2.c, sfnt.h, tt_cmap.{c,h}:
+	Look up the TrueType cmap format 14 subtable when mapping CID to
+	Unicode Variation Sequence in new Adobe-Japan1-UCS2 CMap.
+	https://github.com/texjporg/tex-jp-build/issues/155
+
+2024-02-10  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* cidtype2.c: Fix an issue on glyph conversion of
+	characters over BMP.
+	Add conversion between "FULLWIDTH YEN SIGN" and "YEN SIGN".
+	https://github.com/texjporg/tex-jp-build/issues/165
+	* configure.ac: version 20240210.
+
+2024-02-05  Karl Berry  <karl@freefriends.org>
+
+	* configure.ac,
+	* xbb.c (show_version),
+	* dvipdfmx.c (show_version): copyright 2024, version 20240205.
+
+2023-11-24  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+	* dpxutil.c: Calculate time zone offset in the same way as
+	in pdftex.
+	* configure.ac: version 20231124.
+
+2023-11-18  Yukimasa Morimi  <h20y6m@yahoo.co.jp>
+
+	* cidtype2.c, unicode.c: Support for new Adobe-Japan1-UCS2 CMap.
+	Ignore variation selectors, when mapping from CID to Unicode.
+	Converts CJK Unified Ideographs with variant selectors to
+	CJK Compatibility Ideographs, if possible.
+	https://github.com/texjporg/tex-jp-build/issues/155
+	* configure.ac: version 20231118.
+
+2023-08-11  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dpxfile.c: Avoid compiler warning on MinGW.
+	* xdvipdfm-{ann,bad,bb,bkm,psz,ptx,res,rev,ttc}.test,
+	xdvipdfmx.test, dvipdfmx-upjf.test:
+	Make easier to test on Windows.
+
+2023-07-08  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* cidtype0.c, pdffont.c:
+	Replace multibyte characters <’> U+2019 by ASCII characters.
+
+2023-04-29  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* {vf,tfm}.c:
+	Fallback multibyte characters in virtual fonts to
+	OFM fonts for (u)pTeX.
+	https://github.com/texjporg/tex-jp-build/issues/99
+	* configure.ac: version 20230429.
+	* dvipdfmx-upjf.test, Makefile_upjf, tests/upjf-r00.{ofm,opl},
+	tests/upjv-r00.{ofm,opl}, tests/upjf1-r.{tfm,pl},
+	tests/upjf1_{full,omit}.{vf,zvp0}, Makefile.am:
+	Add new tests for fallback virtual font to OFM.
+
+	The rule for virtual fonts (VF) fallback is extended:
+	If a VF has no entry of a codepoint and the first
+	MAPFONT designates an OFM for (u)pTeX, then we designate the
+	glyph (usually with a fullwidth metric) of the same codepoint
+	with the same metrics of the codepoint in the OFM.
+
+2023-03-09  Karl Berry  <karl@tug.org>
+
+	* TL'23 release.
+
+2023-02-09  Karl Berry  <karl@freefriends.org>
+
+	* xbb.c (show_version),
+	* configure.ac,
+	* dvipdfmx.c (show_version): copyright 2023.
+
+2022-07-10  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* {dvipdfmx,spc_pdfm}.c, dpxconf.{c,h}, man/dvipdfmx.1:
+	Add a new option --pdfm-str-utf8 to make pdfmark and/or bookmark
+	by upLaTeX + hyperref/pdfcomment package + dvipdfmx without CMap.
+	* dvipdfmx-upjf.test, tests/Makefile_upjf, tests/upjf.dvi:
+	Add tests for the option --pdfm-str-utf8.
+	https://github.com/texjporg/tex-jp-build/issues/143
+	* configure.ac: version 20220710.
+
+2022-06-15  Clerk Ma  <maqiyuan130324@vip.qq.com>
+
+	* cidtype2.c, tt_cmap.c: Support some TrueType fonts in macOS
+	which use 0-4 cmap.
+
+2022-06-13  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	* pdfximage.c: Fix a bug due to an uninitialized variable
+	pointed out in
+	https://tug.org/pipermail/dvipdfmx/2022-June/000340.html.
+	(Windows only)
+
+2022-04-06  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* {dvi,dvipdfmx,tfm}.c, dvi.h:
+	Warn if interpreting OFM FONTDIR as pTeX vertical writing
+	with option -v.
+
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2022-02-27  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvipdfmx-upjf.test, Makefile.{am,in},
+	tests/Makefile_upjf,
+	tests/upjf-g00.{opl,ofm}, tests/upjv-g00.{opl,ofm}:
+	Add a new test for pTeX & OFM FONTDIR.
+
+2022-02-24  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvipdfmx-upjf.test, Makefile.{am,in},
+	tests/Makefile_upjf, tests/upjv{,-r,-g}.tfm,
+	tests/upjf.{tex,dvi,map}, tests/upjv_{full,omit}.vf,
+	tests/UPJF-UTF16-V:
+	Add a new test for upTeX vertical writing.
+
+2021-11-17  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	* spc_dvips.c: Realize PSTricks on XeTeX without -dNOSAFER,
+	in the way described in
+	https://tug.org/pipermail/dvipdfmx/2021-November/000308.html
+	* configure.ac: version 20211117.
+
+2021-11-12  Karl Berry  <karl@freefriends.org>
+
+	* dvipdfmx.c (show_usage): mention -i.
+	Change bug report line to CTAN package page, for more information.
+
+2021-11-03  Naveen M K  <naveen521kk@gmail.com>
+
+	* Makefile.am (install-exec-hook) [WIN32]: install via libtool,
+	so as to install the real program, not just the libtool wrapper.
+	Found for msys2.
+	https://tug.org/pipermail/dvipdfmx/2021-October/000301.html
+
+2021-10-29  Marcel Fabian Kr\"uger  <tex@2krueger.de>
+
+	* cidtype0.c: Fix a bug that dvipdfmx segfaults when embedding
+	a CFF based OpenType font which does not contain a private
+	dictionary.
+	* configure.ac: version 20211029.
+
+2021-10-16  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	* dvipdfmx.c: Fix a bug that the -r option was not effective,
+	as reported in
+	https://tug.org/pipermail/dvipdfmx/2021-September/000296.html.
+	* configure.ac: version 20211016.
+
+2021-09-26  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+	* pdfdev.c: Remove all my changes on 2021-03-04 and 2021-03-05
+	which were completely wrong.
+	* pkfont.c: Before calling kpse_find_glyph(ident, ...), remove
+	a suffix .pfb from the ident, if the suffix exists, because the
+	suffix prevents mktexpk to work right.
+	* configure.ac: version 20210926.
+
+2021-06-09  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* pdfencoding.c: Replace the changes made on 2021-06-02. The
+	segmentation fault problem was introduced by the changes in
+	rev.7557 which were not just problematic but also making it
+	unclear that it's not possible to freely choose which
+	encodings to use as the base encoding. Remove useless base
+	encoding entry which was causing the problem from the
+	pdf_encoding struct.
+	* configure.ac: Version 20210609.
+
+2021-06-05  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* pdfximage.c: Improved error messages when PDF/PS inclusion
+	fails. Output page numbers too.
+	* configure.ac: Version 20210605.
+
+2021-06-02  Masamichi HOSODA  <trueroad@trueroad.jp>
+
+	* pdfencoding.c: Fix a segmentation fault on pdfencoding.
+	https://tug.org/pipermail/dvipdfmx/2021-May/000270.html
+	https://github.com/texjporg/tex-jp-build/issues/114
+
+2021-05-31  Karl Berry  <karl@tug.org>
+
+	* dvipdfmx.1: bug reporting address now dvipdfmx@tug.org
+	(https://lists.tug.org/dvipdfmx).
+
+2021-05-05  Akira Kakuto  <kakuto@w32tex.org>
+
+	* pdfximage.c: Support non-ascii TMP and TEMP to call
+	Ghostscript.
+
+2021-04-17  Akira Kakuto  <kakuto@w32tex.org>
+
+	* pkfont.c: Remove all changes in 2020-12-14 and recover the
+	original pkfont.c.
+
+2021-04-15  Akira Kakuto  <kakuto@w32tex.org>
+
+	* tfm.c: Improve to find ofm files.
+
+2021-04-03  Akira Kakuto  <kakuto@w32tex.org>
+
+	* pkfont.c: Remove unnecessary changes made on 2020-12-14.
+
+2021-03-23  Karl Berry  <karl@tug.org>
+
+	* TL'21.
+
+2021-03-18  Akira Kakuto  <kakuto@w32tex.org>
+
+	* dvipdfmx.c: A bug in compat mode is found and fixed by
+	Christian Schenk:
+	https://tug.org/pipermail/tex-live/2021-March/046609.html
+	* configure.ac: Version 20210318.
+
+2021-03-14  Akira Kakuto  <kakuto@w32tex.org>
+
+	* dvipdfmx.c: Do not allow directory separators in an optarg
+	in an option -i optarg for security reason.
+
+2021-03-05  Akira Kakuto  <kakuto@w32tex.org>
+
+	* pdfdev.c: Correct the incomplete fix on 2021-03-04.
+	* pdffont.c: Avoid unnecessary warnings, reported in
+	https://tug.org/pipermail/dvipdfmx/2021-March/000242.html
+
+2021-03-04  Akira Kakuto  <kakuto@w32tex.org>
+
+	* pdfdev.c: Fix to call mktexpk with correct arguments when
+	pdftex.map is used and type1 font is not found.
+	Reported by Igor Liferenko:
+	https://tug.org/pipermail/dvipdfmx/2021-March/000241.html
+	* configure.ac: Version 20210304.
+
+2021-02-12  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* dvi.c: Fix a bug (segfault) that current_font is not checked
+	properly when catch_phantom=1.
+	* configure.ac: Version 20210212.
+
+2021-01-31  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* spc_misc.c: Processing of pdffontatrr special should be
+	delayed until the end of the document since the font may not
+	be loaded at the time this special is executed.
+
+2021-01-26  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* dvipdfmx.c: Set the runtime flag suppressing error messages
+	for kpathsea library when "-q" option is used.
+	* dvipdfmx.c, xbb.c: Update copyright year.
+	https://tug.org/pipermail/dvipdfmx/2021-January/000216.html
+
+2021-01-24  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* spc_misc.c: Add a compatibility special pdffontattr.
+	* configure.ac: Version 20210124.
+
+2021-01-22  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* cidtype0.c: Fix the VORG bug reported in
+	https://tug.org/pipermail/dvipdfmx/2021-January/000193.html
+	* configure.ac: Version 20210122.
+
+2021-01-16  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* pdfximage.c: Dvipdfmx behavior changed. Now it stops
+	processing and exits with non-zero exit status when image
+	inclusion fails.
+	* dvi.c: Ignore dvi_set with invalid gid when processing DVI
+	files created by dvilua[la]tex.
+	* dvipdfmx.c: Bump copyright year.
+	* configure.ac: Version 20210116.
+
+2021-01-15  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* dvi.c, dvipdfmx.c, pdfdoc.[ch]: Experimental support for
+	dviluatex extended fnt_def. Separate annot_grow (linkmargin)
+	for horizontal and vertical direction can be specified.
+	* configure.ac: Version 20210115.
+
+2021-01-10  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* cmap_read.c, t1_load.c: Fix a bug causing a segfault
+	reported as dvipdfmx-upjf.test test failure. Add missing size
+	tests for the data comparison.
+	https://tug.org/pipermail/tlbuild/2021q1/004765.html
+
+2021-01-09  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* cidtype0.c, cidtype2.c, pdffont.[ch], type0.c: Fix a bug
+	that vertical metrics are not written. Introduced in rev.56400.
+	* configure.ac: Version 20210109.
+
+2020-12-16  Karl Berry  <karl@freefriends.org>
+
+	* dvipdfmx.c (show_usage): -f loads an additional map file,
+	does not omit loading of default map(s).
+	https://tug.org/pipermail/dvipdfmx/2020-December/000146.html
+
+2020-12-16  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* spc_pdfm.c: Fix a bug introduced in rev.56265: When the
+	resource dictionary (of some resource category) is an indirect
+	object and then pdf:put operation is done against that
+	resource category, the operation fails. Now this situation is
+	taken into account. (The content of old resource is merged
+	into new one).
+	* configure.ac: Version 20201216.
+
+2020-12-14  Akira Kakuto  <kakuto@w32tex.org>
+
+	* pkfont.c: Fix an incorrect argument for mktexpk.
+	https://tug.org/pipermail/dvipdfmx/2020-December/000142.html.
+	* configure.ac: Version 20201214.
+
+2020-11-11  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* spc_html.c: Fix a bug that html-special was not working
+	after the changes introduced in rev.55722 (pdf:bann accepts a
+	reference ID).
+	* type0.c: Add pseudo-unique tag to ToUnicode CMap name again.
+	* configure.ac: Version 20201111.
+
+2020-10-31  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* pdfximage.c: Fix a bug that mps images are not reused when
+	they are included multiple times. Bug introduced by "Forward
+	reference" support added on 2020-07-21.
+	* configure.ac: Version 20201031.
+
+2020-10-28  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* cidtype0.c: Fix a bug that the conditional for deciding if
+	CIDSet should be written is inverted. CIDSet is deprecated in
+	PDF version 2.0.
+	* cidtype2.c, type1.c, type1c.c: Do not write CIDSet and
+	CharSet when the output PDF version is set to 2.0 or higher.
+	* configure.ac: Version 20201028.
+
+2020-10-19  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* cidtype0.c, cidtype2.c, type0.c: User defined CID-to-GID
+	PostScript CMap with filename of the form
+	REGISTRY-ORDERING-PSFontName can be loaded (if exist) for
+	mapping CIDs to GIDs. This feature can be used for directory
+	mapping CIDs to GIDs instead of
+	CID -> to-code CMaps -> TrueType cmap -> GID route.
+	* data/Adobe-Japan1-YuMincho-Regular: An example of CID-to-GID
+	CMap file.
+	* configure.ac: Version 20201019.
+
+2020-10-14  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* tt_cmap.c: Fix a bug that checking array indices is wrong.
+	* cidtype2.c: Warning message when CID is mapped to a sequence
+	of several Unicode characters is corrected. Fix a wrong
+	assumption introduced by xdvipdfmx.
+	* configure.ac: Version 20201014.
+
+2020-10-08  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* dvi.c: Fix problems introduced by the changes on 2020/10/03.
+	Fix a possible problem of invalid access. Fix a problem that
+	non-BMP characters are not handled properly for the "unicode"
+	encoding.
+	* spc_pdfm.c: pdf:bcolor and pdf:scolor accept both fill and
+	stroke color specified at the same time. Change the behavior
+	when an indirect object is specified for pdf:pageresources.
+	* configure.ac: Version 20201008.
+
+2020-10-06  Akira Kakuto  <kakuto@w32tex.org>
+
+	* spc_dvips.c: Add an option -dALLOWPSTRANSPARENCY in
+	GS_CALCULATOR to obtain correct results in PSTrics for XeTeX
+	in the case of newer Ghostscript such as gs-9.53.3.
+	Reported in
+	https://tug.org/pipermail/dvipdfmx/2020-October/000109.html
+
+2020-10-06  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* dvipdfmx.c: Fix a bug that printing output file name is wrong.
+	* dvi.c: Change XeTeX font handling. Convert glyph metrics to
+	an internal format at load time. Don't interpret type1
+	CharStrings again and again.
+	* configure.ac: Version 20201006.
+
+2020-10-05  Karl Berry  <karl@tug.org>
+
+	* man/dvipdfmx.1: update date.
+
+2020-10-05  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* man/dvipdfmx.1: Fix a problem in the man page as reported in
+	https://tug.org/pipermail/dvipdfmx/2020-October/000107.html.
+
+2020-10-03  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* cid.c, cid.h: Add "const" attribute to arguments fontmap_rec
+	and fmap_opt.
+	* cmap.c: Correct calculation of min-bytes and max-bytes. Fix
+	indentation.
+	* dvi.c, mpost.c, pdfdev.[ch], pdffont.[ch]: Simplify input
+	text handling. The "mapc" option is handled in dvi.c.
+	* configure.ac: Version 20201003.
+
+2020-09-26  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* pdfobj.c: Fix a bug that the max number of indirect objects
+	is wrongly set, causing a problem when too many indirect
+	objects are created.
+	* pdflimit.h: Add PDF_NUM_INDIRECT_MAX indicating the maximum
+	number of indirect objects which can be allocated as described
+	in PDF Ref. v.1.7 and ISO 32000-1.
+	* configure.ac: Version 20200926.
+
+2020-09-24  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* pdffont.c: Fix a bug introduced by the recent font related
+	changes which can cause a problem when there is a font
+	defined but not used.
+	* configure.ac: Version 20200924.
+
+2020-09-22  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* cid.[ch], cidtype0.[ch], cidtype2.[ch], pdfdev.c,
+	pdffont.[ch], pkfont.[ch], truetype.[ch], type0.[ch],
+	type1.[ch], type1c.[ch]: Revise font related code and largely
+	simplify it. Type0 and CIDFont now use the same struct as
+	simple fonts.
+	* Makefile.am, cid_p.h: Remove cid_p.h.
+	* pdfdraw.[ch]: Fix a bug in calculation of determinant.
+	Enable few functions for future improvement.
+	* dpxutil.c: Fix a bug in the roll operation.
+	* configure.ac: Version 20200922.
+
+2020-09-07  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* spc_misc.c: Fix a bug that the upper limit of stack id is wrong.
+	* Update copyright years and README. Remove outdated
+	information from README.
+
+2020-09-06  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* spc_pdfm.c: pdf:bcolor and pdf:scolor now accept new
+	keywords "fill" and "stroke" to indicate either of fill/stroke
+	color is specified.
+	* spc_misc.[ch], specials.[ch]: New special commands for
+	pdfcolorstack are added. This is a compatibility feature to
+	pdfcolorstack in pdftex.
+	* configure.ac: Version 20200906.
+
+2020-09-05  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* spc_pdfm.c: Workaround for an issue that occurs when an
+	indirect object (object reference) is used for a resource
+	dictionary entry in pdf:put command. The content of an already
+	existing resource dictionary is copied to the new dictionary.
+	* pdfobj.c, pdfdoc.c: pdf_indirect stores a pointer to the
+	object itself but there is no way to know if the object is
+	released. This can result in using junk pointers. To resolve
+	this issue, a list is added to record released indirect objects.
+	* configure.ac: Version 20200905.
+
+2020-09-02  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* pdfnames.c: Fix an incompatible behavior introduced by the
+	previous changes on the named object (rev.55887).
+	* configure.ac: Version 20200902.
+
+2020-08-26  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* spc_pdfm.c: Fix a bug exposed by the previous changes on the
+	named object (rev.55887). Remove unnecessary spc_flush_object.
+	* configure.ac: Version 20200826.
+
+2020-08-16  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* dpxutil.[ch]: Add stack operation.
+	* epdf.[ch], pdfdraw.[ch]: Revise Clip path support for PSTricks.
+	Revert changes related to "rectadd" introduced in rev.31262
+	and rev.31302 which cause non-conforming behavior in "clip"
+	operatation.
+	* dvi.[c], mpost.c, pdfdev.[ch], pdfdoc.[ch], pdfdraw.[ch],
+	spc_html.c, spc_misc.c. spc_pdfm.c, spc_xtx.c, specials.[ch]:
+	Revise bcontent support. Try to resolve various inconsistent
+	behaviors when special commnads are used within pdf:bcontent
+	and pdf:econtent. dev_coords and pt_fixee are removed from pdf
+	module and moved to specials.c.
+	* mpost.h, spc_html.h, spc_misc.h, spc_pdfm.h, spc_xtx.h:
+	Update copyright years.
+	* configure.ac: Version 20200816.
+
+2020-08-08  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* fontmap.[ch], pdffont.[ch], tt_aux.[ch], tt_cmap.[ch]:
+	Use uint32_t for TTC index.
+
+2020-07-31  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* cid.c: Avoid accessing array elements exceeding max array index.
+	* spc_pdfm.c: Check array elements also for to-unicode conversion.
+	* tt_cmap.c: Additional changes are required for the previous CMap name fix.
+
+2020-07-29  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* spc_pdfm.c: Improve codes in unicode conversion and
+	annotation rect calculation.
+	* spc_xtx.c: Add missing reset_xgstate().
+	* tt_cmap.c: Add wmode to auto-generated CMap names.
+
+2020-07-28  Clerk Ma  <maqiyuan130324@vip.qq.com>
+
+	* pdfobj.c: Simple modifications for LIBDPX.
+
+2020-07-26  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* cmap_write.c: Change ariable names.
+	* dvipdfmx.c: Remove unused variables. Modify init sequence.
+	Page size specified as a command line option overwrites
+	settings specified by pagesize specials.
+	* pdfdev.[ch], pdfdoc.[ch], pdfencrypt.[ch], pdfobj.[ch]:
+	File static variables are now placed in a single struct.
+	* pdfparse.[ch], spc_pdfm.c: PDF parse object function is
+	called with a callback function to be called when an object of
+	unknown type is encountered.
+	* pdfximage.c: Do not include an unnecessary file.
+	* dpxconf.[ch], xbb.c: Add is_xbb in dpx_conf.
+	* dpxutil.[ch], dvi.c, dvipdfmx.c: Add dpx_util_read_length().
+	* configure.ac: Version 20200726.
+
+2020-07-24  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* cidtype0.c: Fix a bug introduced in rev.37144 that generated
+	CIDType0 font file is corrupt when the "force fixed-pitch"
+	option is enabled.
+	* pdfximage.c: "filename" was wrongly used for cached converted
+	PS images.
+
+2020-07-21  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* pdfdoc.[ch], pdfnames.[ch], pdfobj.c, pdfximage.[ch],
+	spc_dvips.c, spc_html.c, spc_misc.c, spc_pdfm.c, specials.c:
+	"Forward reference" of image objects is also supported.
+	Object reference by name is now available globally but not
+	only for the "special" module.
+	* configure.ac: Version 20200721.
+
+2020-07-19  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* pdfdraw.c: Avoid invoking gs operation for an empty ExtGState.
+
+2020-07-18  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* dvipdfmx.c, pdfximage.[ch]: Don't call ordinary functions
+	such as pdf_close_images() which can call ERROR() in
+	error_cleanup(). This can result in a recursive call of
+	error_cleanup().
+
+2020-07-11  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* pdfdev.c, pdfdoc.c, pdfdraw.[ch], pdfobj.[ch], spc_pdfm.c:
+	ExtGState can be manipulated with a dedicated stack.
+	Add new specials pdf:bxgstate and pdf:exgstate to push/pop
+	ExtGState into/from the stack.
+	* pdfcolor.c: Fix a bug that assignment was missing
+	in pdf_color_compare().
+	* configure.ac: Version 20200711.
+
+2020-07-04  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* pdfcolor.c, spc_util.c: Fix a bug in pdfcolor.c.
+	Add initialization of a variable and NULL pointer check.
+	* configure.ac: Version 20200704.
+
+2020-07-02  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* pdfdoc.c, spc_pdfm.c: Possible fix for a bug that pdf:btrans
+	inside pdf:bcontent and pdf:econtent does not work correctly.
+	Extend pdf:bann to accept a reference ID which can be used
+	later to refer the annotation dictionary object. When
+	line-breaks occur, it just points to the first annotation
+	dictionary of the line-breaking annotation series.
+
+2020-06-28  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* dvi.[ch], spc_dvipdfmx.c, spc_pdfm.c, specials.[ch]: Two new
+	special commands added as workarounds for \phantom text issue
+	in creating annotation (link). "pdf:xann" which extends the
+	current annotation area by a specified amount.
+	"dvipdfmx:catch_phantom" to control the behavior of dvipdfmx,
+	when this is set to true, then dvipdfmx extends the annotation
+	area when it encounters "horizontal movement" such as DVI
+	"right". Optionally height and depth of such area can be
+	specified (default: current font size for height and depth 0).
+	* pdfcolor.c: Change prefix for ColorSpace resource name to "XC".
+	* pdfdoc.c: Add missing release object.
+
+2020-06-27  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* pdfcolor.[ch], pdfdoc.c, pdfdraw.c, spc_util.c: An extension
+	to the color support. All color-spaces can be supported (only
+	for pdf: color commands). ColorSpace can be specified by a
+	name key (e.g. DeviceRGB) or an object reference which is a
+	reference to an object defining ColorSpace itself.
+	* configure.ac: Version 20200627.
+
+2020-06-24  Akira Kakuto  <kakuto@w32tex.org>
+
+	* dpxfile.c, pdfximage.c: Remove unnecessary changes on
+	2020-06-22.
+
+2020-06-22  Akira Kakuto  <kakuto@w32tex.org>
+
+	* dvipdfmx.c: Move dpx_delete_old_cache(image_cache_life)
+	because image caching did'nt work.
+	* dvi.c: Use MFOPEN() instead of fopen().
+	* dpxfile.c, pdfximage.c: Use generalized stat() to handle
+	UTF-8 names (Windows only).
+
+2020-06-21  Shunsaku Hirata  <shunsaku.hirata74@gmail.com>
+
+	* tt_cmap.c: Lower priority for Soft-hyphen U+00AD when
+	generating ToUnicode CMap.
+	* tt_cmap.c, type1c.c: Cause an error when "CFF " table is not
+	found. (Possibly due to variable font which uses unsupported
+	"CFF2" table)
+
+2020-06-09  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* pdfdev.c: Another workaround for fake-bold issue.
+	(See changes 2019-06-30 and 2020-02-29)
+
+2020-05-26  Akira Kakuto  <kakuto@w32tex.org>
+
+	* dvi.c: Introduce rgba_used in order to indicate that
+	rgba_color for a XeTeX font is used or not. It enables full
+	range of opacity, 0-255.
+	* configure.ac: Version 20200526.
+
+2020-05-10  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* vf.c: reduce message by '-v' less than by '-vv' for
+	fallback of virtual fonts.
+
+2020-05-03  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvipdfmx-upjf.test, Makefile.{am,in},
+	tests/Makefile_upjf, tests/upjf{,-r,-g}.tfm,
+	tests/upjf.{tex,dvi,map}, tests/upjf_{full,omit}.vf,
+	tests/upjf_{full,omit}.cnf, tests/UPJF-UTF16-H:
+	Add a new test for fallback of virtual fonts.
+	* vf.c: Tweak debugging message for fallback of virtual fonts.
+
 2020-03-27  Karl Berry  <karl@tug.org>
 
 	* TeX Live 2020.
@@ -7,6 +776,14 @@
 	* tfm.c, tfm.h, vf.c: Fallback multibyte character
 	in virtual font for (u)pTeX.
 	* configure.ac: version 20200315.
+	https://github.com/texjporg/tex-jp-build/issues/99
+
+	A new rule for virtual fonts is implemented:
+	If a virtual font has no entry of a codepoint and the first
+	MAPFONT designates a (u)pTeX TFM(JFM), then we designate the
+	glyph (usually with a fullwidth metric) of the same codepoint
+	in the TFM(JFM) with the smallest font ID.
+	The new rule helps to shrink size of Japanese virtual fonts.
 
 2020-02-29  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
 

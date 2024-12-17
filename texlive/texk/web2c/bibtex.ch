@@ -13,9 +13,20 @@
 % 03/09/90	`int' is a bad variable name for C.
 % (more recent changes in the ChangeLog)
 
+@x [0]
+\def\(#1){} % this is used to make section names sort themselves better
+@y
+\def\({} % this is used to make section names sort themselves better
+@z
+
 % [0] Let bibtex.tex work with latest webmac (which defines \ET, hence
 % making E active loses).
 @x
+% Note: WEAVE will typeset an upper-case `E' in a PASCAL identifier a
+% bit strangely so that the `TeX' in the name of this program is typeset
+% correctly; if this becomes a problem remove these three lines to get
+% normal upper-case `E's in PASCAL identifiers
+\def\drop{\kern-.1667em\lower.5ex\hbox{E}\kern-.125em} % middle of TeX
 \catcode`E=13 \uppercase{\def E{e}}
 \def\\#1{\hbox{\let E=\drop\it#1\/\kern.05em}} % italic type for identifiers
 @y
@@ -99,7 +110,7 @@ begin
 initialize;
 print_ln(banner);@/
 @y
-@<Define |parse_arguments|@>
+@<Define \(|parse_arguments|@>
 begin
 standard_input := stdin;
 standard_output := stdout;
@@ -113,6 +124,7 @@ max_cites := MAX_CITES;
 wiz_fn_space := WIZ_FN_SPACE;
 lit_stk_size := LIT_STK_SIZE;
 @#
+@<Process a possible command line@>
 setup_params;
 @#
 {Add one to the sizes because that's what bibtex uses.}
@@ -194,9 +206,13 @@ end.
 
 @x [still 14]
 @!buf_size=1000; {maximum number of characters in an input line (or string)}
+@!min_print_line=3; {minimum \.{.bbl} line length: must be |>=3|}
+@!max_print_line=79; {the maximum: must be |>min_print_line| and |<buf_size|}
 @y
 @!BUF_SIZE=20000; {initial maximum number of characters in an input line
                                                                 (or string)}
+@!min_print_line=3; {minimum \.{.bbl} line length: must be |>=3|}
+@!MAX_PRINT_LINE=60; {the maximum: must be |>min_print_line| and |<buf_size|}
 @z
 
 @x [still 14]
@@ -273,6 +289,7 @@ end.
 @y
 @<Globals in the outer block@>=
 @!pool_size: integer;
+@!max_print_line: integer;
 @!max_bib_files: integer;
 @!max_cites: integer;
 @!wiz_fn_space: integer;
@@ -378,6 +395,9 @@ for i:=0 to @'377 do id_class[i] := legal_id_char;
 @z
 
 @x [38] File opening.
+@
+@^system dependencies@>
+@:PASCAL H}{\ph@>
 The \ph\ compiler with which the present version of \TeX\ was prepared has
 extended the rules of \PASCAL\ in a very convenient way. To open file~|f|,
 we can write
@@ -415,7 +435,8 @@ end;
 @y
 @ File opening will be done in C. But we want an auxiliary function to
 change a \BibTeX\ string into a C string, to keep string pool stuff
-out of the C code in @.{lib/openclose.c}.
+out of the C code in \.{lib/openclose.c}.
+@.lib/openclose.c@>
 
 @d no_file_path = -1
 
@@ -628,12 +649,15 @@ end;
 @z
 
 @x [65] max_strings=hash_size settable at runtime.
+@
+@<Globals in the outer block@>=
 @!hash_next : packed array[hash_loc] of hash_pointer;   {coalesced-list link}
 @!hash_text : packed array[hash_loc] of str_number;     {pointer to a string}
 @!hash_ilk : packed array[hash_loc] of str_ilk;         {the type of string}
 @!ilk_info : packed array[hash_loc] of integer;         {|ilk|-specific info}
 @!hash_used : hash_base..hash_max+1;    {allocation pointer for hash table}
 @y
+@ @<Globals in the outer block@>=
 @!hash_next : ^hash_pointer;   {coalesced-list link}
 @!hash_text : ^str_number;     {pointer to a string}
 @!hash_ilk : ^str_ilk;         {the type of string}
@@ -736,11 +760,14 @@ aux_not_found:
 aux_found:                      {now we're ready to read the \.{.aux} file}
 end;
 @y
+This module and the next two must be changed on those systems using
+command-line arguments.
+@^system dependencies@>
+
 @<Procedures and functions for the reading and processing of input files@>=
 procedure get_the_top_level_aux_file_name;
 label aux_found,@!aux_not_found;
 begin
-  @<Process a possible command line@>
   {Leave room for the \.., the extension, the junk byte at the
    beginning, and the null byte at the end.}
   name_of_file := xmalloc_array (ASCII_code, strlen (cmdline (optind)) + 5);
@@ -1025,7 +1052,7 @@ if (last_cite = max_cites) then
     while (last_cite < max_cites) do
         begin
         type_list[last_cite] := empty;@/
-        cite_info[last_cite] := any_value;  {to appeas \PASCAL's boolean evaluation}
+        cite_info[last_cite] := any_value;  {to appease \PASCAL's boolean evaluation}
         incr(last_cite);
         end;
 @z
@@ -1033,12 +1060,21 @@ if (last_cite = max_cites) then
 % [141] Don't pad with blanks, terminate with null.
 % Don't use a path to search for subsidiary aux files,
 % but do check the directory of the main .aux file.
-% 
-% This last is useful, for example, when --output-dir is used and the
+%
+% This last is useful, for example, when --output-dir is used with TeX and the
 % .aux file has an \@input directive resulting from a LaTeX \include;
 % see bibtex-auxinclude.test. It's necessary because BibTeX itself does
-% not have --output-directory. Maybe it would be (have been?) better to
-% add it, but seems too intrusive now? Different bbl location.
+% not have --output-directory.
+%
+% We should probably implement the --output-directory option and
+% TEXMF_OUTPUT_DIRECTORY envvar in BibTeX. What this amounts to is
+% changing the add_extension function to look for those overrides to the
+% aux file dirname, so that when we call kpse_*_name_ok below, we're
+% calling it on the actual file that will be used.
+%
+% And we need to call kpse_*_name_ok because bibtex is included in the
+% shell_escape_commands list that can be invoked by TeX in restricted mode.
+%
 @x
 while (name_ptr <= file_name_size) do   {pad with blanks}
     begin
@@ -1269,7 +1305,7 @@ while (single_ptr + wiz_def_ptr > wiz_fn_space) do
 @!cite_info : ^str_number; {extra |cite_list| info}
 @z
 
-@x [224] Be silent unless verbose.
+@x [223] Be silent unless verbose.
     print ('Database file #',bib_ptr+1:0,': ');
     print_bib_name;@/
 @y
@@ -1415,7 +1451,7 @@ entry_strs := XTALLOC ((num_ent_strs + 1) * (num_cites + 1) * (ent_str_size + 1)
     x_entry_strs(str_ent_ptr)(0) := end_of_string;
 @z
 
-@x [291] Dynamic lit_stk_size.
+@x [290] Dynamic lit_stk_size.
 @!lit_stack : array[lit_stk_loc] of integer;    {the literal function stack}
 @!lit_stk_type : array[lit_stk_loc] of stk_type; {their corresponding types}
 @y
@@ -1448,7 +1484,7 @@ entry_strs := XTALLOC ((num_ent_strs + 1) * (num_cites + 1) * (ent_str_size + 1)
     end;
 @z
 
-@x [320] Dynamic buf_size.
+@x [322] Dynamic buf_size.
 if (out_buf_length+(p_ptr2-p_ptr1) > buf_size) then
     overflow('output buffer size ',buf_size);
 @y
@@ -1464,7 +1500,7 @@ while (out_buf_length+(p_ptr2-p_ptr1) > buf_size) do
         confusion ('field_info index is out of range');
 @z
 
-@x [330] Macroize entry_strs[][]
+@x [329] Macroize entry_strs[][]
     while (entry_strs[str_ent_ptr][ex_buf_ptr] <> end_of_string) do
                                         {copy characters into the buffer}
         append_ex_buf_char (entry_strs[str_ent_ptr][ex_buf_ptr]);
@@ -1592,7 +1628,7 @@ if (pop_lit2 >= cmd_str_ptr) then       {no shifting---merely change pointers}
 @z
 
 % emacs-page
-@x [468] System-dependent changes.
+@x [467] System-dependent changes.
 This section should be replaced, if necessary, by changes to the program
 that are necessary to make \BibTeX\ work at a particular installation.
 It is usually best to design your change file so that all changes to
@@ -1603,7 +1639,7 @@ itself will get a new section number.
 @y
 @d argument_is (#) == (strcmp (long_options[option_index].name, #) = 0)
 
-@<Define |parse_arguments|@> =
+@<Define \(|parse_arguments|@> =
 procedure parse_arguments;
 const n_options = 4; {Pascal won't count array lengths for us.}
 var @!long_options: array[0..n_options] of getopt_struct;
@@ -1617,7 +1653,7 @@ begin
     getopt_return_val := getopt_long_only (argc, argv, '', long_options,
                                            address_of (option_index));
     if getopt_return_val = -1 then begin
-      {End of arguments; we exit the loop below.} ;
+      do_nothing; {End of arguments; we exit the loop below.}
 
     end else if getopt_return_val = "?" then begin
       usage (my_name);
@@ -1675,8 +1711,7 @@ long_options[current_option].flag := 0;
 long_options[current_option].val := 0;
 incr (current_option);
 
-@
-@<Glob...@> =
+@ @<Glob...@> =
 @!min_crossrefs: integer;
 
 @ Set |min_crossrefs| to two by default, so we match the
@@ -1732,6 +1767,7 @@ begin kpse_set_program_name (argv[0], 'bibtex');
 setup_bound_var (ENT_STR_SIZE)('ent_str_size')(ent_str_size);
 setup_bound_var (GLOB_STR_SIZE)('glob_str_size')(glob_str_size);
 setup_bound_var (MAX_STRINGS)('max_strings')(max_strings);
+setup_bound_var (MAX_PRINT_LINE)('max_print_line')(max_print_line);
 @#
 hash_size := max_strings;
 if hash_size < HASH_SIZE then hash_size := HASH_SIZE;

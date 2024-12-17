@@ -3,16 +3,17 @@
 %global __python %{__python3}
 
 Name:           asymptote
-Version:        2.65
+Version:        2.88
 Release:        1%{?dist}
 Summary:        Descriptive vector graphics language
 
 Group:          Applications/Publishing
 License:        GPL
-URL:            http://asymptote.sourceforge.net/
+URL:            https://asymptote.sourceforge.io/
 Source:         http://downloads.sourceforge.net/sourceforge/asymptote/asymptote-%{version}.src.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
+BuildRequires:  gcc-c++
 BuildRequires:  ncurses-devel
 BuildRequires:  readline-devel
 BuildRequires:  fftw-devel >= 3.0
@@ -20,18 +21,26 @@ BuildRequires:  gc-devel >= 6.7
 BuildRequires:  gsl-devel
 BuildRequires:  glm-devel
 BuildRequires:  tetex-latex
-BuildRequires:  ghostscript >= 9.14
+BuildRequires:  ghostscript >= 9.55
 BuildRequires:  texinfo >= 4.7
-BuildRequires:  ImageMagick
+BuildRequires:  freeglut-devel
+BuildRequires:  zlib-devel
+BuildRequires:  libtool
+BuildRequires:  libtirpc-devel
+BuildRequires:  libglvnd-devel
+BuildRequires:  libcurl-devel
+BuildRequires:  boost-devel
 
 Requires:       tetex-latex
 Requires:       freeglut-devel >= 3.0.0
+Requires:       dvisvgm >= 2.9.1
+Requires:       ImageMagick
 Requires(post): /usr/bin/texhash /sbin/install-info
 Requires(postun): /usr/bin/texhash /sbin/install-info
 
 %description
 Asymptote is a powerful descriptive vector graphics language for technical
-drawings, inspired by MetaPost but with an improved C++-like syntax.
+drawing, inspired by MetaPost but with an improved C++-like syntax.
 Asymptote provides for figures the same high-quality level of typesetting
 that LaTeX does for scientific text.
 
@@ -41,7 +50,7 @@ that LaTeX does for scientific text.
 
 
 %build
-CFLAGS="`echo $RPM_OPT_FLAGS | sed s/-O2/-O3/`" \
+CFLAGS="`echo $RPM_OPT_FLAGS | sed s/-O2/-O3/` -fno-lto" \
 %configure --with-latex=%{_texmf}/tex/latex --with-context=%{_texmf}/tex/context/third
 make %{?_smp_mflags}
 

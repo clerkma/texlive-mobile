@@ -3,14 +3,14 @@
    This is included by e-upTeX, from euptexextra.c
 */
 
-#include <eptexdir/eptex_version.h> /* for EPTEX_VERSION */
+#include <euptexdir/eptex_version.h> /* for EPTEX_VERSION */
 #include <etexdir/etex_version.h> /* for ETEX_VERSION */
 #include <ptexdir/ptex_version.h> /* for PTEX_VERSION */
 #include <uptexdir/uptex_version.h> /* for UPTEX_VERSION */
 
-#define BANNER "This is e-upTeX, Version 3.14159265-" PTEX_VERSION "-" UPTEX_VERSION "-" EPTEX_VERSION "-" ETEX_VERSION
+#define BANNER "This is e-upTeX, Version 3.141592653-" PTEX_VERSION "-" UPTEX_VERSION "-" EPTEX_VERSION "-" ETEX_VERSION
 #define COPYRIGHT_HOLDER "D.E. Knuth"
-#define AUTHOR "Peter Breitenlohner"
+#define AUTHOR "Japanese TeX Development Community"
 #define PROGRAM_HELP EUPTEXHELP
 #define BUG_ADDRESS "issue@texjp.org"
 #define DUMP_VAR TEXformatdefault

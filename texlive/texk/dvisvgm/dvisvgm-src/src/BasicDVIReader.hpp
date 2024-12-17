@@ -2,7 +2,7 @@
 ** BasicDVIReader.hpp                                                   **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -21,6 +21,8 @@
 #ifndef BASICDVIREADER_HPP
 #define BASICDVIREADER_HPP
 
+#include <cstdint>
+
 #include "Matrix.hpp"
 #include "MessageException.hpp"
 #include "StreamReader.hpp"
@@ -30,8 +32,8 @@ struct DVIException : public MessageException {
 };
 
 
-struct InvalidDVIFileException : public DVIException {
-	explicit InvalidDVIFileException (const std::string &msg) : DVIException(msg) {}
+struct DVIPrematureEOFException : public DVIException {
+	explicit DVIPrematureEOFException () : DVIException("premature end of DVI stream") {}
 };
 
 
@@ -52,6 +54,7 @@ class BasicDVIReader : public StreamReader {
 	public:
 		explicit BasicDVIReader (std::istream &is);
 		virtual void executeAllPages ();
+		virtual void executeFontDefs ();
 		virtual double getXPos () const      {return 0;}
 		virtual double getYPos () const      {return 0;}
 		virtual void finishLine ()           {}
@@ -66,7 +69,11 @@ class BasicDVIReader : public StreamReader {
 		DVIVersion getDVIVersion () const {return _dviVersion;}
 		virtual int evalCommand (CommandHandler &handler, int &param);
 		virtual int executeCommand ();
+		void executePreamble ();
+		void executePostamble ();
 		void executePostPost ();
+		void goToPostamble ();
+		std::vector<uint32_t> collectBopOffsets ();
 		bool evalXDVOpcode (int op, CommandHandler &handler) const;
 
 		// The following template methods represent the single DVI commands. They

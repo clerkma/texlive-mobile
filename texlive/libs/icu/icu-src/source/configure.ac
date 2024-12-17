@@ -6,39 +6,26 @@ AC_COPYRIGHT([ Copyright (C) 2016 and later: Unicode, Inc. and others. License &
 
 # NOTE: please use 'autoreconf' to rebuild, otherwise 'aclocal && autoconf'.
 
-# Check for autoconf version
-AC_PREREQ(2.69)
+# Check for minimum autoconf version. Use exactly this version when rebuilding
+# 'aclocal.m4' and 'configure' for merging upstream, to avoid spurious diffs.
+AC_PREREQ([2.72])
 
 # Process this file with autoreconf to produce a configure script
 AC_INIT([ICU],
-        m4_esyscmd_s([sed -n 's/^[ 	]*#[ 	]*define[ 	]*U_ICU_VERSION[ 	]*"\([^"]*\)".*/\1/p' "./common/unicode/uvernum.h]"),
-        [http://icu-project.org/bugs],
-        [International Components for Unicode],
-        [http://icu-project.org])
+        m4_esyscmd_s([sed -n 's/^[ 	]*#[ 	]*define[ 	]*U_ICU_VERSION[ 	]*"\([^"]*\)".*/\1/p' common/unicode/uvernum.h]),
+        [https://icu.unicode.org/bugs],
+        [icu4c],
+        [https://icu.unicode.org/])
+
+# Instruct Python to never write any byte code to the ICU source tree.
+PYTHONDONTWRITEBYTECODE=1
+export PYTHONDONTWRITEBYTECODE
 
 AC_CONFIG_MACRO_DIR([config/m4])
 AC_CONFIG_SRCDIR([common/unicode/utypes.h])
 
 PACKAGE="icu"
 AC_SUBST(PACKAGE)
-
-# Use custom echo test for newline option
-# Current autoconf (2.65) gives incorrect echo newline option
-# for icu-config
-# This may be removed later - mow (June 17, 2010)
-ICU_ECHO_C= ICU_ECHO_N= ICU_ECHO_T=
-case `/bin/sh -c "echo -n x"` in
--n*)
-  case `/bin/sh -c "echo 'x\c'"` in
-  *c*) ICU_ECHO_T=' ';;     # ECHO_T is single tab character.
-  *)   ICU_ECHO_C='\c';;
-  esac;;
-*)
-  ICU_ECHO_N='-n';;
-esac
-AC_SUBST(ICU_ECHO_N)
-AC_SUBST(ICU_ECHO_C)
-AC_SUBST(ICU_ECHO_T)
 
 AC_MSG_CHECKING(for ICU version numbers)
 
@@ -143,10 +130,15 @@ AC_SUBST(ENABLE_RELEASE)
 : ${CXXFLAGS=""}
 
 # Checks for compilers
-AC_PROG_CC([gcc cc clang c99 c89 xlc_r xlc cl.exe icc])
-# Make sure that we try clang++ first, which provides C++11 support.
-# The g++ compiler is less likely to support C++11.
-AC_PROG_CXX([g++ c++ clang++ gpp xlC_r xlC aCC CC cxx cc++ cl.exe icc FCC KCC RCC])
+AC_PROG_CC([cc clang gcc c99 c89 xlc_r xlc cl.exe icc])
+AC_PROG_CXX([c++ clang++ g++ gpp xlC_r xlC aCC CC cxx cc++ cl.exe icc FCC KCC RCC])
+
+AC_MSG_NOTICE([versions of the compilers used:])
+(
+    set -x
+    $CC --version
+    $CXX --version
+) 2>&1 | sed 's/^/  /' >&AS_MESSAGE_FD
 
 # pkg-config is needed for harfbuzz support
 PKG_PROG_PKG_CONFIG([0.20])
@@ -171,6 +163,21 @@ if test "$GCC" = yes; then
             CXXFLAGS="$CXXFLAGS -O2"
         fi
     fi
+    # if CFLAGS does not have a "-std=" setting, set it now to -std=c11,
+    # and check that the compiler still works.
+    if ! echo "$CFLAGS" | grep '\-std=' >/dev/null 2>&1; then
+        OLD_CFLAGS="${CFLAGS}"
+        CFLAGS="$CFLAGS -std=c11"
+        AC_MSG_CHECKING([[if we have a C11 compiler]])
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],[[]])],[c11_okay=yes],[c11_okay=no])
+        AC_MSG_RESULT($c11_okay)
+        if [[ $c11_okay = yes ]]; then
+            AC_MSG_NOTICE([Adding CFLAGS option -std=c11])
+            UCONFIG_CFLAGS="${UCONFIG_CFLAGS} -std=c11"
+        else
+            CFLAGS="$OLD_CFLAGS"
+        fi
+    fi
 fi
 
 AC_PROG_CPP
@@ -178,11 +185,6 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 
 AC_SUBST(cross_compiling)
-
-dnl use the pld hack to get ac_fn_cxx_try_link defined globally and not local
-AC_LANG_PUSH([C++])
-AC_LINK_IFELSE([AC_LANG_PROGRAM()])
-AC_LANG_POP([C++])
 
 # make sure install is relative to srcdir - if a script
 if test "$srcdir" = "."; then
@@ -192,10 +194,9 @@ if test "$srcdir" = "."; then
   fi
 fi
 
-#AC_CHECK_PROG(AUTOCONF, autoconf, autoconf, true)
-#AC_CHECK_PROG(STRIP, strip, strip, true)
-
-AC_CHECK_PROGS(PYTHON3, python3)
+# TODO(ICU-20301): Remove fallback to Python 2.
+AC_CHECK_PROGS(PYTHON, python3 "py -3" python "py")
+AC_SUBST(PYTHON)
 
 # Check for the platform make
 AC_PATH_PROGS(U_MAKE, gmake gnumake, make)
@@ -305,7 +306,7 @@ if test "$ENABLE_STATIC" = "YES"; then
             OLD_LDFLAGS="${LDFLAGS}"
 
             case "${host}" in
-            *-linux*|i*86-*-*bsd*|i*86-pc-gnu)
+            *-linux*|i*86-*-*bsd*|i*86-pc-gnu|*-haiku*)
                 if test "$GCC" = yes; then
                     CPPFLAGS="${CPPFLAGS} -ffunction-sections -fdata-sections"
                     LDFLAGS="${LDFLAGS} -Wl,--gc-sections"
@@ -342,24 +343,6 @@ AC_ARG_ENABLE(auto-cleanup,
 )
 AC_MSG_RESULT($enabled)
 AC_SUBST(UCLN_NO_AUTO_CLEANUP)
-
-# MSVC floating-point option
-MSVC_RELEASE_FLAG=""
-if test $enabled = yes
-then
-    if test $icu_cv_host_frag = mh-cygwin-msvc -o $icu_cv_host_frag = mh-msys-msvc
-    then
-        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-    #if defined _MSC_VER && _MSC_VER >= 1400
-    #else
-    Microsoft Visual C++ < 2005
-    #endif
-        ]], [[]])],[MSVC_RELEASE_FLAG="/fp:precise"],[MSVC_RELEASE_FLAG="/Op"])
-
-        CFLAGS="${CFLAGS} ${MSVC_RELEASE_FLAG}"
-        CXXFLAGS="${CXXFLAGS} ${MSVC_RELEASE_FLAG}"
-    fi
-fi
 
 # Check whether to enabled draft APIs
 AC_MSG_CHECKING([whether to enable draft APIs])
@@ -475,7 +458,7 @@ if test "$enable" = "yes"; then
    fi
 fi
 
-# Check for miscellanous functions.
+# Check for miscellaneous functions.
 # So, use for putil / tools only.
 # Note that this will generate HAVE_GETTIMEOFDAY, not U_HAVE_GETTIMEOFDAY
 AC_CHECK_FUNCS([gettimeofday])
@@ -507,26 +490,20 @@ else
 fi
 
 if [[ "$GXX" = yes ]]; then
-    # if CXXFLAGS does not have a "-std=" setting, set it now to -std=c++11,
+    # if CXXFLAGS does not have a "-std=" setting, set it now to -std=c++17,
     # and check that the compiler still works.
     if ! echo "$CXXFLAGS" | grep '\-std=' >/dev/null 2>&1; then
         OLD_CXXFLAGS="${CXXFLAGS}"
-        CXXFLAGS="$CXXFLAGS -std=c++11"
-        AC_MSG_CHECKING([[if we have a C++11 compiler]])
-        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],[[]])],[cxx11_okay=yes],[cxx11_okay=no])
-        AC_MSG_RESULT($cxx11_okay)
-        if [[ $cxx11_okay = yes ]]; then
-            AC_MSG_NOTICE([Adding CXXFLAGS option -std=c++11])
-            UCONFIG_CXXFLAGS="${UCONFIG_CXXFLAGS} -std=c++11"
+        CXXFLAGS="$CXXFLAGS -std=c++17"
+        AC_MSG_CHECKING([[if we have a C++17 compiler]])
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],[[]])],[cxx17_okay=yes],[cxx17_okay=no])
+        AC_MSG_RESULT($cxx17_okay)
+        if [[ $cxx17_okay = yes ]]; then
+            AC_MSG_NOTICE([Adding CXXFLAGS option -std=c++17])
+            UCONFIG_CXXFLAGS="${UCONFIG_CXXFLAGS} -std=c++17"
         else
             CXXFLAGS="$OLD_CXXFLAGS"
         fi
-# TL: why? http://bugs.icu-project.org/trac/ticket/13543
-#        case "${host}" in
-#        *-*-solaris*)
-#            CXXFLAGS="$OLD_CXXFLAGS"
-#            ;;
-#        esac
     fi
 fi
 
@@ -536,7 +513,7 @@ AC_LANG_POP([C++])
 OLD_LIBS=${LIBS}
 
 # For Compaq Tru64 (OSF1), we must look for pthread_attr_init
-# and must do this before seaching for pthread_mutex_destroy, or
+# and must do this before searching for pthread_mutex_destroy, or
 # we will pick up libpthreads.so not libpthread.so
 # If this fails, then we must test for HPUX specials, before
 # moving on to a more generic test
@@ -670,22 +647,7 @@ AC_SUBST(GENCCODE_ASSEMBLY)
 AC_MSG_RESULT($GENCCODE_ASSEMBLY)
 
 # Checks for header files
-AC_CHECK_HEADERS(inttypes.h)
-if test $ac_cv_header_inttypes_h = no; then
- U_HAVE_INTTYPES_H=0
- CONFIG_CPPFLAGS="${CONFIG_CPPFLAGS} -DU_HAVE_INTTYPES_H=0"
-else
- U_HAVE_INTTYPES_H=1
-fi
-if test "$CC" = ccc; then
- AC_MSG_RESULT("C compiler set to CCC ${CC}" )
- case "${host}" in
-        alpha*-*-*) U_HAVE_INTTYPES_H=0;
-        CONFIG_CPPFLAGS="${CONFIG_CPPFLAGS} -DU_HAVE_INTTYPES_H=0"
- esac
-fi
 
-AC_SUBST(U_HAVE_INTTYPES_H)
 
 AC_CHECK_HEADERS(dirent.h)
 if test $ac_cv_header_dirent_h = no; then
@@ -698,14 +660,13 @@ fi
 AC_SUBST(U_HAVE_DIRENT_H)
 
 # Check for endianness
-AC_C_BIGENDIAN()
-if test $ac_cv_c_bigendian = no; then
-U_IS_BIG_ENDIAN=0
-U_ENDIAN_CHAR="l"
-else
-U_IS_BIG_ENDIAN=1
-U_ENDIAN_CHAR="b"
-fi
+AC_C_BIGENDIAN([
+    U_IS_BIG_ENDIAN=1
+    U_ENDIAN_CHAR="b"
+  ], [
+    U_IS_BIG_ENDIAN=0
+    U_ENDIAN_CHAR="l"
+  ], [], AC_MSG_ERROR([universal endianness not supported]))
 AC_SUBST(U_IS_BIG_ENDIAN)
 
 # Do various POSIX related checks
@@ -735,20 +696,7 @@ fi
 AC_SUBST(U_HAVE_NL_LANGINFO_CODESET)
 AC_SUBST(U_NL_LANGINFO_CODESET)
 
-# Namespace support checks
 AC_LANG(C++)
-AC_MSG_CHECKING([for namespace support])
-AC_CACHE_VAL(ac_cv_namespace_ok,
-    [AC_LINK_IFELSE([AC_LANG_PROGRAM([namespace x_version {void f(){}}
-    namespace x = x_version;
-    using namespace x_version;
-    ], [f();])],[ac_cv_namespace_ok=yes],[ac_cv_namespace_ok=no])] )
-AC_MSG_RESULT($ac_cv_namespace_ok)
-if test $ac_cv_namespace_ok = no
-then
-    AC_MSG_ERROR(Namespace support is required to build ICU.)
-fi
-
 AC_MSG_CHECKING([for properly overriding new and delete])
 U_OVERRIDE_CXX_ALLOCATION=0
 U_HAVE_PLACEMENT_NEW=0
@@ -898,48 +846,6 @@ else
 fi
 AC_SUBST(U_HAVE_STRTOD_L)
 
-# Checks for typedefs
-AC_CHECK_TYPE(int8_t,signed char)
-AC_CHECK_TYPE(uint8_t,unsigned char)
-AC_CHECK_TYPE(int16_t,signed short)
-AC_CHECK_TYPE(uint16_t,unsigned short)
-AC_CHECK_TYPE(int32_t,signed long)
-AC_CHECK_TYPE(uint32_t,unsigned long)
-AC_CHECK_TYPE(int64_t,signed long long)
-AC_CHECK_TYPE(uint64_t,unsigned long long)
-
-if test $ac_cv_type_int8_t = no; then
-CONFIG_CPPFLAGS="${CONFIG_CPPFLAGS} -DU_HAVE_INT8_T=0"
-fi
-
-if test $ac_cv_type_uint8_t = no; then
-CONFIG_CPPFLAGS="${CONFIG_CPPFLAGS} -DU_HAVE_UINT8_T=0"
-fi
-
-if test $ac_cv_type_int16_t = no; then
-CONFIG_CPPFLAGS="${CONFIG_CPPFLAGS} -DU_HAVE_INT16_T=0"
-fi
-
-if test $ac_cv_type_uint16_t = no; then
-CONFIG_CPPFLAGS="${CONFIG_CPPFLAGS} -DU_HAVE_UINT16_T=0"
-fi
-
-if test $ac_cv_type_int32_t = no; then
-CONFIG_CPPFLAGS="${CONFIG_CPPFLAGS} -DU_HAVE_INT32_T=0"
-fi
-
-if test $ac_cv_type_uint32_t = no; then
-CONFIG_CPPFLAGS="${CONFIG_CPPFLAGS} -DU_HAVE_UINT32_T=0"
-fi
-
-if test $ac_cv_type_int64_t = no; then
-CONFIG_CPPFLAGS="${CONFIG_CPPFLAGS} -DU_HAVE_INT64_T=0"
-fi
-
-if test $ac_cv_type_uint64_t = no; then
-CONFIG_CPPFLAGS="${CONFIG_CPPFLAGS} -DU_HAVE_UINT64_T=0"
-fi
-
 # Do various wchar_t related checks
 AC_CHECK_HEADER(wchar.h)
 if test "$ac_cv_header_wchar_h" = no
@@ -1088,14 +994,14 @@ ICU_CONDITIONAL(ICUIO, test "$icuio" = true)
 
 # Enable/disable layoutex
 AC_ARG_ENABLE(layoutex,
-	[  --enable-layoutex         build ICU's Paragraph Layout library [default=yes].
+	[  --enable-layoutex         build ICU's Paragraph Layout library [default=no].
             icu-le-hb must be installed via pkg-config. See http://harfbuzz.org],
 	[case "${enableval}" in
 		yes) layoutex=$have_icu_le_hb ;;
 		no)  layoutex=false ;;
 		*) AC_MSG_ERROR(bad value ${enableval} for --enable-layoutex) ;;
 		esac],
-	layoutex=$have_icu_le_hb)
+	layoutex=false)
 ICU_CONDITIONAL(LAYOUTEX, test "$layoutex" = true)
 
 # Enable/disable layout
@@ -1119,6 +1025,19 @@ AC_ARG_ENABLE(tools,
 	tools=true)
 ICU_CONDITIONAL(TOOLS, test "$tools" = true)
 
+# Enable/disable fuzzer target tests.
+AC_ARG_ENABLE(fuzzer,
+	[  --enable-fuzzer        build ICU's fuzzer test targets [default=no]],
+	[case "${enableval}" in
+		yes) fuzzer=true ;;
+		no)  fuzzer=false ;;
+		*) AC_MSG_ERROR(bad value ${enableval} for --enable-fuzzer) ;;
+		esac],
+	fuzzer=false)
+ICU_CONDITIONAL(FUZZER, test "$fuzzer" = true)
+
+ICU_CONDITIONAL(DATA, test "$tools" = true || test "$cross_compiling" = "yes")
+
 AC_ARG_WITH(data-packaging,
 	[  --with-data-packaging     specify how to package ICU data. Possible values:
         files    raw files (.res, etc)
@@ -1126,7 +1045,7 @@ AC_ARG_WITH(data-packaging,
         library  shared library (.dll/.so/etc.)
         static   static library (.a/.lib/etc.)
         auto     build shared if possible (default)
-           See http://userguide.icu-project.org/icudata for more info.],
+           See https://unicode-org.github.io/icu/userguide/icu_data for more info.],
 	[case "${withval}" in
                 files|archive|library) datapackaging=$withval ;;
 		auto) datapackaging=$withval ;;
@@ -1164,7 +1083,7 @@ fi
 
 datapackaging_dir=`eval echo $thedatadir`"/icu/${VERSION}"
 
-datapackaging_msg="(No explaination for mode $datapackaging.)"
+datapackaging_msg="(No explanation for mode $datapackaging.)"
 
 datapackaging_msg_path="ICU will look in $datapackaging_dir which is the installation location. Call u_setDataDirectory() or use the ICU_DATA environment variable to override."
 datapackaging_msg_set="ICU will use the linked data library. If linked with the stub library located in stubdata/, the application can use udata_setCommonData() or set a data path to override."
@@ -1272,6 +1191,7 @@ case "${host}" in
 	*-*-nto*)	platform=U_QNX ;;
 	*-dec-osf*) 	platform=U_OSF ;;
 	*-*-beos)		platform=U_BEOS ;;
+	*-*-haiku)	platform=U_HAIKU ;;
 	*-*-irix*)		platform=U_IRIX ;;
 	*-ncr-*)		platform=U_MPRAS ;;
 	*) 		platform=U_UNKNOWN_PLATFORM ;;
@@ -1291,14 +1211,15 @@ fi
 # Now that we're done using CPPFLAGS etc. for tests, we can change it
 # for build.
 
-if test "${CC}" == "clang"; then
+if test "${CC}" = "clang"; then
    CLANGCFLAGS="-Qunused-arguments -Wno-parentheses-equality"
 else
    CLANGCFLAGS=""
 fi
 
-if test "${CXX}" == "clang++"; then
+if test "${CXX}" = "clang++"; then
    CLANGCXXFLAGS="-Qunused-arguments -Wno-parentheses-equality"
+   LIBCXXFLAGS="$LIBCXXFLAGS -Wglobal-constructors"
 else
    CLANGCXXFLAGS=""
 fi
@@ -1352,6 +1273,7 @@ AC_CONFIG_FILES([icudefs.mk \
 		tools/icupkg/Makefile \
 		tools/icuswap/Makefile \
 		tools/pkgdata/Makefile \
+		tools/icuexportdata/Makefile \
 		tools/tzcode/Makefile \
 		tools/gencfu/Makefile \
 		tools/escapesrc/Makefile \
@@ -1372,6 +1294,7 @@ AC_CONFIG_FILES([icudefs.mk \
 		test/perf/ubrkperf/Makefile \
 		test/perf/charperf/Makefile \
 		test/perf/convperf/Makefile \
+		test/perf/localecanperf/Makefile \
 		test/perf/normperf/Makefile \
 		test/perf/DateFmtPerf/Makefile \
 		test/perf/howExpensiveIs/Makefile \
@@ -1382,9 +1305,44 @@ AC_CONFIG_FILES([icudefs.mk \
 		test/perf/utfperf/Makefile \
 		test/perf/utrie2perf/Makefile \
 		test/perf/leperf/Makefile \
-		samples/Makefile samples/date/Makefile \
-		samples/cal/Makefile samples/layout/Makefile])
+		test/fuzzer/Makefile \
+		samples/Makefile])
 AC_OUTPUT
+
+if test -z "$PYTHON";
+then
+    echo "" > data/rules.mk
+    echo "" > test/testdata/rules.mk
+else
+    if test -f "$srcdir/data/locales/root.txt";
+    then
+        echo "Spawning Python to generate data/rules.mk..."
+        PYTHONPATH="$srcdir/python" \
+            $PYTHON -m icutools.databuilder \
+            --mode gnumake \
+            --seqmode parallel \
+            --src_dir "$srcdir/data" \
+            --filter_file "$ICU_DATA_FILTER_FILE" \
+            $ICU_DATA_BUILDTOOL_OPTS \
+            > data/rules.mk
+        if test "$?" != "0"; then
+            AC_MSG_ERROR(Python failed to run; see above error.)
+        fi
+    else
+      echo "Not rebuilding data/rules.mk, assuming prebuilt data in data/in"
+      touch data/rules.mk
+    fi
+    echo "Spawning Python to generate test/testdata/rules.mk..."
+    PYTHONPATH="$srcdir/python" \
+        $PYTHON -m icutools.databuilder \
+        --mode gnumake \
+        --seqmode parallel \
+        --src_dir "$srcdir/test/testdata" \
+        > test/testdata/rules.mk
+    if test "$?" != "0"; then
+        AC_MSG_ERROR(Python failed to run; see above error.)
+    fi
+fi
 
 echo
 echo "ICU for C/C++ $VERSION is ready to be built."
@@ -1465,17 +1423,9 @@ then
         echo "## Expect build failures in the 'data', 'test', and other directories."
 fi
 
-if test -z "$PYTHON3";
+if test -z "$PYTHON";
 then
-    echo ""
-    echo "NOTICE: Unable to find Python 3. ICU versions 64 and later will require Python 3 to build."
-    echo "See ICU-10923 for more information: https://unicode-org.atlassian.net/browse/ICU-10923"
-    echo ""
-else
-    echo ""
-    echo "Found Python 3. You are all set for ICU 64, which will require Python 3 to build."
-    echo "For more info on Python 3 requirement, see: https://unicode-org.atlassian.net/browse/ICU-10923"
-    echo ""
+    echo "** Note: Python not found. You will not be able to build data from source or run tests."
 fi
 
 $as_unset _CXX_CXXSUFFIX

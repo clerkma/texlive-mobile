@@ -1,6 +1,8 @@
+dnl $Id: configure.ac 64941 2022-11-05 15:43:53Z karl $
 dnl Process this file with autoconf to produce a configure script.
 dnl
-dnl   Copyright (C) 2009-2015 Peter Breitenlohner <tex-live@tug.org>
+dnl   Copyright 2015-2021 Karl Berry <tex-live@tug.org>
+dnl   Copyright 2009-2015 Peter Breitenlohner <tex-live@tug.org>
 dnl
 dnl   This file is free software; the copyright holder
 dnl   gives unlimited permission to copy and/or distribute it,
@@ -43,7 +45,8 @@ if test "x$ac_cv_func_getcwd" = xyes; then
 # We only need to run this if we have getcwd.
 AC_CACHE_CHECK([whether getcwd uses fork or vfork],
                [kb_cv_func_getcwd_forks],
-               [AC_RUN_IFELSE([AC_LANG_PROGRAM([[int fork() { exit(1); }
+               [AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <stdlib.h>
+                                                 int fork() { exit(1); }
                                                  int vfork() { exit(1); }
                                                  extern char *getcwd();
                                                  char path[100];]],
@@ -78,6 +81,7 @@ fi
 AC_CACHE_CHECK([for $snfunc and $vsnfunc],
                [kpse_cv_have_snfuncs],
                [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <stdarg.h>
+                                                  #include <stdio.h>
                                                   char buf[16];
                                                   va_list ap;]],
                                                 [[$snfunc (buf, 16, "%s", "abc");
@@ -87,7 +91,9 @@ AC_CACHE_CHECK([for $snfunc and $vsnfunc],
 if test "x$kpse_cv_have_snfuncs" != xyes; then
   AC_MSG_ERROR([Sorry, you need $snfunc and $vsnfunc.])
 fi
-AC_RUN_IFELSE([AC_LANG_PROGRAM([[char buf[4] = "abc";]],
+AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <stdarg.h>
+                                 #include <stdio.h>
+                                 char buf[4] = "abc";]],
                                [[if ($snfunc (buf, 1, "%s", "x") == 0 || buf[1] != 'b')
                                    return 1;]])],
               [],
@@ -95,7 +101,9 @@ AC_RUN_IFELSE([AC_LANG_PROGRAM([[char buf[4] = "abc";]],
               [:])
 AC_CACHE_CHECK([if we need (v)snprintf wrapper functions],
                [kpse_cv_wrap_snprintf],
-               [AC_RUN_IFELSE([AC_LANG_PROGRAM([[char buf[4] = "abc";]],
+               [AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <stdarg.h>
+                                                 #include <stdio.h>
+                                                 char buf[4] = "abc";]],
                                                [[$snfunc (buf, 3, "xyz");
                                                  if (buf[2] != 0) return 1;
                                                  $snfunc (buf, 2, "xyz");

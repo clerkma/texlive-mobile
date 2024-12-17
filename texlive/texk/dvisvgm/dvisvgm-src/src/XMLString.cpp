@@ -2,7 +2,7 @@
 ** XMLString.cpp                                                        **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -91,7 +91,7 @@ XMLString::XMLString (double x) {
 	if (std::abs(x) < 1e-6)
 		x = 0;
 	assign(util::to_string(x));
-	size_t pos = find("0.");
+	auto pos = find("0.");
 	if (pos != string::npos && (pos == 0 || at(pos-1) == '-'))
 		erase(pos, 1);
 }

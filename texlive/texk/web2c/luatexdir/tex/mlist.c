@@ -60,9 +60,11 @@ LuaTeX; if not, see <http://www.gnu.org/licenses/>.
 
 */
 
-#define is_new_mathfont(A)   ((font_math_params(A) >0) && (math_old_par == 0))
-#define is_old_mathfont(A,B) ((font_math_params(A)==0) && (font_params(A)>=(B)))
-#define do_new_math(A)       ((font_math_params(A) >0) && (font_oldmath(A) == 0) && (math_old_par == 0))
+#define is_new_mathfont(A)     ((font_math_params(A) >0) && (math_old_par == 0))
+#define is_old_mathfont(A,B)   ((font_math_params(A)==0) && (font_params(A)>=(B)))
+#define do_new_math(A)         ((font_math_params(A) >0) && (font_oldmath(A) == 0) && (math_old_par == 0))
+#define do_new_math_but_not(A) (math_italics_mode_par > 1 ? 0 : do_new_math(A))
+#define protect_glyph(A)       subtype(A)=256
 
 #include "ptexlib.h"
 #include "lua/luatex-api.h"
@@ -1140,7 +1142,7 @@ static pointer char_box(internal_font_number f, int c, pointer bb)
     /*tex The new box and its character node. */
     pointer b, p;
     b = new_null_box();
-    if (do_new_math(f))
+    if (do_new_math_but_not(f))
         width(b) = char_width(f, c);
     else
         width(b) = char_width(f, c) + char_italic(f, c);
@@ -1149,6 +1151,7 @@ static pointer char_box(internal_font_number f, int c, pointer bb)
     subtype(b) = math_char_list ;
     reset_attributes(b, bb);
     p = new_glyph(f, c);
+    protect_glyph(p);
     reset_attributes(p, bb);
     list_ptr(b) = p;
     return b;
@@ -1246,7 +1249,7 @@ static void stack_glue_into_box(pointer b, scaled min, scaled max) {
 
 /*tex Size code corresponding to |cur_style|:  */
 
-int cur_size;
+int cur_size = 0;
 
 static pointer get_delim_box(internal_font_number fnt, halfword chr, scaled v, scaled min_overlap, int horizontal, halfword att)
 {
@@ -1538,6 +1541,18 @@ static pointer do_delimiter(pointer q, pointer d, int s, scaled v, boolean flat,
     boolean do_parts = false;
     boolean parts_done = false;
     extinfo *ext;
+
+    if (d && ! small_fam(d) && ! large_fam(d) && ! small_char(d) && ! large_char(d)) {
+        halfword b = new_null_box();
+        subtype(b) = math_v_delimiter_list;
+        if (! flat)
+            width(b) = null_delimiter_space_par;
+        node_attr(b) = node_attr(d);
+        node_attr(d) = null;
+        flush_node(d);
+        return b;
+    }
+
     f = null_font;
     c = 0;
     if (d == null) {
@@ -1637,13 +1652,18 @@ static pointer do_delimiter(pointer q, pointer d, int s, scaled v, boolean flat,
             if (same != NULL && x == c) {
                 *same = emas;
             }
+            /*tex
+                Here italic is added to width in traditional fonts which makes the delimiter get
+                the real width. An \OPENTYPE\ font already has the right width.
+            */
             b = char_box(f, c, att);
-            if (!do_new_math(f)) {
-                /*tex Italic gets added to width. */
-                width(b) += char_italic(f, c);
-            }
+            /*tex
+                There is one case where |delta| (ic) gets subtracted but only for a traditional
+                font. In that case the traditional width (which is fake width + italic) becomes
+                less and the delta is added. See (**). (On the mailing list font |ntxexx| was
+                mentioned as test case by MK.)
+            */
             if (delta != NULL) {
-                /*tex This used to be (f, x). */
                 *delta = char_italic(f, c);
             }
             if (stack != NULL)
@@ -2366,7 +2386,10 @@ static void make_over_delimiter(pointer q, int cur_style)
     pointer x, y, v;
     scaled shift_up, shift_down, clr, delta, wd;
     boolean stack;
-    x = clean_box(nucleus(q), sub_style(cur_style), cur_style, math_nucleus_list);
+    if (math_defaults_mode_par > 0)
+	    x = clean_box(nucleus(q), sup_style(cur_style), cur_style, math_nucleus_list);
+	else
+	    x = clean_box(nucleus(q), sub_style(cur_style), cur_style, math_nucleus_list);
     check_widths(q,x);
     y = do_delimiter(q, left_delimiter(q), cur_size, wd, true, cur_style, true, &stack, NULL, NULL);
     left_delimiter(q) = null;
@@ -2397,7 +2420,10 @@ static void make_under_delimiter(pointer q, int cur_style)
     pointer x, y, v;
     scaled shift_up, shift_down, clr, delta, wd;
     boolean stack;
-    y = clean_box(nucleus(q), sup_style(cur_style), cur_style, math_nucleus_list);
+    if (math_defaults_mode_par > 0)
+	    y = clean_box(nucleus(q), sub_style(cur_style), cur_style, math_nucleus_list);
+	else
+        y = clean_box(nucleus(q), sup_style(cur_style), cur_style, math_nucleus_list);
     check_widths(q,y);
     x = do_delimiter(q, left_delimiter(q), cur_size, wd, true, cur_style, true, &stack, NULL, NULL);
     left_delimiter(q) = null;
@@ -2428,7 +2454,10 @@ static void make_delimiter_over(pointer q, int cur_style)
     pointer x, y, v;
     scaled shift_up, shift_down, clr, actual, wd;
     boolean stack;
-    y = clean_box(nucleus(q), cur_style, cur_style, math_nucleus_list);
+    if (math_defaults_mode_par > 0)
+        y = clean_box(nucleus(q), cramped_style(cur_style), cur_style, math_nucleus_list);
+    else
+        y = clean_box(nucleus(q), cur_style, cur_style, math_nucleus_list);
     check_widths(q,y);
     x = do_delimiter(q, left_delimiter(q), cur_size + (cur_size == script_script_size ? 0 : 1), wd, true, cur_style, true, &stack, NULL, NULL);
     left_delimiter(q) = null;
@@ -2680,7 +2709,7 @@ static void do_make_math_accent(pointer q, internal_font_number f, int c, int fl
     } else if ((vlink(q) != null) && (type(nucleus(q)) == math_char_node)) {
         /*tex only pure math char nodes */
         internal_font_number f = fam_fnt(math_fam(nucleus(q)),cur_size);
-        if (do_new_math(f)) {
+        if (do_new_math_but_not(f)) {
             ic = char_italic(f,math_character(nucleus(q)));
         }
     }
@@ -2976,10 +3005,7 @@ static void make_fraction(pointer q, int cur_style)
         /*tex This also equals |width(z)|. */
         width(v) = width(x);
         reset_attributes(v, node_attr(q));
-        if (thickness(q) == 0) {
-            p = new_kern((shift_up - depth(x)) - (height(z) - shift_down));
-            couple_nodes(p,z);
-        } else {
+        if (thickness(q) && ! fractionnorule(q)) {
             y = do_fraction_rule(thickness(q), node_attr(q), math_fraction_rule, cur_size, used_fam);
             p = new_kern((math_axis_size(cur_size) - delta) - (height(z) - shift_down));
             reset_attributes(p, node_attr(q));
@@ -2987,6 +3013,9 @@ static void make_fraction(pointer q, int cur_style)
             couple_nodes(p,z);
             p = new_kern((shift_up - depth(x)) - (math_axis_size(cur_size) + delta));
             couple_nodes(p,y);
+        } else {
+            p = new_kern((shift_up - depth(x)) - (height(z) - shift_down));
+            couple_nodes(p,z);
         }
         reset_attributes(p, node_attr(q));
         couple_nodes(x,p);
@@ -3069,10 +3098,19 @@ static scaled make_op(pointer q, int cur_style)
                 small_char(y) = math_character(nucleus(q));
                 x = do_delimiter(q, y, text_size, ok_size, false, cur_style, true, NULL, &delta, NULL);
                 if (delta != 0) {
-                    if (do_new_math(cur_f)) {
-                        /*tex we never added italic correction */
+                    if (do_new_math_but_not(cur_f)) {
+                        /*tex
+                            As we never added italic correction we don't need to compensate. The ic
+                            is stored in a special field of the node and applied in some occasions.
+                        */
                     } else if ((subscr(q) != null) && (subtype(q) != op_noad_type_limits)) {
-                        /*tex remove italic correction */
+                        /*tex
+                            Here we (selectively) remove the italic correction that always gets added
+                            in a traditional font. See (**). In \OPENTYPE\ mode we insert italic kerns,
+                            but in traditional mode it's width manipulation. This actually makes sense
+                            because those fonts have a fake width and the italic correction sets that
+                            right.
+                        */
                         width(x) -= delta;
                     }
                 }
@@ -3088,7 +3126,7 @@ static scaled make_op(pointer q, int cur_style)
                 delta = char_italic(cur_f, cur_c);
                 x = clean_box(nucleus(q), cur_style, cur_style, math_nucleus_list);
                 if (delta != 0) {
-                    if (do_new_math(cur_f)) {
+                    if (do_new_math_but_not(cur_f)) {
                         /*tex we never added italic correction */
                     } else if ((subscr(q) != null) && (subtype(q) != op_noad_type_limits)) {
                         /*tex remove italic correction */
@@ -3102,7 +3140,7 @@ static scaled make_op(pointer q, int cur_style)
             delta = char_italic(cur_f, cur_c);
             x = clean_box(nucleus(q), cur_style, cur_style, math_nucleus_list);
             if (delta != 0) {
-                if (do_new_math(cur_f)) {
+                if (do_new_math_but_not(cur_f)) {
                     /*tex we never added italic correction */
                 } else if ((subscr(q) != null) && (subtype(q) != op_noad_type_limits)) {
                     /*tex remove italic correction */
@@ -3120,7 +3158,7 @@ static scaled make_op(pointer q, int cur_style)
     }
     /*tex we now handle op_nod_type_no_limits here too */
     if (subtype(q) == op_noad_type_no_limits) {
-        if (do_new_math(cur_f)) {
+        if (do_new_math_but_not(cur_f)) {
             /*tex
                 Not:
 
@@ -3207,7 +3245,7 @@ static scaled make_op(pointer q, int cur_style)
         reset_attributes(v, node_attr(q));
         type(v) = vlist_node;
         subtype(v) = math_limits_list;
-        if (do_new_math(cur_f)) {
+        if (do_new_math_but_not(cur_f)) {
             n = nucleus(q);
             if (n != null) {
                 if ((type(n) == sub_mlist_node) || (type(n) == sub_box_node)) {
@@ -3294,12 +3332,10 @@ static scaled make_op(pointer q, int cur_style)
             shift_down = limit_below_bgap(cur_style) - height(z);
             if (shift_down < limit_below_vgap(cur_style))
                 shift_down = limit_below_vgap(cur_style);
-            if (shift_down > 0) {
-                p = new_kern(shift_down);
-                reset_attributes(p, node_attr(q));
-                couple_nodes(y,p);
-                couple_nodes(p,z);
-            }
+            p = new_kern(shift_down);
+            reset_attributes(p, node_attr(q));
+            couple_nodes(y,p);
+            couple_nodes(p,z);
             p = new_kern(limit_below_kern(cur_style));
             reset_attributes(p, node_attr(q));
             couple_nodes(z,p);
@@ -3316,7 +3352,7 @@ static scaled make_op(pointer q, int cur_style)
             supscr(q) = null;
         }
         assign_new_hlist(q, v);
-        if (do_new_math(cur_f)) {
+        if (do_new_math_but_not(cur_f)) {
             delta = 0;
         }
     }
@@ -3365,7 +3401,7 @@ static void make_ord(pointer q)
             fetch(nucleus(q));
             a = cur_c;
             /*tex add italic correction */
-            if (do_new_math(cur_f) && (char_italic(cur_f,math_character(nucleus(q))) != 0)) {
+            if (do_new_math_but_not(cur_f) && (char_italic(cur_f,math_character(nucleus(q))) != 0)) {
                 p = new_kern(char_italic(cur_f,math_character(nucleus(q))));
                 subtype(p) = italic_kern;
                 reset_attributes(p, node_attr(q));
@@ -4244,15 +4280,16 @@ static pointer check_nucleus_complexity(halfword q, scaled * delta, int cur_styl
             fetch(nucleus(q));
             if (char_exists(cur_f, cur_c)) {
                 /*tex we could look at neighbours */
-                if (do_new_math(cur_f)) {
+                if (do_new_math_but_not(cur_f)) {
                     /*tex cf spec only the last one */
                     *delta = 0 ;
                 } else {
                     *delta = char_italic(cur_f, cur_c);
                 }
                 p = new_glyph(cur_f, cur_c);
+                protect_glyph(p);
                 reset_attributes(p, node_attr(nucleus(q)));
-                if (do_new_math(cur_f)) {
+                if (do_new_math_but_not(cur_f)) {
                     if (get_char_cat_code(cur_c) == 11) {
                         /*tex no italic correction in mid-word of text font */
                         *delta = 0;
@@ -4270,7 +4307,7 @@ static pointer check_nucleus_complexity(halfword q, scaled * delta, int cur_styl
                     reset_attributes(x, node_attr(nucleus(q)));
                     couple_nodes(p,x);
                     *delta = 0;
-                } else if (do_new_math(cur_f)) {
+                } else if (do_new_math_but_not(cur_f)) {
                     /*tex Needs checking but looks ok. It must be more selective. */
                     *delta = char_italic(cur_f, cur_c);
                 }

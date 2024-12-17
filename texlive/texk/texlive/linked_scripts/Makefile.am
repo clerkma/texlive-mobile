@@ -1,20 +1,23 @@
-## $Id: Makefile.am 54732 2020-04-14 14:53:54Z karl $
+## $Id: Makefile.am 73132 2024-12-15 21:15:55Z karl $
 ## Makefile.am for the TeX Live subdirectory texk/texlive/linked_scripts/
 ##
-## Copyright 2016-2019 Karl Berry <tex-live@tug.org>
+## Copyright 2016-2024 Karl Berry <tex-live@tug.org>
 ## Copyright 2009-2015 Peter Breitenlohner <tex-live@tug.org>
 ## You may freely use, modify and/or distribute this file.
 ##
 ## TeX Live's extra scripts.
 
-## Build lists of scripts.
-##
+# Build lists of scripts.
 scripts-list: Makefile
 	@echo "Create $@"
 	@echo "texmf_scripts='" >$@
 	@for f in $(nobase_dist_texmf_scripts_SCRIPTS); do echo "$$f"; done >>$@
 	@echo "'" >>$@
 	cmp -s $(srcdir)/scripts.lst $@ || cp -f $@ $(srcdir)/scripts.lst
+
+# Hard to remember the target name different from final file name.
+scripts-lst:
+	$(MAKE) scripts-list
 
 if MAINTAINER_MODE
 all-local: scripts-list
@@ -35,23 +38,20 @@ installdirs-local:
 # dangling symlinks produced by `make install'.
 # The instances in texmf* are the masters (except when it is CTAN).
 #
-## We distinguish several classes of scripts according to their
-## type: `shell', `context', or `other'.
+## We distinguish classes of scripts: `shell' and `other'.
 ## 
 ## On Unix systems a symlink from $(bindir) to the script is installed
 ## for all of them; on Windows nothing is installed in $(bindir) for
 ## `shell' scripts whereas for `other' (usually perl, lua, ...) scripts
-## the standard wrapper ../$(WIN_WRAPPER)/runscript.exe is installed or
-## the ConTeXt wrapper ../$(WIN_WRAPPER)/context/mtxrun.exe for
-## `context' scripts.
+## the standard wrapper ../$(WIN_WRAPPER)/runscript.exe is installed.
 ##
-## WIN_WRAPPER is w32_wrapper for 32-bit or w64_wrapper for 64-bit.
+## WIN_WRAPPER is windows_wrapper (64-bit).
 ## 
-## The "shell" list aren't just shell scripts, in either direction.
-## Some /bin/sh scripts are listed as `other' or `context'
-## scripts because they are correctly handled by the wrapper binaries.
-## Conversely, some non-sh scripts are listed as `shell' because they
-## depend on shell scripts or otherwise aren't useful on Windows.
+## The "shell" list aren't just shell scripts, in either direction. Some
+## /bin/sh scripts are listed as `other' scripts because they are
+## correctly handled by the wrapper binaries. Conversely, some non-sh
+## scripts are listed as `shell' because they depend on shell scripts or
+## otherwise aren't useful on Windows.
 ## 
 texmf_scriptsdir = $(datarootdir)/texmf-dist/scripts
 texmf_shell_scripts = \
@@ -66,12 +66,15 @@ texmf_shell_scripts = \
 	listbib/listbib \
 	listings-ext/listings-ext.sh \
 	ltxfileinfo/ltxfileinfo \
+	pagelayout/pagelayoutapi \
+	pagelayout/textestvis \
 	pdfbook2/pdfbook2 \
 	pdfjam/pdfjam \
 	pdftex-quiet/pdftex-quiet \
 	pdfxup/pdfxup \
 	pst-pdf/ps4pdf \
 	simpdftex/simpdftex \
+	texaccents/texaccents.sno \
 	texlive-extra/allcm.sh \
 	texlive-extra/allneeded.sh \
 	texlive-extra/dvi2fax.sh \
@@ -87,26 +90,37 @@ texmf_shell_scripts = \
 	texlive-extra/texconfig-sys.sh \
 	texlive-extra/texconfig.sh \
 	texlive-extra/texlinks.sh \
+	texlive-extra/xetex-unsafe.sh \
+	texlive-extra/xelatex-unsafe.sh \
 	texosquery/texosquery.sh \
 	texosquery/texosquery-jre5.sh \
 	texosquery/texosquery-jre8.sh \
+	tikztosvg/tikztosvg \
 	typeoutfileinfo/typeoutfileinfo.sh \
 	wordcount/wordcount.sh
 
+# 
 texmf_other_scripts = \
 	a2ping/a2ping.pl \
 	accfonts/mkt1font \
 	accfonts/vpl2ovp \
 	accfonts/vpl2vpl \
+	albatross/albatross.sh \
 	arara/arara.sh \
 	attachfile2/pdfatfi.pl \
 	authorindex/authorindex \
 	bib2gls/bib2gls.sh \
 	bib2gls/convertgls2bib.sh \
+	bib2gls/datatool2bib.sh \
+	bibcop/bibcop.pl \
+	bibtexperllibs/ltx2unitxt \
+	bookshelf/bookshelf-listallfonts \
+	bookshelf/bookshelf-mkfontsel \
 	bundledoc/arlatex \
 	bundledoc/bundledoc \
 	cachepic/cachepic.tlu \
 	checkcites/checkcites.lua \
+	citation-style-language/citeproc-lua.lua \
 	chklref/chklref.pl \
 	cjk-gs-integrate/cjk-gs-integrate.pl \
 	clojure-pamphlet/pamphletangler \
@@ -124,14 +138,19 @@ texmf_other_scripts = \
 	ctanupload/ctanupload.pl \
 	de-macro/de-macro \
 	diadia/diadia.lua \
+	digestif/digestif.texlua \
 	dosepsbin/dosepsbin.pl \
 	dviasm/dviasm.py \
 	dviinfox/dviinfox.pl \
+	easydtx/edtx2dtx.pl \
 	ebong/ebong.py \
+	eolang/eolang.pl \
 	epspdf/epspdf.tlu \
 	epspdf/epspdftk.tcl \
 	epstopdf/epstopdf.pl \
 	exceltex/exceltex \
+	expltools/explcheck.lua \
+	extractbb/extractbb.lua \
 	fig4latex/fig4latex \
 	findhyph/findhyph \
 	fontools/afm2afm \
@@ -141,12 +160,14 @@ texmf_other_scripts = \
 	getmap/getmapdl.lua \
 	glossaries/makeglossaries \
 	glossaries/makeglossaries-lite.lua \
+	hyperxmp/hyperxmp-add-bytecount.pl \
 	jfmutil/jfmutil.pl \
 	ketcindy/ketcindy.pl \
 	kotex-utils/jamo-normalize.pl \
 	kotex-utils/komkindex.pl \
 	kotex-utils/ttf2kotexfont.pl \
 	l3build/l3build.lua \
+	l3sys-query/l3sys-query.lua \
 	latex-git-log/latex-git-log \
 	latex-papersize/latex-papersize.py \
 	latex2man/latex2man \
@@ -157,10 +178,12 @@ texmf_other_scripts = \
 	latexindent/latexindent.pl \
 	latexmk/latexmk.pl \
 	latexpand/latexpand \
+	light-latex-make/llmk.lua \
 	lilyglyphs/lily-glyph-commands.py \
 	lilyglyphs/lily-image-commands.py \
 	lilyglyphs/lily-rebuild-pdfs.py \
 	ltximg/ltximg.pl \
+	luafindfont/luafindfont.lua \
 	luaotfload/luaotfload-tool.lua \
 	lwarp/lwarpmk.lua \
 	m-tx/m-tx.lua \
@@ -168,13 +191,19 @@ texmf_other_scripts = \
 	make4ht/make4ht \
 	match_parens/match_parens \
 	mathspic/mathspic.pl \
+	memoize/memoize-clean.pl \
+	memoize/memoize-clean.py \
+	memoize/memoize-extract.pl \
+	memoize/memoize-extract.py \
 	mf2pt1/mf2pt1.pl \
+	minted/latexminted.py \
 	mkgrkindex/mkgrkindex \
 	mkjobtexmf/mkjobtexmf.pl \
 	mkpic/mkpic \
 	multibibliography/multibibliography.pl \
 	musixtex/musixflx.lua \
 	musixtex/musixtex.lua \
+	optexcount/optexcount \
 	pax/pdfannotextractor.pl \
 	pdfcrop/pdfcrop.pl \
 	pdflatexpicscale/pdflatexpicscale.pl \
@@ -186,6 +215,7 @@ texmf_other_scripts = \
 	pkfix-helper/pkfix-helper \
 	pkfix/pkfix.pl \
 	pmxchords/pmxchords.lua \
+	ppmcheckpdf/ppmcheckpdf.lua \
 	pst2pdf/pst2pdf.pl \
 	ptex-fontmaps/kanji-config-updmap-sys.sh \
 	ptex-fontmaps/kanji-config-updmap-user.sh \
@@ -197,15 +227,20 @@ texmf_other_scripts = \
 	pythontex/depythontex.py \
 	pythontex/pythontex.py \
 	rubik/rubikrotation.pl \
+	runtexshebang/runtexshebang.lua \
+	spix/spix.py \
 	splitindex/splitindex.pl \
+	sqltex/sqltex \
 	srcredact/srcredact.pl \
 	sty2dtx/sty2dtx.pl \
 	svn-multi/svn-multi.pl \
 	tex4ebook/tex4ebook \
+	texblend/texblend \
 	texcount/texcount.pl \
 	texdef/texdef.pl \
 	texdiff/texdiff \
 	texdirflatten/texdirflatten \
+	texfindpkg/texfindpkg.lua \
 	texdoc/texdoc.tlu \
 	texfot/texfot.pl \
 	texlive/fmtutil-sys.sh \
@@ -215,7 +250,7 @@ texmf_other_scripts = \
 	texlive/mktexmf \
 	texlive/mktexpk \
 	texlive/mktextfm \
-	texlive/rungs.tlu \
+	texlive/rungs.lua \
 	texlive/tlmgr.pl \
 	texlive/updmap-sys.sh \
 	texlive/updmap-user.sh \
@@ -223,10 +258,13 @@ texmf_other_scripts = \
 	texlive-extra/e2pall.pl \
 	texliveonfly/texliveonfly.py \
 	texloganalyser/texloganalyser \
+	texlogfilter/texlogfilter \
+	texlogsieve/texlogsieve \
 	texplate/texplate.sh \
 	thumbpdf/thumbpdf.pl \
 	tlcockpit/tlcockpit.sh \
 	tlshell/tlshell.tcl \
+	typog/typog-grep.pl \
 	ulqda/ulqda.pl \
 	urlbst/urlbst \
 	vpe/vpe.pl \
@@ -234,23 +272,9 @@ texmf_other_scripts = \
 	xindex/xindex.lua \
 	yplan/yplan
 
-texmf_context_scripts = \
-	context/stubs/unix/context \
-	context/stubs/unix/contextjit \
-	context/stubs/unix/luatools \
-	context/stubs/unix/mtxrun \
-	context/stubs/unix/mtxrunjit \
-	context/stubs/unix/texexec \
-	context/stubs/unix/texmfstart
-
-EXTRA_DIST += \
-	context/stubs/unix/ctxtools \
-	context/stubs/unix/pstopdf
-
 nobase_dist_texmf_scripts_SCRIPTS = \
 	$(texmf_shell_scripts) \
-	$(texmf_other_scripts) \
-	$(texmf_context_scripts)
+	$(texmf_other_scripts)
 
 ## Symlinks within $(bindir): FILE:LINK here means "ln -s FILE LINK" is done.
 bin_links = \
@@ -289,7 +313,13 @@ bin_links = \
 EXTRA_DIST += ../../../build-aux/relpath
 relpath = $(SHELL) $(top_srcdir)/../../build-aux/relpath
 runscript = $(top_srcdir)/$(WIN_WRAPPER)/runscript.exe
-ctxscript = $(top_srcdir)/$(WIN_WRAPPER)/context/mtxrun.exe
+
+# Make a copy of all targets and link names, for distros etc., so they
+# don't have to duplicate the special cases for memoize* etc. below. It
+# would be cleaner to make the file and then use it in both the install
+# and uninstall hooks, but we'll leave that for another time.
+linkfile = $(abs_builddir)/scripts-targets.lst
+
 install-data-hook: installdirs-local
 if WIN32
 	@for s in $(texmf_other_scripts); do \
@@ -299,23 +329,13 @@ if WIN32
 	done
 	$(INSTALL_SCRIPT) $(top_srcdir)/$(WIN_WRAPPER)/runscript.dll $(DESTDIR)$(bindir)
 	$(INSTALL_SCRIPT) $(top_srcdir)/$(WIN_WRAPPER)/runscript.exe $(DESTDIR)$(bindir)
-	$(INSTALL_SCRIPT) $(top_srcdir)/w32_wrapper/runscript.tlu $(DESTDIR)$(bindir)
-	@for s in $(texmf_context_scripts); do \
-	  t=`basename $$s | sed 's,\.[^/]*$$,,' | tr '[A-Z]' '[a-z]'`; \
-	  echo "$(INSTALL_SCRIPT) '$(ctxscript)' '$(DESTDIR)$(bindir)/$$t.exe'"; \
-	  $(INSTALL_SCRIPT) $(ctxscript) $(DESTDIR)$(bindir)/$$t.exe; \
-	done
-	$(INSTALL_SCRIPT) $(top_srcdir)/$(WIN_WRAPPER)/context/mtxrun.dll $(DESTDIR)$(bindir)
-	$(INSTALL_SCRIPT) $(srcdir)/context/stubs/unix/mtxrun $(DESTDIR)$(bindir)/mtxrun.lua
-	@for s in $(bin_links); do \
-	  link=`echo $$s | sed 's,.*:,,'`; \
-	  echo "$(INSTALL_SCRIPT) '$(runscript)' '$(DESTDIR)$(bindir)/$$link.exe'"; \
-	  $(INSTALL_SCRIPT) $(runscript) $(DESTDIR)$(bindir)/$$link.exe || exit 1; \
-	done
+	$(INSTALL_SCRIPT) $(top_srcdir)/$(WIN_WRAPPER)/runscript.tlu $(DESTDIR)$(bindir)
 else !WIN32
-## Name the link as the basename, removing any extension,
-## except for listings-ext.sh, which is documented as that name.
-## Downcase for the sake of TeXcount.pl -> texcount.
+	>$(linkfile)
+# Name the link as the basename, removing any extension,
+# except for memoize* and listings-ext.sh, which are documented to be
+# used with extension. Downcase for the sake of TeXcount.pl -> texcount.
+# Unfortunately this logic is duplicated in uninstall-hook.
 	@REL=`$(relpath) '$(DESTDIR)' '$(bindir)' '$(datarootdir)'`; \
 	if test -z "$$REL"; then \
 	  echo 'unable to compute relative path for linked scripts' >&2; \
@@ -324,18 +344,22 @@ else !WIN32
 	cd $(DESTDIR)$(bindir) && \
 	  for s in $(nobase_dist_texmf_scripts_SCRIPTS); do \
 	    target=`basename $$s | tr '[A-Z]' '[a-z]'`; \
-	    echo "$$s" | grep listings-ext.sh >/dev/null \
+## we can't portably use egrep or grep -E or ere patterns.
+	    echo "$$s" | grep 'memoize-.*\.' >/dev/null \
+	    || echo "$$s" | grep 'listings-ext.sh' >/dev/null \
 	    || target=`echo $$target | sed 's,\.[^/]*$$,,'`; \
 	    rm -f $$target; \
-	    echo "creating link '$$target' -> '$$REL/texmf-dist/scripts/$$s'"; \
+	    echo "creating link '$$target' -> '$$REL/texmf-dist/scripts/$$s'";\
 	    $(LN_S) $$REL/texmf-dist/scripts/$$s $$target || exit 1; \
+	    echo texmf-dist/scripts/$$s $$target >>$(linkfile); \
 	  done && \
 	  for s in $(bin_links); do \
 	    link=`echo $$s | sed 's,.*:,,'`; \
 	    file=`echo $$s | sed 's,:.*,,'`; \
 	    rm -f $$link; \
-	    echo "creating link '$$link' -> '$$file'"; \
+	    echo "creating bin link '$$link' -> '$$file'"; \
 	    $(LN_S) $$file $$link || exit 1; \
+	    echo $$file $$link >>$(linkfile); \
 	  done && \
 ## man dir link for those mans which can use it, but don't overwrite a
 ## real file, e.g., /usr/bin/man.
@@ -346,13 +370,17 @@ else !WIN32
 	    rm -f man; \
 	    (ln -s "$$REL/texmf-dist/doc/man" man || :); \
 	  else :; fi
+# If we got to the end, update the $(linkfile) in srcdir if needed.
+	cmp -s $(srcdir)/`basename $(linkfile)` $(linkfile) \
+	|| cp -f $(linkfile) $(srcdir)/`basename $(linkfile)`
 endif !WIN32
 
 .PHONY: install-links
 install-links:
 
-## For WIN32 (MinGW or native) we have wrapper binaries with .exe,
-## for Cygwin and Unix we have symlinks without .exe.
+# 
+# For WIN32 (MinGW or native) we have wrapper binaries with .exe,
+# for Cygwin and Unix we have symlinks without .exe.
 if WIN32
 WINEXT = $(EXEEXT)
 endif WIN32
@@ -360,7 +388,8 @@ endif WIN32
 uninstall-hook:
 	@for s in $(nobase_dist_texmf_scripts_SCRIPTS); do \
 	  target=`basename $$s | tr '[A-Z]' '[a-z]'`; \
-	  echo "$$s" | grep listings-ext.sh >/dev/null \
+	  echo "$$s" | grep 'memoize-.*\.' >/dev/null \
+	  || echo "$$s" | grep 'listings-ext.sh' >/dev/null \
 	  || target=`echo $$target | sed 's,\.[^/]*$$,,'`; \
 	  rm -f $(DESTDIR)$(bindir)/$$target$(WINEXT); \
 	done
@@ -374,9 +403,21 @@ if !WIN32
 	else :; fi
 endif !WIN32
 
-## 
-## This target is invoked by check-wrapper-consistency (run from cron).
+# 
+# This target is invoked by tl-check-wrapper-consistency (run from cron).
 .PHONY: echo-shell-scripts
-shell_scripts = $(texmf_shell_scripts) $(texmf_context_scripts)
+shell_scripts = $(texmf_shell_scripts)
 echo-shell-scripts:
 	@echo $(shell_scripts)
+
+# just a shorter name for all the scripts for convenience.
+all_scripts = $(nobase_dist_texmf_scripts_SCRIPTS)
+
+# Compare the list of scripts to the extant files in the repo;
+# should be exactly the same. Run from cron.
+check-make-vs-files:
+# We descend two levels here because of context/perl/mptopdf.pl.
+	find "$(srcdir)"/*/* -type f | sed "s,$(srcdir)/,," | sort \
+	  >tmplist.files
+	echo $(all_scripts) | tr ' ' '\n' | sort >tmplist.make
+	comm -3 tmplist.files tmplist.make

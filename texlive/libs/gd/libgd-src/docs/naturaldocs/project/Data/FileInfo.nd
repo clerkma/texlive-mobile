@@ -1,0 +1,96 @@
+1.51
+C/C++
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/fontwheeltest.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/fontwheeltest.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_gif_out.c	1631337123	1	GIF Output
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_interpolation.c	1631337123	1	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_interpolation.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfontg.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfontg.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_filter.c	1631337123	1	Image Filters
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/testac.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/testac.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_nnquant.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_nnquant.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_io_ss.c	1631337123	1	gdNewSSCtx
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfontt.c	1631337123	1	Tiny Font
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/getopt.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/getopt.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_color_map.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_color_map.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_webp.c	1631337123	1	WebP IO
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_tiff.c	1631337123	1	TIFF IO
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_security.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_security.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_matrix.c	1631337123	1	Matrix
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd2time.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd2time.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_version.c	1631337123	1	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_version.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfx.c	1631337123	1	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfx.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_color.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_color.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/circletexttest.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/circletexttest.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/pngtogd.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/pngtogd.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfontt.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfontt.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/giftogd2.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/giftogd2.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfontmb.c	1631337123	1	Medium Bold Font
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfonts.c	1631337123	1	Small Font
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_tga.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_tga.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/webpng.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/webpng.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd.c	1631337123	1	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_ss.c	1631337123	1	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_ss.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_bmp.c	1631337123	1	BMP IO
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/wbmp.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/wbmp.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_color_map.c	1631337123	1	gdColorMapLookup
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd2copypal.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd2copypal.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_color.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_color.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_gif_in.c	1631337123	1	GIF Input
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_gd.c	1631337123	1	GD IO
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_gd2.c	1631337123	1	GD2 IO
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/fontsizetest.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/fontsizetest.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_tga.c	1631337123	1	TGA Input
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gddemo.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gddemo.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_jpeg.c	1631337123	1	JPEG IO
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/annotate.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/annotate.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdxpm.c	1631337123	1	XPM Input
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/preamble.txt	1631337123	1	About LibGD 2.3.3
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_transform.c	1631337123	1	Transformations
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd.h	1631337123	1	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_filename.c	1631337123	1	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_filename.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_heif.c	1631337123	1	HEIF IO
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_io.h	1631337123	1	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_io.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gifanimtest.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gifanimtest.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/jisx0208.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/jisx0208.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfontmb.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfontmb.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdtopng.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdtopng.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_topal.c	1631337123	1	Color Quantization
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdhelpers.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdhelpers.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/entities.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/entities.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_intern.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_intern.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/license.txt	1631337123	1	License
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/pngtogd2.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/pngtogd2.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdparttopng.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdparttopng.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdtestft.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdtestft.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdtables.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdtables.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdcache.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdcache.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/fontconfigtest.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/fontconfigtest.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_crop.c	1631337123	1	Cropping
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_rotate.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_rotate.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_io_stream.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_io_stream.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_avif.c	1631337123	1	AVIF IO
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd2togif.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd2togif.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_png.c	1631337123	1	PNG IO
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdhelpers.c	1631337123	1	gdFree
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdtest.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdtest.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_io_dp.c	1631337123	1	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_io_dp.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_io.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_io.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdkanji.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdkanji.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdpp.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdpp.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/wbmp.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/wbmp.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfx.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfx.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfontl.c	1631337123	1	Large Font
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/testtr.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/testtr.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_io_file.c	1631337123	1	gdNewFileCtx
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfonts.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfonts.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_wbmp.c	1631337123	1	WBMP IO
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/bmp.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/bmp.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_nnquant.c	1631337123	1	gdImageNeuQuant
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_xbm.c	1631337123	1	XBM IO
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd2topng.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd2topng.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdcmpgif.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdcmpgif.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdcache.c	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdcache.c
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdft.c	1631337123	1	FreeType font rendering
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfontg.c	1631337123	1	Giant Font
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_errors.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_errors.h
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gd_color_match.c	1631337123	1	gdImageColorMatch
+/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfontl.h	1631337123	0	/home/pierre/projects/libgd/releases/libgd_2.3.3/docs/naturaldocs/tmp/gdfontl.h

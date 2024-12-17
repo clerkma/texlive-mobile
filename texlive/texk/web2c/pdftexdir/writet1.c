@@ -1,5 +1,5 @@
 /*
-Copyright 1996-2018 Han The Thanh <thanh@pdftex.org>
+Copyright 1996-2023 Han The Thanh <thanh@pdftex.org>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -841,7 +841,10 @@ static char **t1_builtin_enc(void)
                 *t1_buf_array == '/' && valid_code(i)) {
                 if (strcmp(t1_buf_array + 1, notdef) != 0)
                     glyph_names[i] = xstrdup(t1_buf_array + 1);
-                p = strstr(p, " put") + strlen(" put");
+                p = strstr(p, " put");
+                if (!p)
+                    pdftex_fail("invalid pfb, no put found in dup");
+                p += strlen(" put");
                 skip(p, ' ');
             }
             /*
@@ -850,7 +853,10 @@ static char **t1_builtin_enc(void)
             else if (sscanf(p, "dup dup %i exch %i get put", &b, &a) == 2
                      && valid_code(a) && valid_code(b)) {
                 copy_glyph_names(glyph_names, a, b);
-                p = strstr(p, " get put") + strlen(" get put");
+                p = strstr(p, " get put");
+                if (!p)
+                    pdftex_fail("invalid pfb, no get put found in dup dup");
+                p += strlen(" get put");
                 skip(p, ' ');
             }
             /*
@@ -861,7 +867,10 @@ static char **t1_builtin_enc(void)
                      && valid_code(a) && valid_code(b) && valid_code(c)) {
                 for (i = 0; i < c; i++)
                     copy_glyph_names(glyph_names, a + i, b + i);
-                p = strstr(p, " putinterval") + strlen(" putinterval");
+                p = strstr(p, " putinterval");
+                if (!p)
+                   pdftex_fail("invalid pfb, no putinterval found in dup dup");
+                p += strlen(" putinterval");
                 skip(p, ' ');
             }
             /*
@@ -1246,6 +1255,13 @@ static void cs_mark(const char *cs_name, int subr)
                 cc_clear();
                 mark_cs(standard_glyph_names[a1]);
                 mark_cs(standard_glyph_names[a2]);
+                if (fd_cur->gl_tree != NULL) {
+                    /* base and accent characters are needed in CharSet */
+                    avl_probe(fd_cur->gl_tree,
+                              (void *) standard_glyph_names[a1]);
+                    avl_probe(fd_cur->gl_tree,
+                              (void *) standard_glyph_names[a2]);
+                }
                 break;
             default:
                 if (cc->clear)

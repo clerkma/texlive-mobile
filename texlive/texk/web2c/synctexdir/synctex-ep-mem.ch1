@@ -10,14 +10,8 @@
 @z
 
 @x tex.web l.4960 + tex.ch
-@d tex_int_pars=63 {total number of \TeX's integer parameters}
+@d etex_int_base=web2c_int_pars {base for \eTeX's integer parameters}
 @y
-@d synctex_code=63
-@d tex_int_pars=synctex_code+1 {total number of \TeX's integer parameters}
-@z
-
-@x tex.web l. 24956
-@* \[54] System-dependent changes.
-@y
-@* \[54/\pTeX] System-dependent changes for \pTeX.
+@d synctex_code=web2c_int_pars
+@d etex_int_base=synctex_code+1 {base for \eTeX's integer parameters}
 @z

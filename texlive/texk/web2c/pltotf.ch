@@ -11,12 +11,23 @@
 % 01/16/90 (SR)  Version 3.2.
 % (more recent changes in the ChangeLog)
 
+@x [0] l.31
+\def\(#1){} % this is used to make section names sort themselves better
+@y
+\def\({} % this is used to make section names sort themselves better
+@z
+
+@x [0] l.34
+\def\title{PL\lowercase{to}TF}
+@y
+\def\title{PL$\,$\lowercase{to}$\,$TF changes for C}
+@z
+
 @x [0] WEAVE: print changes only.
 \pageno=\contentspagenumber \advance\pageno by 1
 @y
 \pageno=\contentspagenumber \advance\pageno by 1
 \let\maybe=\iffalse
-\def\title{PL$\,$\lowercase{to}$\,$TF changes for C}
 @z
 
 @x [1] Define my_name
@@ -40,7 +51,7 @@ procedure initialize; {this procedure gets things started properly}
   var @<Local variables for initialization@>@/
   begin print_ln(banner);@/
 @y
-@<Define |parse_arguments|@>
+@<Define \(|parse_arguments|@>
 procedure initialize; {this procedure gets things started properly}
   var @<Local variables for initialization@>@/
   begin kpse_set_program_name (argv[0], my_name);
@@ -149,7 +160,7 @@ if verbose then @<Print |c| in octal notation@>;
   print_ln(' units.'); end
 @z
 
-% [118] Change the name of the variable `class', since AIX 3.1's <math.h>
+% [117] Change the name of the variable `class', since AIX 3.1's <math.h>
 % defines a function by that name.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
@@ -258,7 +269,7 @@ Parse a Unix-style command line.
 
 @d argument_is (#) == (strcmp (long_options[option_index].name, #) = 0)
 
-@<Define |parse_arguments|@> =
+@<Define \(|parse_arguments|@> =
 procedure parse_arguments;
 const n_options = 3; {Pascal won't count array lengths for us.}
 var @!long_options: array[0..n_options] of getopt_struct;
@@ -272,7 +283,7 @@ begin
     getopt_return_val := getopt_long_only (argc, argv, '', long_options,
                                            address_of (option_index));
     if getopt_return_val = -1 then begin
-      {End of arguments; we exit the loop below.} ;
+      do_nothing; {End of arguments; we exit the loop below.}
 
     end else if getopt_return_val = "?" then begin
       usage (my_name);
@@ -333,12 +344,10 @@ long_options[current_option].flag := address_of (verbose);
 long_options[current_option].val := 1;
 incr (current_option);
 
-@
-@<Glob...@> =
+@ @<Glob...@> =
 @!verbose: c_int_type;
 
-@
-@<Initialize the option...@> =
+@ @<Initialize the option...@> =
 verbose := false;
 
 @ An element with all zeros always ends the list.

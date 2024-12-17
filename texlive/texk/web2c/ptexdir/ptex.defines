@@ -4,10 +4,16 @@
 
 @define function getencstring;
 @define function setencstring ();
+@define function isinternalUPTEX;
+@define function isterminalUTF8;
 
 @define function iskanji1 ();
 @define function multistrlen ();
+@define function multistrlenshort ();
+@define function multistrlenfilename ();
+@define function multibytelen ();
 @define function fromBUFF ();
+@define function fromBUFFshort ();
 @define function toBUFF ();
 
 @define function fromDVI ();
@@ -15,11 +21,15 @@
 @define function putc2 ();
 @define function fputs2 ();
 @define function inputline2 ();
+@define function ptencconvfirstline ();
 
 @define function fromJIS ();
 @define function fromEUC ();
 @define function fromSJIS ();
 @define function fromKUTEN ();
+@define function fromUCS ();
+@define function toJIS ();
+@define function toUCS ();
 
 @define function notkanjicharseq ();
 @define function checkkanji ();

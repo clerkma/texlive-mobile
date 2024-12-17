@@ -1,6 +1,6 @@
 /* This is dvipdfmx, an eXtended version of dvipdfm by Mark A. Wicks.
 
-    Copyright (C) 2002-2019 by Jin-Hwan Cho and Shunsaku Hirata,
+    Copyright (C) 2002-2020 by Jin-Hwan Cho and Shunsaku Hirata,
     the dvipdfmx project team.
     
     This program is free software; you can redistribute it and/or modify
@@ -434,7 +434,7 @@ lookup_cmap12 (struct cmap12 *map, ULONG cccc)
   int i;
 
   i = map->nGroups;
-  while (i-- >= 0 &&
+  while (i-- > 0 &&
 	 cccc <= map->groups[i].endCharCode) {
     if (cccc >= map->groups[i].startCharCode) {
       gid = (USHORT) ((cccc -
@@ -445,6 +445,114 @@ lookup_cmap12 (struct cmap12 *map, ULONG cccc)
   }
 
   return gid;
+}
+
+/* format 14: unicode variation sequences */
+
+struct variationSelector
+{
+  /* Variation selector */
+  ULONG   varSelector;
+
+  /* Default UVS table */
+  ULONG   numUnicodeValueRanges;
+  ULONG  *rangesStartUnicodeValue;
+  BYTE   *rangesAdditionalCount;
+
+  /* Non-Default UVS table */
+  ULONG   numUVSMappings;
+  ULONG  *uvsMappingsUnicodeValue;
+  USHORT *uvsMappingsGlyphID;
+};
+
+struct cmap14
+{
+  ULONG  numVarSelectorRecords;
+  struct variationSelector *varSelector;
+};
+
+/* ULONG length */
+static struct cmap14 *
+read_cmap14 (sfnt *sfont, ULONG offset, ULONG len)
+{
+  struct cmap14 *map;
+  ULONG *defaultUVSOffset, *nonDefaultUVSOffset;
+  ULONG  i, j;
+  
+  if (len < 4) {
+    WARN("invalid format 14 TT cmap subtable");
+    return NULL;
+  }
+
+  map =  NEW(1, struct cmap14);
+  map->numVarSelectorRecords = sfnt_get_ulong(sfont);
+  map->varSelector = NEW(map->numVarSelectorRecords, struct variationSelector);
+  defaultUVSOffset    = NEW(map->numVarSelectorRecords, ULONG);
+  nonDefaultUVSOffset = NEW(map->numVarSelectorRecords, ULONG);
+  /* Read VariationSelector Record */
+  for (i = 0; i < map->numVarSelectorRecords; i++) {
+    map->varSelector[i].varSelector = sfnt_get_uint24(sfont);
+    defaultUVSOffset[i]    = sfnt_get_ulong(sfont);
+    nonDefaultUVSOffset[i] = sfnt_get_ulong(sfont);
+  }
+  for (i = 0; i < map->numVarSelectorRecords; i++) {
+    /* Read DefaultUVS Table */
+    if (defaultUVSOffset[i] > 0) {
+      sfnt_seek_set(sfont, offset + defaultUVSOffset[i]);
+      map->varSelector[i].numUnicodeValueRanges   = sfnt_get_ulong(sfont);
+      map->varSelector[i].rangesStartUnicodeValue = NEW(map->varSelector[i].numUnicodeValueRanges, ULONG);
+      map->varSelector[i].rangesAdditionalCount   = NEW(map->varSelector[i].numUnicodeValueRanges, BYTE);
+      for (j = 0; j < map->varSelector[i].numUnicodeValueRanges; j++) {
+        map->varSelector[i].rangesStartUnicodeValue[j] = sfnt_get_uint24(sfont);
+        map->varSelector[i].rangesAdditionalCount[j]   = sfnt_get_byte(sfont);
+      }
+    } else {
+      map->varSelector[i].numUnicodeValueRanges   = 0;
+      map->varSelector[i].rangesStartUnicodeValue = NULL;
+      map->varSelector[i].rangesAdditionalCount   = NULL;
+    }
+    /* Read NonDefaultUVS Table */
+    if (nonDefaultUVSOffset[i] > 0) {
+      sfnt_seek_set(sfont, offset + nonDefaultUVSOffset[i]);
+      map->varSelector[i].numUVSMappings          = sfnt_get_ulong(sfont);
+      map->varSelector[i].uvsMappingsUnicodeValue = NEW(map->varSelector[i].numUVSMappings, ULONG);
+      map->varSelector[i].uvsMappingsGlyphID      = NEW(map->varSelector[i].numUVSMappings, USHORT);
+      for (j = 0; j < map->varSelector[i].numUVSMappings; j++) {
+        map->varSelector[i].uvsMappingsUnicodeValue[j] = sfnt_get_uint24(sfont);
+        map->varSelector[i].uvsMappingsGlyphID[j]      = sfnt_get_ushort(sfont);
+      }
+    } else {
+      map->varSelector[i].numUVSMappings          = 0;
+      map->varSelector[i].uvsMappingsUnicodeValue = NULL;
+      map->varSelector[i].uvsMappingsGlyphID      = NULL;
+    }
+  }
+
+  RELEASE(defaultUVSOffset);
+  RELEASE(nonDefaultUVSOffset);
+  return map;
+}
+
+static void
+release_cmap14 (struct cmap14 *map)
+{
+  ULONG  i;
+  if (map) {
+    if (map->varSelector) {
+      for (i = 0; i < map->numVarSelectorRecords; i++) {
+        if (map->varSelector[i].rangesStartUnicodeValue)
+          RELEASE(map->varSelector[i].rangesStartUnicodeValue);
+        if (map->varSelector[i].rangesAdditionalCount)
+          RELEASE(map->varSelector[i].rangesAdditionalCount);
+        if (map->varSelector[i].uvsMappingsUnicodeValue)
+          RELEASE(map->varSelector[i].uvsMappingsUnicodeValue);
+        if (map->varSelector[i].uvsMappingsGlyphID)
+          RELEASE(map->varSelector[i].uvsMappingsGlyphID);
+      }
+      RELEASE(map->varSelector);
+    }
+    RELEASE(map);
+  }
 }
 
 /* read cmap */
@@ -489,7 +597,7 @@ tt_cmap_read (sfnt *sfont, USHORT platform, USHORT encoding)
   if (cmap->format <= 6) {
     length         = sfnt_get_ushort(sfont);
     cmap->language = sfnt_get_ushort(sfont); /* language (Mac) */
-  } else {
+  } else if (cmap->format != 14) {
     if (sfnt_get_ushort(sfont) != 0) { /* reverved - 0 */
       WARN("Unrecognized cmap subtable format.");
       tt_cmap_release(cmap);
@@ -498,6 +606,9 @@ tt_cmap_read (sfnt *sfont, USHORT platform, USHORT encoding)
       length         = sfnt_get_ulong(sfont);
       cmap->language = sfnt_get_ulong(sfont);
     }
+  } else {
+    length         = sfnt_get_ulong(sfont);
+    cmap->language = 0;
   }
   
   switch(cmap->format) {
@@ -516,6 +627,9 @@ tt_cmap_read (sfnt *sfont, USHORT platform, USHORT encoding)
   case 12:
     /* WARN("UCS-4 TrueType cmap table..."); */
     cmap->map = read_cmap12(sfont, length);
+    break;
+  case 14:
+    cmap->map = read_cmap14(sfont, offset, length);
     break;
   default:
     WARN("Unrecognized OpenType/TrueType cmap format.");
@@ -553,6 +667,9 @@ tt_cmap_release (tt_cmap *cmap)
         break;
       case 12:
         release_cmap12(cmap->map);
+        break;
+      case 14:
+        release_cmap14(cmap->map);
         break;
       default:
         WARN("Unrecognized OpenType/TrueType cmap format: %d", cmap->format);
@@ -600,6 +717,42 @@ tt_cmap_lookup (tt_cmap *cmap, ULONG cc)
   }
 
   return gid;
+}
+
+static USHORT
+lookup_cmap14 (struct cmap14 *map, tt_cmap* cmap_default, ULONG unicode, ULONG uvs)
+{
+  ULONG  i, j;
+
+  for (i = 0; i < map->numVarSelectorRecords; i++) {
+    if (map->varSelector[i].varSelector == uvs) {
+      for (j = 0; j < map->varSelector[i].numUnicodeValueRanges; j++) {
+        if (map->varSelector[i].rangesStartUnicodeValue[j] <= unicode &&
+            unicode <= map->varSelector[i].rangesStartUnicodeValue[j] + map->varSelector[i].rangesAdditionalCount[j])
+          return tt_cmap_lookup(cmap_default, unicode);
+      }
+      for (j = 0; j < map->varSelector[i].numUVSMappings; j++) {
+        if (map->varSelector[i].uvsMappingsUnicodeValue[j] == unicode)
+          return map->varSelector[i].uvsMappingsGlyphID[j];
+      }
+      return 0;
+    }
+  }
+
+  return 0;
+}
+
+USHORT
+tt_cmap_uvs_lookup(tt_cmap* cmap_uvs, tt_cmap* cmap_default, ULONG unicode, ULONG uvs)
+{
+  ASSERT(cmap_uvs);
+
+  if (cmap_uvs->format != 14) {
+    WARN("Unicode Variation Sequences in OpenType/TrueType cmap must be format 14.");
+    return 0;
+  }
+
+  return lookup_cmap14(cmap_uvs->map, cmap_default, unicode, uvs);
 }
 
 
@@ -705,6 +858,7 @@ create_GIDToCIDMap (uint16_t *GIDToCIDMap, uint16_t num_glyphs, cff_font *cffont
   return;
 }
 
+/* Soft-hyphen (U+00AD) to lower its priority... added here for convenience */
 static int is_PUA_or_presentation (unsigned int uni)
 {
   /* Some of CJK Radicals Supplement and Kangxi Radicals
@@ -714,7 +868,8 @@ static int is_PUA_or_presentation (unsigned int uni)
   return  ((uni >= 0x2E80 && uni <= 0x2EF3) || (uni >= 0x2F00 && uni <= 0x2FD5) ||
            (uni >= 0xE000 && uni <= 0xF8FF) || (uni >= 0xFB00 && uni <= 0xFB4F) ||
            (uni >= 0xF900 && uni <= 0xFAFF) || (uni >= 0x2F800 && uni <= 0x2FA1F) ||
-           (uni >= 0xF0000 && uni <= 0xFFFFD) || (uni >= 0x100000 && uni <= 0x10FFFD));
+           (uni >= 0xF0000 && uni <= 0xFFFFD) || (uni >= 0x100000 && uni <= 0x10FFFD) ||
+           (uni == 0x00AD));
 }
 
 static char *
@@ -937,6 +1092,10 @@ create_ToUnicode_cmap (tt_cmap    *ttcmap,
     if (sfont->type == SFNT_TYPE_POSTSCRIPT) {
       ULONG offset;
       offset = sfnt_find_table_pos(sfont, "CFF ");
+      /* "CFF " table must exist here. Just abort... */
+      if (offset == 0) {
+        ERROR("\"CFF \" table not found. Must be found before... Can't continue.");
+      }
       cffont = cff_open(sfont->stream, offset, 0);
       cff_read_charsets(cffont);   
     }
@@ -1053,6 +1212,7 @@ typedef struct {
 static cmap_plat_enc_rec cmap_plat_encs[] = {
     { 3, 10 },
     { 0, 3 },
+    { 0, 4 },
     { 0, 0 },
     { 3, 1 },
     { 0, 1 }
@@ -1060,7 +1220,7 @@ static cmap_plat_enc_rec cmap_plat_encs[] = {
 
 pdf_obj *
 otf_create_ToUnicode_stream (const char *font_name,
-                             int         ttc_index, /* 0 for non-TTC */
+                             uint32_t    ttc_index, /* 0 for non-TTC */
                              const char *basefont,
                              const char *used_chars)
 {
@@ -1141,10 +1301,13 @@ otf_create_ToUnicode_stream (const char *font_name,
    * case.
    */
   {
-    char *cmap_add_name;
+    char   *cmap_add_name;
+    size_t  len;
 
-    cmap_add_name = NEW(strlen(font_name)+strlen(",000-UCS32-Add")+1, char);
-    sprintf(cmap_add_name, "%s,%03d-UCS32-Add", font_name, ttc_index);
+    len = strlen(font_name)+strlen("-UCS32-Add")+32;
+    cmap_add_name = NEW(len, char);
+    snprintf(cmap_add_name, len, "%s:%d-UCS32-Add", font_name, ttc_index);
+    cmap_add_name[len-1] = '\0';
     cmap_add_id = CMap_cache_find(cmap_add_name);
     RELEASE(cmap_add_name);
     if (cmap_add_id < 0) {
@@ -1289,7 +1452,7 @@ load_cmap12 (struct cmap12 *map, uint16_t *GIDToCIDMap, USHORT num_glyphs,
 }
 
 int
-otf_load_Unicode_CMap (const char *map_name, int ttc_index, /* 0 for non-TTC font */
+otf_load_Unicode_CMap (const char *map_name, uint32_t ttc_index, /* 0 for non-TTC font */
                        const char *otl_tags, int wmode)
 {
   int         cmap_id     = -1;
@@ -1305,24 +1468,26 @@ otf_load_Unicode_CMap (const char *map_name, int ttc_index, /* 0 for non-TTC fon
   if (!map_name)
     return -1;
 
-  if (ttc_index > 999 || ttc_index < 0) {
-    return -1; /* Sorry for this... */
-  }
-
   /* First look for cache if it was already loaded */
-  cmap_name = NEW(strlen(map_name)+strlen("-UCS4-H")+5, char);
   if (otl_tags) {
-    cmap_name = NEW(strlen(map_name)+strlen(otl_tags)+strlen("-UCS4-H")+6, char);
+    size_t len;
+    len = strlen(map_name)+strlen("-UCS4-H")+strlen(otl_tags)+32;
+    cmap_name = NEW(len, char);
     if (wmode)
-      sprintf(cmap_name, "%s,%03d,%s-UCS4-V", map_name, ttc_index, otl_tags);
+      snprintf(cmap_name, len, "%s:%d:%s-UCS4-V", map_name, ttc_index, otl_tags);
     else
-      sprintf(cmap_name, "%s,%03d,%s-UCS4-H", map_name, ttc_index, otl_tags);
+      snprintf(cmap_name, len, "%s:%d:%s-UCS4-H", map_name, ttc_index, otl_tags);
+    cmap_name[len-1] = '\0';
   } else {
+    size_t len;
+    len = strlen(map_name)+strlen("-UCS4-H")+32;
+    cmap_name = NEW(len, char);
     if (wmode)
-      sprintf(cmap_name, "%s,%03d-UCS4-V", map_name, ttc_index);
+      snprintf(cmap_name, len, "%s:%d-UCS4-V", map_name, ttc_index);
     else {
-      sprintf(cmap_name, "%s,%03d-UCS4-H", map_name, ttc_index);
+      snprintf(cmap_name, len, "%s:%d-UCS4-H", map_name, ttc_index);
     }
+    cmap_name[len-1] = '\0';
   }
   cmap_id = CMap_cache_find(cmap_name);
   if (cmap_id >= 0) {
@@ -1410,7 +1575,16 @@ otf_load_Unicode_CMap (const char *map_name, int ttc_index, /* 0 for non-TTC fon
     cff_font             *cffont;
     card16                gid;
 
-    offset = sfnt_find_table_pos(sfont, "CFF ");    
+    offset = sfnt_find_table_pos(sfont, "CFF ");
+    /* Possibly "CFF2" table for variable font: not supported. */
+    if (offset == 0) {
+      WARN("PS OpenType but no \"CFF \" table.. Maybe variable font? (not supported)");
+      RELEASE(cmap_name);
+      RELEASE(GIDToCIDMap);
+      sfnt_close(sfont);
+      DPXFCLOSE(fp);
+      return -1;       
+    } 
     cffont = cff_open(sfont->stream, offset, 0);
     if (!cffont) {
       RELEASE(cmap_name);
@@ -1460,6 +1634,9 @@ otf_load_Unicode_CMap (const char *map_name, int ttc_index, /* 0 for non-TTC fon
     ttcmap = tt_cmap_read(sfont, 3, 1); /* Microsoft UCS2 */
     if (!ttcmap) {
       ttcmap = tt_cmap_read(sfont, 0, 3); /* Unicode 2.0 or later */
+      if (!ttcmap) {
+        ttcmap = tt_cmap_read(sfont, 0, 4);
+      }
     }
   }
 
@@ -1527,12 +1704,15 @@ otf_load_Unicode_CMap (const char *map_name, int ttc_index, /* 0 for non-TTC fon
     tt_cmap_release(ttcmap);
  
     if (otl_tags) {
-      CMap *tounicode = NULL;
-      char *tounicode_name;
-      int   tounicode_id;
+      CMap  *tounicode = NULL;
+      char  *tounicode_name;
+      int    tounicode_id;
+      size_t name_len;
 
-      tounicode_name = NEW(strlen(map_name)+strlen(",000-UCS32-Add")+1, char);
-      sprintf(tounicode_name, "%s,%03d-UCS32-Add", map_name, ttc_index);
+      name_len = strlen(map_name)+strlen("-UCS32-Add")+32;
+      tounicode_name = NEW(name_len, char);
+      snprintf(tounicode_name, name_len, "%s:%d-UCS32-Add", map_name, ttc_index);
+      tounicode_name[name_len-1] = '\0';
       tounicode_id = CMap_cache_find(tounicode_name);
       if (tounicode_id >= 0)
         tounicode = CMap_cache_get(tounicode_id);
@@ -1583,24 +1763,23 @@ otf_load_Unicode_CMap (const char *map_name, int ttc_index, /* 0 for non-TTC fon
 }
 
 int
-otf_try_load_GID_to_CID_map (const char *map_name, int ttc_index, int wmode)
+otf_try_load_GID_to_CID_map (const char *map_name, uint32_t ttc_index, int wmode)
 {
   int         cmap_id     = -1;
   sfnt       *sfont       = NULL;
   ULONG       offset      = 0;
   char       *cmap_name   = NULL;
   FILE       *fp          = NULL;
+  int         len;
 
   if (!map_name)
     return -1;
 
-  if (ttc_index > 999 || ttc_index < 0) {
-    return -1; /* Sorry for this... */
-  }
-
   /* Check if already loaded */
-  cmap_name = NEW(strlen(map_name)+strlen("-GID")+5, char);
-  sprintf(cmap_name, "%s:%3d-GID", map_name, ttc_index);
+  len = strlen(map_name) + 32;
+  cmap_name = NEW(len, char);
+  snprintf(cmap_name, len, "%s:%d-%1d-GID", map_name, ttc_index, wmode);
+  cmap_name[len-1] = '\0';
   cmap_id = CMap_cache_find(cmap_name);
   if (cmap_id >= 0) {
     RELEASE(cmap_name);
@@ -1682,7 +1861,14 @@ otf_try_load_GID_to_CID_map (const char *map_name, int ttc_index, int wmode)
     num_glyphs = (card16) maxp->numGlyphs;
     RELEASE(maxp);
 
-    offset = sfnt_find_table_pos(sfont, "CFF ");    
+    offset = sfnt_find_table_pos(sfont, "CFF ");
+    if (offset == 0) {
+      WARN("PS OpenType but no \"CFF \" table.. Maybe variable font? (not supported)");
+      RELEASE(cmap_name);
+      sfnt_close(sfont);
+      DPXFCLOSE(fp);
+      return -1;
+    }
     cffont = cff_open(sfont->stream, offset, 0);
     if (cffont && cffont->flag & FONTTYPE_CIDFONT) {
       CMap       *cmap;

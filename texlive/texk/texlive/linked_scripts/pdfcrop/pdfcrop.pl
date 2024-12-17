@@ -5,16 +5,12 @@ $^W=1; # turn warning on
 # pdfcrop.pl
 #
 # Copyright (C) 2002, 2004, 2005, 2008-2012 Heiko Oberdiek.
+#               2020-2023                   Oberdiek Package Support Group
 #
 # This program may be distributed and/or modified under the
-# conditions of the LaTeX Project Public License, either version 1.2
-# of this license or (at your option) any later version.
-# The latest version of this license is in
-#   http://www.latex-project.org/lppl.txt
-# and version 1.2 or later is part of all distributions of LaTeX
-# version 1999/12/01 or later.
+# conditions of the LaTeX Project Public License, version 1.3c or later.
 #
-# See file "README" for a list of files that belong to this project.
+# See file "README.md" for a list of files that belong to this project.
 #
 # This file "pdfcrop.pl" may be renamed to "pdfcrop"
 # for installation purposes.
@@ -22,10 +18,10 @@ $^W=1; # turn warning on
 my $prj         = 'pdfcrop';
 my $file        = "$prj.pl";
 my $program     = uc($&) if $file =~ /^\w+/;
-my $version     = "1.38";
-my $date        = "2012/11/02";
-my $author      = "Heiko Oberdiek";
-my $copyright   = "Copyright (c) 2002-2012 by $author.";
+my $version     = "1.42";
+my $date        = "2023/04/15";
+my $author      = "Heiko Oberdiek, Oberdiek Package Support Group";
+my $copyright   = "Copyright (c) 2002-2023 by $author.";
 #
 # Reqirements: Perl5, Ghostscript
 # History:
@@ -107,6 +103,15 @@ my $copyright   = "Copyright (c) 2002-2012 by $author.";
 #                   * Fix for broken v1.36.
 # 2012/11/02 v1.38: * Fix for unsufficient cleanup, if function `cleanup' is
 #                     prematurely called in `eval' for `symlink' checking.
+# 2020/05/24 v1.39: * adapted to pdfversion 2.0, corrected luatex support,
+#                      corrected a problem with xetex.
+# 2020/06/06 v1.40: * improved ghostscript detection on windows when a bash is used
+#                      added direct pdf version support to xetex.
+# 2023/04/13 v1.41: * allow gswin64c in restricted mode, fix typos in messages issues 14, 17
+#                     add -q option, issue 7;
+#                     don't print whole help msg for unknown options, issue 7.
+#                     do not create two pages with xetex, issue 3 
+# 2023/04/15 v1.42: * update help text issue 18
 
 ### program identification
 my $title = "$program $version, $date - $copyright\n";
@@ -120,6 +125,7 @@ delete @ENV{qw(IFS CDPATH ENV BASH_ENV)};
 # Windows detection (no SIGHUP)
 my $Win = 0;
 $Win = 1 if $^O =~ /mswin32/i;
+$Win = 1 if $^O =~ /windows/i;
 $Win = 1 if $^O =~ /cygwin/i;
 use Config;
 my $archname = $Config{'archname'};
@@ -164,6 +170,7 @@ sub find_ghostscript () {
     $system = "dos" if $^O =~ /dos/i;
     $system = "os2" if $^O =~ /os2/i;
     $system = "win" if $^O =~ /mswin32/i;
+    $system = "win" if $^O =~ /windows/i;
     $system = "cygwin" if $^O =~ /cygwin/i;
     $system = "miktex" if defined($ENV{"TEXSYSTEM"}) and
                           $ENV{"TEXSYSTEM"} =~ /miktex/i;
@@ -171,10 +178,10 @@ sub find_ghostscript () {
     print "* Arch name: $archname\n" if $::opt_debug;
     print "* System: $system\n" if $::opt_debug;
     my %candidates = (
-        'unix' => [qw|gs gsc|],
+        'unix' => [qw|gs gsc gswin64c gswin32c|],
         'dos' => [qw|gs386 gs|],
         'os2' => [qw|gsos2 gs|],
-        'win' => [qw|gswin32c gs|],
+        'win' => [qw|gswin32c gswin64c gs|],
         'cygwin' => [qw|gs gswin32c|],
         'miktex' => [qw|mgs gswin32c gs|]
     );
@@ -219,11 +226,11 @@ sub find_ghostscript () {
         $found = SearchRegistry();
     }
     if ($found) {
-        print "* Autodetected ghostscript command: $::opt_gscmd\n" if $::opt_debug;
+        print "* Autodetected Ghostscript command: $::opt_gscmd\n" if $::opt_debug;
     }
     else {
         $::opt_gscmd = $$candidates_ref[0];
-        print "* Default ghostscript command: $::opt_gscmd\n" if $::opt_debug;
+        print "* Default Ghostscript command: $::opt_gscmd\n" if $::opt_debug;
     }
 }
 
@@ -348,6 +355,7 @@ $::opt_version    = 0;
 $::opt_help       = 0;
 $::opt_debug      = 0;
 $::opt_verbose    = 0;
+$::opt_quiet      = 0;
 $::opt_pdftexcmd  = "pdftex";
 $::opt_xetexcmd   = "xetex";
 $::opt_luatexcmd  = "luatex";
@@ -362,6 +370,7 @@ $::opt_bbox_odd   = "";
 $::opt_bbox_even  = "";
 $::opt_initex     = 0;
 $::opt_pdfversion = "auto";
+$::opt_uncompress = 0;
 
 sub usage ($) {
     my $ret = shift;
@@ -373,8 +382,9 @@ Options:                                                       (defaults:)
   --help              print usage
   --version           print version number
   --(no)verbose       verbose printing                         ($bool[$::opt_verbose])
-  --(no)debug         debug informations                       ($bool[$::opt_debug])
-  --gscmd <name>      call of ghostscript                      ($::opt_gscmd)
+  --(no)quiet         silence normal output                    ($bool[$::opt_quiet])
+  --(no)debug         debug information                        ($bool[$::opt_debug])
+  --gscmd <name>      call of Ghostscript                      ($::opt_gscmd)
   --pdftex | --xetex | --luatex
                       use pdfTeX | use XeTeX | use LuaTeX      ($::opt_tex)
   --pdftexcmd <name>  call of pdfTeX                           ($::opt_pdftexcmd)
@@ -382,11 +392,11 @@ Options:                                                       (defaults:)
   --luatexcmd <name>  call of LuaTeX                           ($::opt_luatexcmd)
   --margins "<left> <top> <right> <bottom>"                    ($::opt_margins)
                       add extra margins, unit is bp. If only one number is
-                      given, then it is used for all margins, in the case
-                      of two numbers they are also used for right and bottom.
+                      given, then it is used for all margins; in the case
+                      of two numbers, they are also used for right and bottom.
   --(no)clip          clipping support, if margins are set     ($bool[$::opt_clip])
                       (not available for --xetex)
-  --(no)hires         using `%%HiResBoundingBox'               ($bool[$::opt_hires])
+  --(no)hires         use `%%HiResBoundingBox'                 ($bool[$::opt_hires])
                       instead of `%%BoundingBox'
   --(no)ini           use iniTeX variant of the TeX compiler   ($bool[$::opt_initex])
 Expert options:
@@ -394,20 +404,21 @@ Expert options:
   --papersize <foo>   parameter for gs's -sPAPERSIZE=<foo>,
                       use only with older gs versions <7.32    ($::opt_papersize)
   --resolution <xres>x<yres>                                   ($::opt_resolution)
-  --resolution <res>  pass argument to ghostscript's option -r
+  --resolution <res>  pass argument to Ghostscript's option -r
                       Example: --resolution 72
   --bbox "<left> <bottom> <right> <top>"                       ($::opt_bbox)
-                      override bounding box found by ghostscript
+                      override bounding box found by Ghostscript
                       with origin at the lower left corner
   --bbox-odd          Same as --bbox, but for odd pages only   ($::opt_bbox_odd)
   --bbox-even         Same as --bbox, but for even pages only  ($::opt_bbox_even)
-  --pdfversion <1.x> | auto | none
-                      Set the PDF version to 1.x, 1 < x < 8.
+  --pdfversion <x.y> | auto | none
+                      Set the PDF version to x.y, x= 1 or 2, y= 0-9.
                       If `auto' is given as value, then the
                       PDF version is taken from the header
                       of the input PDF file.
                       An empty value or `none' uses the
                       default of the TeX engine.               ($::opt_pdfversion)
+  --uncompress        create uncompressed pdf, for debugging   ($bool[$::opt_uncompress])                     
 
 Input file: If the name is `-', then the standard input is used and
   the output file name must be explicitly given.
@@ -436,6 +447,7 @@ GetOptions(
   "version!",
   "debug!",
   "verbose!",
+  "quiet!",
   "gscmd=s",
   "pdftexcmd=s",
   "xetexcmd=s",
@@ -454,7 +466,9 @@ GetOptions(
   "bbox-even=s" => \$::opt_bbox_even,
   "restricted" => sub { $restricted = 1; },
   "pdfversion=s" => \$::opt_pdfversion,
-) or usage(1);
+  "uncompress!",
+) or die "Try $0 --help for more information\n";
+
 !$::opt_help or usage(0);
 
 if ($::opt_version) {
@@ -466,15 +480,17 @@ $::opt_verbose = 1 if $::opt_debug;
 
 @ARGV >= 1 or usage(1);
 
-print $title;
+print $title if ! $::opt_quiet;
 
 print "* Restricted mode: ", ($restricted ? "enabled" : "disabled"), "\n"
         if $::opt_debug;
 
-$::opt_pdfversion =~ /^(|none|auto|1\.([2-7]))$/
+$::opt_pdfversion =~ /^(|none|auto|(([1-2])\.(\d)))$/
         or die "!!! Error: Invalid value `$::opt_pdfversion' for option `--pdfversion'!\n";
 print "* Option `pdfversion': $::opt_pdfversion\n" if $::opt_debug;
 $::opt_pdfversion = $2 if $2;
+$::opt_pdfmajorversion = $3 if $2;
+$::opt_pdfminorversion = $4 if $2;
 $::opt_pdfversion = '' if $::opt_pdfversion eq 'none';
 
 find_ghostscript();
@@ -484,7 +500,7 @@ if ($::opt_bbox) {
     $::opt_bbox =~ s/\s+$//;
     $::opt_bbox =~ s/\s+/ /;
     if ($::opt_bbox =~ /^-?\d*\.?\d+ -?\d*\.?\d+ -?\d*\.?\d+ -?\d*\.?\d+$/) {
-        print "* Explicite Bounding Box: $::opt_bbox\n" if $::opt_debug;
+        print "* Explicit Bounding Box: $::opt_bbox\n" if $::opt_debug;
     }
     else {
         die "$Error Parse error (option --bbox \"$::opt_bbox\")!\n";
@@ -495,7 +511,7 @@ if ($::opt_bbox_odd) {
     $::opt_bbox_odd =~ s/\s+$//;
     $::opt_bbox_odd =~ s/\s+/ /;
     if ($::opt_bbox_odd =~ /^-?\d*\.?\d+ -?\d*\.?\d+ -?\d*\.?\d+ -?\d*\.?\d+$/) {
-        print "* Explicite Bounding Box for odd pages: $::opt_bbox_odd\n"
+        print "* Explicit Bounding Box for odd pages: $::opt_bbox_odd\n"
                 if $::opt_debug;
     }
     else {
@@ -507,7 +523,7 @@ if ($::opt_bbox_even) {
     $::opt_bbox_even =~ s/\s+$//;
     $::opt_bbox_even =~ s/\s+/ /;
     if ($::opt_bbox_even =~ /^-?\d*\.?\d+ -?\d*\.?\d+ -?\d*\.?\d+ -?\d*\.?\d+$/) {
-        print "* Explicite Bounding Box for even pages: $::opt_bbox_even\n"
+        print "* Explicit Bounding Box for even pages: $::opt_bbox_even\n"
                 if $::opt_debug;
     }
     else {
@@ -575,14 +591,14 @@ if ($::opt_papersize ne '') {
             or die "$Error Invalid papersize ($::opt_papersize)!\n";
     $papersizes{$::opt_papersize}
             or die "$Error Unknown papersize ($::opt_papersize),"
-                   . " see ghostscript's documentation for option `-r'!\n";
+                   . " see Ghostscript's documentation for option `-r'!\n";
 }
 
 ### resolution validation (security)
 if ($::opt_resolution ne '') {
     $::opt_resolution =~ /^\d+(x\d+)?$/
             or die "$Error Invalid resolution ($::opt_resolution),"
-                   . " see ghostscript's documentation!\n";
+                   . " see Ghostscript's documentation!\n";
 }
 
 ### command name validation (security)
@@ -625,7 +641,7 @@ if ($restricted) {
         die "$Error LuaTeX program name must not be changed in restricted mode!\n";
     }
     if ($::opt_gscmd) {
-        $::opt_gscmd =~ /^(gs|mgs|gswin32c|gs386|gsos2)$/
+        $::opt_gscmd =~ /^(gs|mgs|gswin32c|gs386|gsos2|gswin64c)$/
         or $::opt_gscmd =~ /^gs[\-_]?(\d|\d[\.-_]?\d\d)c?$/
         or die "$Error: Invalid Ghostscript program name in restricted mode!\n";
     }
@@ -721,16 +737,19 @@ if ($::opt_pdfversion eq 'auto') {
             or die sprintf "!!! Error: Cannot read the header of `%s' failed (%s)!\n",
                            $inputfilesafe, exterr;
     close(IN);
-    if ($buf =~ /%PDF-1.([0-7])\s/) {
+    if ($buf =~ /%PDF-((\d).(\d))\s/) {
         $::opt_pdfversion = $1;
-        print "* PDF header: %PDF-1.$::opt_pdfversion\n" if $::opt_verbose;
-        $::opt_pdfversion = 2 if $::opt_pdfversion < 2;
+        $::opt_pdfmajorversion = $2;
+        $::opt_pdfminorversion = $3;
+        print "* PDF header: %PDF-$::opt_pdfversion\n" if $::opt_verbose;
+        $::opt_pdfminorversion = 2 if ($::opt_pdfmajorversion < 2 && $::opt_pdfminorversion < 2);
+        $::opt_pdfversion = $::opt_pdfmajorversion . '.' . $::opt_pdfminorversion;
     }
     else {
         die "!!! Error: Cannot find PDF header of `$inputfilesafe'!\n";
     }
 }
-print '* Using PDF minor version: ',
+print '* Using PDF version: ',
       ($::opt_pdfversion ? $::opt_pdfversion : "engine's default"),
       "\n" if $::opt_debug;
 
@@ -819,75 +838,37 @@ if ($::opt_tex eq 'luatex') {
 \expandafter\ifx\csname directlua\endcsname\relax
   \errmessage{LuaTeX not found!}%
 \else
-  \begingroup
-    \newlinechar=10 %
-    \endlinechar=\newlinechar %
-    \ifnum0%
-        \directlua{%
-          if tex.enableprimitives then
-            tex.enableprimitives('TEST', {
-              'luatexversion',
-              'pdfoutput',
-              'pdfcompresslevel',
-              'pdfhorigin',
-              'pdfvorigin',
-              'pdfpagewidth',
-              'pdfpageheight',
-              'pdfmapfile',
-              'pdfximage',
-              'pdflastximage',
-              'pdfrefximage',
-              'pdfminorversion',
-              'pdfobjcompresslevel',
-            })
-            tex.print('1')
-          end
-        }%
-        \ifx\TESTluatexversion\UnDeFiNeD\else 1\fi %
-        =11 %
-      \global\let\luatexversion\luatexversion %
-      \global\let\pdfoutput\TESTpdfoutput %
-      \global\let\pdfcompresslevel\TESTpdfcompresslevel %
-      \global\let\pdfhorigin\TESTpdfhorigin %
-      \global\let\pdfvorigin\TESTpdfvorigin %
-      \global\let\pdfpagewidth\TESTpdfpagewidth %
-      \global\let\pdfpageheight\TESTpdfpageheight %
-      \global\let\pdfmapfile\TESTpdfmapfile %
-      \global\let\pdfximage\TESTpdfximage %
-      \global\let\pdflastximage\TESTpdflastximage %
-      \global\let\pdfrefximage\TESTpdfrefximage %
-      \global\let\pdfminorversion\TESTpdfminorversion %
-      \global\let\pdfobjcompresslevel\TESTpdfobjcompresslevel %
-    \else %
-      \errmessage{%
-        Missing \string\luatexversion %
-      }%
-    \fi %
-  \endgroup %
 \fi
 END_TMP
 }
-if ($::opt_tex eq 'pdftex' or $::opt_tex eq 'luatex') {
+
+my $uncompress = $::opt_uncompress ? '0 ' : '9 ';
+if ($::opt_tex eq 'pdftex') {
+ print TMP "\\pdfcompresslevel=$uncompress "; 
     print TMP <<'END_TMP_HEAD';
 \pdfoutput=1 %
-\pdfcompresslevel=9 %
 \csname pdfmapfile\endcsname{}
-\def\setpdfversion#1{%
+\def\setpdfversion#1#2{%
   \IfUndefined{pdfobjcompresslevel}{%
   }{%
-    \ifnum#1<5 %
-      \pdfobjcompresslevel=0 %
-    \else
-      \pdfobjcompresslevel=2 %
-    \fi
+    \ifnum#1=1 %
+     \ifnum#2<5
+       \pdfobjcompresslevel=0 %
+     \else
+       \pdfobjcompresslevel=2 %
+     \fi
+   \fi 
   }%
   \IfUndefined{pdfminorversion}{%
     \IfUndefined{pdfoptionpdfminorversion}{%
     }{%
-      \pdfoptionpdfminorversion=#1\relax
+      \pdfoptionpdfminorversion=#2\relax
     }%
   }{%
-    \pdfminorversion=#1\relax
+    \pdfminorversion=#2\relax
+    \IfUndefined{pdfmajorversion}{%
+      \ifnum#2=0 \pdfminorversion=5\fi}
+      {\pdfmajorversion=#1\relax}%
   }%
 }
 \def\page #1 [#2 #3 #4 #5]{%
@@ -943,13 +924,89 @@ if ($::opt_tex eq 'pdftex' or $::opt_tex eq 'luatex') {
   }%
 }
 END_TMP_HEAD
-    print TMP "\\setpdfversion{$::opt_pdfversion}\n" if $::opt_pdfversion;
+    print TMP "\\setpdfversion{$::opt_pdfmajorversion}{$::opt_pdfminorversion}\n" if $::opt_pdfversion;
 }
-else { # XeTeX
+elsif  ($::opt_tex eq 'luatex')
+  {
+    print TMP "\\pdfvariable compresslevel=$uncompress "; 
     print TMP <<'END_TMP_HEAD';
+\outputmode=1 %
+\pdfextension mapfile {}
+\def\setpdfversion#1#2{%
+    \ifnum#1=1 %
+     \ifnum#2<5
+       \pdfvariable objcompresslevel=0 %
+     \else
+       \pdfvariable objcompresslevel=2 %
+     \fi
+    \fi  
+    \pdfvariable minorversion= #2
+    \pdfvariable majorversion= #1 
+}
+\def\page #1 [#2 #3 #4 #5]{%
+  \count0=#1\relax
+  \setbox0=\hbox{%
+    \saveimageresource page #1 mediabox{\pdffile}%
+    \useimageresource\lastsavedimageresourceindex
+  }%
+  \pdfvariable horigin=-#2bp\relax
+  \pdfvariable vorigin=#3bp\relax
+  \pagewidth=#4bp\relax
+  \advance\pagewidth by -#2bp\relax
+  \pageheight=#5bp\relax
+  \advance\pageheight by -#3bp\relax
+  \ht0=\pageheight
+  \shipout\box0\relax
+}
+\def\pageclip #1 [#2 #3 #4 #5][#6 #7 #8 #9]{%
+  \count0=#1\relax
+  \dimen0=#4bp\relax \advance\dimen0 by -#2bp\relax
+  \edef\imagewidth{\the\dimen0}%
+  \dimen0=#5bp\relax \advance\dimen0 by -#3bp\relax
+  \edef\imageheight{\the\dimen0}%
+  \saveimageresource page #1 mediabox{\pdffile}%
+  \setbox0=\hbox{%
+    \kern -#2bp\relax
+    \lower #3bp\hbox{\useimageresource\lastsavedimageresourceindex}%
+  }%
+  \wd0=\imagewidth\relax
+  \ht0=\imageheight\relax
+  \dp0=0pt\relax
+  \pdfvariable horigin=#6pt\relax
+  \pdfvariable vorigin=#7bp\relax
+  \pagewidth=\imagewidth
+  \advance\pagewidth by #6bp\relax
+  \advance\pagewidth by #8bp\relax
+  \pageheight=\imageheight\relax
+  \advance\pageheight by #7bp\relax
+  \advance\pageheight by #9bp\relax
+  \saveboxresource0\relax
+  \shipout\hbox{\useboxresource\lastsavedboxresourceindex}%
+}%
+\def\pageinclude#1{%
+  \pdfvariable horigin=0pt\relax
+  \pdfvariable vorigin=0pt\relax
+  \saveimageresource page #1 mediabox{\pdffile}%
+  \setbox0=\hbox{\useimageresource\lastsavedimageresourceindex}%
+  \pagewidth=\wd0\relax
+  \pageheight=\ht0\relax
+  \advance\pageheight by \dp0\relax
+  \shipout\hbox{%
+    \raise\dp0\box0\relax
+  }%
+}
+END_TMP_HEAD
+    print TMP "\\setpdfversion{$::opt_pdfmajorversion}{$::opt_pdfminorversion}\n" if $::opt_pdfversion;    
+}  
+else { # XeTeX
+    print TMP <<'END_TMP_HEAD_A';
 \expandafter\ifx\csname XeTeXpdffile\endcsname\relax
   \errmessage{XeTeX not found or too old!}%
 \fi
+\def\setpdfversion#1#2{%
+  \special{pdf:majorversion #1}%
+  \special{pdf:minorversion #2}}
+  
 \def\page #1 [#2 #3 #4 #5]{%
   \count0=#1\relax
   \setbox0=\hbox{%
@@ -960,6 +1017,9 @@ else { # XeTeX
   \pdfpageheight=#5bp\relax
   \advance\pdfpageheight by -#3bp\relax
   \shipout\hbox{%
+END_TMP_HEAD_A
+print TMP "\\setpdfversion{$::opt_pdfmajorversion}{$::opt_pdfminorversion}%\n" if $::opt_pdfversion; 
+print TMP <<'END_TMP_HEAD_B';
     \kern-1in%
     \kern-#2bp%
     \vbox{%
@@ -989,10 +1049,10 @@ else { # XeTeX
     }%
   }%
 }
-END_TMP_HEAD
+END_TMP_HEAD_B
 }
 
-print "* Running ghostscript for BoundingBox calculation ...\n"
+print "* Running Ghostscript for BoundingBox calculation ...\n"
     if $::opt_verbose;
 print "* Ghostscript call: $::opt_gscmd @gsargs\n" if $::opt_debug;
 
@@ -1040,7 +1100,7 @@ $gs_pipe .= " 1>$null" unless $::opt_verbose;
 $gs_pipe .= " |";
 
 open(GS, $gs_pipe)
-        or die sprintf "$Error Cannot call ghostscript `%s' (%s)!\n",
+        or die sprintf "$Error Cannot call Ghostscript: `%s' (%s)!\n",
                        $::opt_gscmd, exterr;
 my $bb = ($::opt_hires) ? "%%HiResBoundingBox" : "%%BoundingBox";
 my $previous_line = 'Previous line';
@@ -1183,15 +1243,15 @@ if ($::opt_pdfversion) {
     read PDF, $header, 9
             or die sprintf "!!! Error: Cannot read header of `%s' (%s)!\n",
                            "$tmp.pdf", exterr;
-    $header =~ /^%PDF-1\.(\d)\s$/ or die "!!! Error: Cannot find header of `$tmp.pdf'!\n";
+    $header =~ /^%PDF-(\d\.\d)\s$/ or die "!!! Error: Cannot find header of `$tmp.pdf'!\n";
     if ($1 ne $::opt_pdfversion) {
-        seek PDF, 7, 0
+        seek PDF, 5, 0
                 or die sprintf "!!! Error: Cannot seek in `%s' (%s)!\n",
                                "$tmp.pdf", exterr;
         print PDF $::opt_pdfversion
                 or die sprintf "!!! Error: Cannot write in `%s' (%s)!\n",
                                "$tmp.pdf", exterr;
-        print "* PDF version correction in output file: 1.$::opt_pdfversion\n"
+        print "* PDF version correction in output file: $::opt_pdfversion\n"
                 if $::opt_debug;
     }
     close(PDF);
@@ -1205,7 +1265,7 @@ if (!rename("$tmp.pdf", $outputfile)) {
 }
 
 print "==> $page page", (($page == 1) ? "" : "s"),
-      " written on `$outputfile'.\n";
+      " written on `$outputfile'.\n" if ! $::opt_quiet;
 
 $exit_code = 0;
 cleanup();

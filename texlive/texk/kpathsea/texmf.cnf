@@ -4,8 +4,8 @@
 % If you modify this original file, YOUR CHANGES WILL BE LOST when it is
 % updated.  Instead, put your changes -- and only your changes, not an
 % entire copy! -- in ../../texmf.cnf.  That is, if this file is
-% installed in /some/path/to/texlive/2020/texmf-dist/web2c/texmf.cnf,
-% add your custom settings to /some/path/to/texlive/2020/texmf.cnf.
+% installed in /some/path/to/texlive/2024/texmf-dist/web2c/texmf.cnf,
+% put your custom settings in /some/path/to/texlive/2024/texmf.cnf.
 % (Below, we use YYYY in place of the specific year.)
 % 
 % What follows is a super-summary of what this .cnf file can
@@ -61,6 +61,9 @@
 % Sorry for the off-by-one-generation names.
 TEXMFROOT = $SELFAUTOPARENT
 
+% The various texmf trees used by TeX Live, follow.
+% They must must all have the TDS directory structure (https://tug.org/tds).
+
 % The main tree of distributed packages and programs:
 TEXMFDIST = $TEXMFROOT/texmf-dist
 
@@ -84,17 +87,17 @@ TEXMFSYSCONFIG = $TEXMFROOT/texmf-config
 TEXMFHOME = ~/texmf
 
 % TEXMFVAR, where texconfig/updmap/fmtutil store cached runtime data.
-TEXMFVAR = ~/.texlive2020/texmf-var
+TEXMFVAR = ~/.texlive2024/texmf-var
 
 % TEXMFCONFIG, where texconfig/updmap/fmtutil store configuration data.
-TEXMFCONFIG = ~/.texlive2020/texmf-config
+TEXMFCONFIG = ~/.texlive2024/texmf-config
 
 % This is the value manipulated by tlmgr's auxtrees subcommand in the
 % root texmf.cnf. Kpathsea warns about a literally empty string for a
 % value, hence the empty braces.
 TEXMFAUXTREES = {}
 
-% List all the texmf trees. For an explanation of what they are, see the
+% List of all the texmf trees. For an explanation of what they are, see the
 % TeX Live manual.
 %
 % For texconfig to work properly, TEXMFCONFIG and TEXMFVAR should be named
@@ -105,8 +108,8 @@ TEXMFAUXTREES = {}
 % generally a source of confusion to have different versions of a
 % package installed, whatever the trees, so try to avoid it.
 % 
-% The odd-looking $TEXMFAUXTREES$TEXMF... construct is so that if no auxtree is
-% ever defined (the 99% common case), no extra elements will be added to
+% The odd-looking $TEXMFAUXTREES$TEXMF... construct is so that if no auxtree
+% is defined (99% common case), no extra elements will be added to
 % the search paths. tlmgr takes care to end any value with a trailing comma.
 TEXMF = {$TEXMFAUXTREES$TEXMFCONFIG,$TEXMFVAR,$TEXMFHOME,!!$TEXMFLOCAL,!!$TEXMFSYSCONFIG,!!$TEXMFSYSVAR,!!$TEXMFDIST}
 
@@ -114,7 +117,7 @@ TEXMF = {$TEXMFAUXTREES$TEXMFCONFIG,$TEXMFVAR,$TEXMFHOME,!!$TEXMFLOCAL,!!$TEXMFS
 % this is all and only the !! elements of TEXMF, so that mktexlsr does not
 % create ls-R files in the non-!! elements -- because if an ls-R is
 % present, it will be used, and the disk will not (usually) be searched,
-% regardless of !!.  Although in principle a directory listed here need
+% regardless of !!.  Although in theory a directory listed here need
 % not contain an ls-R file, in practice they all should.
 TEXMFDBS = {!!$TEXMFLOCAL,!!$TEXMFSYSCONFIG,!!$TEXMFSYSVAR,!!$TEXMFDIST}
 
@@ -157,9 +160,11 @@ WEB2C = $TEXMF/web2c
 % This variable exists only to be redefined; it is used in nearly all
 % search paths. If a document has source files not only in the current
 % directory but also in subdirectories, it is convenient to set
-% TEXMFDOTDIR=.// so that everything will be searched automatically.
+% TEXMFDOTDIR=.// so that everything will be searched automatically,
+% without the need to set up the TDS directory structure (since this is
+% a "directory" and not a "tree").
 % On the other hand, if you never want the current directory to be
-% searched at all, setting TEXMFDOTDIR=/nonesuch should come close.
+% searched at all, setting TEXMFDOTDIR=/nonesuch comes close.
 %
 TEXMFDOTDIR = .
 
@@ -196,15 +201,15 @@ TEXINPUTS.latex-dev     = $TEXMFDOTDIR;$TEXMF/tex/{latex-dev,latex,generic,}//
 TEXINPUTS.latex209      = $TEXMFDOTDIR;$TEXMF/tex/{latex209,generic,latex,}//
 TEXINPUTS.olatex        = $TEXMFDOTDIR;$TEXMF/tex/{latex,generic,}//
 
+% e-TeX.
+TEXINPUTS.elatex        = $TEXMFDOTDIR;$TEXMF/tex/{latex,generic,}//
+TEXINPUTS.etex          = $TEXMFDOTDIR;$TEXMF/tex/{plain,generic,latex,}//
+
 % MLTeX.
 TEXINPUTS.frlatex       = $TEXMFDOTDIR;$TEXMF/tex/{french,latex,generic,}//
 TEXINPUTS.frtex         = $TEXMFDOTDIR;$TEXMF/tex/{french,plain,generic,latex,}//
 TEXINPUTS.mllatex       = $TEXMFDOTDIR;$TEXMF/tex/{latex,generic,}//
 TEXINPUTS.mltex         = $TEXMFDOTDIR;$TEXMF/tex/{plain,generic,latex,}//
-
-% e-TeX.
-TEXINPUTS.elatex        = $TEXMFDOTDIR;$TEXMF/tex/{latex,generic,}//
-TEXINPUTS.etex          = $TEXMFDOTDIR;$TEXMF/tex/{plain,generic,latex,}//
 
 % pdfTeX.
 TEXINPUTS.pdfcslatex    = $TEXMFDOTDIR;$TEXMF/tex/{cslatex,csplain,latex,generic,}//
@@ -268,25 +273,25 @@ TEX.pmpost = eptex
 TEXINPUTS.ptex-ng   = $TEXMFDOTDIR;$TEXMF/tex/{uptex,ptex,plain,generic,latex,}//
 TEXINPUTS.platex-ng = $TEXMFDOTDIR;$TEXMF/tex/{uplatex,platex,latex,generic,}//
 
-% (e)up(La)TeX, and for upmpost
+% (e)up(La)TeX, and for upmpost.
 TEXINPUTS.uplatex     = $TEXMFDOTDIR;$TEXMF/tex/{uplatex,platex,latex,generic,}//
 TEXINPUTS.uplatex-dev = $TEXMFDOTDIR;$TEXMF/tex/{latex-dev,uplatex,platex,latex,generic,}//
 TEXINPUTS.uptex   = $TEXMFDOTDIR;$TEXMF/tex/{uptex,ptex,plain,generic,latex,}//
 TEXINPUTS.euptex  = $TEXMFDOTDIR;$TEXMF/tex/{uptex,ptex,plain,generic,latex,}//
 TEX.upmpost = euptex
 
-% pBibTeX bibliographies and style files.
-BIBINPUTS.pbibtex       = $TEXMFDOTDIR;$TEXMF/{pbibtex,bibtex}/bib//
-BSTINPUTS.pbibtex       = $TEXMFDOTDIR;$TEXMF/{pbibtex,bibtex}/bst//
-
-% upBibTeX bibliographies and style files.
-BIBINPUTS.upbibtex      = $TEXMFDOTDIR;$TEXMF/{upbibtex,pbibtex,bibtex}/bib//
-BSTINPUTS.upbibtex      = $TEXMFDOTDIR;$TEXMF/{upbibtex,pbibtex,bibtex}/bst//
-
 % ConTeXt.
 TEXINPUTS.context       = $TEXMFDOTDIR;$TEXMF/tex/{context,plain,generic,}//
 
-% jadetex.
+% OpTeX.
+TEXINPUTS.optex         = $TEXMFDOTDIR;$TEXMF/tex/{optex,plain,generic,}//
+
+% HiTeX.
+TEXINPUTS.hilatex       = $TEXMFDOTDIR;$TEXMF/tex/{hilatex,latex,hitex,generic,}//
+TEXINPUTS.hilatex-dev   = $TEXMFDOTDIR;$TEXMF/tex/{latex-dev,hilatex,latex,hitex,generic,}//
+TEXINPUTS.hitex         = $TEXMFDOTDIR;$TEXMF/tex/{hitex,plain,generic,latex,}//
+
+% JadeTeX.
 TEXINPUTS.jadetex       = $TEXMFDOTDIR;$TEXMF/tex/{jadetex,latex,generic,latex,}//
 TEXINPUTS.pdfjadetex    = $TEXMFDOTDIR;$TEXMF/tex/{jadetex,latex,generic,latex,}//
 
@@ -302,9 +307,6 @@ TEXINPUTS.frpdftex      = $TEXMFDOTDIR;$TEXMF/tex/{french,plain,generic,latex,}/
 
 % Earlier entries override later ones, so put this generic one last.
 TEXINPUTS               = $TEXMFDOTDIR;$TEXMF/tex/{$progname,generic,latex,}//
-
-% ttf2tfm.
-TTF2TFMINPUTS =                 $TEXMFDOTDIR;$TEXMF/ttf2pk//
 
 % Metafont, MetaPost inputs.
 MFINPUTS = $TEXMFDOTDIR;$TEXMF/metafont//;{$TEXMF/fonts,$VARTEXFONTS}/source//
@@ -366,6 +368,18 @@ BSTINPUTS = $TEXMFDOTDIR;$TEXMF/bibtex/{bst,csf}//
 % MlBibTeX.
 MLBIBINPUTS = $TEXMFDOTDIR;$TEXMF/bibtex/bib/{mlbib,}//
 MLBSTINPUTS = $TEXMFDOTDIR;$TEXMF/bibtex/{mlbst,bst}//
+
+% pBibTeX bibliographies and style files.
+BIBINPUTS.pbibtex       = $TEXMFDOTDIR;$TEXMF/{pbibtex,bibtex}/bib//
+BSTINPUTS.pbibtex       = $TEXMFDOTDIR;$TEXMF/{pbibtex,bibtex}/bst//
+
+% upBibTeX bibliographies and style files.
+BIBINPUTS.upbibtex      = $TEXMFDOTDIR;$TEXMF/{upbibtex,pbibtex,bibtex}/bib//
+BSTINPUTS.upbibtex      = $TEXMFDOTDIR;$TEXMF/{upbibtex,pbibtex,bibtex}/bst//
+
+% BibTeXu bibliographies and style files.
+BIBINPUTS.bibtexu       = $TEXMFDOTDIR;$TEXMF/{bibtexu,upbibtex,pbibtex,bibtex}/bib//
+BSTINPUTS.bibtexu       = $TEXMFDOTDIR;$TEXMF/{bibtexu,upbibtex,pbibtex,bibtex}/bst//
 
 % .ris and .bltxml bibliography formats.
 RISINPUTS = $TEXMFDOTDIR;$TEXMF/biber/ris//
@@ -441,12 +455,12 @@ MIMELIBDIR = $TEXMFROOT/etc
 MAILCAPLIBDIR = $TEXMFROOT/etc
 
 % Default settings for the fontconfig library as used by the Windows
-% versions of xetex/xdvipdfmx.  Not used by xetex on Unixish systems.
-% ConTeXT MkIV (all platforms) also use these values.
+% versions of xetex/xdvipdfmx.  Not used by xetex itself on Unixish systems,
+% but the postaction for xetex uses all of these on all systems.
 % 
 FONTCONFIG_FILE = fonts.conf
-FONTCONFIG_PATH = $TEXMFSYSVAR/fonts/conf
-FC_CACHEDIR = $TEXMFSYSVAR/fonts/cache
+XE_FONTCONFIG_PATH = $TEXMFSYSVAR/fonts/conf
+XE_FC_CACHEDIR = $TEXMFSYSVAR/fonts/cache
 
 % TeX documentation and source files, for use with texdoc and kpsewhich.
 TEXDOCS = $TEXMF/doc//
@@ -481,6 +495,9 @@ TEX4HTINPUTS = $TEXMFDOTDIR;$TEXMF/tex4ht/base//;$TEXMF/tex4ht/ht-fonts/{$TEX4HT
 % TeXworks editor configuration and settings
 TW_LIBPATH = $TEXMFCONFIG/texworks
 TW_INIPATH = $TW_LIBPATH
+
+% ttf2tfm.
+TTF2TFMINPUTS = $TEXMFDOTDIR;$TEXMF/ttf2pk//
 
 % For security, do not look in . for dvipdfmx.cfg, since the D option
 % would allow command execution.
@@ -635,12 +652,16 @@ bibtex,bibtex8,\
 extractbb,\
 gregorio,\
 kpsewhich,\
+l3sys-query,\
+latexminted,\
 makeindex,\
+memoize-extract.pl,\
+memoize-extract.py,\
 repstopdf,\
 r-mpost,\
 texosquery-jre8,\
 
-% we'd like to allow:
+% other programs considered:
 % dvips - but external commands can be executed, need at least -R1.
 % epspdf, ps2pdf, pstopdf - need to respect openout_any,
 %   and gs -dSAFER must be used and check for shell injection with filenames.
@@ -671,8 +692,20 @@ TEXMF_RESTRICTED_SCRIPTS = \
 openin_any = a
 openout_any = p
 
-% Write .log/.dvi/.aux/etc. files here, if the current directory is unwritable.
+% Write .log/.dvi/.aux/etc. files here, if they can't be written in the
+% current directory.
+% 
+% Best to use this only when a particular job requires it, not set
+% globally in a configuration file or the environment. We recommend
+% using it transiently for particular jobs, not making a permanent setting.
 %TEXMFOUTPUT = /tmp
+
+% As of TeX Live 2024, a related environment variable is
+% TEXMF_OUTPUT_DIRECTORY. It overrides the current directory for all
+% output files in TeX and the other engines. It cannot be set in a
+% configuration file. And it's even more important to use it only
+% temporarily, when required, to avoid massive confusion about where the
+% output files are ending up.
 
 % If a dynamic file creation fails, log the command to this file, in
 % either the current directory or TEXMFOUTPUT.  Set to the
@@ -706,21 +739,21 @@ log_openout.initex = f
 file_line_error_style = f
 
 % Enable the mktex... scripts by default?  These must be set to 0 or 1.
-% Particular programs can and do override these settings, for example
-% dvips's -M option.  Your first chance to specify whether the scripts
-% are invoked by default is at configure time.
+% The values shown here are the compile-time defaults for original TeX Live;
+% they can be overridden at compile time with configure options,
+% or at runtime with environment variables or program options.
 %
 % These values are ignored if the script names are changed; e.g., if you
 % set DVIPSMAKEPK to `foo', what counts is the value of the environment
 % variable/config value `FOO', not the `MKTEXPK' value.
 %
 %MKTEXTEX = 0
-%MKTEXPK = 0
-%MKTEXMF = 0
-%MKTEXTFM = 0
-%MKTEXFMT = 0
-%MKOCP = 0
-%MKOFM = 0
+%MKTEXPK = 1
+%MKTEXMF = 1
+%MKTEXTFM = 1
+%MKTEXFMT = 1
+%MKOCP = 1
+%MKOFM = 1
 
 % Used by makempx to run TeX.  We use "etex" because MetaPost is
 % expecting DVI, and not "tex" because we want first line parsing.
@@ -764,9 +797,7 @@ texmf_casefold_search = 1
 %  Part 3: Array and other sizes for TeX, Metafont, etc.
 %
 % If you want to change some of these sizes only for a certain TeX
-% variant, the usual dot notation works, e.g.,
-% main_memory.hugetex = 20000000
-%
+% variant, the usual dot notation works, as shown below for ConTeXt.
 % If a change here appears to be ignored, try redumping the format file.
 
 % Memory. Must be less than 8,000,000 total.
@@ -779,9 +810,6 @@ texmf_casefold_search = 1
 %
 % To increase space for boxes (as might be needed by, e.g., PiCTeX),
 % increase extra_mem_bot.
-%
-% For some xy-pic samples, you may need as much as 700000 words of memory.
-% For the vast majority of documents, 60000 or less will do.
 %
 main_memory = 5000000 % words of inimemory available; also applies to inimf&mp
 extra_mem_top = 0     % extra high memory for chars, tokens, etc.
@@ -809,8 +837,10 @@ pool_size = 6250000
 string_vacancies = 90000
 % Maximum number of strings.
 max_strings = 500000
-% min pool space left after loading .fmt
+% Min pool space left after loading .fmt.
 pool_free = 47500
+% Ensure at least this many strings are free after loading .fmt.
+strings_free = 100
 
 % Buffer size.  TeX uses the buffer to contain input lines, but macro
 % expansion works by writing material into the buffer and reparsing the
@@ -823,21 +853,31 @@ buf_size = 200000
 % for all known free hyphenation patterns to be loaded simultaneously
 % (as TeX Live does).
 %
-trie_size = 1000000
+trie_size = 1100000
 
-hyph_size = 8191        % prime number of hyphenation exceptions, >610, <32767.
+hyph_size = 8191        % prime number of hyphenation exceptions, >610, <65535
                         % http://primes.utm.edu/curios/page.php/8191.html
-nest_size = 500         % simultaneous semantic levels (e.g., groups)
+                        % dynamically increased as necessary, so not important.
+nest_size = 1000        % simultaneous semantic levels (e.g., groups)
 max_in_open = 15        % simultaneous input files and error insertions, 
                         % also applies to MetaPost
-param_size = 10000      % simultaneous macro parameters, also applies to MP
-save_size  = 100000     % for saving values outside current group
-stack_size = 5000       % simultaneous input sources
+param_size = 20000      % simultaneous macro parameters, also applies to MP
+save_size  = 200000     % for saving values outside current group
+stack_size = 10000      % simultaneous input sources
+
+% Limit on recursive expansion calls so TeX has a chance to quit nicely
+% before stack space runs out. The default is 10000. Normally there is no
+% reason to change it. The web2c manual has a bit more about this.
+%expand_depth = 10000
 
 % These are Omega-specific.
 ocp_buf_size = 500000   % character buffers for ocp filters.
 ocp_stack_size = 10000  % stacks for ocp computations.
 ocp_list_size = 1000    % control for multiple ocps.
+
+% For pdftex and luatex: default resolution for bitmaps;
+% commonly set via \pdfpkresolution when needed to be changed.
+%pk_dpi = 72
 
 % These work best if they are the same as the I/O buffer size, but it
 % doesn't matter much.  Must be a multiple of 8.
@@ -849,6 +889,7 @@ gf_buf_size = 16384  % MF
 % 30 < half_error_line < error_line - 15;
 % 60 <= max_print_line;
 % These apply to TeX, Metafont, and MetaPost.
+% "max_print_line" applies to BibTeX family.
 error_line = 79
 half_error_line = 50
 max_print_line = 79
@@ -872,20 +913,27 @@ max_rows.gftype = 8191
 max_cols.gftype = 8191
 
 % Guess input encoding (SJIS vs. Unicode, etc.) in pTeX and friends?
-% Default is 1, to guess. Used on Windows only.
-guess_input_kanji_encoding = 1
+% Default is 1 for (e)p(la)tex, pbibtex & mendex, to guess.
+guess_input_kanji_encoding = 0
+guess_input_kanji_encoding.ptex = 1
+guess_input_kanji_encoding.eptex = 1
+guess_input_kanji_encoding.platex = 1
+guess_input_kanji_encoding.platex-dev = 1
+guess_input_kanji_encoding.pbibtex = 1
+guess_input_kanji_encoding.mendex = 1
 
 % command_line_encoding
 %
 % This variable is used on Windows only, and affects 4 TeX engines:
 % uptex, euptex, pdftex, xetex, and 2 drivers: dvips, [x]dvipdfmx.
 % Several applications also are affected by the variable:
-% dvi2tty.exe, disdvi.exe, dvibook.exe, dviconcat.exe, dviselect.exe,
-% dvitodvi.exe, and dvidvi.exe.
+% bibtex8.exe, bibtexu.exe, dvi2tty.exe, disdvi.exe, dvibook.exe,
+% dviconcat.exe, dviselect.exe, dvitodvi.exe, and dvidvi.exe.
 % Only values utf8 or utf-8 are meaningful. Other values are simply
 % ignored. If file names in sources and DVI or XDV files are ASCII
 % only, the value of command_line_encoding is irrelevant.
 % If command_line_encoding = utf8 or command_line_encoding = utf-8,
+% characters on a command line in cmd.exe are assumed to be Unicode and
 % file names in sources and DVI or XDV files are assumed to be UTF-8.
 % Default is utf-8, from 2019-07-24, to assume UTF-8 file names.
 % In order to switch off the function, define an environment variable:
@@ -894,3 +942,11 @@ guess_input_kanji_encoding = 1
 % command_line_encoding = none
 % in a texmf.cnf prefered, for example $TEXMFLOCAL/web2c/texmf.cnf.
 command_line_encoding = utf-8
+
+% From TeX Live 2024, the engine for ptex, eptex, platex, and
+% platex-dev is euptex. Therefore the function should be switched off
+% for ptex, eptex, platex and platex-dev.
+command_line_encoding.ptex = none
+command_line_encoding.eptex = none
+command_line_encoding.platex = none
+command_line_encoding.platex-dev = none

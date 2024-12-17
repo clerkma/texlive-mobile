@@ -1,3 +1,30 @@
+2020-04-28 Luigi Scarso <luigi.scarso@gmail.com>
+
+	* configure.ac (KPSE_LARGE_FILE): define _LARGEFILE64_SOURCE
+	to help avoid off64_t error.
+
+2024-04-07  Karl Berry  <karl@freefriends.org>
+
+	* configure.ac (AM_PROG_AR): include for cosmopolitan, from Luigi.
+
+2023-11-23  Karl Berry  <karl@freefriends.org>
+
+	* m4/ax_prefix_config_h.m4: use $as_echo instead of echo,
+	since echo "\\1" outputs a CTRL-A under dash.
+	Report from Vincent Lefevre:
+	https://tug.org/pipermail/tlbuild/2023q4/005345.html
+	* configure: rebuild.
+
+2022-09-10  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* Import zziplib-0.13.72.
+	version.ac: Adapted.
+
+2020-04-23 Luigi Scarso <luigi.scarso@gmail.com>
+
+	* Import zziplib 0.13.71.
+	version.ac: Adapted.
+
 2018-03-18  Akira Kakuto  <kakuto@fuk.kindai.ac.jp>
 
 	* Import zziplib 0.13.69.

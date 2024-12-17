@@ -2,7 +2,7 @@
 ** GFReader.cpp                                                         **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -92,7 +92,7 @@ int GFReader::executeCommand () {
 	if (opcode < 0)  // at end of file?
 		throw GFException("unexpected end of file");
 
-	if (opcode >= 0 && opcode <= 63)
+	if (opcode <= 63)
 		cmdPaint0(opcode);
 	else if (opcode >= 74 && opcode <= 238)
 		cmdNewRow(opcode-74);
@@ -158,7 +158,7 @@ bool GFReader::executePostamble () {
 		throw GFException("invalid identification byte in postpost");
 	_in.seekg(-5, ios::cur);         // now on postpost
 	if (_in.get() != 249)
-		throw GFException("invalid GF file");
+		throw GFException("invalid GF file (missing postpost)");
 	uint32_t q = readUnsigned(4);    // pointer to begin of postamble
 	_in.seekg(q);                    // now on begin of postamble
 	while (executeCommand() != 249); // execute all commands until postpost is reached

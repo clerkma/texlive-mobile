@@ -12,11 +12,4 @@ if echo "$kernel" | grep CYGWIN >/dev/null; then
   jarpath=`cygpath -w "$jarpath"`
 fi
 
-# User may have globally set their locale provider preference in
-# $JAVA_TOOL_OPTIONS so don't override it.
-
-if [ -z "$JAVA_TOOL_OPTIONS" ]; then
-  exec java -Djava.locale.providers=CLDR,JRE,SPI -jar "$jarpath" "$@"
-else
-  exec java -jar "$jarpath" "$@"
-fi
+exec java -jar "$jarpath" "$@"

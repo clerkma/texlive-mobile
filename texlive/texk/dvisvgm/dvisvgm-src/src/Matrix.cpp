@@ -2,7 +2,7 @@
 ** Matrix.cpp                                                           **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -82,6 +82,17 @@ Matrix::Matrix (const double *v, unsigned size) {
  *  @param[in] start use vector components start,...,start+8 */
 Matrix::Matrix (const std::vector<double> &v, int start) {
 	set(v, start);
+}
+
+
+Matrix::Matrix (const string &svgMatrix) {
+	istringstream iss(svgMatrix);
+	for (int col=0; col < 3; col++) {
+		for (int row=0; row < 2; row++)
+			iss >> _values[row][col];
+		_values[2][col] = 0;
+	}
+	_values[2][2] = 1;
 }
 
 
@@ -261,9 +272,17 @@ Matrix& Matrix::invert () {
 
 
 Matrix& Matrix::operator *= (double c) {
-	for (int i=0; i < 3; i++)
-		for (int j=0; j < 3; j++)
-			_values[i][j] *= c;
+	for (auto &row : _values)
+		for (auto &val : row)
+			val *= c;
+	return *this;
+}
+
+
+Matrix& Matrix::operator /= (double c) {
+	for (auto &row : _values)
+		for (auto &val : row)
+			val /= c;
 	return *this;
 }
 
@@ -520,7 +539,7 @@ Matrix Matrix::parseSVGTransform (const string &transform) {
 		vector<double> params;
 		if (parse_transform_cmd(iss, "matrix", 6, 6, params)) {
 			if (ne(params[0], 1) || ne(params[1], 0) || ne(params[2], 0) || ne(params[3], 1) || ne(params[4], 0) || ne(params[5], 0))
-				matrix.rmultiply({params[0], params[2], params[4], params[1], params[3], params[5]});
+				matrix.rmultiply(Matrix{params[0], params[2], params[4], params[1], params[3], params[5]});
 		}
 		else if (parse_transform_cmd(iss, "rotate", 1, 3, params)) {
 			if (params.size() == 1) {

@@ -1,3 +1,47 @@
+2024-11-09  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* tests/{makeindex,pprec}.test: Split test scripts.
+	* tests/rangeA[123].ind: Remove unused files.
+	* tests/nest.test, tests/nested3.{ist,idx,ind},
+	tests/toodeep.idx: Add new tests for nested depth.
+	* tests/makeindex.test, tests/tort{,W}.idx, tests/ok-tort.ind:
+	Add new tests for error/warning.
+	* Makefile.am: Adjust.
+
+2023-08-27  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* tests/makeindex.test: Make easier to test on Windows.
+
+2022-05-22  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* scanid.c:
+	Improve heuristic detection of page number types
+	for ambiguous ones between roman number and alphabet.
+	Ref. report from Frank Mittelbach,
+	https://tug.org/pipermail/tex-live/2022-May/048137.html
+	* tests/makeindex.test, tests/pprec[567].ist,
+	tests/romalp[ABCD].idx, tests/romalpA-[56].ind,
+	tests/romalp[BD]-[567].ind, tests/romalpC-5.ind, Makefile.am:
+	Update tests.
+	* configure.ac, mkind.h: Bump version to 2.17
+
+2022-03-08  Karl Berry  <karl@freefriends.org>
+
+	* mkindex.1: update contact info.
+	Report from G\"unter Essers,
+	https://tug.org/pipermail/tex-k/2022-March/003776.html
+
+2021-09-19  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* mkind.h, scanid.[ch], scanst.c:
+	Fix a bug about detection of page number types.
+	Default string "rnaRA" for page_precedence was not initialized.
+	Improve heuristic detection of page number types.
+	* tests/makeindex.test, tests/range.idx, tests/range[123].{ind,ist},
+	tests/pprec[AB].idx, tests/pprec[01234].ist, tests/pprec[AB]-[01234].ind:
+	Add new tests. These are compatible with (up)mendex.
+	* configure.ac, mkind.h: Bump version to 2.16
+
 2019-11-01  Karl Berry  <karl@tug.org>
 
 	* mkindex: "quote" arguments, doc tweaks.

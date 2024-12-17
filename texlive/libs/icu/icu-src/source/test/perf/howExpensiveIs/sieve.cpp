@@ -1,7 +1,7 @@
 /*
  ***********************************************************************
  * © 2016 and later: Unicode, Inc. and others.
- * License & terms of use: http://www.unicode.org/copyright.html#License
+ * License & terms of use: http://www.unicode.org/copyright.html
  ***********************************************************************
  ***********************************************************************
  * Copyright (c) 2011-2012,International Business Machines
@@ -76,8 +76,8 @@ U_CAPI double uprv_calcSieveTime() {
 }
 static int comdoub(const void *aa, const void *bb) 
 {
-  const double *a = (const double*)aa;
-  const double *b = (const double*)bb;
+  const double* a = static_cast<const double*>(aa);
+  const double* b = static_cast<const double*>(bb);
   
   return (*a==*b)?0:((*a<*b)?-1:1);
 }
@@ -87,9 +87,9 @@ double midpoint(double *times, double i, int n) {
   double ce = ceil(i);
   if(ce>=n) ce=n;
   if(fl==ce) {
-    return times[(int)fl];
+    return times[static_cast<int>(fl)];
   } else {
-    return (times[(int)fl]+times[(int)ce])/2;
+    return (times[static_cast<int>(fl)] + times[static_cast<int>(ce)]) / 2;
   }
 }
 
@@ -165,7 +165,7 @@ U_CAPI double uprv_getMeanTime(double *times, uint32_t *timeCount, double *margi
   }
   meanTime /= n;
 
-  /* caculate standard deviation */
+  /* calculate standard deviation */
   double sd = 0;
   for(int i=0;i<n;i++) {
 #if U_DEBUG
@@ -190,12 +190,12 @@ U_CAPI double uprv_getMeanTime(double *times, uint32_t *timeCount, double *margi
   return meanTime;
 }
 
-UBool calcSieveTime = FALSE;
+UBool calcSieveTime = false;
 double meanSieveTime = 0.0;
 double meanSieveME = 0.0;
 
 U_CAPI double uprv_getSieveTime(double *marginOfError) {
-  if(calcSieveTime==FALSE) {
+  if(!calcSieveTime) {
 #define SAMPLES 50
     uint32_t samples = SAMPLES;
     double times[SAMPLES];
@@ -208,9 +208,9 @@ U_CAPI double uprv_getSieveTime(double *marginOfError) {
     }
     
     meanSieveTime = uprv_getMeanTime(times, &samples,&meanSieveME);
-    calcSieveTime=TRUE;
+    calcSieveTime=true;
   }
-  if(marginOfError!=NULL) {
+  if(marginOfError!=nullptr) {
     *marginOfError = meanSieveME;
   }
   return meanSieveTime;

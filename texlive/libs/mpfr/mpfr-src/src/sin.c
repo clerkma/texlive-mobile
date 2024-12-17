@@ -1,6 +1,6 @@
 /* mpfr_sin -- sine of a floating-point number
 
-Copyright 2001-2019 Free Software Foundation, Inc.
+Copyright 2001-2023 Free Software Foundation, Inc.
 Contributed by the AriC and Caramba projects, INRIA.
 
 This file is part of the GNU MPFR Library.
@@ -45,8 +45,8 @@ mpfr_sin (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
   MPFR_SAVE_EXPO_DECL (expo);
 
   MPFR_LOG_FUNC
-    (("x[%Pu]=%.*Rg rnd=%d", mpfr_get_prec (x), mpfr_log_prec, x, rnd_mode),
-     ("y[%Pu]=%.*Rg inexact=%d", mpfr_get_prec (y), mpfr_log_prec, y,
+    (("x[%Pd]=%.*Rg rnd=%d", mpfr_get_prec (x), mpfr_log_prec, x, rnd_mode),
+     ("y[%Pd]=%.*Rg inexact=%d", mpfr_get_prec (y), mpfr_log_prec, y,
       inexact));
 
   if (MPFR_UNLIKELY (MPFR_IS_SINGULAR (x)))
@@ -82,7 +82,9 @@ mpfr_sin (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
       goto end;
     }
 
-  m = precy + MPFR_INT_CEIL_LOG2 (precy) + 7;
+  /* for x large, since argument reduction is expensive, we want to avoid
+     any failure in Ziv's strategy, thus we take into account expx too */
+  m = precy + MPFR_INT_CEIL_LOG2 (MAX(precy,expx)) + 8;
 
   /* since we compute sin(x) as sqrt(1-cos(x)^2), and for x small we have
      cos(x)^2 ~ 1 - x^2, when subtracting cos(x)^2 from 1 we will lose
@@ -97,14 +99,22 @@ mpfr_sin (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
       m += err1;
     }
 
-  mpfr_init (c);
-  mpfr_init (xr);
+  if (expx >= 2)
+    {
+      mpfr_init2 (c, expx + m - 1);
+      mpfr_init2 (xr, m);
+    }
+  else
+    mpfr_init2 (c, m);
 
   MPFR_ZIV_INIT (loop, m);
   for (;;)
     {
       /* first perform argument reduction modulo 2*Pi (if needed),
          also helps to determine the sign of sin(x) */
+      /* TODO: Perform range reduction in a way so that the sine can
+         be computed directly from the cosine with sin(x)=cos(pi/2-x),
+         without the need of sqrt(1 - x^2). */
       if (expx >= 2) /* If Pi < x < 4, we need to reduce too, to determine
                         the sign of sin(x). For 2 <= |x| < Pi, we could avoid
                         the reduction. */
@@ -149,7 +159,7 @@ mpfr_sin (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
       /* now that the argument is reduced, precision m is enough */
       mpfr_set_prec (c, m);
       mpfr_cos (c, xx, MPFR_RNDA);    /* c = cos(x) rounded away */
-      mpfr_mul (c, c, c, MPFR_RNDU);  /* away */
+      mpfr_sqr (c, c, MPFR_RNDU);     /* away */
       mpfr_ui_sub (c, 1, c, MPFR_RNDZ);
       mpfr_sqrt (c, c, MPFR_RNDZ);
       if (MPFR_IS_NEG_SIGN(sign))
@@ -191,7 +201,8 @@ mpfr_sin (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
      within the target precision, but in that case mpfr_can_round will fail */
 
   mpfr_clear (c);
-  mpfr_clear (xr);
+  if (expx >= 2)
+    mpfr_clear (xr);
 
  end:
   MPFR_SAVE_EXPO_FREE (expo);

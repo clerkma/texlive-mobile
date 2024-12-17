@@ -1,20 +1,19 @@
 #!/usr/bin/env perl
-# $Id: updmap.pl 51338 2019-06-07 16:36:59Z karl $
+# $Id: updmap.pl 70707 2024-03-19 22:03:22Z karl $
 # updmap - maintain map files for outline fonts.
 # (Maintained in TeX Live:Master/texmf-dist/scripts/texlive.)
 # 
-# Copyright 2011-2019 Norbert Preining
+# Copyright 2011-2024 Norbert Preining
 # This file is licensed under the GNU General Public License version 2
 # or any later version.
 #
 # History:
-# Original shell script (C) 2002 Thomas Esser
+# Original shell script (C) 2002 Thomas Esser, released to the public domain.
 # first perl variant by Fabrice Popineau
-# later adaptions by Reinhard Kotucha and Karl Berry
-# the original versions were licensed under the following agreement:
-# Anyone may freely use, modify, and/or distribute this file, without
+# later adaptions by Reinhard Kotucha, and Karl Berry.
+# The current implementation is a complete rewrite.
 
-my $svnid = '$Id: updmap.pl 51338 2019-06-07 16:36:59Z karl $';
+my $svnid = '$Id: updmap.pl 70707 2024-03-19 22:03:22Z karl $';
 
 my $TEXMFROOT;
 BEGIN {
@@ -27,17 +26,17 @@ BEGIN {
   unshift(@INC, "$TEXMFROOT/tlpkg");
 }
 
-my $lastchdate = '$Date: 2019-06-07 18:36:59 +0200 (Fri, 07 Jun 2019) $';
+my $lastchdate = '$Date: 2024-03-19 23:03:22 +0100 (Tue, 19 Mar 2024) $';
 $lastchdate =~ s/^\$Date:\s*//;
 $lastchdate =~ s/ \(.*$//;
-my $svnrev = '$Revision: 51338 $';
+my $svnrev = '$Revision: 70707 $';
 $svnrev =~ s/^\$Revision:\s*//;
 $svnrev =~ s/\s*\$$//;
 my $version = "r$svnrev ($lastchdate)";
 
 use Getopt::Long qw(:config no_autoabbrev ignore_case_always);
 use strict;
-use TeXLive::TLUtils qw(mkdirhier mktexupd win32 basename dirname 
+use TeXLive::TLUtils qw(mkdirhier mktexupd wndws basename dirname 
   sort_uniq member touch);
 
 (my $prg = basename($0)) =~ s/\.pl$//;
@@ -54,7 +53,7 @@ chomp(my $TEXMFSYSCONFIG = `kpsewhich -var-value=TEXMFSYSCONFIG`);
 chomp(my $TEXMFHOME = `kpsewhich -var-value=TEXMFHOME`);
 
 # make sure that on windows *everything* is in lower case for comparison
-if (win32()) {
+if (wndws()) {
   $TEXMFDIST = lc($TEXMFDIST);
   $TEXMFVAR = lc($TEXMFVAR);
   $TEXMFSYSVAR = lc($TEXMFSYSVAR);
@@ -67,7 +66,8 @@ if (win32()) {
 my $texmfconfig = $TEXMFCONFIG;
 my $texmfvar    = $TEXMFVAR;
 
-my %opts = ( quiet => 0, nohash => 0, nomkmap => 0 );
+# copy by default for portability.
+my %opts = ( quiet => 0, nohash => 0, nomkmap => 0, copy => 1 );
 my $alldata;
 my $updLSR;
 
@@ -76,12 +76,12 @@ my @cmdline_options = (
   "user",
   "listfiles",
   "cnffile=s@", 
-  "copy", 
+  "copy!", 
   "disable=s@",
   "dvipdfmoutputdir=s",
   "dvipdfmxoutputdir=s",
   "dvipsoutputdir=s",
-  # the following does not work, Getopt::Long looses the first
+  # the following does not work, Getopt::Long loses the first
   # entry in a multi setting, treat it separately in processOptions
   # furthermore, it is not supported by older perls, so do it differently
   #"enable=s{1,2}",
@@ -89,8 +89,8 @@ my @cmdline_options = (
   "force",
   "listavailablemaps",
   "listmaps|l",
-  "nohash",
-  "nomkmap",
+  "nohash!",
+  "nomkmap!",
   "dry-run|n",
   "outputdir=s",
   "pdftexoutputdir=s",
@@ -232,7 +232,7 @@ sub main {
       if (! -f $f) {
         die "$prg: Config file \"$f\" not found.";
       }
-      push @tmp, (win32() ? lc($f) : $f);
+      push @tmp, (wndws() ? lc($f) : $f);
     }
     @{$opts{'cnffile'}} = @tmp;
     # in case that config files are given on the command line, the first
@@ -243,12 +243,12 @@ sub main {
     chomp(@all_files);
     my @used_files;
     for my $f (@all_files) {
-      push @used_files, (win32() ? lc($f) : $f);
+      push @used_files, (wndws() ? lc($f) : $f);
     }
     #
     my $TEXMFLOCALVAR;
     my @TEXMFLOCAL;
-    if (win32()) {
+    if (wndws()) {
       chomp($TEXMFLOCALVAR =`kpsewhich --expand-path=\$TEXMFLOCAL`);
       @TEXMFLOCAL = map { lc } split(/;/ , $TEXMFLOCALVAR);
     } else {
@@ -422,7 +422,7 @@ sub main {
     # but for compatibility we'll silently keep the option.
     $cmd = 'edit';
     my $editor = $ENV{'VISUAL'} || $ENV{'EDITOR'};
-    $editor ||= (&win32 ? "notepad" : "vi");
+    $editor ||= (wndws() ? "notepad" : "vi");
     if (-r $changes_config_file) {
       &copyFile($changes_config_file, $bakFile);
     } else {
@@ -481,7 +481,8 @@ sub main {
   }
 
   if (!$opts{'nohash'}) {
-    print "$prg: Updating ls-R files.\n" if !$opts{'quiet'};
+    my $not = $opts{"dry-run"} ? " not (-n)" : "";
+    print "$prg:$not updating ls-R files.\n" if !$opts{'quiet'};
     $updLSR->{exec}() unless $opts{"dry-run"};
   }
 
@@ -593,7 +594,7 @@ sub setupSymlinks {
 sub SymlinkOrCopy {
   my ($dir, $src, $dest) = @_;
   return ($src, $dest) if $opts{"dry-run"};
-  if (&win32 || $opts{'copy'}) {  # always copy
+  if (wndws() || $opts{'copy'}) {  # always copy
     &copyFile("$dir/$src", "$dir/$dest");
   } else { # symlink if supported by fs, copy otherwise
     system("cd \"$dir\" && ln -s $src $dest 2>/dev/null || "
@@ -1026,7 +1027,8 @@ sub mkMaps {
   # directory unless we are going to put something there.
   setupOutputDir("pxdvi") if $pxdviUse eq "true";
 
-  print_and_log ("\n$prg is creating new map files"
+  my $not = $opts{"dry-run"} ? " not (-n)" : "";
+  print_and_log ("\n$prg is$not creating new map files"
          . "\nusing the following configuration:"
          . "\n  LW35 font names                  : "
          .      "$mode ($mode_origin)"
@@ -1248,7 +1250,7 @@ sub mkMaps {
 
   our $link = &setupSymlinks($dvipsPreferOutline, $dvipsoutputdir, $pdftexDownloadBase14, $pdftexoutputdir);
 
-  print_and_log ("\nFiles generated:\n");
+  print_and_log ("\nFiles$not generated:\n");
   sub dir {
     my ($d, $f, $target)=@_;
     our $link;
@@ -1338,26 +1340,27 @@ sub mkMaps {
     }
   }
 
-  # all kind of warning messages
+  # all kinds of warning messages
   if ($first_time_creation_in_usermode) {
     print_and_log("
 *************************************************************
 *                                                           *
 * WARNING: you are switching to updmap's per-user mappings. *
-*            Please read the following explanations.        *
+*         Please read the following warnings!               *
 *                                                           *
 *************************************************************
 
-You have run updmap-user (as opposed to updmap-sys) for the first time; this
-has created configuration files which are local to your personal account.
+You have run updmap-user (as opposed to updmap-sys) for the first time;
+this has created configuration files which are local to your personal account.
 
-Any changes in system map files will *not* be automatically reflected in
-your files; furthermore, running updmap-sys will no longer have any
-effect for you.  As a consequence, you have to rerun updmap-user yourself
-after any change in the system directories; for example, if a new font
-package is added.
+From now on, any changes in system map files will *not* be automatically
+reflected in your files; furthermore, running updmap-sys (as is done
+automatically) will no longer have any effect for you.
 
-See http://tug.org/texlive/scripts-sys-user.html for details.
+As a consequence, you yourself have to rerun updmap-user yourself after
+any change in the *system* directories! For example, if a new font
+package is added or existing mappings change, which happens frequently.
+See https://tug.org/texlive/scripts-sys-user.html for details.
 
 If you want to undo this, remove the files mentioned above.
 
@@ -1373,10 +1376,10 @@ The following files have been generated as listed above,
 but will not be found because overriding files exist, listed below.
 ");
     #
-    if ($prg eq "updmap-sys") {
+    if ($opts{'sys'}) {
       print_and_log ("
-Perhaps you have run updmap in the past, but are running updmap-sys
-now.  Once you run updmap the first time, you have to keep using it,
+Perhaps you have run updmap-user in the past, but are running updmap-sys
+now.  Once you run updmap-user the first time, you have to keep using it,
 or else remove the personal configuration files it creates (the ones
 listed below).
 ");
@@ -1390,8 +1393,7 @@ listed below).
   }
 
   close LOG unless $opts{'dry-run'};
-  print "\nTranscript written on \"$logfile\".\n" if !$opts{'quiet'};
-
+  print "\nTranscript$not written on: $logfile\n" if !$opts{'quiet'};
 }
 
 
@@ -2215,7 +2217,7 @@ sub merge_data {
 #   and reset it to the real home dir of root.
 
 sub reset_root_home {
-  if (!win32() && ($> == 0)) {  # $> is effective uid
+  if (!wndws() && ($> == 0)) {  # $> is effective uid
     my $envhome = $ENV{'HOME'};
     # if $HOME isn't an existing directory, we don't care.
     if (defined($envhome) && (-d $envhome)) {
@@ -2262,25 +2264,30 @@ Usage: $prg [-user|-sys] [OPTION] ... [COMMAND]
    or: $prg-user [OPTION] ... [COMMAND]
    or: $prg-sys  [OPTION] ... [COMMAND]
 
-Update the default font map files used by pdftex (pdftex.map), dvips
-(psfonts.map), and dvipdfm(x), and optionally pxdvi, as determined by
-all configuration files updmap.cfg (the ones returned by running
-"kpsewhich --all updmap.cfg", but see below).
+Update the default font map files used by pdftex and dvipdfm(x)
+(pdftex.map), dvips (psfonts.map), and optionally pxdvi, as determined
+by all configuration files updmap.cfg (usually the ones returned by
+running "kpsewhich --all updmap.cfg", but see below).
 
 Among other things, these map files are used to determine which fonts
 should be used as bitmaps and which as outlines, and to determine which
 font files are included, typically subsetted, in the PDF or PostScript output.
 
+These maps are for fonts installed within the TeX hierarchy, and are not
+related to any system font lookups. They are primarily used for Type 1
+fonts, though a few OpenType and TrueType fonts are involved also.
+
 updmap-sys (or updmap -sys) is intended to affect the system-wide 
 configuration, while updmap-user (or updmap -user) affects personal
 configuration files only, overriding the system files.  
+
 As a consequence, once updmap-user has been run, even a single time,
-running updmap-sys no longer has any effect.  (updmap-sys issues a
-warning in this situation.)
+running updmap-sys no longer has any effect.  updmap-sys issues a
+warning about this, since it is rarely desirable.
+See https://tug.org/texlive/scripts-sys-user.html for details.
 
-See http://tug.org/texlive/scripts-sys-user.html for details.
-
-By default, the TeX filename database (ls-R) is also updated.
+By default, the TeX filename database (ls-R) is also updated; use
+--nohash to skip that step.
 
 The updmap system is regrettably complicated, for both inherent and
 historical reasons.  A general overview:
@@ -2289,13 +2296,11 @@ historical reasons.  A general overview:
   font-specific .maps, in which each line gives information about a
   different TeX (.tfm) font.
 - updmap reads the updmap.cfg files and then concatenates the
-  contents of those .map files into the main output files: psfonts.map
-  for dvips and pdftex.map for pdftex and dvipdfmx.
+  contents of those .map files into the main output files, generically
+  named: psfonts.map for dvips, and pdftex.map for pdftex and dvipdfmx.
 - The updmap.cfg files themselves are created and updated at package
   installation time, by the system installer or the package manager or
   by hand, and not (by default) by updmap.
-
-Good luck.
 
 Options:
   --cnffile FILE            read FILE for the updmap configuration 
@@ -2306,31 +2311,32 @@ Options:
   --pdftexoutputdir DIR     specify output directory (pdftex syntax)
   --pxdvioutputdir DIR      specify output directory (pxdvi syntax)
   --outputdir DIR           specify output directory (for all files)
-  --copy                    cp generic files rather than using symlinks
+  --[no-]copy               create generic files as copies (default);
+                               with -no-copy, create symlinks
   --force                   recreate files even if config hasn't changed
   --nomkmap                 do not recreate map files
-  --nohash                  do not run texhash
+  --nohash                  do not run mktexlsr (a.k.a. texhash)
   --sys                     affect system-wide files (equivalent to updmap-sys)
   --user                    affect personal files (equivalent to updmap-user)
   -n, --dry-run             only show the configuration, no output
   --quiet, --silent         reduce verbosity
 
 Commands:
-  --help                    show this message and exit
-  --version                 show version information and exit
-  --showoption OPTION       show the current setting of OPTION
-  --showoptions OPTION      show possible settings for OPTION
-  --setoption OPTION VALUE  set OPTION to value; option names below
-  --setoption OPTION=VALUE  as above, just different syntax
-  --enable MAPTYPE MAPFILE  add "MAPTYPE MAPFILE" to updmap.cfg,
-                             where MAPTYPE is Map, MixedMap, or KanjiMap
-  --enable Map=MAPFILE      add \"Map MAPFILE\" to updmap.cfg
-  --enable MixedMap=MAPFILE add \"MixedMap MAPFILE\" to updmap.cfg
-  --enable KanjiMap=MAPFILE add \"KanjiMap MAPFILE\" to updmap.cfg
-  --disable MAPFILE         disable MAPFILE, of whatever type
-  --listmaps                list all maps (details below)
-  --listavailablemaps       list available maps (details below)
-  --syncwithtrees           disable unavailable map files in updmap.cfg
+  --help                     show this message and exit
+  --version                  show version information and exit
+  --showoption OPTION        show the current setting of OPTION
+  --showoptions OPTION       show possible settings for OPTION
+  --setoption OPTION VALUE   set OPTION to value; option names below
+  --setoption OPTION=VALUE   as above, just different syntax
+  --enable MAPTYPE MAPFILE   add "MAPTYPE MAPFILE" to updmap.cfg,
+                              where MAPTYPE is Map, MixedMap, or KanjiMap
+  --enable Map=MAPFILE       add \"Map MAPFILE\" to updmap.cfg
+  --enable MixedMap=MAPFILE  add \"MixedMap MAPFILE\" to updmap.cfg
+  --enable KanjiMap=MAPFILE  add \"KanjiMap MAPFILE\" to updmap.cfg
+  --disable MAPFILE          disable MAPFILE, of whatever type
+  --listmaps                 list all maps (details below)
+  --listavailablemaps        list available maps (details below)
+  --syncwithtrees            disable unavailable map files in updmap.cfg
 
 The main output:
 
@@ -2360,7 +2366,7 @@ Explanation of the map types:
   
   The only difference between Map and MixedMap is that MixedMap entries
   are not added to psfonts_pk.map.  The purpose is to help users with
-  devices that render Type 1 outline fonts worse than mode-tuned Type 1
+  devices that render Type 1 outline fonts worse than mode-tuned Type 3
   bitmap fonts.  So, MixedMap is used for fonts that are available as
   both Type 1 and Metafont.
 
@@ -2463,7 +2469,7 @@ Where and which updmap.cfg changes are saved:
   config file, a higher-level one can be used.  That way, the
   distribution's settings can be overridden system-wide using
   TEXMFLOCAL, and system settings can be overridden again in a
-  particular user's TEXMFHOME.
+  particular user's TEXMFHOME or TEXMFCONFIG.
 
 Resolving multiple definitions of a font:
 
@@ -2522,11 +2528,11 @@ will be read and written, give the -n option (or read the source).
 The log file is written to TEXMFVAR/web2c/updmap.log.
 
 For step-by-step instructions on making new fonts known to TeX, read
-http://tug.org/fonts/fontinstall.html.  For even more terse
+https://tug.org/fonts/fontinstall.html.  For even more terse
 instructions, read the beginning of the main updmap.cfg file.
 
 Report bugs to: tex-live\@tug.org
-TeX Live home page: <http://tug.org/texlive/>
+TeX Live home page: <https://tug.org/texlive/>
 EOF
 ;
   print &version();

@@ -2,7 +2,7 @@
 ** FontCache.cpp                                                        **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -160,7 +160,7 @@ bool FontCache::write (const string &fontname, ostream &os) const {
 	XXH32HashFunction hashfunc;
 
 	sw.writeUnsigned(FORMAT_VERSION, 1, hashfunc);
-	sw.writeBytes(hashfunc.digestValue());  // space for checksum
+	sw.writeBytes(hashfunc.digestBytes());  // space for checksum
 	sw.writeString(fontname, hashfunc, true);
 	sw.writeUnsigned(_glyphs.size(), 4, hashfunc);
 	WriteActions actions(sw, hashfunc);
@@ -171,7 +171,7 @@ bool FontCache::write (const string &fontname, ostream &os) const {
 		glyph.iterate(actions, false);
 	}
 	os.seekp(1);
-	auto digest = hashfunc.digestValue();
+	auto digest = hashfunc.digestBytes();
 	sw.writeBytes(digest);  // insert checksum
 	os.seekp(0, ios::end);
 	return true;
@@ -215,7 +215,7 @@ bool FontCache::read (const string &fontname, istream &is) {
 
 	auto hashcmp = sr.readBytes(hashfunc.digestSize());
 	hashfunc.update(is);
-	if (hashfunc.digestValue() != hashcmp)
+	if (hashfunc.digestBytes() != hashcmp)
 		return false;
 
 	is.clear();
@@ -281,9 +281,9 @@ bool FontCache::fontinfo (const string &dirname, vector<FontInfo> &infos, vector
 				string path = dirname+"/"+(fname.substr(1));
 				ifstream ifs(path, ios::binary);
 				if (fontinfo(ifs, info))
-					infos.emplace_back(move(info));
+					infos.push_back(std::move(info));
 				else
-					invalid.emplace_back(fname.substr(1));
+					invalid.push_back(fname.substr(1));
 			}
 		}
 	}
@@ -309,7 +309,7 @@ bool FontCache::fontinfo (std::istream &is, FontInfo &info) {
 
 			info.checksum = sr.readBytes(hashfunc.digestSize());
 			hashfunc.update(is);
-			if (hashfunc.digestValue() != info.checksum)
+			if (hashfunc.digestBytes() != info.checksum)
 				return false;
 
 			is.clear();

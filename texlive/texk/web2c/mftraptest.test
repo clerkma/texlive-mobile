@@ -1,8 +1,22 @@
 #! /bin/sh -vx
-# $Id: mftraptest.test 53154 2019-12-17 19:06:20Z karl $
-# Copyright 2017-2019 Karl Berry <tex-live@tug.org>
+# $Id: mftraptest.test 70943 2024-04-14 05:29:13Z takuji $
+# Copyright 2017-2021 Karl Berry <tex-live@tug.org>
 # Copyright 2009-2014 Peter Breitenlohner <tex-live@tug.org>
 # You may freely use, modify and/or distribute this file.
+
+W2CDir=${W2CDir:-..}
+ExeExt=${ExeExt:-}
+_mf=$W2CDir/mf$ExeExt
+_tftopl=$W2CDir/tftopl$ExeExt
+_gftype=$W2CDir/gftype$ExeExt
+
+# pre-generated test results in the repository are stored in LF
+# but the output might be written in CRLF on some platform.
+# if 'diff --strip-trailing-cr' is available, exploit it.
+# (useful for tests on win32 binaries run on MSYS shell)
+DIFF="diff"
+$DIFF --strip-trailing-cr $0 $0 \
+  && DIFF="diff --strip-trailing-cr" || echo
 
 LC_ALL=C; export LC_ALL;  LANGUAGE=C; export LANGUAGE
 
@@ -22,6 +36,7 @@ cat >filter <<-\_EOF
 	s,^\*\*(trap\.mf,** \&trap  trap \
 	(trap.mf,
 	s/ (TeX Live 20[^)]*)//
+	s/ (Web2C 202[3-9][^)]*)//
 	s/base=trap [^)][^)]*)/base=trap)/
 	s/)  [0-9A-Z: ]*$/)/
 	s/usage [1-9][0-9&]* ([1-9][0-9&]* still/usage XX\&XX (YYY\&YYYYY still/
@@ -31,7 +46,7 @@ cat >filter <<-\_EOF
 	s/tokens out of [1-9][0-9]*/tokens out of YYYY/
 	s/out of [1-9][0-9]*i,[0-9nrpb,]*/out of YYi,YYYn,YYYr,YYYp,YYYb/
 	s/out of [1-9][0-9]*w,[0-9hdilkep,]*)/out of YYYw,YYh,YYd,YYi,YYYYl,YYYk,YYYe,YYp)/
-	s/METAFONT output 20..\...\...:..../METAFONT output 20YY.MM.DD:hhmm/
+	s/METAFONT output ....\...\...:..../METAFONT output YYYY.MM.DD:hhmm/
 	_EOF
 
 # Capsule numbers
@@ -53,7 +68,7 @@ rm -f trap.mf
 $LN_S $testdir/trap.mf . || exit 1
 
 rm -f trap.base
-../mf --progname=inimf <$testdir/mftrap1.in >mftrapin.fot
+$_mf --progname=inimf <$testdir/mftrap1.in >mftrapin.fot
 if test ! -s trap.base; then
   echo "*** trap.base not created by mftrap1.in, investigate!" >&2
   exit 1
@@ -61,21 +76,21 @@ fi
 mv trap.log mftrapin.log || exit 1
 diff $testdir/mftrapin.log mftrapin.log
 
-../mf --progname=inimf <$testdir/mftrap2.in >mftrap.fot
+$_mf --progname=inimf <$testdir/mftrap2.in >mftrap.fot
 mv trap.log mftrap.log || exit 1
 mv trap.tfm mftrap.tfm || exit 1
 diff $testdir/mftrap.fot mftrap.fot
 diff $testdir/mftrap.log mftrap.log
 
-../tftopl ./mftrap.tfm mftrap.pl || exit 1
+$_tftopl ./mftrap.tfm mftrap.pl || exit 1
 diff $testdir/mftrap.pl mftrap.pl || is_OK=false
 
-../gftype -m -i ./trap.72270gf >trap.typ || exit 1
-diff $testdir/trap.typ trap.typ
+$_gftype -m -i ./trap.72270gf >trap.typ || exit 1
+$DIFF $testdir/trap.typ trap.typ
 
 for f in mftrapin.log mftrap.fot mftrap.log trap.typ; do
-  sed $testdir/$f -f filter >a/$f
-  sed $f -f filter >b/$f
+  sed -f filter $testdir/$f >a/$f
+  sed -f filter $f >b/$f
   diff a/$f b/$f || is_OK=false
 done
 

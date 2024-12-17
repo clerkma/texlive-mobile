@@ -134,9 +134,10 @@ dochar:
                if (!noptex && mychar<0x1000000 && curfnt->kind == VF_PTEX) { /* fallback */
 #ifdef DEBUG
    if (dd(D_FONTS))
-      fprintf(stderr,
-              "We will fallback pTeX vf:%s to %s\n",
-               curfnt->name, curfnt->localfonts->desc->name);
+      fprintf_str(stderr,
+              "We will fallback pTeX vf:%s to %s:%s\n",
+               curfnt->name, curfnt->localfonts->desc->kind==OFM_OMEGA ? "ofm" : "tfm",
+               curfnt->localfonts->desc->name);
 #endif /* DEBUG */
                } else {
                   fprintf(stderr, "Wrong char code: %04X\n", mychar);
@@ -147,6 +148,11 @@ dochar:
                   curfnt = NULL;
                else
                   ppreselectfont(ffont0->desc);
+               --frp;
+               curfnt = frp->curf;
+               ffont = frp->ff;
+               curlim = frp->curl;
+               curpos = frp->curp;
             } else {
                curpos = cd->packptr + 2;
                curlim = curpos + (256*(long)(*cd->packptr)+(*(cd->packptr+1)));

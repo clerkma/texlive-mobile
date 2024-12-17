@@ -1,5 +1,5 @@
 if (BUILD_TEST)
-	SET(DART_TESTING_TIMEOUT 5)
+	SET(DART_TESTING_TIMEOUT 15)
 
 	INCLUDE(Dart)
 
@@ -17,11 +17,13 @@ if (BUILD_TEST)
 	include_directories (BEFORE ${GD_INCLUDE_DIR} "${GDTEST_SOURCE_DIR}" "${CMAKE_BINARY_DIR}" "${CMAKE_BINARY_DIR}/tests/gdtest")
 
 	SET(TESTS_DIRS
+		avif
 		bmp
 		fontconfig
 		freetype
 		gd
 		gd2
+		gdcolormaplookup
 		gdimagearc
 		gdimagebrightness
 		gdimageclone
@@ -76,12 +78,14 @@ if (BUILD_TEST)
 		gdimagestringup16
 		gdimagetruecolortopalette
 		gdinterpolatedscale
+		gdmatrix
 		gdnewfilectx
 		gdtest
 		gdtiled
 		gdtransformaffineboundingbox
 		gdtransformaffinecopy
 		gif
+		heif
 		jpeg
 		png
 		tga
@@ -95,5 +99,4 @@ if (BUILD_TEST)
 	FOREACH(test_dir ${TESTS_DIRS})
 		add_subdirectory (${test_dir})
 	ENDFOREACH(test_dir)
-
 endif (BUILD_TEST)

@@ -1,6 +1,6 @@
 /* This is dvipdfmx, an eXtended version of dvipdfm by Mark A. Wicks.
 
-    Copyright (C) 2007-2018 by Jin-Hwan Cho and Shunsaku Hirata,
+    Copyright (C) 2002-2021 by Jin-Hwan Cho and Shunsaku Hirata,
     the dvipdfmx project team.
     
     Copyright (C) 1998, 1999 by Mark A. Wicks <mwicks@kettering.edu>
@@ -55,14 +55,19 @@ struct pdf_enc_setting {
 struct pdf_obj_setting {
     int         enable_objstm;
     int         enable_predictor;
+    int         compression_level;
 };
 
 struct pdf_setting
 {
+    int    ver_major, ver_minor;
     double media_width, media_height;
-    double annot_grow_amount;
+    struct {
+        double x, y;
+    } annot_grow_amount;
     int    outline_open_depth;
     int    check_gotos;
+    int    enable_manual_thumb;
     int    enable_encrypt;
     struct pdf_enc_setting encrypt;
     struct pdf_dev_setting device;
@@ -71,7 +76,8 @@ struct pdf_setting
 
 extern void pdf_open_document (const char *filename,
                                const char *creator,
-                               const unsigned char *id1, const unsigned char *id2,
+                               const unsigned char *id1,
+                               const unsigned char *id2,
                                struct pdf_setting settings);
 extern void pdf_close_document(void);
 
@@ -88,7 +94,8 @@ extern pdf_obj *pdf_doc_get_reference(const char *category);
 #define pdf_doc_this_page() pdf_doc_get_dictionary("@THISPAGE")
 
 extern int pdf_doc_get_page_count(pdf_file *pf);
-extern pdf_obj *pdf_doc_get_page(pdf_file *pf, int page_no, enum pdf_page_boundary opt_bbox,
+extern pdf_obj *pdf_doc_get_page(pdf_file *pf, int page_no, char * page_name,
+                                 enum pdf_page_boundary opt_bbox,
                                  pdf_rect *bbox, pdf_tmatrix *matrix, pdf_obj **resources_p);
 
 extern int pdf_doc_current_page_number(void);
@@ -163,5 +170,8 @@ extern void     pdf_doc_set_pagelabel (int  page_start,
 /* Similar to bop_content */
 #include "pdfcolor.h"
 extern void pdf_doc_set_bgcolor(const pdf_color *color);
+
+/* Sorry no appropriate place to put this... */
+extern struct ht_table *global_names;
 
 #endif /* _PDFDOC_H_ */

@@ -1,6 +1,6 @@
-# $Id: kpse-common.m4 49495 2018-12-24 23:17:30Z karl $
+# $Id: kpse-common.m4 71106 2024-04-28 16:42:22Z karl $
 # Public macros for the TeX Live (TL) tree.
-# Copyright 1995-2009, 2018 Karl Berry <tex-live@tug.org>
+# Copyright 1995-2009, 2015-2024 Karl Berry <tex-live@tug.org>
 # Copyright 2009-2015 Peter Breitenlohner <tex-live@tug.org>
 #
 # This file is free software; the copyright holders
@@ -35,13 +35,15 @@ AC_DEFUN([KPSE_INIT],
 # _KPSE_USE_LIBTOOL()
 # -------------------
 AC_DEFUN([_KPSE_USE_LIBTOOL],
-[##tldbg $0: Generate a libtool script for use in configure tests.
+[echo 'tldbg:[$0] called, libtool package version: LT_PACKAGE_VERSION' >&AS_MESSAGE_LOG_FD
 AC_PROVIDE_IFELSE([LT_INIT], ,
                   [m4_fatal([$0: requires libtool])])[]dnl
 LT_OUTPUT
+#
 m4_append([AC_LANG(C)],
 [ac_link="./libtool --mode=link --tag=CC $ac_link"
 ])[]dnl
+#
 AC_PROVIDE_IFELSE([AC_PROG_CXX],
 [m4_append([AC_LANG(C++)],
 [ac_link="./libtool --mode=link --tag=CXX $ac_link"
@@ -213,25 +215,34 @@ eval LIBS=\"$[]AS_TR_CPP($1)_LIBS \$LIBS\"
 #
 # Initialization of Automake, compiler warnings, etc.
 AC_DEFUN([KPSE_BASIC], [dnl
-##tldbg $0: Remember $1 ($2) as Kpse_Package (for future messages).
+echo 'tldbg:[$0] called (pkg=[$1], amopt=[$2])' >&AS_MESSAGE_LOG_FD
 m4_define([Kpse_Package], [$1])
-dnl
+#
+# am_init_automake
 AM_INIT_AUTOMAKE([foreign silent-rules subdir-objects]m4_ifval([$2], [ $2]))
+
+# am_maintainer_mode
 AM_MAINTAINER_MODE
-dnl
-dnl Check whether prototypes work.
+
+# See comments in kpse-setup.m4 about system extensions.
+AC_USE_SYSTEM_EXTENSIONS
+
+# Check whether prototypes work.
 AC_CACHE_CHECK([whether the compiler accepts prototypes],
                [kb_cv_c_prototypes],
                [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <stdarg.h>]],
-                                                [[extern void foo(int i,...);]])],
+                                             [[extern void foo(int i,...);]])],
                                [kb_cv_c_prototypes=yes],
                                [kb_cv_c_prototypes=no])])
 if test "x$kb_cv_c_prototypes" = xno; then
   AC_MSG_ERROR([Sorry, your compiler does not understand prototypes.])
 fi
-dnl
-dnl Enable flags for compiler warnings
+
+# kpse_compiler_warnings options.
 KPSE_COMPILER_WARNINGS
+
+# end of kpse_basic macro.
+echo 'tldbg:[$0] done (pkg=[$1], amopt=[$2])' >&AS_MESSAGE_LOG_FD
 ]) # KPSE_BASIC
 
 # KPSE_COMMON(PACKAGE-NAME, [MORE-AUTOMAKE-OPTIONS])
@@ -240,17 +251,21 @@ KPSE_COMPILER_WARNINGS
 # Originally written by Karl Berry as texk/kpathsea/common.ac.
 #
 AC_DEFUN([KPSE_COMMON], [dnl
-##tldbg $0: $1 ($2).
+echo 'tldbg:[$0] called (pkg=[$1], amopt=[$2])' >&AS_MESSAGE_LOG_FD
 KPSE_BASIC($@)
 dnl
+# am_prog_ar must be called before lt_init.
+AM_PROG_AR
+# (end am_prog_ar)
+# starting lt_prereq + lt_init.
 LT_PREREQ([2.2.6])
 LT_INIT([win32-dll])
+# (end lt_init)
 dnl
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 dnl
 AC_HEADER_DIRENT
-AC_HEADER_STDC
 AC_FUNC_CLOSEDIR_VOID
 AC_CHECK_HEADERS([assert.h float.h limits.h pwd.h stdlib.h sys/param.h])
 dnl

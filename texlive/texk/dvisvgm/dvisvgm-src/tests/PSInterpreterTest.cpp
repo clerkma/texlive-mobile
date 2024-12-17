@@ -2,7 +2,7 @@
 ** PSInterpreterTest.cpp                                                **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -28,48 +28,49 @@ using namespace std;
 
 class PSTestActions : public PSActions {
 	public:
-		void applyscalevals (vector<double> &p) override  {print("applyscalevals", p);}
-		void clip (vector<double> &p) override            {print("clip", p);}
-		void clippath (vector<double> &p) override        {print("clippath", p);}
-		void closepath (vector<double> &p) override       {print("closepath", p);}
-		void curveto (vector<double> &p) override         {print("curveto", p);}
-		void eoclip (vector<double> &p) override          {print("eoclip", p);}
-		void eofill (vector<double> &p) override          {print("eofill", p);}
-		void fill (vector<double> &p) override            {print("fill", p);}
-		void gsave (vector<double> &p) override           {print("gsave", p);}
-		void grestore (vector<double> &p) override        {print("grestore", p);}
-		void grestoreall (std::vector<double> &p) override{print("grestoreall", p);}
-		void image (std::vector<double> &p) override      {print("image", p);}
-		void initclip (vector<double> &p) override        {print("initclip", p);}
-		void lineto (vector<double> &p) override          {print("lineto", p);}
-		void moveto (vector<double> &p) override          {print("moveto", p);}
-		void makepattern (vector<double> &p) override     {print("makepattern", p);}
-		void setpattern (vector<double> &p) override      {print("setpattern", p);}
-		void setpagedevice (vector<double> &p) override   {print("setpagedevice", p);}
-		void newpath (vector<double> &p) override         {print("newpath", p);}
-		void querypos (vector<double> &p) override        {print("querypos", p);}
-		void restore(std::vector<double> &p) override     {print("restore", p);}
-		void rotate (vector<double> &p) override          {print("rotate", p);}
-		void save(std::vector<double> &p) override        {print("save", p);}
-		void scale (vector<double> &p) override           {print("scale", p);}
-		void setblendmode (vector<double> &p) override    {print("setblendmode", p);}
-		void setcolorspace (vector<double> &p) override   {print("setcolorspace", p);}
-		void setcmykcolor (vector<double> &p) override    {print("setcmykcolor", p);}
-		void setdash (vector<double> &p) override         {print("setdash", p);}
-		void setgray (vector<double> &p) override         {print("setgray", p);}
-		void sethsbcolor (vector<double> &p) override     {print("sethsbcolor", p);}
-		void setlinecap (vector<double> &p) override      {print("setlinecap", p);}
-		void setlinejoin (vector<double> &p) override     {print("setlinejoin", p);}
-		void setlinewidth (vector<double> &p) override    {print("setlinewidth", p);}
-		void setmatrix (vector<double> &p) override       {print("setmatrix", p);}
-		void setmiterlimit (vector<double> &p) override   {print("setmiterlimit", p);}
-		void setnulldevice (vector<double> &p) override   {print("setnulldevice", p);}
-		void setopacityalpha (vector<double> &p) override {print("setopacityalpha", p);}
-		void setshapealpha (vector<double> &p) override   {print("setshapealpha", p);}
-		void setrgbcolor (vector<double> &p) override     {print("setrgbcolor", p);}
-		void shfill (vector<double> &p) override          {print("shfill", p);}
-		void stroke (vector<double> &p) override          {print("stroke", p);}
-		void translate (vector<double> &p) override       {print("translate", p);}
+		void applyscalevals (vector<double> &p) override         {print("applyscalevals", p);}
+		void clip (vector<double> &p) override                   {print("clip", p);}
+		void clippath (vector<double> &p) override               {print("clippath", p);}
+		void closepath (vector<double> &p) override              {print("closepath", p);}
+		void curveto (vector<double> &p) override                {print("curveto", p);}
+		void eoclip (vector<double> &p) override                 {print("eoclip", p);}
+		void eofill (vector<double> &p) override                 {print("eofill", p);}
+		void fill (vector<double> &p) override                   {print("fill", p);}
+		void gsave (vector<double> &p) override                  {print("gsave", p);}
+		void grestore (vector<double> &p) override               {print("grestore", p);}
+		void grestoreall (std::vector<double> &p) override       {print("grestoreall", p);}
+		void image (std::vector<double> &p) override             {print("image", p);}
+		void initclip (vector<double> &p) override               {print("initclip", p);}
+		void lineto (vector<double> &p) override                 {print("lineto", p);}
+		void moveto (vector<double> &p) override                 {print("moveto", p);}
+		void makepattern (vector<double> &p) override            {print("makepattern", p);}
+		void setpattern (vector<double> &p) override             {print("setpattern", p);}
+		void setpagedevice (vector<double> &p) override          {print("setpagedevice", p);}
+		void newpath (vector<double> &p) override                {print("newpath", p);}
+		void querypos (vector<double> &p) override               {print("querypos", p);}
+		void restore(std::vector<double> &p) override            {print("restore", p);}
+		void rotate (vector<double> &p) override                 {print("rotate", p);}
+		void save(std::vector<double> &p) override               {print("save", p);}
+		void scale (vector<double> &p) override                  {print("scale", p);}
+		void setalphaisshape (vector<double> &p) override        {print("setalphaisshape", p);}
+		void setblendmode (vector<double> &p) override           {print("setblendmode", p);}
+		void setcolorspace (vector<double> &p) override          {print("setcolorspace", p);}
+		void setcmykcolor (vector<double> &p) override           {print("setcmykcolor", p);}
+		void setdash (vector<double> &p) override                {print("setdash", p);}
+		void setfillconstantalpha (vector<double> &p) override   {print("setfillconstantalpha", p);}
+		void setgray (vector<double> &p) override                {print("setgray", p);}
+		void sethsbcolor (vector<double> &p) override            {print("sethsbcolor", p);}
+		void setlinecap (vector<double> &p) override             {print("setlinecap", p);}
+		void setlinejoin (vector<double> &p) override            {print("setlinejoin", p);}
+		void setlinewidth (vector<double> &p) override           {print("setlinewidth", p);}
+		void setmatrix (vector<double> &p) override              {print("setmatrix", p);}
+		void setmiterlimit (vector<double> &p) override          {print("setmiterlimit", p);}
+		void setnulldevice (vector<double> &p) override          {print("setnulldevice", p);}
+		void setrgbcolor (vector<double> &p) override            {print("setrgbcolor", p);}
+		void setstrokeconstantalpha (vector<double> &p) override {print("setstrokeconstantalpha", p);}
+		void shfill (vector<double> &p) override                 {print("shfill", p);}
+		void stroke (vector<double> &p) override                 {print("stroke", p);}
+		void translate (vector<double> &p) override              {print("translate", p);}
 
 
 		string result () const {return _oss.str();}
@@ -104,7 +105,10 @@ TEST(PSInterpreterTest, gsave_grestore) {
 	actions.clear();
 
 	psi.execute("grestore ");
-	EXPECT_EQ(actions.result(), "setmatrix 1 0 0 1 0 0;applyscalevals 1 1 1;setlinewidth 1;setlinecap 0;setlinejoin 0;setmiterlimit 10;setcolorspace 0;setrgbcolor 0 0 0;setdash 0;grestore;");
+	if (psi.hasFullOpacitySupport())
+		EXPECT_EQ(actions.result(), "setmatrix 1 0 0 1 0 0;applyscalevals 1 1 1;setlinewidth 1;setlinecap 0;setlinejoin 0;setmiterlimit 10;setblendmode 0;setalphaisshape 0;setstrokeconstantalpha 1;setfillconstantalpha 1;setcolorspace 0;setrgbcolor 0 0 0;setdash 0;grestore;");
+	else
+		EXPECT_EQ(actions.result(), "setmatrix 1 0 0 1 0 0;applyscalevals 1 1 1;setlinewidth 1;setlinecap 0;setlinejoin 0;setmiterlimit 10;setcolorspace 0;setrgbcolor 0 0 0;setdash 0;grestore;");
 	actions.clear();
 
 	psi.execute("1 setlinecap 5 setmiterlimit 0 1 0 setrgbcolor gsave 0 setlinecap 10 setmiterlimit ");
@@ -112,7 +116,10 @@ TEST(PSInterpreterTest, gsave_grestore) {
 	actions.clear();
 
 	psi.execute("grestore ");
-	EXPECT_EQ(actions.result(), "setmatrix 1 0 0 1 0 0;applyscalevals 1 1 1;setlinewidth 1;setlinecap 1;setlinejoin 0;setmiterlimit 5;setcolorspace 0;setrgbcolor 0 1 0;setdash 0;grestore;");
+	if (psi.hasFullOpacitySupport())
+		EXPECT_EQ(actions.result(), "setmatrix 1 0 0 1 0 0;applyscalevals 1 1 1;setlinewidth 1;setlinecap 1;setlinejoin 0;setmiterlimit 5;setblendmode 0;setalphaisshape 0;setstrokeconstantalpha 1;setfillconstantalpha 1;setcolorspace 0;setrgbcolor 0 1 0;setdash 0;grestore;");
+	else
+		EXPECT_EQ(actions.result(), "setmatrix 1 0 0 1 0 0;applyscalevals 1 1 1;setlinewidth 1;setlinecap 1;setlinejoin 0;setmiterlimit 5;setcolorspace 0;setrgbcolor 0 1 0;setdash 0;grestore;");
 }
 
 

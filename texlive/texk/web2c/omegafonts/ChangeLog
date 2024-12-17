@@ -1,3 +1,65 @@
+2024-04-29  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* omfonts.{c,h}, out_ofm.c:
+	Add new option '-omit-ofm' for 'omfonts -ovp2ovf'
+	* parse_ofm.c, char_routines.c:
+	Extend maximum character code from 0x10FFFF to 0xFFFFFF
+	to support new encoding of upTeX for combining characters.
+	https://github.com/texjporg/tex-jp-build/issues/46
+	* overbmp.test, tests/inbmp.opl, tests/over{bmp,ucs}.{opl,ovp},
+	tests/adbjpn.opl, Makefile.am: Update tests.
+
+	* omfonts.c: Version 2.2.
+
+2023-09-03  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* {check,repeat,selectfont}.test: Update tests for Windows.
+
+2023-08-26  Karl Berry  <karl@freefriends.org>
+
+	* ligkern.test: protect against $rc being defined in the environment.
+
+2023-08-19  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* {bad,charwd,check,help,level1,ligkern,ofonts,
+	omfonts,overbmp,realnum,repeat,selectfont,
+	shorten,specialhex,version,yannis}.test:
+	Make easier to test on Windows.
+
+2023-03-09  Karl Berry  <karl@tug.org>
+
+	* TL'23 release.
+
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2021-12-16  Luigi Scarso  <luigi.scarso@gmail.com>
+
+	* Makefile.am (install-exec-hook) [WIN32]: sh syntax.
+	(Also found by Siep.)
+	https://tug.org/pipermail/tlbuild/2021q4/004983.html
+
+2021-11-03  Karl Berry  <karl@freefriends.org>
+
+	* Makefile.am (install-exec-hook) [WIN32]: install via libtool,
+	the same change as made for dvipdfmx.
+	https://tug.org/pipermail/dvipdfmx/2021-October/000301.html
+
+2020-12-04  Karl Berry  <karl@freefriends.org>
+
+	* pl-lexer.l (YY_BUF_SIZE): #define 110000, for the same
+	reason as the previous change. Two separate buffer overflows,
+	it seems.
+
+2020-11-21  Karl Berry  <karl@tug.org>
+
+	* pl-lexer.l (MAX_PTR): increase to 100000; the tests/xyarabic.opl
+	file has a COMMENT string longer than 10000 (the previous value),
+	but this did not normally cause an error exit status, unfortunately.
+	Finally did fail and was reported by Scott Norton here:
+	https://tug.org/pipermail/tex-k/2020-November/003391.html.
+
 2018-10-18  Norbert Preining  <preining@logic.at>
 
 	* ligkern_routines.c (retrieve_ligkern_table): need

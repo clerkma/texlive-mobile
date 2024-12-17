@@ -2,7 +2,7 @@
 ** GraphicsPath.hpp                                                     **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cctype>
 #include <cmath>
@@ -641,7 +642,7 @@ class GraphicsPath {
 				void arcto (T rx, T ry, double angle, bool largeArcFlag, bool sweepFlag, const Point &p) override {
 					EllipticalArc arc(this->currentPoint(), rx, ry, angle, largeArcFlag, sweepFlag, p);
 					std::vector<CommandVariant> cmds;
-					for (const Bezier &bezier : arc.approximate())
+					for (const CubicBezier &bezier : arc.approximate())
 						cmds.emplace_back(CubicTo{bezier.point(1), bezier.point(2), bezier.point(3)});
 					this->path().replace(this->commandPos(), cmds);
 				}
@@ -662,24 +663,14 @@ class GraphicsPath {
 		bool operator == (const GraphicsPath &path) const {
 			if (size() != path.size())
 				return false;
-			auto it = _commands.begin();
-			for (const auto &cmd : path._commands) {
-				if (*it++ != cmd)
-					return false;
-			}
-			return true;
+			return std::equal(_commands.begin(), _commands.end(), path._commands.begin());
 		}
 
 		/** Returns true if this path differs from another one (command-wise). */
 		bool operator != (const GraphicsPath &path) const {
 			if (size() != path.size())
 				return true;
-			auto it = _commands.begin();
-			for (const auto &cmd : path._commands) {
-				if (*it++ != cmd)
-					return true;
-			}
-			return false;
+			return !std::equal(_commands.begin(), _commands.end(), path._commands.begin());
 		}
 
 		/** Iterates over all commands defining this path and calls the corresponding template methods.
@@ -732,7 +723,7 @@ class GraphicsPath {
 
 	private:
 		std::deque<CommandVariant> _commands; ///< sequence of path commands
-		WindingRule _windingRule;
+		WindingRule _windingRule = WindingRule::NON_ZERO;
 		Point _startPoint; ///< start point of final sub-path
 		Point _finalPoint; ///< final point reached by last command in path
 };

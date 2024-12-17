@@ -1,4 +1,5 @@
 #include "mendex.h"
+#include "version.h"
 #include <kpathsea/tex-file.h>
 #include <kpathsea/variable.h>
 #include <ptexenc/ptexenc.h>
@@ -8,7 +9,7 @@
 
 #include "kp.h"
 
-char *styfile,*idxfile[256],*indfile,*dicfile,*logfile;
+char *styfile[64],*idxfile[256],*indfile,*dicfile,*logfile;
 
 /* default paths */
 #ifndef DEFAULT_INDEXSTYLES
@@ -19,11 +20,9 @@ char *styfile,*idxfile[256],*indfile,*dicfile,*logfile;
 #endif
 KpathseaSupportInfo kp_ist,kp_dict;
 
-#define VERSION "version 3.2 [16-Jan-2020]"
-
 int main(int argc, char **argv)
 {
-	int i,j,cc=0,startpagenum=-1,ecount=0,chkopt=1;
+	int i,j,k,cc=0,startpagenum=-1,ecount=0,chkopt=1;
 	const char *envbuff;
 	char *p;
 
@@ -41,27 +40,9 @@ int main(int argc, char **argv)
 			fprintf (stderr, "Ignoring bad kanji encoding \"%s\".\n", p);
 	}
 
-#ifdef WIN32
-	p = kpse_var_value ("guess_input_kanji_encoding");
-	if (p) {
-		if (*p == '1' || *p == 'y' || *p == 't')
-			infile_enc_auto = 1;
-		free(p);
-	}
-#endif
-
-	kp_ist.var_name = "INDEXSTYLE";
-	kp_ist.path = DEFAULT_INDEXSTYLES; /* default path. */
-	kp_ist.suffix = "ist";
-	KP_entry_filetype(&kp_ist);
-	kp_dict.var_name = "INDEXDICTIONARY";
-	kp_dict.path = DEFAULT_INDEXDICTS; /* default path */
-	kp_dict.suffix = "dict";
-	KP_entry_filetype(&kp_dict);
-
 /*   check options   */
 
-	for (i=1,j=0;i<argc && j<256;i++) {
+	for (i=1,j=k=0;i<argc && j<256;i++) {
 		if ((argv[i][0]=='-')&&(strlen(argv[i])>=2)&&chkopt) {
 			switch (argv[i][1]) {
 			case 'c':
@@ -142,12 +123,17 @@ int main(int argc, char **argv)
 				break;
 
 			case 's':
+				if (k==64) {
+					fprintf (stderr, "Too many style files.\n");
+					exit(255);
+				}
 				if ((argv[i][2]=='\0')&&(i+1<argc)) {
-					styfile=xstrdup(argv[++i]);
+					styfile[k]=xstrdup(argv[++i]);
 				}
 				else {
-					styfile=xstrdup(&argv[i][2]);
+					styfile[k]=xstrdup(&argv[i][2]);
 				}
+				k++;
 				break;
 
 			case 'v':
@@ -185,17 +171,15 @@ int main(int argc, char **argv)
 
 			case '-':
 				if (strlen(argv[i])==2) chkopt=0;
+				if (strcmp(argv[i],"--guess-input-enc"   )==0) infile_enc_auto=1;
+				if (strcmp(argv[i],"--no-guess-input-enc")==0) infile_enc_auto=0;
 				if (strcmp(argv[i],"--help")!=0) break;
 
 			default:
 				fprintf(stderr,"mendex - Japanese index processor, %s (%s) (%s).\n",VERSION, get_enc_string(), TL_VERSION);
-				fprintf(stderr," Copyright 2009 ASCII MEDIA WORKS, 2017-2020 Japanese TeX Development Community\n");
+				fprintf(stderr," Copyright 2009 ASCII MEDIA WORKS, 2017-2024 Japanese TeX Development Community\n");
 				fprintf(stderr,"usage:\n");
-				fprintf(stderr,"%% mendex [-ilqrcgfEJS"
-#ifdef WIN32
-					       "T"
-#endif
-					       "U] [-s sty] [-d dic] [-o ind] [-t log] [-p no] [-I enc] [--] [idx0 idx1 ...]\n");
+				fprintf(stderr,"%% mendex [-ilqrcgfEJSU] [-s sty] [-d dic] [-o ind] [-t log] [-p no] [-I enc] [--[no-]guess-input-enc] [--] [idx0 idx1 ...]\n");
 				fprintf(stderr,"options:\n");
 				fprintf(stderr,"-i      use stdin as the input file.\n");
 				fprintf(stderr,"-l      use letter ordering.\n");
@@ -215,7 +199,9 @@ int main(int argc, char **argv)
 				fprintf(stderr,"-S      ShiftJIS mode.\n");
 				fprintf(stderr,"-U      UTF-8 mode.\n");
 				fprintf(stderr,"-I enc  internal encoding for keywords (enc: euc or utf8).\n");
+				fprintf(stderr,"--[no-]guess-input-enc  disable/enable to guess input file encoding.\n");
 				fprintf(stderr,"idx...  input files.\n");
+				fprintf(stderr,"\nEmail bug reports to %s.\n", BUG_ADDRESS);
 				exit(0);
 				break;
 			}
@@ -228,14 +214,23 @@ int main(int argc, char **argv)
 	}
 	idxcount=j+fsti;
 
+	kp_ist.var_name = "INDEXSTYLE";
+	kp_ist.path = DEFAULT_INDEXSTYLES; /* default path. */
+	kp_ist.suffix = "ist";
+	KP_entry_filetype(&kp_ist);
+	kp_dict.var_name = "INDEXDICTIONARY";
+	kp_dict.path = DEFAULT_INDEXDICTS; /* default path */
+	kp_dict.suffix = "dict";
+	KP_entry_filetype(&kp_dict);
+
 /*   check option errors   */
 
 	if (idxcount==0) idxcount=fsti=1;
 
-	if (styfile==NULL) {
+	if (styfile[0]==NULL) {
 		envbuff=kpse_var_value("INDEXDEFAULTSTYLE");
 		if (envbuff!=NULL) {
-			styfile=xstrdup(envbuff);
+			styfile[0]=xstrdup(envbuff);
 		}
 	}
 
@@ -269,8 +264,6 @@ int main(int argc, char **argv)
 		logfile=xstrdup("stderr");
 	}
 
-	if (styfile!=NULL) styread(styfile);
-
 	if (strcmp(argv[0],"makeindex")==0) {
 		verb_printf(efp,"This is Not `MAKEINDEX\', But `MENDEX\' %s (%s) (%s).\n",
 			    VERSION, get_enc_string(), TL_VERSION);
@@ -283,6 +276,10 @@ int main(int argc, char **argv)
 /*   init kanatable   */
 
 	initkanatable();
+
+	for (k=0;styfile[k]!=NULL;k++) {
+		styread(styfile[k]);
+	}
 
 /*   read dictionary   */
 

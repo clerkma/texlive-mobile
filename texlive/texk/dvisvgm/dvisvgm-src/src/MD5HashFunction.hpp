@@ -2,7 +2,7 @@
 ** MD5HashFunction.hpp                                                  **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -21,13 +21,7 @@
 #ifndef MD5HASHFUNCTION_HPP
 #define MD5HASHFUNCTION_HPP
 
-#include <config.h>
-#ifdef HAVE_OPENSSL_MD5_H
-#	include <openssl/md5.h>
-#else
-#	include <md5.h>
-#endif
-
+#include <md5.h>
 #include "HashFunction.hpp"
 
 class MD5HashFunction : public HashFunction {
@@ -42,7 +36,7 @@ class MD5HashFunction : public HashFunction {
 		void update (const std::string &data) override {update(data.data(), data.length());}
 		void update (const std::vector<uint8_t> &data) override {update(reinterpret_cast<const char*>(data.data()), data.size());}
 
-		std::vector<uint8_t> digestValue () const override {
+		std::vector<uint8_t> digestBytes () const override {
 			std::vector<uint8_t> hash(16);
 			MD5_CTX savedContext = _context;
 			MD5_Final(hash.data(), &_context);   // also erases the context structure

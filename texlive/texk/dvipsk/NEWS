@@ -1,9 +1,29 @@
-$Id: NEWS 53427 2020-01-16 22:02:50Z karl $
+$Id: NEWS 69711 2024-02-05 17:23:27Z karl $
 This file records noteworthy changes.  (Public domain.)
 
+dvips 2024.1 (TeX Live 2024):
+  Support for multibyte characters in virtual fonts to OFM fonts for (u)pTeX.
+
+dvips 2023.1 (TeX Live 2023):
+  Check --help and --version early to avoid looking for texmf.cnf.
+
+dvips 2022.1 (TeX Live 2022):
+  New option (and config file directive) -landscaperotate: try to
+    automatically match rotated page content and paper sizes; in the past,
+    this was done by default, but it is generally unnecessary nowadays,
+    and can be troublesome when converting to PDF, so now the default is
+    not to do this. This option re-enables the rotated matching.
+  Use full font path (if specified) for tfm lookups, as with pk.
+
+dvips 2021.1 (TeX Live 2021):
+  Default title is now the basename of the input file instead of the
+    full path, and can be overridden with new option -title.
+  If an .eps or other image file is not found, dvips now exits unsuccessfully.
+  Support new feature of virtual font to fallback Japanese font definition.
+
 dvips 2020.1 (TeX Live 2020):
-  Encodings for bitmap fonts.
-  https://tug.org/TUGboat/tb40-2/tb125rokicki-type3search.pdf
+  Encodings for bitmap fonts:
+    https://tug.org/TUGboat/tb40-2/tb125rokicki-type3search.pdf
   
 dvips 5.999 (TeX Live 2019):
   Buffer overflows.

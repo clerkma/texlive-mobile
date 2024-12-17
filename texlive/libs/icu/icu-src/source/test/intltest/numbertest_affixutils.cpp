@@ -18,12 +18,14 @@ class DefaultSymbolProvider : public SymbolProvider {
   public:
     DefaultSymbolProvider(UErrorCode &status) : fSymbols(Locale("ar_SA"), status) {}
 
-    UnicodeString getSymbol(AffixPatternType type) const U_OVERRIDE {
+    UnicodeString getSymbol(AffixPatternType type) const override {
         switch (type) {
             case TYPE_MINUS_SIGN:
                 return u"−";
             case TYPE_PLUS_SIGN:
                 return fSymbols.getConstSymbol(DecimalFormatSymbols::ENumberFormatSymbol::kPlusSignSymbol);
+            case TYPE_APPROXIMATELY_SIGN:
+                return u"≃";
             case TYPE_PERCENT:
                 return fSymbols.getConstSymbol(DecimalFormatSymbols::ENumberFormatSymbol::kPercentSymbol);
             case TYPE_PERMILLE:
@@ -42,7 +44,7 @@ class DefaultSymbolProvider : public SymbolProvider {
             case TYPE_CURRENCY_OVERFLOW:
                 return u"\uFFFD";
             default:
-                UPRV_UNREACHABLE;
+                UPRV_UNREACHABLE_EXIT;
         }
     }
 };
@@ -93,6 +95,7 @@ void AffixUtilsTest::testUnescape() {
                  {u"-!", false, 2, u"−!"},
                  {u"+", false, 1, u"\u061C+"},
                  {u"+!", false, 2, u"\u061C+!"},
+                 {u"~", false, 1, u"≃"},
                  {u"‰", false, 1, u"؉"},
                  {u"‰!", false, 2, u"؉!"},
                  {u"-x", false, 2, u"−x"},
@@ -199,7 +202,7 @@ void AffixUtilsTest::testInvalid() {
 
 class NumericSymbolProvider : public SymbolProvider {
   public:
-    virtual UnicodeString getSymbol(AffixPatternType type) const {
+    virtual UnicodeString getSymbol(AffixPatternType type) const override {
         return Int64ToUnicodeString(type < 0 ? -type : type);
     }
 };
@@ -209,7 +212,7 @@ void AffixUtilsTest::testUnescapeWithSymbolProvider() {
             {u"", u""},
             {u"-", u"1"},
             {u"'-'", u"-"},
-            {u"- + % ‰ ¤ ¤¤ ¤¤¤ ¤¤¤¤ ¤¤¤¤¤", u"1 2 3 4 5 6 7 8 9"},
+            {u"- + ~ % ‰ ¤ ¤¤ ¤¤¤ ¤¤¤¤ ¤¤¤¤¤", u"1 2 3 4 5 6 7 8 9 10"},
             {u"'¤¤¤¤¤¤'", u"¤¤¤¤¤¤"},
             {u"¤¤¤¤¤¤", u"\uFFFD"}
     };
@@ -222,7 +225,7 @@ void AffixUtilsTest::testUnescapeWithSymbolProvider() {
         UnicodeString input(cas[0]);
         UnicodeString expected(cas[1]);
         sb.clear();
-        AffixUtils::unescape(input, sb, 0, provider, UNUM_FIELD_COUNT, status);
+        AffixUtils::unescape(input, sb, 0, provider, kUndefinedField, status);
         assertSuccess("Spot 1", status);
         assertEquals(input, expected, sb.toUnicodeString());
         assertEquals(input, expected, sb.toTempUnicodeString());
@@ -230,9 +233,9 @@ void AffixUtilsTest::testUnescapeWithSymbolProvider() {
 
     // Test insertion position
     sb.clear();
-    sb.append(u"abcdefg", UNUM_FIELD_COUNT, status);
+    sb.append(u"abcdefg", kUndefinedField, status);
     assertSuccess("Spot 2", status);
-    AffixUtils::unescape(u"-+%", sb, 4, provider, UNUM_FIELD_COUNT, status);
+    AffixUtils::unescape(u"-+~", sb, 4, provider, kUndefinedField, status);
     assertSuccess("Spot 3", status);
     assertEquals(u"Symbol provider into middle", u"abcd123efg", sb.toUnicodeString());
 }
@@ -240,7 +243,7 @@ void AffixUtilsTest::testUnescapeWithSymbolProvider() {
 UnicodeString AffixUtilsTest::unescapeWithDefaults(const SymbolProvider &defaultProvider,
                                                           UnicodeString input, UErrorCode &status) {
     FormattedStringBuilder nsb;
-    int32_t length = AffixUtils::unescape(input, nsb, 0, defaultProvider, UNUM_FIELD_COUNT, status);
+    int32_t length = AffixUtils::unescape(input, nsb, 0, defaultProvider, kUndefinedField, status);
     assertEquals("Return value of unescape", nsb.length(), length);
     return nsb.toUnicodeString();
 }

@@ -2,7 +2,7 @@
 ** PdfSpecialHandler.cpp                                                **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -48,7 +48,9 @@ void PdfSpecialHandler::preprocess (const string&, istream &is, SpecialActions &
 		{"bannot",   &PdfSpecialHandler::preprocessBeginAnn},
 		{"beginann", &PdfSpecialHandler::preprocessBeginAnn},
 		{"dest",     &PdfSpecialHandler::preprocessDest},
-		{"pagesize", &PdfSpecialHandler::preprocessPagesize}
+		{"pagesize", &PdfSpecialHandler::preprocessPagesize},
+		{"mapfile",  &PdfSpecialHandler::preprocessMapfile},
+		{"mapline",  &PdfSpecialHandler::preprocessMapline}
 	};
 	auto it = commands.find(cmdstr);
 	if (it != commands.end())
@@ -71,8 +73,6 @@ bool PdfSpecialHandler::process (const string&, istream &is, SpecialActions &act
 		{"eannot",   &PdfSpecialHandler::processEndAnn},
 		{"endann",   &PdfSpecialHandler::processEndAnn},
 		{"dest",     &PdfSpecialHandler::processDest},
-		{"mapfile",  &PdfSpecialHandler::processMapfile},
-		{"mapline",  &PdfSpecialHandler::processMapline}
 	};
 	auto it = commands.find(cmdstr);
 	if (it != commands.end())
@@ -95,7 +95,7 @@ static char prepare_mode (InputReader &ir) {
 void PdfSpecialHandler::preprocessPagesize (StreamInputReader &ir, SpecialActions &actions) {
 	// add page sizes to collection of paper sizes in order to handle them equally
 	SpecialHandler *handler = SpecialManager::instance().findHandlerByName("papersize");
-	if (auto papersizeHandler = dynamic_cast<PapersizeSpecialHandler*>(handler)) {
+	if (auto papersizeHandler = static_cast<PapersizeSpecialHandler*>(handler)) {
 		try {
 			Length width, height;
 			// parse parameter sequence of the form (name length)+
@@ -116,7 +116,7 @@ void PdfSpecialHandler::preprocessPagesize (StreamInputReader &ir, SpecialAction
 }
 
 
-void PdfSpecialHandler::processMapfile (StreamInputReader &ir, SpecialActions&) {
+void PdfSpecialHandler::preprocessMapfile (StreamInputReader &ir, SpecialActions&) {
 	char modechar = prepare_mode(ir);
 	string fname = ir.getString();
 	if (!FontMap::instance().read(fname, modechar))
@@ -124,7 +124,7 @@ void PdfSpecialHandler::processMapfile (StreamInputReader &ir, SpecialActions&) 
 }
 
 
-void PdfSpecialHandler::processMapline (StreamInputReader &ir, SpecialActions&) {
+void PdfSpecialHandler::preprocessMapline (StreamInputReader &ir, SpecialActions&) {
 	char modechar = prepare_mode(ir);
 	try {
 		MapLine mapline(ir.getStream());
@@ -283,7 +283,7 @@ void PdfSpecialHandler::dviEndPage (unsigned pageno, SpecialActions &actions) {
 }
 
 
-vector<const char*> PdfSpecialHandler::prefixes() const {
+vector<const char*> PdfSpecialHandler::prefixes () const {
 	vector<const char*> pfx {"pdf:"};
 	return pfx;
 }

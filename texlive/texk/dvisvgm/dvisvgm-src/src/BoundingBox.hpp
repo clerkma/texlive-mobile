@@ -2,7 +2,7 @@
 ** BoundingBox.hpp                                                      **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -76,9 +76,10 @@ class BoundingBox {
 		bool operator != (const BoundingBox &bbox) const {return !(*this == bbox);}
 		void scale (double sx, double sy);
 		void transform (const Matrix &tm);
-		std::string toSVGViewBox () const;
+		std::string svgViewBoxString () const;
 		std::ostream& write (std::ostream &os) const;
 		std::unique_ptr<XMLElement> createSVGRect () const;
+		std::unique_ptr<XMLElement> createSVGPath () const;
 
 	private:
 		double _ulx, _uly; ///< coordinates of upper left vertex (in PS point units)

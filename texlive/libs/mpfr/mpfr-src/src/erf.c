@@ -1,6 +1,6 @@
 /* mpfr_erf -- error function of a floating-point number
 
-Copyright 2001, 2003-2019 Free Software Foundation, Inc.
+Copyright 2001, 2003-2023 Free Software Foundation, Inc.
 Contributed by the AriC and Caramba projects, INRIA.
 
 This file is part of the GNU MPFR Library.
@@ -34,8 +34,8 @@ mpfr_erf (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
   MPFR_SAVE_EXPO_DECL (expo);
 
   MPFR_LOG_FUNC
-    (("x[%Pu]=%.*Rg rnd=%d", mpfr_get_prec (x), mpfr_log_prec, x, rnd_mode),
-     ("y[%Pu]=%.*Rg inexact=%d", mpfr_get_prec (y), mpfr_log_prec, y, inex));
+    (("x[%Pd]=%.*Rg rnd=%d", mpfr_get_prec (x), mpfr_log_prec, x, rnd_mode),
+     ("y[%Pd]=%.*Rg inexact=%d", mpfr_get_prec (y), mpfr_log_prec, y, inex));
 
   if (MPFR_UNLIKELY (MPFR_IS_SINGULAR (x)))
     {
@@ -78,7 +78,7 @@ mpfr_erf (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
       mpfr_init2 (l, MPFR_PREC(y) + 17);
       mpfr_init2 (h, MPFR_PREC(y) + 17);
       /* first compute l */
-      mpfr_mul (l, x, x, MPFR_RNDU);
+      mpfr_sqr (l, x, MPFR_RNDU);
       mpfr_div_ui (l, l, 3, MPFR_RNDU); /* upper bound on x^2/3 */
       mpfr_ui_sub (l, 1, l, MPFR_RNDZ); /* lower bound on 1 - x^2/3 */
       mpfr_const_pi (h, MPFR_RNDU); /* upper bound of Pi */
@@ -97,7 +97,7 @@ mpfr_erf (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
       inex = mpfr_prec_round (l, MPFR_PREC(y), rnd_mode);
       inex2 = mpfr_prec_round (h, MPFR_PREC(y), rnd_mode);
       /* Caution: we also need inex=inex2 (inex might be 0). */
-      ok = SAME_SIGN (inex, inex2) && mpfr_cmp (l, h) == 0;
+      ok = SAME_SIGN (inex, inex2) && mpfr_equal_p (l, h);
       if (ok)
         mpfr_set (y, h, rnd_mode);
       mpfr_clear (l);
@@ -205,7 +205,7 @@ mpfr_erf_0 (mpfr_ptr res, mpfr_srcptr x, double xf2, mpfr_rnd_t rnd_mode)
       mpfr_t tauk;
       mpfr_exp_t log2tauk;
 
-      mpfr_mul (y, x, x, MPFR_RNDU); /* err <= 1 ulp */
+      mpfr_sqr (y, x, MPFR_RNDU); /* err <= 1 ulp */
       mpfr_set_ui (s, 1, MPFR_RNDN);
       mpfr_set_ui (t, 1, MPFR_RNDN);
       mpfr_init2 (tauk, 53);

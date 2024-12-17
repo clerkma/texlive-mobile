@@ -1,3 +1,51 @@
+2024-09-13 Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import libpng-1.6.44.
+	* version.ac: Adjust.
+
+2024-04-07  Karl Berry  <karl@freefriends.org>
+
+	* configure.ac (AM_PROG_AR): include for cosmopolitan, from Luigi.
+
+2024-02-24 Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import libpng-1.6.43.
+	* version.ac: Adjust.
+
+2024-01-31 Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import libpng-1.6.42.
+	* version.ac: Adjust.
+
+2024-01-26 Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import libpng-1.6.41.
+	* version.ac: Adjust.
+
+2023-06-22 Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import libpng-1.6.40.
+	* version.ac: Adjust.
+
+2023-01-22  Karl Berry  <karl@freefriends.org>
+
+	* configure.ac (KPSE_CANONICAL_HOST): call this,
+	since we use $host_cpu in the optimization checks.
+	Else could be determined wrong. Report from Dick Koch,
+	karl mail 22 Jan 2023 00:43:11.
+	(PNG_ARM_NEON, PNG_POWERPC_VSX): report results;
+	also sync comments with upstream (trivial typos).
+
+2022-11-21 Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import libpng-1.6.39.
+	* version.ac: Adjust.
+
+2022-09-16 Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import libpng-1.6.38.
+	* version.ac: Adjust.
+
 2020-03-14  Karl Berry  <karl@freefriends.org>
 
 	Import VSX support from upstream to TL configure.

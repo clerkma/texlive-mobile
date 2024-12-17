@@ -1,0 +1,12 @@
+\section*{Test result}
+\begin{itemize}
+\item[~] ABC HIJ XYZ abc hij xyz {ACE} {ace}
+\item[u] ABC HIJ XYZ ABC HIJ XYZ {ACE} {ace}
+\item[l] abc hij xyz abc hij xyz {ACE} {ace}
+\item[t] Abc hij xyz abc hij xyz {ACE} {ace}
+\item[~] ÀÁÂ ÆÇÈ ÔÕÖ ØÙÚ ÜÝÞ אבג זחט פץצ רשת ü‎‏ {ÆÇÈ} {זחט}
+\item[u] ÀÁÂ ÆÇÈ ÔÕÖ ØÙÚ ÜÝÞ ÀÁÂ ÆÇÈ ÔÕÖ ØÙÚ ÜÝÞ {ÆÇÈ} {זחט}
+\item[l] אבג זחט פץצ רשת ü‎‏ אבג זחט פץצ רשת ü‎‏ {ÆÇÈ} {זחט}
+\item[t] Àבג זחט פץצ רשת ü‎‏ אבג זחט פץצ רשת ü‎‏ {ÆÇÈ} {זחט}
+\end{itemize}
+\endinput

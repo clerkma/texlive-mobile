@@ -100,6 +100,17 @@ rmf[] rmf(triple z0, triple c0, triple c1, triple z1, real[] t, triple perp=O)
   return R;
 }
 
+
+drawfcn drawTube(triple[] g, real w, triple min, triple max) {
+  return new void(frame f, transform3 t=identity4, material[] m,
+                  light light=currentlight, render render=defaultrender)
+    {
+      material m=material(m[0],light);
+      drawTube(f,t*g,w,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
+               t*min,t*max,m.opacity == 1);
+    };
+}
+
 surface tube(triple z0, triple c0, triple c1, triple z1, real w)
 {
   surface s;
@@ -125,13 +136,10 @@ surface tube(triple z0, triple c0, triple c1, triple z1, real w)
   f(t3);
 
   s.PRCprimitive=false;
-  s.draw=new void(frame f, transform3 t=identity4, material[] m,
-                  light light=currentlight, render render=defaultrender)
-    {
-     material m=material(m[0],light);
-     drawTube(f,t*g,w,m.p,m.opacity,m.shininess,m.metallic,m.fresnel0,
-              t*min(s),t*max(s),m.opacity == 1);
-    };
+  s.primitive=primitive(drawTube(g,w,min(s),max(s)),
+                        new bool(transform3 t) {
+                          return unscaled(t,X,Y);
+                        });
   return s;
 }
 
@@ -153,16 +161,16 @@ struct tube
 
   void Null(transform3) {}
   void Null(transform3, bool) {}
-  
+
   surface[] render(path3 g, real r) {
     triple z0=point(g,0);
     triple c0=postcontrol(g,0);
     triple c1=precontrol(g,1);
     triple z1=point(g,1);
-    real norm=sqrtEpsilon*max(abs(z0),abs(c0),abs(c1),abs(z1));
+    real norm=sqrtEpsilon*max(abs(z0),abs(c0),abs(c1),abs(z1),r);
     surface[] s;
     void Split(triple z0, triple c0, triple c1, triple z1,
-               real depth=mantissaBits) {
+               int depth=mantissaBits) {
       if(depth > 0) {
         pair threshold(triple z0, triple c0, triple c1) {
           triple u=c1-z0;
@@ -174,7 +182,7 @@ struct tube
         pair a0=threshold(z0,c0,c1);
         pair a1=threshold(z1,c1,c0);
         real rL=r*arclength(z0,c0,c1,z1)*tubethreshold;
-        if((a0.x >= norm && rL*a0.y^2 > a0.x^8) || 
+        if((a0.x >= norm && rL*a0.y^2 > a0.x^8) ||
            (a1.x >= norm && rL*a1.y^2 > a1.x^8)) {
           triple m0=0.5*(z0+c0);
           triple m1=0.5*(c0+c1);
@@ -208,13 +216,16 @@ struct tube
           transform3 t=shift(v)*align(unit(u))*scale(r,r,abs(u));
           // Draw opaque surfaces with core for better small-scale rendering.
           surface unittube=t*unitcylinder;
-          unittube.draw=unitcylinderDraw(core=true);
+          unittube.primitive=primitive(unitcylinderDraw(core=true),
+                                       new bool(transform3 t) {
+                                         return unscaled(t,X,Y);
+                                       });
           s.push(unittube);
         } else
           s.append(render(subpath(p,i,i+1),r));
       }
     }
-    
+
     transform3 t=scale3(r);
     bool cyclic=cyclic(p);
     int begin=0;

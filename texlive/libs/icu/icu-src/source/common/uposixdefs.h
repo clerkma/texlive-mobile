@@ -48,16 +48,13 @@
 #endif
 
 /*
- * Make sure things like readlink and such functions work.
+ * Make sure things like realpath and such functions work.
  * Poorly upgraded Solaris machines can't have this defined.
  * Cleanly installed Solaris can use this #define.
- * [Experience with TeX Live is that it always causes failure.
- *  http://tug.org/pipermail/tlbuild/2013q1/002493.html
- *  http://tug.org/pipermail/tlbuild/2013q1/002536.html ]
  *
  * z/OS needs this definition for timeval and to get usleep.
  */
-#if !defined(_XOPEN_SOURCE_EXTENDED) && defined(__TOS_MVS__) && !defined(sun)
+#if !defined(_XOPEN_SOURCE_EXTENDED) && defined(__TOS_MVS__)
 #   define _XOPEN_SOURCE_EXTENDED 1
 #endif
 
@@ -71,8 +68,10 @@
 #   define _STDC_C99
 #endif
 
-#if defined(__cplusplus) && defined(__NetBSD__)
-#define _ISOC99_SOURCE
+#if !defined _POSIX_C_SOURCE && \
+    defined(__APPLE__) && defined(__MACH__) && !defined(__clang__)
+// Needed to prevent EOWNERDEAD issues with GCC on Mac
+#define _POSIX_C_SOURCE 200809L
 #endif
 
 #endif  /* __UPOSIXDEFS_H__ */

@@ -1,3 +1,73 @@
+2024-04-28  Karl Berry  <karl@freefriends.org>
+
+	* kpse-common.m4 (KPSE_BASIC): 
+
+2024-04-18  Karl Berry  <karl@freefriends.org>
+
+	* kpse-visibility.m4 (_KPSE_VISIBILITY_FLAGS): avoid testing or
+	including -fvisibility-inlines-hidden for C. From Luigi, mail of
+	12 Apr 2024 06:26:23.
+
+2024-02-01  Luigi Scarso  <luigi.scarso@gmail.com>
+
+	* kpse-pkgs.m4 (kpse_libs_pkgs): add mpfi (new subdir).
+	(KPSE_ALL_SYSTEM_FLAGS): add AC_REQUIRE([KPSE_MPFI_SYSTEM_FLAGS]).
+	* kpse-mpfi-flags.m4: new file.
+
+2023-12-21  Karl Berry  <karl@freefriends.org>
+
+	* kpse-common.m4 (KPSE_COMMON): remove AC_HEADER_STDC, an obsolete
+	no-op as of autoconf 2.70.
+
+2023-06-18  Karl Berry  <karl@freefriends.org>
+
+	* kpse-common.m4 (KPSE_BASIC, KPSE_COMMON): more tldbg.
+	(KPSE_COMMON): call AM_PROG_AR before LT_INIT here to avoid warning:
+	  configure.ac:46: warning: LT_INIT was called before AM_PROG_AR
+	(_KPSE_USE_LIBTOOL): instead of here.
+
+2023-03-01  Karl Berry  <karl@freefriends.org>
+
+	* kpse-common.m4 (_KPSE_USE_LIBTOOL): tldbg output libtool
+	version; include AM_PROG_AR for dvisvgm.
+
+2023-02-25  Werner Fink  <werner@suse.de>
+
+	* kpse-potrace-flags.m4 (KPSE_POTRACE_SYSTEM_FLAGS): define
+	using _KPSE_LIB_FLAGS_SYSTEM since there is no .pc file,
+	to allow --with-system-potrace to work.
+	https://tug.org/pipermail/tex-live/2023-February/048869.html
+
+2022-08-22 Luigi Scarso <luigi.scarso@gmail.com>
+
+	* kpse-pkgs.m4 (KPSE_LIBS_PKGS): add potrace.
+	* Add kpse-potrace-flags.m4.
+
+2021-06-28  Karl Berry  <karl@freefriends.org>
+
+	* README: list the macros obsoleted by autoconf 2.70 which we use.
+
+2021-02-09  Karl Berry  <karl@freefriends.org>
+
+	* kpse-setup.m4 (_KPSE_RECURSE): add debug if configure not found.
+
+2021-02-07  Karl Berry  <karl@freefriends.org>
+
+	* kpse-pkgs.m4 (KPSE_UTILS_PKGS): new utils program xml2pmx.
+
+2020-05-14  Karl Berry  <karl@freefriends.org>
+
+	* kpse-pkgs.m4 (KPSE_LIBS_PKGS),
+	(KPSE_POPPLER_SYSTEM_FLAGS): remove poppler.
+	* kpse-poppler-flags.m4: remove file.
+	* kpse-xpdf-flags.m4 (KPSE_XPDF_OPTIONS): no more system option.
+	(KPSE_XPDF_SYSTEM_FLAGS): no-op.
+
+2020-04-21 Luigi Scarso <luigi.scarso@gmail.com>
+
+	* kpse-pkgs.m4 (KPSE_LIBS_PKGS): add pplib.
+	* Add kpse-pplib-flags.m4.
+
 2020-03-14  Karl Berry  <karl@freefriends.org>
 
 	* kpse-setup.m4 (KPSE_SETUP): make that powerpc*, not powerpc-*.

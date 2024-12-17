@@ -15,8 +15,8 @@ using namespace types;
 
 namespace trans {
 
-// Instances of this class are passed to types::ty objects so that they can call
-// back to env when checking casting of subtypes.
+// Instances of this class are passed to types::ty objects so that they can
+// call back to env when checking casting of subtypes.
 class envCaster : public caster {
   protoenv &e;
   symbol name;
@@ -32,7 +32,7 @@ public:
     return e.castable(target, source, name);
   }
 };
-  
+
 access *protoenv::baseLookupCast(ty *target, ty *source, symbol name) {
   static identAccess id;
 
@@ -159,10 +159,10 @@ ty *protoenv::castTarget(ty *target, ty *source, symbol name) {
       return e.castable(target, source, name) ? target : 0;
     }
   };
-          
+
   resolver r(*this, name);
   return r.collect(target, source);
-} 
+}
 
 ty *protoenv::castSource(ty *target, ty *source, symbol name) {
   struct resolver : public collector {
@@ -176,10 +176,10 @@ ty *protoenv::castSource(ty *target, ty *source, symbol name) {
       return e.castable(target, source, name) ? source : 0;
     }
   };
-          
+
   resolver r(*this, name);
   return r.collect(target, source);
-} 
+}
 
 void protoenv::addArrayOps(array *a)
 {
@@ -213,5 +213,14 @@ record *env::getModule(symbol id, string filename)
 {
   return ge.getModule(id, filename);
 }
+
+record *env::getTemplatedModule(symbol id,
+                                string filename,
+                                string index,
+                                mem::vector<absyntax::namedTyEntry*>* args)
+{
+  return ge.getTemplatedModule(id, filename, index, args);
+}
+
 
 }

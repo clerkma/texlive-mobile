@@ -1,4 +1,4 @@
-$Id: README 54637 2020-04-10 03:54:17Z kakuto $
+$Id: README 72778 2024-11-06 04:18:33Z kakuto $
 Public domain.  Originally created by Karl Berry, 2005.
 
 Libraries we compile for TeX Live.
@@ -9,62 +9,72 @@ bypassing or using the original one.
 
 See also comments in ../texk/README.
 
-cairo 1.16.0 - checked 20oct18
-  http://cairographics.org/releases/
+cairo 1.16.0 - no longer checked
+  https://cairographics.org/releases/
+  There are later releases than this, but they removed autotools support.
+  Since cairo is only used by MetaPost (for png output), and 1.16.0
+  seems fine for that, not taking the time and trouble to update.
 
-freetype2 2.10.1 - checked 02jul19
-  http://savannah.nongnu.org/download/freetype/
+freetype2 2.13.3 - checked 13aug24
+  https://download.savannah.gnu.org/releases/freetype/
 
-gd 2.3.0 - checked 10apr20
+gd 2.3.3 - checked 13sep21
   https://github.com/libgd/libgd/releases
 
-gmp 6.2.0 - checked 20jan20
-  http://ftp.gnu.org/gnu/gmp/
+gmp 6.2.1 - checked 15nov20
+  https://ftp.gnu.org/gnu/gmp/
 
 graphite2 1.3.14 - checked 10apr20
-  http://sourceforge.net/projects/silgraphite/files/graphite2/
+  https://sourceforge.net/projects/silgraphite/files/graphite2/
   (requires C++11)
 
-harfbuzz 2.6.4 - checked 30oct19
-  http://www.freedesktop.org/software/harfbuzz/release/
+harfbuzz 10.1.0 - checked 06nov24
+  https://github.com/harfbuzz/harfbuzz/releases/latest
 
-icu 63.1 - checked 8jan19
-  http://download.icu-project.org/files/icu4c/
+icu 76.1 - checked 27oct24 (requires C++17, e.g., g++13)
+  https://github.com/unicode-org/icu/releases/
 
-libpaper 1.1.24+nmu2 - checked 24oct13
-  ftp://ftp.de.debian.org/debian/pool/main/libp/libpaper/
+libpaper 1.1.29 - checked 07jan24
+  https://ftp.debian.org/debian/pool/main/libp/libpaper/
 
-libpng 1.6.37 - checked 03may19
+libpng 1.6.44 - checked 13sep24
   https://sourceforge.net/projects/libpng/files/ - used by many
 
-lua 5.2.4 - checked 11mar15
-  http://www.lua.org/ftp/
-
-lua 5.3.5 - checked 21jul18
-  http://www.lua.org/ftp/
+lua 5.2.4
+lua 5.3.6 - checked 04oct20
+  https://www.lua.org/ftp/
+  Lua updates must be done carefully, by the LuaTeX maintainer,
+  since Lua changes generally imply new incompatibilities.
 
 luajit 2.1.0-beta3 - checked 20jun17
-  http://luajit.org/download/LuaJIT-2.1.0-beta3.tar.gz
+  https://luajit.org/download/LuaJIT-2.1.0-beta3.tar.gz
+  As with Lua.
 
-mpfr 4.0.2 - checked 1jan19
-  http://ftp.gnu.org/gnu/mpfr/
+mpfi 1.5.4 - checked 1feb24
+  https://perso.ens-lyon.fr/nathalie.revol/software.html#download
+  
+mpfr 4.2.1 - checked 1feb24
+  https://ftp.gnu.org/gnu/mpfr/
 
-pixman 0.38.4 - checked 03may19
-  http://cairographics.org/releases/
+pixman 0.42.2 - no longer checked
+  https://cairographics.org/releases/
+  See cairo above.
 
-poppler 0.68.0 - checked 20aug18
-  http://poppler.freedesktop.org/ - used by xetex
-  (requires C++11)
+potrace 1.16 - checked 29aug22
+  https://potrace.sourceforge.net/
 
-teckit 2.5.9 - checked 03may19
-  https://github.com/silnrsi/teckit/archive/2.5.9.tar.gz
+pplib 2.05.0 - checked 21apr20
+  https://github.com/contextgarden/pplib
 
-xpdf 4.02 - checked 29sep19
-  http://www.xpdfreader.com/download.html
+teckit 2.5.12 - checked 26aug23
+  https://github.com/silnrsi/teckit/archive/2.5.12.tar.gz
+
+xpdf 4.04 - checked 24apr22
+  https://www.xpdfreader.com/download.html
   with modifications for pdftex
 
-zlib 1.2.11 - checked 15jan17
-  http://www.zlib.net/ - used by many
+zlib 1.3.1 - checked 30jan24
+  https://www.zlib.net/ - used by many
 
-zziplib 0.13.69 - checked 18mar18
-  https://github.com/gdraheim/zziplib/archive/v0.13.69.tar.gz
+zziplib 0.13.72 - checked 10sep22
+  https://github.com/gdraheim/zziplib/releases

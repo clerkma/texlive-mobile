@@ -2,6 +2,7 @@
 
 struct hanzi_index hz_index[HZIDXSIZE];
 int hz_index_len;
+int hanzi_mode=0;
 
 /*
    U+FDD0 (Noncharacter) is used.
@@ -226,8 +227,9 @@ struct hanzi_index HZ_RADICAL[]={
 
 /*
  Reference:
-   cldr - Revision 12061: /trunk/common/collation
-   http://unicode.org/repos/cldr/trunk/common/collation/zh.xml
+   CLDR 42
+   https://cldr.unicode.org/index/downloads/cldr-42
+   https://github.com/unicode-org/cldr/blob/release-42/common/collation/zh.xml
    <collation type='stroke' alt='short'>
    U+FDD0 (Noncharacter) is used.
  */
@@ -277,8 +279,9 @@ struct hanzi_index HZ_STROKE[]={
 
 /*
  Reference:
-   cldr - Revision 12061: /trunk/common/collation
-   http://unicode.org/repos/cldr/trunk/common/collation/zh.xml
+   CLDR 42
+   https://cldr.unicode.org/index/downloads/cldr-42
+   https://github.com/unicode-org/cldr/blob/release-42/common/collation/zh.xml
    <collation type='pinyin'>
    U+FDD0 (Noncharacter) is used.
  */
@@ -311,8 +314,9 @@ struct hanzi_index HZ_PINYIN[]={
 
 /*
  Reference:
-   cldr - Revision 12061: /trunk/common/collation
-   http://unicode.org/repos/cldr/trunk/common/collation/zh.xml
+   CLDR 42
+   https://cldr.unicode.org/index/downloads/cldr-42
+   https://github.com/unicode-org/cldr/blob/release-42/common/collation/zh.xml
    <collation type='zhuyin'>
    U+FDD0 (Noncharacter) is used.
  */

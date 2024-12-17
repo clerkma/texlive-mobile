@@ -1,14 +1,14 @@
 # International version of CWEB (CWEBbin, TeXLive).
-# Copyright (C) 2018 Andreas Scherer et al.
+# Copyright (C) 2024 Andreas Scherer et al.
 # This file is distributed under the same license as the CWEB package.
-# Andreas Scherer <https://ascherer.github.io>, 2018.
+# Andreas Scherer <https://ascherer.github.io>.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: CWEBbin 2018\n"
+"Project-Id-Version: CWEBbin 2024\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-15 09:55+0100\n"
-"PO-Revision-Date: 2019-01-15 09:55+0100\n"
+"POT-Creation-Date: 2024-08-12 13:10+0200\n"
+"PO-Revision-Date: 2024-08-12 13:10+0200\n"
 "Last-Translator: Andreas Scherer <andreas_github@freenet.de>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -17,33 +17,34 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: comm-texlive.ch:494
-#, c-format
-msgid "%s: Need one to three file arguments.\n"
-msgstr "%s: Benötige ein bis drei Dateiargumente.\n"
-
-#: comm-texlive.ch:495
-#, c-format
-msgid "Try `%s --help' for more information.\n"
-msgstr "Versuche `%s --help' für weitere Informationen.\n"
-
-#: comm-texlive.ch:514
+#: comm-texlive.ch:531
 #, c-format
 msgid ""
 "\n"
 "Email bug reports to %s.\n"
+"\nPackage home page: %s.\n"
 msgstr ""
 "\n"
-"Sende Fehler per Email an %s.\n"
+"Weitergehende Informationen auf %s.\n"
 
-#: ctang-texlive.ch:29
-msgid "This is CTANGLE, Version 3.64"
-msgstr "Dies ist CTANGLE, Version 3.64"
+#: comm-texlive.ch:511
+#, c-format
+msgid "%s: Need one to three file arguments.\n"
+msgstr "%s: Benötige ein bis drei Dateiargumente.\n"
 
-#: cweav-texlive.ch:29
-msgid "This is CWEAVE, Version 3.64"
-msgstr "Dies ist CWEAVE, Version 3.64"
+#: ctang-texlive.ch:39
+msgid "This is CTANGLE, Version 4.12"
+msgstr "Dies ist CTANGLE, Version 4.12"
 
-#: ctwill-texlive.ch:29
-msgid "This is CTWILL, Version 3.64"
-msgstr "Dies ist CTWILL, Version 3.64"
+#: ctwill-texlive.ch:39
+msgid "This is CTWILL, Version 4.12"
+msgstr "Dies ist CTWILL, Version 4.12"
+
+#: cweav-texlive.ch:39
+msgid "This is CWEAVE, Version 4.12"
+msgstr "Dies ist CWEAVE, Version 4.12"
+
+#: comm-texlive.ch:512
+#, c-format
+msgid "Try `%s --help' for more information.\n"
+msgstr "Versuche `%s --help' für weitere Informationen.\n"

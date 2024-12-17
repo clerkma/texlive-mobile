@@ -2,7 +2,7 @@
    mpfr_fmod -- compute the floating-point remainder of x/y
    mpfr_remquo and mpfr_remainder -- argument reduction functions
 
-Copyright 2007-2019 Free Software Foundation, Inc.
+Copyright 2007-2023 Free Software Foundation, Inc.
 Contributed by the AriC and Caramba projects, INRIA.
 
 This file is part of the GNU MPFR Library.
@@ -22,7 +22,7 @@ along with the GNU MPFR Library; see the file COPYING.LESSER.  If not, see
 https://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA. */
 
-# include "mpfr-impl.h"
+#include "mpfr-impl.h"
 
 /* we return as many bits as we can, keeping just one bit for the sign */
 # define WANTED_BITS (sizeof(long) * CHAR_BIT - 1)
@@ -40,10 +40,10 @@ https://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
   If rem is zero, then it has the sign of x.
   The returned 'int' is the inexact flag giving the place of rem wrt x - q*y.
 
-  If x or y is NaN: *quo is undefined, rem is NaN.
-  If x is Inf, whatever y: *quo is undefined, rem is NaN.
+  If x or y is NaN: *quo is unspecified, rem is NaN.
+  If x is Inf, whatever y: *quo is unspecified, rem is NaN.
   If y is Inf, x not NaN nor Inf: *quo is 0, rem is x.
-  If y is 0, whatever x: *quo is undefined, rem is NaN.
+  If y is 0, whatever x: *quo is unspecified, rem is NaN.
   If x is 0, whatever y (not NaN nor 0): *quo is 0, rem is x.
 
   Otherwise if x and y are neither NaN, Inf nor 0, q is always defined,
@@ -68,7 +68,7 @@ mpfr_rem1 (mpfr_ptr rem, long *quo, mpfr_rnd_t rnd_q,
       if (MPFR_IS_NAN (x) || MPFR_IS_NAN (y) || MPFR_IS_INF (x)
           || MPFR_IS_ZERO (y))
         {
-          /* for remquo, quo is undefined */
+          /* for remquo, *quo is unspecified */
           MPFR_SET_NAN (rem);
           MPFR_RET_NAN;
         }
@@ -100,9 +100,11 @@ mpfr_rem1 (mpfr_ptr rem, long *quo, mpfr_rnd_t rnd_q,
   mpz_abs (my, my);
   q_is_odd = 0;
 
-  /* divide my by 2^k if possible to make operations mod my easier */
+  /* Divide my by 2^k if possible to make operations mod my easier.
+     Since my comes from a regular MPFR number, due to the constraints on the
+     exponent and the precision, there can be no integer overflow below. */
   {
-    unsigned long k = mpz_scan1 (my, 0);
+    mpfr_exp_t k = mpz_scan1 (my, 0);
     ey += k;
     mpz_fdiv_q_2exp (my, my, k);
   }
@@ -157,8 +159,18 @@ mpfr_rem1 (mpfr_ptr rem, long *quo, mpfr_rnd_t rnd_q,
            which is obtained by dividing by 2Y. */
         mpz_mul_2exp (my, my, 1);       /* 2Y */
 
-      mpz_set_ui (r, 2);
-      mpz_powm_ui (r, r, ex - ey, my);  /* 2^(ex-ey) mod my */
+      /* Warning: up to GMP 6.2.0, mpz_powm_ui is not optimized when BASE^EXP
+         has about the same size as MOD, in which case it should first compute
+         BASE^EXP exactly, then reduce it modulo MOD:
+         https://gmplib.org/list-archives/gmp-bugs/2020-February/004736.html
+         Thus when 2^(ex-ey) is less than my^3, we use this algorithm. */
+      if (ex - ey > 3 * mpz_sizeinbase (my, 2))
+        {
+          mpz_set_ui (r, 2);
+          mpz_powm_ui (r, r, ex - ey, my);  /* 2^(ex-ey) mod my */
+        }
+      else
+        mpz_ui_pow_ui (r, 2, ex - ey);
       mpz_mul (r, r, mx);
       mpz_mod (r, r, my);
 

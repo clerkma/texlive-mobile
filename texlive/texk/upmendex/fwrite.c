@@ -3,7 +3,6 @@
 #include <stdarg.h>
 
 #include <kpathsea/tex-file.h>
-#include <unicode/unorm2.h>
 
 #include "exkana.h"
 #include "exhanzi.h"
@@ -12,13 +11,13 @@
 int line_length=0;
 
 static void printpage(struct index *ind, FILE *fp, int num, char *lbuff);
-static int range_check(struct index ind, int count, char *lbuff);
-static void linecheck(char *lbuff, char *tmpbuff);
+static int range_check(struct index ind, int count, char *lbuff, FILE *fp);
+static void linecheck(char *lbuff, char *tmpbuff, FILE *fp, int force);
 static void crcheck(char *lbuff, FILE *fp);
 static void index_normalize(UChar *istr, UChar *ini, int *chset);
-static int initial_cmp_char(UChar *ini, UChar ch);
+static int initial_cmp_char(UChar *ini, UChar *ch);
 static int init_hanzi_header(void);
-static const UNormalizer2* unormalizer_NFD;
+static const UNormalizer2 *unormalizer_NFD, *unormalizer_NFKD;
 static int turkish_i;
 
 #define M_NONE      0
@@ -86,14 +85,14 @@ static void fprint_uchar(FILE *fp, const UChar *a, const int mode, const int len
 		olen=u_strToUpper(istr,INITIALLENGTH,istr,wclen,"",&perr);
 	} else if (mode==M_TO_LOWER) {
 		perr=U_ZERO_ERROR;
-		olen=u_strToLower(istr,INITIALLENGTH,istr,wclen, istr[0]==0x130&&turkish_i?"tr":"", &perr);
+		olen=u_strToLower(istr,INITIALLENGTH,istr,wclen, istr[0]==0x130&&turkish_i==2?"tr":"", &perr);
 	} else if (mode==M_TO_TITLE) {
 		perr=U_ZERO_ERROR;
 		olen=u_strToTitle(istr,INITIALLENGTH,istr,wclen,NULL,"",&perr);
 	} else
 		olen=wclen;
 	if (olen>INITIALLENGTH) {
-		warn_printf(efp, "\nWarning, Too long (%d) header.\n", olen);
+		warn_printf(efp, "\nWarning: Too long (%d) header.\n", olen);
 		wclen=INITIALLENGTH;
 	} else
 		wclen=olen;
@@ -128,7 +127,7 @@ void warn_printf(FILE *fp, const char *format, ...)
     vsnprintf(print_buff, sizeof print_buff, format, argptr);
     va_end(argptr);
 
-    warn++;    
+    warn++;
     fputs(print_buff, stderr);
     if (fp!=stderr) fputs(print_buff, fp);
 }
@@ -146,137 +145,200 @@ void verb_printf(FILE *fp, const char *format, ...)
     if (fp!=stderr) fputs(print_buff, fp);
 }
 
+static int pnumconv2(struct page *p)
+{
+	int j,k,cc,pclen;
+
+	pclen=strlen(page_compositor);
+	for (j=k=cc=0;j<strlen(p->page);j++) {
+		if (strncmp(p->page+j,page_compositor,pclen)==0) {
+			j+=pclen;
+			k=j;
+			cc++;
+			continue;
+		}
+	}
+	return pnumconv(p->page+k,p->attr[cc]);
+}
+
 
 /*   write ind file   */
 void indwrite(char *filename, struct index *ind, int pagenum)
 {
-	int i,j,hpoint=0,tpoint=0;
+	int i,j,k,q,hpoint=0,tpoint=0,ipoint=0,jpoint=0,block_open=0;
 	char lbuff[BUFFERLEN],obuff[BUFFERLEN];
-	UChar datama[256],initial[INITIALLENGTH],initial_prev[INITIALLENGTH];
+	UChar initial[INITIALLENGTH],initial_prev[INITIALLENGTH];
 	int chset,chset_prev;
-	FILE *fp;
+	FILE *fp=NULL;
 	UErrorCode perr;
 
-	if (filename && kpse_out_name_ok(filename)) fp=fopen(filename,"wb");
-	else {
+	if (filename && kpse_out_name_ok(filename))
+		fp=fopen(filename,"wb");
+	if (fp == NULL) {
 		fp=stdout;
 #ifdef WIN32
 		setmode(fileno(fp), _O_BINARY);
 #endif
 	}
 
-	convert(atama,datama);
 	fputs(preamble,fp);
 
 	if (fpage>0) {
 		fprintf(fp,"%s%d%s",setpage_prefix,pagenum,setpage_suffix);
 	}
 	perr=U_ZERO_ERROR;
-	unormalizer_NFD=unorm2_getInstance(NULL, "nfc", UNORM2_DECOMPOSE, &perr);
+	unormalizer_NFD =unorm2_getInstance(NULL, "nfc", UNORM2_DECOMPOSE, &perr);
+	unormalizer_NFKD=unorm2_getInstance(NULL, "nfkc", UNORM2_DECOMPOSE, &perr);
+
+	if (strlen(symhead)==0) {
+		if (lethead_flag>0) {
+			strcpy(symhead, symhead_positive);
+		}
+		else if (lethead_flag<0) {
+			strcpy(symhead, symhead_negative);
+		}
+	}
+	{
+		if (lethead_flag>0) {
+			strcpy(numhead, numhead_positive);
+		}
+		else if (lethead_flag<0) {
+			strcpy(numhead, numhead_negative);
+		}
+	}
 
 	for (i=line_length=0;i<lines;i++) {
 		index_normalize(ind[i].dic[0], initial, &chset);
 		if (i==0) {
-			if ((CH_LATIN<=chset&&chset<=CH_GREEK) || chset==CH_HANZI) {
+			if (is_any_script(chset) && strlen(script_preamble[chset])) {
+				fputs(script_preamble[chset],fp);
+				block_open=chset;
+			}
+			if ((CH_LATIN<=chset&&chset<=CH_GREEK) || chset==CH_HANZI || (CH_ARABIC<=chset&&chset<=CH_HEBREW)) {
 				if (lethead_flag!=0) {
 					fputs(lethead_prefix,fp);
 					fprint_uchar(fp,initial,lethead_flag,-1);
 					fputs(lethead_suffix,fp);
 				}
-				widechar_to_multibyte(obuff,BUFFERLEN,ind[i].idx[0]);
-				SPRINTF(lbuff,"%s%s",item_0,obuff);
 			}
 			else if (chset==CH_KANA) {
 				if (lethead_flag!=0) {
 					fputs(lethead_prefix,fp);
-					for (j=hpoint;j<(u_strlen(datama));j++) {
-						if (initial_cmp_char(initial,datama[j])) {
-							fprint_uchar(fp,&atama[j-1],M_NONE,1);
+					for (j=hpoint;j<(u_strlen(kana_head));) {
+						if (initial_cmp_char(initial,&kana_head[j])) {
+							k=j;  U16_BACK_1(kana_head, 0, k);
+							fprint_uchar(fp,&kana_head[k],M_NONE,1);
 							hpoint=j;
 							break;
 						}
+						U16_FWD_1(kana_head, j, -1);
 					}
-					if (j==(u_strlen(datama))) {
-						fprint_uchar(fp,&atama[j-1],M_NONE,1);
+					if (j==(u_strlen(kana_head))) {
+						k=j;  U16_BACK_1(kana_head, 0, k);
+						fprint_uchar(fp,&kana_head[k],M_NONE,1);
 					}
 					fputs(lethead_suffix,fp);
 				}
-				widechar_to_multibyte(obuff,BUFFERLEN,ind[i].idx[0]);
-				SPRINTF(lbuff,"%s%s",item_0,obuff);
-				for (hpoint=0;hpoint<(u_strlen(datama));hpoint++) {
-					if (initial_cmp_char(initial,datama[hpoint])) {
+				for (hpoint=0;hpoint<(u_strlen(kana_head));) {
+					if (initial_cmp_char(initial,&kana_head[hpoint])) {
 						break;
 					}
+					U16_FWD_1(kana_head, hpoint, -1);
 				}
 			}
 			else if (chset==CH_HANGUL) {
 				if (lethead_flag!=0) {
 					fputs(lethead_prefix,fp);
-					for (j=tpoint;j<(u_strlen(tumunja));j++) {
-						if (initial_cmp_char(initial,tumunja[j])) {
-							fprint_uchar(fp,&tumunja[j-1],M_NONE,1);
+					for (j=tpoint;j<(u_strlen(hangul_head));j++) {
+						if (initial_cmp_char(initial,&hangul_head[j])) {
+							fprint_uchar(fp,&hangul_head[j-1],M_NONE,1);
 							tpoint=j;
 							break;
 						}
 					}
-					if (j==(u_strlen(tumunja))) {
-						fprint_uchar(fp,&tumunja[j-1],M_NONE,1);
+					if (j==(u_strlen(hangul_head))) {
+						fprint_uchar(fp,&hangul_head[j-1],M_NONE,1);
 					}
 					fputs(lethead_suffix,fp);
 				}
-				widechar_to_multibyte(obuff,BUFFERLEN,ind[i].idx[0]);
-				SPRINTF(lbuff,"%s%s",item_0,obuff);
-				for (tpoint=0;tpoint<(u_strlen(tumunja));tpoint++) {
-					if (initial_cmp_char(initial,tumunja[tpoint])) {
+				for (tpoint=0;tpoint<(u_strlen(hangul_head));tpoint++) {
+					if (initial_cmp_char(initial,&hangul_head[tpoint])) {
+						break;
+					}
+				}
+			}
+			else if (chset==CH_DEVANAGARI) {
+				if (lethead_flag!=0) {
+					fputs(lethead_prefix,fp);
+					for (j=jpoint;j<(u_strlen(devanagari_head));) {
+						if (initial_cmp_char(initial,&devanagari_head[j])) {
+							k=j;  U16_BACK_1(devanagari_head, 0, k);
+							fprint_uchar(fp,&devanagari_head[k],M_NONE,1);
+							jpoint=j;
+							break;
+						}
+						U16_FWD_1(devanagari_head, j, -1);
+					}
+					if (j==(u_strlen(devanagari_head))) {
+						k=j;  U16_BACK_1(devanagari_head, 0, k);
+						fprint_uchar(fp,&devanagari_head[k],M_NONE,1);
+					}
+					fputs(lethead_suffix,fp);
+				}
+				for (jpoint=0;jpoint<(u_strlen(devanagari_head));) {
+					if (initial_cmp_char(initial,&devanagari_head[jpoint])) {
+						break;
+					}
+					U16_FWD_1(devanagari_head, jpoint, -1);
+				}
+			}
+			else if (chset==CH_THAI) {
+				if (lethead_flag!=0) {
+					fputs(lethead_prefix,fp);
+					for (j=ipoint;j<(u_strlen(thai_head));j++) {
+						if (initial_cmp_char(initial,&thai_head[j])) {
+							fprint_uchar(fp,&thai_head[j-1],M_NONE,1);
+							ipoint=j;
+							break;
+						}
+					}
+					if (j==(u_strlen(thai_head))) {
+						fprint_uchar(fp,&thai_head[j-1],M_NONE,1);
+					}
+					fputs(lethead_suffix,fp);
+				}
+				for (ipoint=0;ipoint<(u_strlen(thai_head));ipoint++) {
+					if (initial_cmp_char(initial,&thai_head[ipoint])) {
 						break;
 					}
 				}
 			}
 			else {
-				if (lethead_flag!=0) {
-					if (symbol_flag && strlen(symbol)) {
-						fprintf(fp,"%s%s%s",lethead_prefix,symbol,lethead_suffix);
-					}
-					else if (lethead_flag>0) {
-						fprintf(fp,"%s%s%s",lethead_prefix,symhead_positive,lethead_suffix);
-					}
-					else if (lethead_flag<0) {
-						fprintf(fp,"%s%s%s",lethead_prefix,symhead_negative,lethead_suffix);
-					}
+				if (lethead_flag!=0 && symbol_flag==2 && chset==CH_NUMERIC) {
+					fprintf(fp,"%s%s%s",lethead_prefix,numhead,lethead_suffix);
 				}
-				widechar_to_multibyte(obuff,BUFFERLEN,ind[i].idx[0]);
-				SPRINTF(lbuff,"%s%s",item_0,obuff);
+				if (lethead_flag!=0 && (symbol_flag==1 || (symbol_flag==2 && chset!=CH_NUMERIC))) {
+					fprintf(fp,"%s%s%s",lethead_prefix,symhead,lethead_suffix);
+				}
 			}
-			switch (ind[i].words) {
-			case 1:
-				SAPPENDF(lbuff,"%s",delim_0);
-				break;
-
-			case 2:
-				widechar_to_multibyte(obuff,BUFFERLEN,ind[i].idx[1]);
-				SAPPENDF(lbuff,"%s",item_x1);
-				SAPPENDF(lbuff,"%s",obuff);
-				SAPPENDF(lbuff,"%s",delim_1);
-				break;
-
-			case 3:
-				widechar_to_multibyte(obuff,BUFFERLEN,ind[i].idx[1]);
-				SAPPENDF(lbuff,"%s",item_x1);
-				SAPPENDF(lbuff,"%s",obuff);
-				widechar_to_multibyte(obuff,BUFFERLEN,ind[i].idx[2]);
-				SAPPENDF(lbuff,"%s",item_x2);
-				SAPPENDF(lbuff,"%s",obuff);
-				SAPPENDF(lbuff,"%s",delim_2);
-				break;
-
-			default:
-				break;
-			}
-			printpage(ind,fp,i,lbuff);
+			SPRINTF(lbuff,"%s",item_0[0]);
+			k=0;
 		}
 		else {
 			index_normalize(ind[i-1].dic[0], initial_prev, &chset_prev);
-			if ((CH_LATIN<=chset&&chset<=CH_GREEK) || chset==CH_HANZI) {
+			if (chset!=chset_prev && is_any_script(chset_prev) && block_open) {
+				if (strlen(script_postamble[chset_prev])) {
+					fputs(script_postamble[chset_prev],fp);
+				}
+				block_open=0;
+			}
+			if (chset!=chset_prev && is_any_script(chset)) {
+				if (strlen(script_preamble[chset])) {
+					fputs(script_preamble[chset],fp);
+					block_open=chset;
+				}
+			}
+			if ((CH_LATIN<=chset&&chset<=CH_GREEK) || chset==CH_HANZI || (CH_ARABIC<=chset&&chset<=CH_HEBREW)) {
 				if (chset!=chset_prev || ss_comp(initial,initial_prev)) {
 					fputs(group_skip,fp);
 					if (lethead_flag!=0) {
@@ -287,24 +349,26 @@ void indwrite(char *filename, struct index *ind, int pagenum)
 				}
 			}
 			else if (chset==CH_KANA) {
-				for (j=hpoint;j<(u_strlen(datama));j++) {
-					if (initial_cmp_char(initial,datama[j])) {
+				for (j=hpoint;j<(u_strlen(kana_head));) {
+					if (initial_cmp_char(initial,&kana_head[j])) {
 						break;
 					}
+					U16_FWD_1(kana_head, j, -1);
 				}
 				if ((j!=hpoint)||(j==0)) {
 					hpoint=j;
 					fputs(group_skip,fp);
 					if (lethead_flag!=0) {
+						k=j;  U16_BACK_1(kana_head, 0, k);
 						fputs(lethead_prefix,fp);
-						fprint_uchar(fp,&atama[j-1],M_NONE,1);
+						fprint_uchar(fp,&kana_head[k],M_NONE,1);
 						fputs(lethead_suffix,fp);
 					}
 				}
 			}
 			else if (chset==CH_HANGUL) {
-				for (j=tpoint;j<(u_strlen(tumunja));j++) {
-					if (initial_cmp_char(initial,tumunja[j])) {
+				for (j=tpoint;j<(u_strlen(hangul_head));j++) {
+					if (initial_cmp_char(initial,&hangul_head[j])) {
 						break;
 					}
 				}
@@ -313,96 +377,90 @@ void indwrite(char *filename, struct index *ind, int pagenum)
 					fputs(group_skip,fp);
 					if (lethead_flag!=0) {
 						fputs(lethead_prefix,fp);
-						fprint_uchar(fp,&tumunja[j-1],M_NONE,1);
+						fprint_uchar(fp,&hangul_head[j-1],M_NONE,1);
+						fputs(lethead_suffix,fp);
+					}
+				}
+			}
+			else if (chset==CH_DEVANAGARI) {
+				for (j=jpoint;j<(u_strlen(devanagari_head));) {
+					if (initial_cmp_char(initial,&devanagari_head[j])) {
+						break;
+					}
+					U16_FWD_1(devanagari_head, j, -1);
+				}
+				if ((j!=jpoint)||(j==0)) {
+					jpoint=j;
+					fputs(group_skip,fp);
+					if (lethead_flag!=0) {
+						k=j;  U16_BACK_1(devanagari_head, 0, k);
+						fputs(lethead_prefix,fp);
+						fprint_uchar(fp,&devanagari_head[k],M_NONE,1);
+						fputs(lethead_suffix,fp);
+					}
+				}
+			}
+			else if (chset==CH_THAI) {
+				for (j=ipoint;j<(u_strlen(thai_head));j++) {
+					if (initial_cmp_char(initial,&thai_head[j])) {
+						break;
+					}
+				}
+				if ((j!=ipoint)||(j==0)) {
+					ipoint=j;
+					fputs(group_skip,fp);
+					if (lethead_flag!=0) {
+						fputs(lethead_prefix,fp);
+						fprint_uchar(fp,&thai_head[j-1],M_NONE,1);
 						fputs(lethead_suffix,fp);
 					}
 				}
 			}
 			else {
-				if (CH_LATIN<=chset_prev&&chset_prev<=CH_HANZI){
-					fputs(group_skip,fp);
-					if (lethead_flag!=0 && symbol_flag) {
-						if (strlen(symbol)) {
-							fprintf(fp,"%s%s%s",lethead_prefix,symbol,lethead_suffix);
-						}
-						else if (lethead_flag>0) {
-							fprintf(fp,"%s%s%s",lethead_prefix,symhead_positive,lethead_suffix);
-						}
-						else if (lethead_flag<0) {
-							fprintf(fp,"%s%s%s",lethead_prefix,symhead_negative,lethead_suffix);
-						}
+				if (chset_prev!=chset) {
+					if (is_any_script(chset_prev) || symbol_flag==2)
+						fputs(group_skip,fp);
+					if (lethead_flag!=0 && symbol_flag==2 && chset==CH_NUMERIC) {
+						fprintf(fp,"%s%s%s",lethead_prefix,numhead,lethead_suffix);
+					}
+					if (lethead_flag!=0 && (symbol_flag==1 && is_any_script(chset_prev) ||
+								symbol_flag==2 && chset!=CH_NUMERIC) ) {
+						fprintf(fp,"%s%s%s",lethead_prefix,symhead,lethead_suffix);
 					}
 				}
 			}
 
-			switch (ind[i].words) {
-			case 1:
-				widechar_to_multibyte(obuff,BUFFERLEN,ind[i].idx[0]);
-				SAPPENDF(lbuff,"%s",item_0);
-				SAPPENDF(lbuff,"%s",obuff);
-				SAPPENDF(lbuff,"%s",delim_0);
-				break;
-
-			case 2:
-				if (u_strcmp(ind[i-1].idx[0],ind[i].idx[0])!=0 || u_strcmp(ind[i-1].dic[0],ind[i].dic[0])!=0) {
-					widechar_to_multibyte(obuff,BUFFERLEN,ind[i].idx[0]);
-					SAPPENDF(lbuff,"%s",item_0);
-					SAPPENDF(lbuff,"%s",obuff);
-					SAPPENDF(lbuff,"%s",item_x1);
+			q=0;
+			for (j=0;j<ind[i-1].words && j<ind[i].words;j++) {
+				if (u_strcmp(ind[i-1].idx[j],ind[i].idx[j])!=0 ||
+				    u_strcmp(ind[i-1].dic[j],ind[i].dic[j])!=0) {
+					k=j;
+					SAPPENDF(lbuff,"%s",item_0[k]);
+					q=1;
+					break;
 				}
-				else {
-					if (ind[i-1].words==1) {
-						SAPPENDF(lbuff,"%s",item_01);
-					}
-					else {
-						SAPPENDF(lbuff,"%s",item_1);
-					}
-				}
-				widechar_to_multibyte(obuff,BUFFERLEN,ind[i].idx[1]);
-				SAPPENDF(lbuff,"%s",obuff);
-				SAPPENDF(lbuff,"%s",delim_1);
-				break;
-
-			case 3:
-				if (u_strcmp(ind[i-1].idx[0],ind[i].idx[0])!=0 || u_strcmp(ind[i-1].dic[0],ind[i].dic[0])!=0) {
-					widechar_to_multibyte(obuff,BUFFERLEN,ind[i].idx[0]);
-					SAPPENDF(lbuff,"%s",item_0);
-					SAPPENDF(lbuff,"%s",obuff);
-					widechar_to_multibyte(obuff,BUFFERLEN,ind[i].idx[1]);
-					SAPPENDF(lbuff,"%s",item_x1);
-					SAPPENDF(lbuff,"%s",obuff);
-					SAPPENDF(lbuff,"%s",item_x2);
-				}
-				else if (ind[i-1].words==1) {
-					widechar_to_multibyte(obuff,BUFFERLEN,ind[i].idx[1]);
-					SAPPENDF(lbuff,"%s",item_01);
-					SAPPENDF(lbuff,"%s",obuff);
-					SAPPENDF(lbuff,"%s",item_x2);
-				}
-				else if (u_strcmp(ind[i-1].idx[1],ind[i].idx[1])!=0 || u_strcmp(ind[i-1].dic[1],ind[i].dic[1])!=0) {
-					widechar_to_multibyte(obuff,BUFFERLEN,ind[i].idx[1]);
-					SAPPENDF(lbuff,"%s",item_1);
-					SAPPENDF(lbuff,"%s",obuff);
-					if (ind[i-1].words==2) SAPPENDF(lbuff,"%s",item_12);
-					else                   SAPPENDF(lbuff,"%s",item_x2);
-				}
-				else {
-					SAPPENDF(lbuff,"%s",item_2);
-				}
-				widechar_to_multibyte(obuff,BUFFERLEN,ind[i].idx[2]);
-				SAPPENDF(lbuff,"%s",obuff);
-				SAPPENDF(lbuff,"%s",delim_2);
-				break;
-
-			default:
-				break;
 			}
-			printpage(ind,fp,i,lbuff);
+			if (q==0) {
+				k=ind[i-1].words;
+				SAPPENDF(lbuff,"%s",item_01[k-1]);
+			}
+
 		}
+		for (j=k;;j++) {
+			widechar_to_multibyte(obuff,BUFFERLEN,ind[i].idx[j]);
+			SAPPENDF(lbuff,"%s",obuff);
+			if (j==ind[i].words-1) break;
+			SAPPENDF(lbuff,"%s",item_x[j]);
+		}
+		SAPPENDF(lbuff,"%s",delim_0[j]);
+		printpage(ind,fp,i,lbuff);
+	}
+	if (is_any_script(chset) && strlen(script_postamble[chset]) && block_open) {
+		fputs(script_postamble[chset],fp);
 	}
 	fputs(postamble,fp);
 
-	if (filename) fclose(fp);
+	if (fp!=stdout) fclose(fp);
 }
 
 /*   write page block   */
@@ -417,9 +475,11 @@ static void printpage(struct index *ind, FILE *fp, int num, char *lbuff)
 	line_length=strlen(lbuff);
 
 	for(j=0;j<ind[num].num;j++) {
-		cc=range_check(ind[num],j,lbuff);
+		cc=range_check(ind[num],j,lbuff,fp);
 		if (cc>j) {
-			if (pnumconv(ind[num].p[j].page,ind[num].p[j].attr[0])==pnumconv(ind[num].p[cc].page,ind[num].p[cc].attr[0])) {
+			int epage = pnumconv2(&ind[num].p[cc]);
+			int bpage = pnumconv2(&ind[num].p[j]);
+			if (epage==bpage) {
 				j=cc-1;
 				continue;
 			}
@@ -430,20 +490,18 @@ static void printpage(struct index *ind, FILE *fp, int num, char *lbuff)
 			if (strlen(ind[num].p[j].enc)>0) {
 				SPRINTF(buff,"%s%s%s",encap_prefix,ind[num].p[j].enc,encap_infix);
 			}
-			if (strlen(suffix_3p)>0 && (pnumconv(ind[num].p[cc].page,ind[num].p[cc].attr[0])-pnumconv(ind[num].p[j].page,ind[num].p[j].attr[0]))==2) {
-				SAPPENDF(buff,"%s",ind[num].p[j].page);
+			/* print beginning of range */
+			SAPPENDF(buff,"%s",ind[num].p[j].page);
+			if (strlen(suffix_3p)>0 && epage-bpage==2) {
 				SAPPENDF(buff,"%s",suffix_3p);
 			}
-			else if (strlen(suffix_mp)>0 && (pnumconv(ind[num].p[cc].page,ind[num].p[cc].attr[0])-pnumconv(ind[num].p[j].page,ind[num].p[j].attr[0]))>=2) {
-				SAPPENDF(buff,"%s",ind[num].p[j].page);
+			else if (strlen(suffix_mp)>0 && epage-bpage>=2) {
 				SAPPENDF(buff,"%s",suffix_mp);
 			}
-			else if (strlen(suffix_2p)>0 && (pnumconv(ind[num].p[cc].page,ind[num].p[cc].attr[0])-pnumconv(ind[num].p[j].page,ind[num].p[j].attr[0]))==1) {
-				SAPPENDF(buff,"%s",ind[num].p[j].page);
+			else if (strlen(suffix_2p)>0 && epage-bpage==1) {
 				SAPPENDF(buff,"%s",suffix_2p);
 			}
 			else {
-				SAPPENDF(buff,"%s",ind[num].p[j].page);
 				SAPPENDF(buff,"%s",delim_r);
 				SAPPENDF(buff,"%s",ind[num].p[cc].page);
 			}
@@ -452,14 +510,14 @@ static void printpage(struct index *ind, FILE *fp, int num, char *lbuff)
 			if (strlen(ind[num].p[j].enc)>0) {
 				SAPPENDF(tmpbuff,"%s",encap_suffix);
 			}
-			linecheck(lbuff,tmpbuff);
+			linecheck(lbuff,tmpbuff,fp, FALSE);
 			j=cc;
 			if (j==ind[num].num) {
 				goto PRINT;
 			}
 			else {
 				SAPPENDF(tmpbuff,"%s",delim_n);
-				linecheck(lbuff,tmpbuff);
+				linecheck(lbuff,tmpbuff,fp, TRUE);
 			}
 		}
 		else if (strlen(ind[num].p[j].enc)>0) {
@@ -481,19 +539,19 @@ static void printpage(struct index *ind, FILE *fp, int num, char *lbuff)
 				SAPPENDF(tmpbuff,"%s",ind[num].p[j].page);
 				SAPPENDF(tmpbuff,"%s",encap_suffix);
 				SAPPENDF(tmpbuff,"%s",delim_n);
-				linecheck(lbuff,tmpbuff);
+				linecheck(lbuff,tmpbuff,fp, FALSE);
 			}
 			else {
 				SAPPENDF(tmpbuff,"%s",ind[num].p[j].page);
 				SAPPENDF(tmpbuff,"%s",delim_n);
-				linecheck(lbuff,tmpbuff);
+				linecheck(lbuff,tmpbuff,fp, FALSE);
 			}
 		}
 		else {
 /* no encap */
 			SAPPENDF(tmpbuff,"%s",ind[num].p[j].page);
 			SAPPENDF(tmpbuff,"%s",delim_n);
-			linecheck(lbuff,tmpbuff);
+			linecheck(lbuff,tmpbuff,fp, FALSE);
 		}
 	}
 
@@ -527,7 +585,7 @@ static void printpage(struct index *ind, FILE *fp, int num, char *lbuff)
 	else {
 		SAPPENDF(tmpbuff,"%s",ind[num].p[j].page);
 	}
-	linecheck(lbuff,tmpbuff);
+	linecheck(lbuff,tmpbuff,fp, FALSE);
 
 PRINT:
 	fputs(lbuff,fp);
@@ -535,7 +593,7 @@ PRINT:
 	lbuff[0]='\0';
 }
 
-static int range_check(struct index ind, int count, char *lbuff)
+static int range_check(struct index ind, int count, char *lbuff, FILE *fp)
 {
 	int i,j,k,cc1,cc2,start,force=0;
 	char tmpbuff[BUFFERLEN],errbuff[BUFFERLEN],obuff[BUFFERLEN];
@@ -573,7 +631,7 @@ static int range_check(struct index ind, int count, char *lbuff)
 					if (strlen(ind.p[j].enc)>0) {
 						SPRINTF(tmpbuff,"%s%s%s%s%s%s",encap_prefix,ind.p[j].enc,encap_infix
 						                              ,ind.p[j].page,encap_suffix,delim_n);
-						linecheck(lbuff,tmpbuff);
+						linecheck(lbuff,tmpbuff,fp, FALSE);
 					}
 				}
 			}
@@ -603,8 +661,8 @@ static int range_check(struct index ind, int count, char *lbuff)
 			break;
 		}
 	}
-	cc1=pnumconv(ind.p[i-1].page,ind.p[i-1].attr[0]);
-	cc2=pnumconv(ind.p[count].page,ind.p[count].attr[0]);
+	cc1=pnumconv2(&ind.p[i-1]);
+	cc2=pnumconv2(&ind.p[count]);
 	if (cc1>=cc2+2 || (cc1>=cc2+1 && strlen(suffix_2p)) || force) {
 		return i-1;
 	}
@@ -612,10 +670,12 @@ static int range_check(struct index ind, int count, char *lbuff)
 }
 
 /*   check line length   */
-static void linecheck(char *lbuff, char *tmpbuff)
+static void linecheck(char *lbuff, char *tmpbuff, FILE *fp, int force)
 {
-	if (line_length+strlen(tmpbuff)>line_max) {
+	if (line_length+strlen(tmpbuff)>line_max && !force) {
 		SAPPENDF(lbuff,"\n");
+		fputs(lbuff,fp);
+		lbuff[0]='\0';
 		SAPPENDF(lbuff,"%s",indent_space);
 		SAPPENDF(lbuff,"%s",tmpbuff);
 		line_length=indent_length+strlen(tmpbuff);
@@ -647,17 +707,25 @@ static void crcheck(char *lbuff, FILE *fp)
 
 static void index_normalize(UChar *istr, UChar *ini, int *chset)
 {
-	int k, len, hi, lo, mi;
+	int k, hi, lo, mi;
 	UChar ch,src[2],dest[8],strX[4],strY[4],strZ[4];
 	UChar32 c32;
 	UErrorCode perr;
-	UCollationResult order;
-	static int hanzi_mode=0;
+	UCollationResult order,order1;
+	UCollationStrength strgth;
+	static int i_y_mode=0,o_o_mode=0,u_u_mode=0;
 
 	ch=istr[0];
 	*chset=charset(istr);
 	ini[1]=L'\0';
 
+	if (is_circkana(ch) || is_hankana(ch) || is_sqkana(ch) || is_circlatin(ch)) {  /* ㋐㋑㋒.. ｱｲｳ.. ㌀㌁㌂.. */
+		src[0]=ch;  src[1]=0x00;
+		perr=U_ZERO_ERROR;
+		unorm2_normalize(unormalizer_NFKD, src, 1, dest, 8, &perr);
+		if (U_SUCCESS(perr))
+			ch=dest[0];
+	}
 	if (is_hiragana(ch)) {
 		ch+=KATATOP-HIRATOP; /* hiragana -> katakana */
 	}
@@ -665,23 +733,36 @@ static void index_normalize(UChar *istr, UChar *ini, int *chset)
 		ini[0]=kanatable[ch-KATATOP];
 		return;
 	}
-	if (is_extkana(ch)) {
+	if (is_extkana(ch)) {      /* ㇰㇱㇲㇳㇴ .. ㇻㇼㇽㇾㇿ */
 		ini[0]=extkanatable[ch-EXKANATOP];
 		return;
 	}
-	else if (ch==0x309F) { ini[0]=0x30E8; return; }  /* HIRAGANA YORI -> ヨ */
-	else if (ch==0x30FF) { ini[0]=0x30B3; return; }  /* KATAKANA KOTO -> コ */
+	if      (ch==0x309F) { ini[0]=0x3088; return; }  /* HIRAGANA YORI -> よ */
+	else if (ch==0x30FF) { ini[0]=0x3053; return; }  /* KATAKANA KOTO -> こ */
 	else if (is_jpn_kana(istr)==2) {
 		c32=U16_GET_SUPPLEMENTARY(istr[0],istr[1]);
 		switch (c32) {
+			case 0x1F200:                  /* 🈀 */
+				ini[0]=0x307B; break;  /* ほ */
+			case 0x1B000:                  /* 𛀀 */
+				ini[0]=0x3048; break;  /* え */
+			case 0x1B11F: case 0x1B122:    /* Archaic WU 𛄟 𛄢 */
+				ini[0]=0xD82C; ini[1]=0xDD1F; ini[2]=L'\0';
+				break;
+			case 0x1B120:                  /* Archaic YI 𛄠 */
+				ini[0]=0xD82C; ini[1]=0xDD20; ini[2]=L'\0'; break;
+			case 0x1B121: case 0x1B001:    /* Archaic YE 𛄡 𛀁 */
+				ini[0]=0xD82C; ini[1]=0xDD21; ini[2]=L'\0'; break;
+			case 0x1B132: case 0x1B155:
+				ini[0]=0x3053; break;  /* こ */
 			case 0x1B150: case 0x1B164:
-				ini[0]=0x30F0; break;  /* ヰ */
+				ini[0]=0x3090; break;  /* ゐ */
 			case 0x1B151: case 0x1B165:
-				ini[0]=0x30F1; break;  /* ヱ */
+				ini[0]=0x3091; break;  /* ゑ */
 			case 0x1B152: case 0x1B166:
-				ini[0]=0x30F2; break;  /* ヲ */
+				ini[0]=0x3092; break;  /* を */
 			case 0x1B167: default:
-				ini[0]=0x30F3; break;  /* ン */
+				ini[0]=0x3093; break;  /* ん */
 		}
 		return;
 	}
@@ -749,39 +830,150 @@ static void index_normalize(UChar *istr, UChar *ini, int *chset)
 		ini[0]=ch;
 		return;
 	}
-	else if ((len=is_hanzi(istr))>0) {
+	else if (is_hanzi(istr)) {
 		if (hanzi_mode==0) hanzi_mode=init_hanzi_header();
 		if (hanzi_mode==HANZI_UNKNOWN) {
 			u_strcpy(ini, hz_index[0].idx);
 			return;
 		}
-		             strX[0]  =istr[0];
-		if (len==2){ strX[1]  =istr[1]; }
-		             strX[len]=L'\0';
 		lo=0;  hi=hz_index_len;
 		while (lo<hi) {
 			mi = (lo+hi)/2;
 			u_strcpy(strZ,hz_index[mi].threshold);
-			order = ucol_strcoll(icu_collator, strZ, -1, strX, -1);
+			order = ucol_strcoll(icu_collator, strZ, -1, istr, -1);
 			if (order!=UCOL_GREATER) lo=mi+1;
 			else hi=mi;
 		}
 		u_strcpy(ini,hz_index[lo-1].idx);
 		return;
 	}
+	else if (is_thai(&ch)) {
+		if ((istr[0]>=0x0E40 && istr[0]<=0x0E44) && (istr[1]>=0x0E01 && istr[1]<=0x0E2E)) {
+			/* Thai reordering :: Vowel followed by Consonant */
+			/* https://unicode-org.github.io/icu/userguide/collation/concepts.html#thailao-reordering */
+			ini[0]=istr[1];
+		} else {
+			ini[0]=istr[0];
+		}
+		return;
+	}
+	else if (is_devanagari(istr)==2) {
+		ini[0]=istr[0]; ini[1]=istr[1]; ini[2]=L'\0';
+		return;
+	}
+	else if (is_devanagari(&ch)||is_arabic(&ch)||is_hebrew(&ch)) {
+		if (ch==0x626) {  /* Arabic Letter Yeh with Hamza Above for Uyghur */
+			strY[0]=0x626; strY[1]=L'\0'; /* Yeh with Hamza Above */
+			strZ[0]=0x628; strZ[1]=L'\0'; /* Beh */
+			order = ucol_strcoll(icu_collator, strZ, -1, strY, -1);
+			if (order==UCOL_LESS) {
+				ini[0]=strY[0]; ini[1]=strY[1];
+				return;
+			}
+		}
+		/* Devanagary, Marathi */
+		if (       (istr[0]==0x915 && istr[1]==0x94D && istr[2]== 0x937)    /* KSSA क्ष */
+			|| (istr[0]==0x91C && istr[1]==0x94D && istr[2]== 0x91E)) { /* JNYA ज्ञ */
+			strY[0]=istr[0]; strY[1]=istr[1]; strY[2]=istr[2]; strY[3]=L'\0';
+			strZ[0]=0x939; strZ[1]=L'\0'; /* HA ह */
+			order = ucol_strcoll(icu_collator, strZ, -1, strY, -1);
+			if (order==UCOL_LESS) {
+				u_strcpy(ini,strY);
+				return;
+			}
+		}
+		if (ch==0x929||ch==0x931||ch==0x934||(0x958<=ch&&ch<=0x95F) /* Devanagary */
+			||(0x622<=ch&&ch<=0x626)||ch==0x6C0||ch==0x6C2||ch==0x6D3 /* Arabic */
+			||(0xFB50<=ch&&ch<=0xFDFF) /* Arabic Presentation Forms-A */
+			||(0xFE70<=ch&&ch<=0xFEFF) /* Arabic Presentation Forms-B */
+			||(0xFB1D<=ch&&ch<=0xFB4F) /* Hebrew presentation forms */
+		   ) {
+			src[0]=ch;  src[1]=0x00;
+			perr=U_ZERO_ERROR;
+			unorm2_normalize(unormalizer_NFD, src, 1, dest, 8, &perr);
+			if (U_SUCCESS(perr))
+				ch=dest[0];                         /* without modifier */
+		}
+		else if (ch==0x5DA||ch==0x5DD||ch==0x05DF||ch==0x5E3||ch==0x05E5) { /* Hebrew letter final */
+			ch++;
+		}
+		ini[0]=ch;
+		return;
+	}
+	if (ch>=0xFF21&&ch<=0xFF3A || ch>=0xFF41&&ch<=0xFF5A) {
+		/* Fullwidth latin letter */
+		ch-=0xFF21-0x0041;
+	}
 	if (ch==0x049||ch==0x069||ch==0x130||ch==0x131||ch==0x0CE||ch==0x0EE) {
 		/* check dotted/dotless İ,I,i,ı and Î,î for Turkish */
-		strX[0] = 0x131;  strX[1] = 0x5A;  strX[2] = 0x00;  /* ıZ */
-		strZ[0] = 0x069;  strZ[1] = 0x00;                   /* i  */
-		order = ucol_strcoll(icu_collator, strZ, -1, strX, -1);
-		if (order==UCOL_GREATER) {
+		if (turkish_i==0) {
+			strgth = ucol_getStrength(icu_collator);
+			ucol_setStrength(icu_collator, UCOL_SECONDARY);
+			strX[0] = 0x131;  strX[1] = 0x069;  strX[2] = 0x00; /* ıi */
+			strZ[0] = 0x049;  strZ[1] = 0x130;  strZ[2] = 0x00; /* Iİ */
+			order = ucol_strcoll(icu_collator, strZ, -1, strX, -1);
+			turkish_i = (order==UCOL_EQUAL) ? 2 : 1;
+			ucol_setStrength(icu_collator, strgth);
+		}
+		if (turkish_i==2) {
 			ini[0] = (ch==0x049||ch==0x131) ? 0x131 : 0x130; /* ı or İ */
-			turkish_i=1;
+			return;
+		}
+	}
+	if (ch==0x059||ch==0x079) {
+		/* check Y versus I for Lithuanian */
+		if (i_y_mode==0) {
+			strgth = ucol_getStrength(icu_collator);
+			ucol_setStrength(icu_collator, UCOL_PRIMARY);
+			strX[0] = 0x059;  strX[1] = 0x00; /* Y */
+			strZ[0] = 0x049;  strZ[1] = 0x00; /* I */
+			order = ucol_strcoll(icu_collator, strZ, -1, strX, -1);
+			i_y_mode = (order==UCOL_EQUAL) ? 2 : 1;
+			ucol_setStrength(icu_collator, strgth);
+		}
+		if (i_y_mode==2) {
+			ini[0] = 0x049; /* I */
+			return;
+		}
+	}
+	if (ch==0x0D6||ch==0x0F6||ch==0x150||ch==0x151) {
+		/* check Ö,ö versus Ő,ő for Hungarian */
+		if (o_o_mode==0) {
+			strgth = ucol_getStrength(icu_collator);
+			ucol_setStrength(icu_collator, UCOL_PRIMARY);
+			strX[0] = 0x0D6;  strX[1] = 0x00; /* Ö */
+			strY[0] = 0x150;  strY[1] = 0x00; /* Ő */
+			strZ[0] = 0x04F;  strZ[1] = 0x00; /* O */
+			order  = ucol_strcoll(icu_collator, strY, -1, strX, -1);
+			order1 = ucol_strcoll(icu_collator, strZ, -1, strX, -1);
+			o_o_mode = (order==UCOL_EQUAL && order1!=UCOL_EQUAL) ? 2 : 1;
+			ucol_setStrength(icu_collator, strgth);
+		}
+		if (o_o_mode==2) {
+			ini[0] = 0x0D6; /* Ö */
+			return;
+		}
+	}
+	if (ch==0x0DC||ch==0x0FC||ch==0x170||ch==0x171) {
+		/* check Ü,ü versus Ű,ű for Hungarian */
+		if (u_u_mode==0) {
+			strgth = ucol_getStrength(icu_collator);
+			ucol_setStrength(icu_collator, UCOL_PRIMARY);
+			strX[0] = 0x0DC;  strX[1] = 0x00; /* Ü */
+			strY[0] = 0x170;  strY[1] = 0x00; /* Ű */
+			strZ[0] = 0x055;  strZ[1] = 0x00; /* U */
+			order = ucol_strcoll(icu_collator, strY, -1, strX, -1);
+			order1 = ucol_strcoll(icu_collator, strZ, -1, strX, -1);
+			u_u_mode = (order==UCOL_EQUAL && order1!=UCOL_EQUAL) ? 2 : 1;
+			ucol_setStrength(icu_collator, strgth);
+		}
+		if (u_u_mode==2) {
+			ini[0] = 0x0DC; /* Ü */
 			return;
 		}
 	}
 	if (ch==0x0C6||ch==0x0E6||ch==0x152||ch==0x153||ch==0x132||ch==0x133
-		||ch==0x0DF||ch==0x1E9E||ch==0x13F||ch==0x140||ch==0x490||ch==0x491) {
+		||ch==0x0DF||ch==0x1E9E||ch==0x13F||ch==0x140||ch==0x149||ch==0x490||ch==0x491) {
 		strX[0] = u_toupper(ch);  strX[1] = 0x00; /* ex. "Æ" "Œ" */
 		switch (ch) {
 			case 0x0C6: case 0x0E6:        /* Æ æ */
@@ -797,6 +989,8 @@ static void index_normalize(UChar *istr, UChar *ini, int *chset)
 				strZ[0] = 0x49; break; /* I   */
 			case 0x13F: case 0x140:        /* Ŀ ŀ */
 				strZ[0] = 0x4C; break; /* L   */
+			case 0x149:                    /* ŉ   */
+				strZ[0] = 0x4E; break; /* N   */
 			case 0x490: case 0x491:        /* Ґ ґ */
 				strZ[0] = 0x413; break; /* Г   */
 		}
@@ -864,9 +1058,22 @@ static void index_normalize(UChar *istr, UChar *ini, int *chset)
 				}
 			}
 		}
+		/* NG for Welsh */
+		if (strX[0]==0x4E && strX[1]==0x47) {                            /* NG */
+			strY[0]=0x4E; strY[1]=L'\0';                             /* N   */
+			strZ[0]=0x4E; strZ[1]=0x47; strZ[2]=0x5A; strZ[3]=L'\0'; /* NGZ */
+			order = ucol_strcoll(icu_collator, strZ, -1, strY, -1);
+			if (order==UCOL_LESS) {
+				ini[0]=strX[0]; ini[1]=strX[1]; /* NG */
+				ini[2]=L'\0';
+				return;
+			}
+		}
 		/* other digraphs */
-		if(((strX[0]==0x43 || strX[0]==0x44 || strX[0]==0x53 || strX[0]==0x54 || strX[0]==0x58 || strX[0]==0x5A)
-		                                     && strX[1]==0x48) || /* CH DH SH TH XH ZH */
+		if(((strX[0]==0x43 || strX[0]==0x44 || strX[0]==0x50 || strX[0]==0x52 || strX[0]==0x53 || strX[0]==0x54 ||
+		     strX[0]==0x58 || strX[0]==0x5A) && strX[1]==0x48) || /* CH DH PH RH SH TH XH ZH */
+		    (strX[0]==0x44 && strX[1]==0x44) ||                   /* DD */
+		    (strX[0]==0x46 && strX[1]==0x46) ||                   /* FF */
 		    (strX[0]==0x4C && strX[1]==0x4C) ||                   /* LL */
 		   ((strX[0]==0x47 || strX[0]==0x4C || strX[0]==0x4E) && strX[1]==0x4A) || /* GJ LJ NJ */
 		    (strX[0]==0x52 && strX[1]==0x52) ||                   /* RR */
@@ -882,16 +1089,20 @@ static void index_normalize(UChar *istr, UChar *ini, int *chset)
 			}
 		}
 	}
+	if (ch==0x0AA) ch=L'A';
+	if (ch==0x0BA) ch=L'O';
 	ini[0]=u_toupper(ch);
 	return;
 }
 
-static int initial_cmp_char(UChar *ini, UChar ch)
+static int initial_cmp_char(UChar *ini, UChar *ch)
 {
-	UChar initial_tmp[INITIALLENGTH],istr[2];
-	int chset;
-	istr[0]=ch;
-	istr[1]=L'\0';
+	UChar initial_tmp[INITIALLENGTH],istr[3];
+	int chset, l;
+	l = is_surrogate_pair(ch) ? 2 : 1;
+	          istr[0]=ch[0];
+	if (l==2) istr[1]=ch[1];
+	          istr[l]=L'\0';
 
 	index_normalize(istr, initial_tmp, &chset);
 	return (ss_comp(ini, initial_tmp)<0);
@@ -939,7 +1150,7 @@ static int init_hanzi_header(void)
 			len=u_strlen(pch0);
 		}
 		if (len>=INITIALLENGTH) {
-			warn_printf(efp, "\nWarning, Too long (%d) hanzi header.\n", len);
+			warn_printf(efp, "\nWarning: Too long (%d) hanzi header.\n", len);
 			len=INITIALLENGTH-1;
 		}
 		u_strncpy(hz_index[k].idx,pch0,len);

@@ -4,7 +4,7 @@ pdftops(1)                  General Commands Manual                 pdftops(1)
 
 NAME
        pdftops  - Portable Document Format (PDF) to PostScript converter (ver-
-       sion 4.02)
+       sion 4.04)
 
 SYNOPSIS
        pdftops [options] [PDF-file [PS-file]]
@@ -21,9 +21,9 @@ DESCRIPTION
 CONFIGURATION FILE
        Pdftops reads a configuration file at startup.  It first tries to  find
        the  user's  private config file, ~/.xpdfrc.  If that doesn't exist, it
-       looks for a system-wide config  file,  typically  /usr/local/etc/xpdfrc
-       (but  this  location  can  be  changed when pdftops is built).  See the
-       xpdfrc(5) man page for details.
+       looks for a system-wide config file, typically  /etc/xpdfrc  (but  this
+       location  can be changed when pdftops is built).  See the xpdfrc(5) man
+       page for details.
 
 OPTIONS
        Many of the following options can be set with configuration  file  com-
@@ -42,7 +42,7 @@ OPTIONS
               print on Level 1 printers.  This also  converts  all  images  to
               black  and  white.   No  more  than  one of the PostScript level
               options  (-level1,  -level1sep,  -level2,  -level2sep,  -level3,
-              -level3Sep) may be given.  [config file: psLevel]
+              -level3sep) may be given.  [config file: psLevel]
 
        -level1sep
               Generate Level 1 separable PostScript.  All colors are converted
@@ -72,9 +72,9 @@ OPTIONS
               Generate grayscale Level 3 PostScript.   All  colors,  including
               images, are converted to grayscale.  [config file: psLevel]
 
-       -level3Sep
+       -level3sep
               Generate  Level 3 separable PostScript.  The separation handling
-              is the same as for -level2Sep.  [config file: psLevel]
+              is the same as for -level2sep.  [config file: psLevel]
 
        -eps   Generate an Encapsulated PostScript (EPS)  file.   An  EPS  file
               contains a single image, so if you use this option with a multi-
@@ -177,6 +177,10 @@ OPTIONS
        -upw password
               Specify the user password for the PDF file.
 
+       -verbose
+              Print a status message (to stdout) before processing each  page.
+              [config file: printStatusInfo]
+
        -q     Don't print any messages or errors.  [config file: errQuiet]
 
        -cfg config-file
@@ -201,14 +205,14 @@ EXIT CODES
        99     Other error.
 
 AUTHOR
-       The  pdftops software and documentation are copyright 1996-2019 Glyph &
+       The pdftops software and documentation are copyright 1996-2022 Glyph  &
        Cog, LLC.
 
 SEE ALSO
-       xpdf(1), pdftotext(1), pdftohtml(1),  pdfinfo(1),  pdffonts(1),  pdfde-
+       xpdf(1),  pdftotext(1),  pdftohtml(1),  pdfinfo(1), pdffonts(1), pdfde-
        tach(1), pdftoppm(1), pdftopng(1), pdfimages(1), xpdfrc(5)
        http://www.xpdfreader.com/
 
 
 
-                                  25 Sep 2019                       pdftops(1)
+                                  18 Apr 2022                       pdftops(1)

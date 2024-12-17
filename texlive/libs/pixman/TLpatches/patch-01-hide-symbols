@@ -1,6 +1,6 @@
-diff -ur pixman-0.38.4/pixman/pixman-compiler.h pixman-src/pixman/pixman-compiler.h
---- pixman-0.38.4/pixman/pixman-compiler.h	Sun Mar 31 06:49:22 2019
-+++ pixman-src/pixman/pixman-compiler.h	Thu Apr 11 07:00:03 2019
+diff -ur pixman-0.42.2/pixman/pixman-compiler.h pixman-src/pixman/pixman-compiler.h
+--- pixman-0.42.2/pixman/pixman-compiler.h	Wed Feb 02 05:51:25 2022
++++ pixman-src/pixman/pixman-compiler.h	Thu Nov 03 06:05:57 2022
 @@ -91,7 +91,7 @@
  
  /* GCC visibility */

@@ -182,6 +182,22 @@ that length because we have utf output so length is then a bit fuzzy anyway.
 #define escaped_char(A) \
     A+64
 
+
+#define wlog_char(A) \
+    if (needs_escaping(A)) { \
+        wlog(A); \
+    } else { \
+        if (file_offset+2>=max_print_line) { \
+            wlog_cr(); \
+            file_offset=0; \
+        } \
+        wlog('^'); \
+        wlog('^'); \
+        wlog(escaped_char(A)); \
+        file_offset += 2; \
+    }
+
+
 #define wterm_char(A) \
     if (needs_escaping(A)) { \
         wterm(A); \
@@ -241,7 +257,7 @@ void print_char(int s)
             break;
         case log_only:
             fix_log_offset(s);
-            wlog(s);
+            wlog_char(s);
             incr(file_offset);
             if (file_offset == max_print_line) {
                 wlog_cr();
@@ -252,7 +268,7 @@ void print_char(int s)
             fix_term_offset(s);
             fix_log_offset(s);
             wterm_char(s);
-            wlog(s);
+            wlog_char(s);
             incr(term_offset);
             incr(file_offset);
             if (term_offset == max_print_line) {
@@ -382,7 +398,8 @@ void print_nlp(void)
 {
     if (new_string_line > 0) {
         print_char(new_string_line);
-    } else if (((term_offset > 0) && (odd(selector))) ||
+    } else if ((selector < no_print) ||
+               ((term_offset > 0) && (odd(selector))) ||
                ((file_offset > 0) && (selector >= log_only))) {
         print_ln();
     }
@@ -466,6 +483,7 @@ void tprint(const char *sss)
     /*tex What is left is the 3 term/log settings. */
     if (dolog || doterm) {
         buffer = xmalloc(strlen(sss)*3);
+        buffer[0] = '\0';
         /*tex The |wrapup_run| callback acts when the log file is already closed.*/
         if (dolog && log_opened_global) {
             const unsigned char *ss = (const unsigned char *) sss;
@@ -1295,6 +1313,54 @@ void end_diagnostic(boolean blank_line)
     if (blank_line)
         print_ln();
     selector = global_old_setting;
+}
+
+/*
+    Indentation (based on a suggestion by PO on tex-implementors but adapted to
+    out situation and with built-in limits and so.
+    It's possible to add  an extra newline with texconfig.trace_extra_newline = 1
+*/
+
+void print_input_level(void)
+{
+    int callback_id = callback_defined(input_level_string_callback);
+    if (callback_id>0) {
+        char *s = NULL;
+        if (run_callback(callback_id, "d->S", input_ptr, &s)) {
+            if (s && strlen(s) > 0) {
+                tprint_nl(s);
+                free(s);
+            } else {
+	      if (traceextranewline)
+		 print_ln();
+            }
+        } else {
+	  if (traceextranewline)
+             print_ln();
+        }
+    } else {
+        int m = level_max;
+        if (m) {
+            int l = input_ptr;
+            int c = level_chr > 0 ? level_chr : '.';
+            if (l > m) {
+                tprint_nl("[");
+                print_int((l/m)*m);
+                print(']');
+                l = l % m;
+            } else {
+	      if (traceextranewline)
+                 print_ln();
+            }
+            while (l > 0) {
+               print(c);
+               l--;
+            }
+        } else {
+	  if (traceextranewline)
+	     print_ln();
+        }
+    }
 }
 
 /*tex

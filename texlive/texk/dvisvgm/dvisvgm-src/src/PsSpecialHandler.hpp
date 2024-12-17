@@ -2,7 +2,7 @@
 ** PsSpecialHandler.hpp                                                 **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -27,13 +27,15 @@
 #include <string>
 #include <vector>
 #include "GraphicsPath.hpp"
+#include "PDFHandler.hpp"
 #include "PSInterpreter.hpp"
-#include "SpecialHandler.hpp"
+#include "Opacity.hpp"
 #include "PSPattern.hpp"
-#include "PSPreviewFilter.hpp"
-
+#include "PSPreviewHandler.hpp"
+#include "SpecialHandler.hpp"
 
 class PSPattern;
+class SVGElement;
 class XMLElement;
 
 class PsSpecialHandler : public SpecialHandler, protected PSActions {
@@ -75,18 +77,27 @@ class PsSpecialHandler : public SpecialHandler, protected PSActions {
 			std::stack<Entry> _stack;  ///< stack holding the clipping information of the current graphics context
 	};
 
+	struct ImageNode {
+		ImageNode () : matrix(1) {}
+		explicit ImageNode (std::unique_ptr<SVGElement> elem) : element(std::move(elem)), matrix(1) {}
+		ImageNode (std::unique_ptr<SVGElement> elem, const Matrix &m) : element(std::move(elem)), matrix(m) {}
+		std::unique_ptr<SVGElement> element;
+		Matrix matrix;
+	};
+
 	enum PsSection {PS_NONE, PS_HEADERS, PS_BODY};
 	enum class FileType {EPS, PDF, SVG, BITMAP};
 
 	public:
 		PsSpecialHandler ();
 		~PsSpecialHandler () override;
-		const char* name () const override {return "ps";}
-		const char* info () const override {return "dvips PostScript specials";}
-		std::vector<const char*> prefixes() const override;
 		void preprocess (const std::string &prefix, std::istream &is, SpecialActions &actions) override;
 		bool process (const std::string &prefix, std::istream &is, SpecialActions &actions) override;
-		void setDviScaleFactor (double dvi2bp) override {_previewFilter.setDviScaleFactor(dvi2bp);}
+		const char* info () const override {return "dvips PostScript specials";}
+		const char* name () const override {return handlerName();}
+		static const char* handlerName ()  {return "ps";}
+		std::vector<const char*> prefixes () const override;
+		void setDviScaleFactor (double dvi2bp) override {_previewHandler.setDviScaleFactor(dvi2bp);}
 		void enterBodySection ();
 		PSInterpreter& psInterpreter () {return _psi;}
 
@@ -96,6 +107,7 @@ class PsSpecialHandler : public SpecialHandler, protected PSActions {
 		static int SHADING_SEGMENT_SIZE;
 		static double SHADING_SIMPLIFY_DELTA;
 		static std::string BITMAP_FORMAT;
+		static bool EMBED_BITMAP_DATA;
 
 	protected:
 		void initialize ();
@@ -104,7 +116,10 @@ class PsSpecialHandler : public SpecialHandler, protected PSActions {
 		void executeAndSync (std::istream &is, bool updatePos);
 		void processHeaderFile (const char *fname);
 		void imgfile (FileType type, const std::string &fname, const std::map<std::string,std::string> &attr);
-		std::unique_ptr<XMLElement> createImageNode (FileType type, const std::string &fname, int pageno, BoundingBox bbox, bool clip);
+		ImageNode createImageNode (FileType type, const std::string &fname, int pageno, BoundingBox bbox, bool clip);
+		ImageNode createBitmapNode (const std::string &fname, const std::string &path, int pageno, BoundingBox bbox);
+		ImageNode createPSNode (const std::string &fname, const std::string &path, int pageno, BoundingBox bbox, bool clip);
+		ImageNode createPDFNode (const std::string &fname, const std::string &path, int pageno, BoundingBox bbox, bool clip);
 		void dviBeginPage (unsigned int pageno, SpecialActions &actions) override;
 		void dviEndPage (unsigned pageno, SpecialActions &actions) override;
 		void clip (Path path, bool evenodd);
@@ -138,10 +153,12 @@ class PsSpecialHandler : public SpecialHandler, protected PSActions {
 		void rotate (std::vector<double> &p) override;
 		void save (std::vector<double> &p) override;
 		void scale (std::vector<double> &p) override;
-		void setblendmode (std::vector<double> &p) override    {_blendmode = int(p[0]);}
+		void setalphaisshape (std::vector<double> &p) override { _isshapealpha = bool(p[0]);}
+		void setblendmode (std::vector<double> &p) override;
 		void setcolorspace (std::vector<double> &p) override   {_patternEnabled = bool(p[0]);}
 		void setcmykcolor (std::vector<double> &cmyk) override;
 		void setdash (std::vector<double> &p) override;
+		void setfillconstantalpha (std::vector<double> &p) override;
 		void setgray (std::vector<double> &p) override;
 		void sethsbcolor (std::vector<double> &hsb) override;
 		void setlinecap (std::vector<double> &p) override      {_linecap = uint8_t(p[0]);}
@@ -150,11 +167,10 @@ class PsSpecialHandler : public SpecialHandler, protected PSActions {
 		void setmatrix (std::vector<double> &p) override;
 		void setmiterlimit (std::vector<double> &p) override   {_miterlimit = p[0];}
 		void setnulldevice (std::vector<double> &p) override;
-		void setopacityalpha (std::vector<double> &p) override {_opacityalpha = p[0];}
-		void setshapealpha (std::vector<double> &p) override   {_shapealpha = p[0];}
 		void setpagedevice (std::vector<double> &p) override;
 		void setpattern (std::vector<double> &p) override;
 		void setrgbcolor (std::vector<double> &rgb) override;
+		void setstrokeconstantalpha (std::vector<double> &p) override;
 		void shfill (std::vector<double> &p) override;
 		void stroke (std::vector<double> &p) override;
 		void translate (std::vector<double> &p) override;
@@ -162,30 +178,33 @@ class PsSpecialHandler : public SpecialHandler, protected PSActions {
 
 	private:
 		PSInterpreter _psi;
+		PDFHandler _pdfHandler;
 		SpecialActions *_actions=nullptr;
-		PSPreviewFilter _previewFilter;  ///< filter to extract information generated by the preview package
-		PsSection _psSection=PS_NONE;    ///< current section processed (nothing yet, headers, or body specials)
-		XMLElement *_xmlnode=nullptr;    ///< if != 0, created SVG elements are appended to this node
-		XMLElement *_savenode=nullptr;   ///< pointer to temporaryly store _xmlnode
-		std::string _headerCode;    ///< collected literal PS header code
+		PSPreviewHandler _previewHandler;  ///< extracts information generated by the preview package
+		PsSection _psSection=PS_NONE;      ///< current section processed (nothing yet, headers, or body specials)
+		XMLElement *_xmlnode=nullptr;      ///< if != 0, created SVG elements are appended to this node
+		XMLElement *_savenode=nullptr;     ///< pointer to temporaryly store _xmlnode
+		std::string _headerCode;           ///< collected literal PS header code
 		Path _path;
-		DPair _currentpoint;        ///< current PS position in bp units
-		Color _currentcolor;        ///< current stroke/fill color
-		double _sx, _sy;            ///< horizontal and vertical scale factors retrieved by operator "applyscalevals"
-		double _cos;                ///< cosine of angle between (1,0) and transform(1,0)
-		double _linewidth;          ///< current line width in bp units
-		double _miterlimit;         ///< current miter limit in bp units
-		double _opacityalpha;       ///< opacity level (0=fully transparent, ..., 1=opaque)
-		double _shapealpha;         ///< shape opacity level (0=fully transparent, ..., 1=opaque)
-		int _blendmode;             ///< blend mode used when overlaying colored areas
-		uint8_t _linecap  : 2;      ///< current line cap (0=butt, 1=round, 2=projecting square)
-		uint8_t _linejoin : 2;      ///< current line join (0=miter, 1=round, 2=bevel)
-		double _dashoffset;         ///< current dash offset
+		DPair _currentpoint;               ///< current PS position in bp units
+		Color _currentcolor;               ///< current stroke/fill color
+		double _sx, _sy;                   ///< horizontal and vertical scale factors retrieved by operator "applyscalevals"
+		double _cos;                       ///< cosine of angle between (1,0) and transform(1,0)
+		double _linewidth;                 ///< current line width in bp units
+		double _miterlimit;                ///< current miter limit in bp units
+		bool _isshapealpha;                ///< if true, opacity operators act on shape component, otherwise on constant component
+		Opacity _opacity;
+		uint8_t _linecap  : 2;             ///< current line cap (0=butt, 1=round, 2=projecting square)
+		uint8_t _linejoin : 2;             ///< current line join (0=miter, 1=round, 2=bevel)
+		double _dashoffset;                ///< current dash offset
 		std::vector<double> _dashpattern;
 		ClippingStack _clipStack;
+		int _imgClipCount=0;               ///< current number of clip paths assigned to images
+		bool _makingPattern=false;         ///< true if executing makepattern operator
 		std::map<int, std::unique_ptr<PSPattern>> _patterns;
-		PSTilingPattern *_pattern;  ///< current pattern
-		bool _patternEnabled;       ///< true if active color space is a pattern
+		PSTilingPattern *_pattern;         ///< current pattern
+		bool _patternEnabled;              ///< true if active color space is a pattern
+		std::string _pdfProc;              ///< tool to process PDF files ("gs" or "mutool")
 };
 
 #endif

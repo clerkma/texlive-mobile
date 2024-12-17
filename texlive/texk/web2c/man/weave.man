@@ -1,4 +1,4 @@
-.TH WEAVE 1 "16 June 2015" "Web2C @VERSION@"
+.TH WEAVE 1 "20 March 2024 "Web2C @VERSION@"
 .\"=====================================================================
 .if n .ds MF Metafont
 .if t .ds MF Metafont
@@ -18,10 +18,11 @@
 .SH NAME
 weave \- translate WEB to TeX
 .SH SYNOPSIS
-.B weave
-.RB [ \-x ]
-.IR webfile [ \fB.web\fP ]
-.RI [ changefile [ \fB.ch\fP ]]
+.PP
+\f[B]weave\f[R] [\f[B]-p\f[R]] [\f[B]-x\f[R]]
+\f[I]webfile\f[R][\f[B].web\f[R]]
+[{\f[I]changefile\f[R][\f[B].ch\f[R]]|\f[B]-\f[R]}
+[\f[I]outfile\f[R][\f[B].tex\f[R]]]]
 .\"=====================================================================
 .SH DESCRIPTION
 This manual page is not meant to be exhaustive.  The complete
@@ -37,7 +38,9 @@ layout and the use of indentation, italics, boldface, etc., and it supplies
 extensive cross-index information that it gathers automatically.
 The command line arguments are the same as for
 .B tangle
-except for the option:
+except for the options:
+.B \-p
+says to use alternative macros more suited for PDF output.
 .B \-x
 says to omit the index, module name list, and table of contents pages.
 (A
@@ -49,16 +52,18 @@ are redefined.)
 .PP
 The output \*(TX file name is formed by adding
 .B .tex
-to the root of the \*(WB file name.
+to the root of the \*(WB file name or from the third argument.
+In this case you can specify '-' as an empty change file.
 .PP
 There are several macros
 that probably should be redefined by
 the programmer at the beginning of the \*(WB file.
-It is a good idea to set \\title
+It is a good idea to set
+.I \etitle
 to the name of the program.
 And, to cause output of only changed modules, one can say
-\\let\\maybe=\\iffalse (usually as the first change in the
-change file).
+.I \elet\emaybe=\eiffalse
+(usually as the first change in the change file).
 .\"=====================================================================
 .SH ENVIRONMENT
 The environment variable WEBINPUTS is used to search for the input files,
@@ -68,10 +73,14 @@ for the details of the searching.
 .\"=====================================================================
 .SH FILES
 .TP \w'@@'u+2n
-.I $TEXMFMAIN/tex/plain/base/webmac.tex
+.I $TEXMFMAIN/tex/plain/knuth-lib/webmac.tex
 \*(TX macros used by
 .B weave
 output.
+.TP \w'@@'u+2n
+.I $TEXMFMAIN/tex/plain/pwebmac/pwebmac.tex
+alternative
+\*(TX macros used for PDF output.
 .\"=====================================================================
 .SH "SEE ALSO"
 .BR tangle (1)

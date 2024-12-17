@@ -1,5 +1,30 @@
-$Id: NEWS 54578 2020-03-27 00:29:26Z karl $
+$Id: NEWS 72783 2024-11-06 22:37:50Z karl $
 This file records noteworthy changes.  (Public domain.)
+
+* A file named ".tex" can no longer be written from TeX; previously this
+  was allowed as a special case.  (The LaTeX 2024-11-01 release changes
+  their build process so as not to write it from TeX.)
+
+6.4.0 (for TeX Live 2024, 10 March 2024)
+* Support an extended check for safe filenames which also allows
+  TEXMF[SYS]VAR, for Lua(La)TeX; new functions and corresponding
+  kpsewhich options.
+* Support a new variable TEXMF_OUTPUT_DIRECTORY (alongside the
+  traditional TEXMFOUTPUT), so that subprograms can have access to an
+  --output-directory setting in an engine invocation.
+
+6.3.5 (for TeX Live 2023, 9 March 2023)
+* Support guessing input file encodings for Unix-ish platforms, as on
+  Windows; enabled for (e)p(la)tex, pbibtex, mendex.
+
+6.3.4 (for TeX Live 2022, 21 March 2022)
+* First return path from kpsewhich -all is now the same as non-all.
+  (Internally, str_list_uniqify retains ordering.)
+
+6.3.3 (for TeX Live 2021, 23 March 2021)
+* The library does not emit warnings for unrecognized filenames,
+  leaving it up to the caller.
+* Double save_size limit to 200,000 for tex4ht, l3regex, etc.
 
 6.3.2 (for TeX Live 2020, 27 March 2020)
 * New option --cnf-line for kpsewhich (and tex and mf) to support

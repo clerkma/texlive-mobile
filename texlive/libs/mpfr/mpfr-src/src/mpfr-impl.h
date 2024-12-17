@@ -1,6 +1,6 @@
 /* Utilities for MPFR developers, not exported.
 
-Copyright 1999-2019 Free Software Foundation, Inc.
+Copyright 1999-2023 Free Software Foundation, Inc.
 Contributed by the AriC and Caramba projects, INRIA.
 
 This file is part of the GNU MPFR Library.
@@ -51,12 +51,11 @@ https://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
 #endif
 
 /* Since <stdio.h> (<cstdio> for C++) is unconditionally included... */
-#ifndef MPFR_DONT_USE_FILE
-# define MPFR_USE_FILE
-#endif
+#define MPFR_USE_FILE
 
 #include <stdlib.h>
 #include <limits.h>
+#include <float.h>  /* for FLT_RADIX, etc., tested below */
 
 
 /******************************************************
@@ -70,6 +69,11 @@ https://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
 
 #if defined(_MPFR_EXP_FORMAT) && _MPFR_EXP_FORMAT == 4
 /* mpfr_exp_t will be defined as intmax_t */
+# undef MPFR_NEED_INTMAX_H
+# define MPFR_NEED_INTMAX_H 1
+#endif
+
+#ifdef MPFR_NEED_INTMAX_H
 # include "mpfr-intmax.h"
 #endif
 
@@ -88,9 +92,35 @@ https://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
 #endif
 #include "mpfr-thread.h"
 
+#ifndef MPFR_USE_MINI_GMP
+#include "gmp.h"
+#else
+#include "mini-gmp.h"
+#endif
+
+/* With the current code, MPFR_LONG_WITHIN_LIMB must be defined if an
+   unsigned long fits in a limb. Since one cannot rely on the configure
+   tests entirely (in particular when GMP is involved) and some platforms
+   may not use configure, handle this definition here. A limb (mp_limb_t)
+   is normally defined as an unsigned long, but this may not be the case
+   with mini-gmp (and we can't rely on __GMP_SHORT_LIMB for this reason).
+   So, concerning mp_limb_t, we can only test GMP_NUMB_BITS.
+   Chosen heuristic: define MPFR_LONG_WITHIN_LIMB only when
+     * mp_limb_t and unsigned long have both 32 bits exactly, or
+     * mp_limb_t has at least 64 bits.
+   Since we require that mp_limb_t have a size that is a power of 2, we
+   can currently be wrong only if mini-gmp is used and unsigned long has
+   more than 64 bits, which is unlikely to occur. */
+#if GMP_NUMB_BITS >= 64 || (GMP_NUMB_BITS == 32 && ULONG_MAX == 0xffffffff)
+# undef MPFR_LONG_WITHIN_LIMB
+# define MPFR_LONG_WITHIN_LIMB 1
+#endif
+
 #ifdef MPFR_HAVE_GMP_IMPL /* Build with gmp internals */
 
-# include "gmp.h"
+# ifdef MPFR_USE_MINI_GMP
+#  error "MPFR_HAVE_GMP_IMPL and MPFR_USE_MINI_GMP must not be both defined"
+# endif
 # include "gmp-impl.h"
 # ifdef MPFR_NEED_LONGLONG_H
 #  include "longlong.h"
@@ -100,41 +130,22 @@ https://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
 
 #else /* Build without gmp internals */
 
-# include "gmp.h"
 /* if using mini-gmp, include missing definitions in mini-gmp */
 # ifdef MPFR_USE_MINI_GMP
 #  include "mpfr-mini-gmp.h"
 # endif
 # include "mpfr.h"
 # include "mpfr-gmp.h"
-# ifdef MPFR_NEED_LONGLONG_H
-#  define LONGLONG_STANDALONE
-#  include "mpfr-longlong.h"
+# ifdef MPFR_LONG_WITHIN_LIMB /* longlong.h is not valid otherwise */
+#  ifdef MPFR_NEED_LONGLONG_H
+#   define LONGLONG_STANDALONE
+#   include "mpfr-longlong.h"
+#  endif
 # endif
 
 #endif
 
 #undef MPFR_NEED_LONGLONG_H
-
-
-/******************************************************
- *****************  (U)INTMAX_MAX  ********************
- ******************************************************/
-
-/* Let's try to fix UINTMAX_MAX and INTMAX_MAX if these macros don't work
-   (e.g. with gcc -ansi -pedantic-errors in 32-bit mode under GNU/Linux),
-   see <https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=582698>. */
-#ifdef _MPFR_H_HAVE_INTMAX_T
-# ifdef MPFR_HAVE_INTMAX_MAX
-#  define MPFR_UINTMAX_MAX UINTMAX_MAX
-#  define MPFR_INTMAX_MAX INTMAX_MAX
-#  define MPFR_INTMAX_MIN INTMAX_MIN
-# else
-#  define MPFR_UINTMAX_MAX ((uintmax_t) -1)
-#  define MPFR_INTMAX_MAX ((intmax_t) (MPFR_UINTMAX_MAX >> 1))
-#  define MPFR_INTMAX_MIN (INT_MIN + INT_MAX - MPFR_INTMAX_MAX)
-# endif
-#endif
 
 
 /******************************************************
@@ -162,9 +173,9 @@ https://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
 #endif
 
 #if __MPFR_GNUC(3,0) || __MPFR_ICC(8,1,0)
-# define MPFR_CONST_ATTR    __attribute__ ((const))
+# define MPFR_CONST_FUNCTION_ATTR   __attribute__ ((const))
 #else
-# define MPFR_CONST_ATTR
+# define MPFR_CONST_FUNCTION_ATTR
 #endif
 
 #if __MPFR_GNUC(3,0) || __MPFR_ICC(8,1,0)
@@ -189,12 +200,23 @@ https://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
 # define MPFR_COLD_FUNCTION_ATTR
 #endif
 
-/* add MPFR_MAYBE_UNUSED after a variable declaration to avoid compiler
-   warnings if it is not used */
+/* Add MPFR_MAYBE_UNUSED after a variable declaration to avoid compiler
+   warnings if it is not used.
+   TODO: To be replaced by the future maybe_unused attribute (C2x) once
+   supported. */
 #if __MPFR_GNUC(3,4)
 #define MPFR_MAYBE_UNUSED __attribute__ ((unused))
 #else
 #define MPFR_MAYBE_UNUSED
+#endif
+
+/* This MPFR_FALLTHROUGH macro allows one to make fallthrough in switch case
+   explicit. Use this macro at the end of a switch case if it falls through,
+   in order to avoid a -Wimplicit-fallthrough warning. */
+#if __MPFR_GNUC(7,0)
+#define MPFR_FALLTHROUGH __attribute__ ((fallthrough))
+#else
+#define MPFR_FALLTHROUGH
 #endif
 
 
@@ -458,6 +480,9 @@ __MPFR_DECLSPEC extern const mpfr_t __gmpfr_const_log2_RNDU;
    MPFR_DBGRES(assignment): to be used when the result is tested only
      in an MPFR_ASSERTD expression (in order to avoid a warning, e.g.
      with GCC's -Wunused-but-set-variable, in non-debug mode).
+     Note: WG14/N2270 proposed a maybe_unused attribute, which could
+     be useful to avoid MPFR_DBGRES. See:
+       https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2270.pdf
    Note: Evaluating expr might yield side effects, but such side effects
    must not change the results (except by yielding an assertion failure).
 */
@@ -591,6 +616,11 @@ __MPFR_DECLSPEC extern const mpfr_t __gmpfr_const_log2_RNDU;
 #  undef _MPFR_IEEE_FLOATS
 # endif
 # define _MPFR_IEEE_FLOATS 0
+# undef HAVE_LDOUBLE_IS_DOUBLE
+# undef HAVE_LDOUBLE_IEEE_EXT_LITTLE
+# undef HAVE_LDOUBLE_IEEE_EXT_BIG
+# undef HAVE_LDOUBLE_IEEE_QUAD_BIG
+# undef HAVE_LDOUBLE_IEEE_QUAD_LITTLE
 #endif
 
 #ifndef IEEE_DBL_MANT_DIG
@@ -646,10 +676,10 @@ static double double_zero = 0.0;
    (with Xcode 2.4.1, i.e. the latest one). */
 #define LVALUE(x) (&(x) == &(x) || &(x) != &(x))
 #define DOUBLE_ISINF(x) (LVALUE(x) && ((x) > DBL_MAX || (x) < -DBL_MAX))
-/* The DOUBLE_ISNAN(x) macro is also valid on long double x
-   (assuming that the compiler isn't too broken). */
-#ifdef MPFR_NANISNAN
-/* Avoid MIPSpro / IRIX64 / gcc -ffast-math (incorrect) optimizations.
+/* The DOUBLE_ISNAN(x) macro must be valid with any real floating type,
+   thus constants must be of integer type (e.g. 0). */
+#if defined(MPFR_NANISNAN) || (__MPFR_GNUC(1,0) && !defined(__STRICT_ANSI__))
+/* Avoid MIPSpro / IRIX64 / GCC (incorrect) optimizations.
    The + must not be replaced by a ||. With gcc -ffast-math, NaN is
    regarded as a positive number or something like that; the second
    test catches this case.
@@ -657,9 +687,19 @@ static double double_zero = 0.0;
    -ffinite-math-only; such options are not supported, but this makes
    difficult to test MPFR assuming x == x optimization to 1. Anyway
    support of functions/tests of using native FP and special values for
-   non-IEEE-754 environment will always be on a case-by-case basis. */
+   non-IEEE-754 environment will always be on a case-by-case basis.
+   [2018-06-02] Let's use this macro instead of the usual (x) != (x) test
+   with all GCC versions except in ISO C mode[*], as due to
+     https://gcc.gnu.org/bugzilla/show_bug.cgi?id=323
+   there is no guarantee that (x) != (x) will be true only for NaN.
+   Testing __STRICT_ANSI__ is suggested in:
+     https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85995
+   but this is not safe if the user adds a -f option affecting conformance,
+   in which case this would be a user error (however, note that the
+   configure test associated with MPFR_NANISNAN will catch some issues).
+*/
 # define DOUBLE_ISNAN(x) \
-    (LVALUE(x) && !((((x) >= 0.0) + ((x) <= 0.0)) && -(x)*(x) <= 0.0))
+    (LVALUE(x) && !((((x) >= 0) + ((x) <= 0)) && -(x)*(x) <= 0))
 #else
 # define DOUBLE_ISNAN(x) (LVALUE(x) && (x) != (x))
 #endif
@@ -692,8 +732,6 @@ static double double_zero = 0.0;
 # define MPFR_LDBL_MANT_DIG \
   (sizeof(long double)*GMP_NUMB_BITS/sizeof(mp_limb_t))
 #endif
-#define MPFR_LIMBS_PER_LONG_DOUBLE \
-  ((sizeof(long double)-1)/sizeof(mp_limb_t)+1)
 
 /* LONGDOUBLE_NAN_ACTION executes the code "action" if x is a NaN. */
 
@@ -753,16 +791,15 @@ static double double_zero = 0.0;
     if ((x) != __x)                                     \
       { action; }                                       \
   } while (0)
-# define WANT_LONGDOUBLE_VOLATILE 1
-#endif
 
-/* If we don't have a proper "volatile" then volatile is #defined to empty,
-   in this case call through an external function to stop the compiler
-   optimizing anything. */
-#ifdef WANT_LONGDOUBLE_VOLATILE
+/* Some compilers do not have a proper "volatile" and #define volatile
+   to empty (to avoid a build failure with programs using "volatile"),
+   i.e. "volatile" is just ignored and will not prevent optimizations
+   that could potentially break the IEEE rules. In this case, call an
+   external function, hoping that the compiler will not optimize. */
 # ifdef volatile
 __MPFR_DECLSPEC long double
-  __gmpfr_longdouble_volatile (long double) MPFR_CONST_ATTR;
+  __gmpfr_longdouble_volatile (long double) MPFR_CONST_FUNCTION_ATTR;
 #  define LONGDOUBLE_VOLATILE(x)  (__gmpfr_longdouble_volatile (x))
 #  define WANT_GMPFR_LONGDOUBLE_VOLATILE 1
 # else
@@ -784,18 +821,13 @@ typedef union {
   } s;
 } mpfr_long_double_t;
 
-/* #undef MPFR_LDBL_MANT_DIG */
-#undef MPFR_LIMBS_PER_LONG_DOUBLE
-/* #define MPFR_LDBL_MANT_DIG   64 */
-#define MPFR_LIMBS_PER_LONG_DOUBLE ((64-1)/GMP_NUMB_BITS+1)
-
-#endif
+#endif /* HAVE_LDOUBLE_IEEE_EXT_LITTLE */
 
 #endif  /* long double macros and typedef */
 
 
 /******************************************************
- ****************  __float128 support  ****************
+ *****************  _Float128 support  ****************
  ******************************************************/
 
 /* This is standardized by IEEE 754-2008. */
@@ -803,12 +835,105 @@ typedef union {
 
 
 /******************************************************
- ****************  _Decimal64 support  ****************
+ ******************  Decimal support  *****************
  ******************************************************/
 
 #ifdef MPFR_WANT_DECIMAL_FLOATS
-/* to cast between binary64 and decimal64 */
+
+#if defined(__GNUC__) && \
+    __FLT64_DECIMAL_DIG__ == 17 && \
+    __FLT128_DECIMAL_DIG__ == 36
+
+/* GCC has standard _Decimal64 and _Decimal128 support.
+   We may be able to detect the encoding here at compile time.
+
+   Note: GCC may define __FLT64_DECIMAL_DIG__ and __FLT128_DECIMAL_DIG__
+   even when it does not support _Decimal64 and _Decimal128, e.g. on
+   aarch64 and sparc64. But since MPFR_WANT_DECIMAL_FLOATS has been
+   defined, we already know that these types should be supported.
+
+   Determining which encoding is used via macros is not documented, and
+   there is the risk of being wrong. Currently __DECIMAL_BID_FORMAT__ is
+   defined on x86, where the BID encoding is used. But on PowerPC, where
+   the DPD encoding is used, nothing indicating the encoding is defined.
+   A possible reason may be that the decimal support is provided by the
+   hardware (in this case), so that GCC does not need to care about the
+   encoding. Thus the absence of a __DECIMAL_BID_FORMAT__ macro would
+   not necessarily imply DPD, as similarly in the future, GCC could
+   support an ISA-level implementation using the BID encoding. */
+
+#ifdef __DECIMAL_BID_FORMAT__
+
+#if defined(DECIMAL_DPD_FORMAT)
+# error "Decimal encoding mismatch (DPD assumed, BID detected)"
+#elif !defined(DECIMAL_GENERIC_CODE)
+# define DECIMAL_BID_FORMAT 1
+#endif
+
+#endif  /* __DECIMAL_BID_FORMAT__ */
+
+#endif  /* __GNUC__ */
+
+#if defined(DECIMAL_GENERIC_CODE)
+# if defined(DECIMAL_BID_FORMAT)
+#  error "DECIMAL_BID_FORMAT and DECIMAL_GENERIC_CODE both defined"
+# endif
+# if defined(DECIMAL_DPD_FORMAT)
+#  error "DECIMAL_DPD_FORMAT and DECIMAL_GENERIC_CODE both defined"
+# endif
+#elif defined(DECIMAL_BID_FORMAT) || defined(DECIMAL_DPD_FORMAT)
+# if defined(DECIMAL_BID_FORMAT) && defined(DECIMAL_DPD_FORMAT)
+#  error "DECIMAL_BID_FORMAT and DECIMAL_DPD_FORMAT both defined"
+# endif
+#else
+# define DECIMAL_GENERIC_CODE 1
+#endif
+
+/* TODO: The following is ugly and possibly wrong on some platforms.
+   Do something like union ieee_decimal128. */
 union ieee_double_decimal64 { double d; _Decimal64 d64; };
+
+/* FIXME: There's no reason to make the _Decimal128 code depend on
+   whether _MPFR_IEEE_FLOATS is defined or not, as _MPFR_IEEE_FLOATS
+   is about binary IEEE-754 floating point only. */
+#if _MPFR_IEEE_FLOATS
+/* TODO: It would be better to define a different structure for DPD,
+   where the t* bit-fields correspond to the declets. And to avoid
+   confusion and detect coding errors, these bit-fields should have
+   different names for BID and DPD. */
+union ieee_decimal128
+{
+  struct
+    {
+      /* Assume little-endian double implies little-endian for bit-field
+         allocation (C99 says: "The order of allocation of bit-fields
+         within a unit (high-order to low-order or low-order to high-order)
+         is implementation-defined.") */
+#if defined(HAVE_DECIMAL128_IEEE_LITTLE_ENDIAN)
+#define HAVE_DECIMAL128_IEEE 1
+      unsigned int t3:32;
+      unsigned int t2:32;
+      unsigned int t1:32;
+      unsigned int t0:14;
+      unsigned int comb:17;
+      unsigned int sig:1;
+#elif defined(HAVE_DECIMAL128_IEEE_BIG_ENDIAN)
+#define HAVE_DECIMAL128_IEEE 1
+      unsigned int sig:1;
+      unsigned int comb:17;
+      unsigned int t0:14;
+      unsigned int t1:32;
+      unsigned int t2:32;
+      unsigned int t3:32;
+#else /* unknown bit-field ordering */
+      /* This will not be used as HAVE_DECIMAL128_IEEE is not defined. */
+      unsigned int dummy;
+#endif
+    } s;
+  _Decimal128 d128;
+};
+#endif /* _MPFR_IEEE_FLOATS */
+
 #endif /* MPFR_WANT_DECIMAL_FLOATS */
 
 
@@ -865,7 +990,7 @@ union ieee_double_decimal64 { double d; _Decimal64 d64; };
 #endif
 
 /* Before doing a cast to mpfr_uexp_t, make sure that the value is
-   nonnegative. */
+   non-negative. */
 #define MPFR_UEXP(X) (MPFR_ASSERTD ((X) >= 0), (mpfr_uexp_t) (X))
 
 /* Define mpfr_eexp_t, mpfr_ueexp_t and MPFR_EXP_FSPEC.
@@ -937,6 +1062,8 @@ typedef uintmax_t mpfr_ueexp_t;
 # define MPFR_SET_INVALID_EXP(x)  ((void) 0)
 #endif
 
+/* Compare the exponents of two numbers, which can be either MPFR numbers
+   or UBF numbers. */
 #define MPFR_UBF_EXP_LESS_P(x,y) \
   (MPFR_UNLIKELY (MPFR_IS_UBF (x) || MPFR_IS_UBF (y)) ? \
    mpfr_ubf_exp_less_p (x, y) : MPFR_GET_EXP (x) < MPFR_GET_EXP (y))
@@ -966,6 +1093,7 @@ typedef uintmax_t mpfr_ueexp_t;
   (MPFR_LIMB_MSB (MPFR_MANT(x)[MPFR_LAST_LIMB(x)]) != 0)
 
 #define MPFR_IS_FP(x)       (!MPFR_IS_NAN(x) && !MPFR_IS_INF(x))
+
 /* Note: contrary to the MPFR_IS_PURE_*(x) macros, the MPFR_IS_SINGULAR*(x)
    macros may be used even when x is being constructed, i.e. its exponent
    field is already set (possibly out-of-range), but its significand field
@@ -973,6 +1101,12 @@ typedef uintmax_t mpfr_ueexp_t;
    equivalent to !MPFR_IS_SINGULAR(x); see the code below. */
 #define MPFR_IS_SINGULAR(x) (MPFR_EXP(x) <= MPFR_EXP_INF)
 #define MPFR_IS_SINGULAR_OR_UBF(x) (MPFR_EXP(x) <= MPFR_EXP_UBF)
+
+/* The following two macros return true iff the value is a regular number,
+   i.e. it is not a singular number. In debug mode, the format is also
+   checked: valid exponent, but potentially out of range; normalized value.
+   In contexts where UBF's are not accepted or not possible, MPFR_IS_PURE_FP
+   is preferable. If UBF's are accepted, MPFR_IS_PURE_UBF must be used. */
 #define MPFR_IS_PURE_FP(x)                          \
   (!MPFR_IS_SINGULAR(x) &&                          \
    (MPFR_ASSERTD (MPFR_EXP (x) >= MPFR_EMIN_MIN &&  \
@@ -985,9 +1119,9 @@ typedef uintmax_t mpfr_ueexp_t;
                     MPFR_EXP (x) <= MPFR_EMAX_MAX)) &&  \
                   MPFR_IS_NORMALIZED (x)), 1))
 
+/* Ditto for 2 numbers. */
 #define MPFR_ARE_SINGULAR(x,y) \
   (MPFR_UNLIKELY(MPFR_IS_SINGULAR(x)) || MPFR_UNLIKELY(MPFR_IS_SINGULAR(y)))
-
 #define MPFR_ARE_SINGULAR_OR_UBF(x,y)           \
   (MPFR_UNLIKELY(MPFR_IS_SINGULAR_OR_UBF(x)) || \
    MPFR_UNLIKELY(MPFR_IS_SINGULAR_OR_UBF(y)))
@@ -1033,8 +1167,15 @@ typedef uintmax_t mpfr_ueexp_t;
 /* Special inexact value */
 #define MPFR_EVEN_INEX 2
 
-/* Macros for functions returning two inexact values in an 'int' */
-#define INEXPOS(y) ((y) == 0 ? 0 : (((y) > 0) ? 1 : 2))
+/* Note: the addition/subtraction of 2 comparisons below instead of the
+   use of the ?: operator allows GCC and Clang to generate better code
+   in general; this is the case at least with GCC on x86 (32 & 64 bits),
+   PowerPC and Aarch64 (64-bit ARM), and with Clang on x86_64.
+   VSIGN code based on mini-gmp's GMP_CMP macro; adapted for INEXPOS. */
+
+/* Macros for functions returning two inexact values in an 'int'
+   (exact = 0, positive = 1, negative = 2) */
+#define INEXPOS(y) (((y) != 0) + ((y) < 0))
 #define INEX(y,z) (INEXPOS(y) | (INEXPOS(z) << 2))
 
 /* When returning the ternary inexact value, ALWAYS use one of the
@@ -1045,7 +1186,7 @@ typedef uintmax_t mpfr_ueexp_t;
 #define MPFR_RET_NAN return (__gmpfr_flags |= MPFR_FLAGS_NAN), 0
 
 /* Sign of a native value. */
-#define VSIGN(I) ((I) < 0 ? -1 : (I) > 0)
+#define VSIGN(I) (((I) > 0) - ((I) < 0))
 #define SAME_SIGN(I1,I2) (VSIGN (I1) == VSIGN (I2))
 
 
@@ -1059,15 +1200,16 @@ typedef uintmax_t mpfr_ueexp_t;
 
 /* We want to test this :
  *  (rnd == MPFR_RNDU && test) || (rnd == RNDD && !test)
- * ie it transforms RNDU or RNDD to Away or Zero according to the sign */
+ * i.e. it transforms RNDU or RNDD to away or zero according to the sign.
+ * The argument test must be 0 or 1. */
 #define MPFR_IS_RNDUTEST_OR_RNDDNOTTEST(rnd, test) \
-  (((rnd) + (test)) == MPFR_RNDD)
+  (MPFR_ASSERTD ((test) == 0 || (test) == 1),      \
+   ((rnd) + (test)) == MPFR_RNDD)
 
-/* We want to test if rnd = Zero, or Away.
+/* We want to test if rnd rounds toward zero or away from zero.
    'neg' is 1 if negative, and 0 if positive. */
 #define MPFR_IS_LIKE_RNDZ(rnd, neg) \
   ((rnd) == MPFR_RNDZ || MPFR_IS_RNDUTEST_OR_RNDDNOTTEST (rnd, neg))
-
 #define MPFR_IS_LIKE_RNDA(rnd, neg) \
   ((rnd) == MPFR_RNDA || MPFR_IS_RNDUTEST_OR_RNDDNOTTEST (rnd, (neg) == 0))
 
@@ -1081,7 +1223,7 @@ typedef uintmax_t mpfr_ueexp_t;
    ((rnd) == MPFR_RNDZ && MPFR_IS_POS_SIGN (sign)) ||   \
    ((rnd) == MPFR_RNDA && MPFR_IS_NEG_SIGN (sign)))
 
-/* Invert a rounding mode, RNDN, RNDZ and RNDA are unchanged */
+/* Invert RNDU and RNDD; the other rounding modes are unchanged. */
 #define MPFR_INVERT_RND(rnd) ((rnd) == MPFR_RNDU ? MPFR_RNDD :          \
                               (rnd) == MPFR_RNDD ? MPFR_RNDU : (rnd))
 
@@ -1092,8 +1234,9 @@ typedef uintmax_t mpfr_ueexp_t;
       rnd = MPFR_RNDZ;                                              \
   } while (0)
 
-/* Transform RNDU and RNDD to RNDZ or RNDA according to sign,
-   leave the other modes unchanged */
+/* Transform RNDU and RNDD to RNDZ or RNDA according to sign;
+   leave the other modes unchanged.
+   Usage: MPFR_UPDATE2_RND_MODE (rnd_mode, MPFR_SIGN (x)) */
 #define MPFR_UPDATE2_RND_MODE(rnd, sign)                       \
   do {                                                         \
     if (rnd == MPFR_RNDU)                                      \
@@ -1107,18 +1250,43 @@ typedef uintmax_t mpfr_ueexp_t;
  ******************  Limb macros  *********************
  ******************************************************/
 
+/* MPFR_LIMB: Cast to mp_limb_t, assuming that x is based on mp_limb_t
+   variables (needed when mp_limb_t is defined as an integer type shorter
+   than int, due to the integer promotion rules, which is possible only
+   if MPFR_LONG_WITHIN_LIMB is not defined). Warning! This will work
+   only when the computed value x is congruent to the expected value
+   modulo MPFR_LIMB_MAX + 1. Be aware that this macro may not solve all
+   the problems related to the integer promotion rules, because it won't
+   have an influence on the evaluation of x itself. Hence the need for...
+
+   MPFR_LIMB_LSHIFT: Left shift by making sure that the shifted argument
+   is unsigned (use unsigned long due to the MPFR_LONG_WITHIN_LIMB test).
+   For instance, due to the integer promotion rules, if mp_limb_t is
+   defined as a 16-bit unsigned short and an int has 32 bits, then a
+   mp_limb_t will be converted to an int, which is signed.
+*/
+#ifdef MPFR_LONG_WITHIN_LIMB
+#define MPFR_LIMB(x) (x)
+#define MPFR_LIMB_LSHIFT(x,c) ((x) << (c))
+#else
+#define MPFR_LIMB(x) ((mp_limb_t) (x))
+#define MPFR_LIMB_LSHIFT(x,c) MPFR_LIMB((unsigned long) (x) << (c))
+#endif
+
 /* Definition of simple mp_limb_t constants */
 #define MPFR_LIMB_ZERO    ((mp_limb_t) 0)
 #define MPFR_LIMB_ONE     ((mp_limb_t) 1)
-#define MPFR_LIMB_HIGHBIT (MPFR_LIMB_ONE << (GMP_NUMB_BITS - 1))
+#define MPFR_LIMB_HIGHBIT MPFR_LIMB_LSHIFT (MPFR_LIMB_ONE, GMP_NUMB_BITS - 1)
 #define MPFR_LIMB_MAX     ((mp_limb_t) -1)
 
 /* Mask to get the Most Significant Bit of a limb */
-#define MPFR_LIMB_MSB(l) ((l) & MPFR_LIMB_HIGHBIT)
+#define MPFR_LIMB_MSB(l) ((mp_limb_t) ((l) & MPFR_LIMB_HIGHBIT))
 
 /* Mask for the low 's' bits of a limb */
-#define MPFR_LIMB_MASK(s) ((MPFR_LIMB_ONE << (s)) - MPFR_LIMB_ONE)
-
+#define MPFR_LIMB_MASK(s)                                               \
+  (MPFR_ASSERTD (s >= 0 && s <= GMP_NUMB_BITS),                         \
+   s == GMP_NUMB_BITS ? MPFR_LIMB_MAX :                                 \
+   (mp_limb_t) (MPFR_LIMB_LSHIFT (MPFR_LIMB_ONE, s) - MPFR_LIMB_ONE))
 
 /******************************************************
  **********************  Memory  **********************
@@ -1136,6 +1304,13 @@ typedef uintmax_t mpfr_ueexp_t;
    The goal of the mpfr_size_limb_t union is to make sure that
    size and alignment requirements are satisfied if mp_size_t and
    mp_limb_t have different sizes and/or alignment requirements.
+   And the casts to void * prevents the compiler from emitting a
+   warning (or error), such as:
+     cast increases required alignment of target type
+   with the -Wcast-align GCC option. Correct alignment is checked
+   by MPFR_SET_MANT_PTR (when setting MPFR_MANT(x), the MPFR code
+   should use this macro or guarantee a correct alignment at this
+   time).
    Moreover, pointer conversions are not fully specified by the
    C standard, and the use of a union (and the double casts below)
    might help even if mp_size_t and mp_limb_t have the same size
@@ -1145,15 +1320,15 @@ typedef uintmax_t mpfr_ueexp_t;
 */
 typedef union { mp_size_t s; mp_limb_t l; } mpfr_size_limb_t;
 #define MPFR_GET_ALLOC_SIZE(x) \
-  (((mp_size_t *) (mpfr_size_limb_t *) MPFR_MANT(x))[-1] + 0)
+  (((mp_size_t *) (void *) MPFR_MANT(x))[-1] + 0)
 #define MPFR_SET_ALLOC_SIZE(x, n) \
-  (((mp_size_t *) (mpfr_size_limb_t *) MPFR_MANT(x))[-1] = (n))
+  (((mp_size_t *) (void *) MPFR_MANT(x))[-1] = (n))
 #define MPFR_MALLOC_SIZE(s) \
   (sizeof(mpfr_size_limb_t) + MPFR_BYTES_PER_MP_LIMB * (size_t) (s))
 #define MPFR_SET_MANT_PTR(x,p) \
   (MPFR_MANT(x) = (mp_limb_t *) ((mpfr_size_limb_t *) (p) + 1))
 #define MPFR_GET_REAL_PTR(x) \
-  ((mp_limb_t *) ((mpfr_size_limb_t *) MPFR_MANT(x) - 1))
+  ((void *) ((mpfr_size_limb_t *) (void *) MPFR_MANT(x) - 1))
 
 /* Temporary memory handling */
 #ifndef TMP_SALLOC
@@ -1172,7 +1347,6 @@ typedef union { mp_size_t s; mp_limb_t l; } mpfr_size_limb_t;
 #define MPFR_TMP_LIMBS_ALLOC(N) \
   ((mp_limb_t *) MPFR_TMP_ALLOC ((size_t) (N) * MPFR_BYTES_PER_MP_LIMB))
 
-/* temporary allocate 1 limb at xp, and initialize mpfr variable x */
 /* The temporary var doesn't have any size field, but it doesn't matter
  * since only functions dealing with the Heap care about it */
 #define MPFR_TMP_INIT1(xp, x, p)                                     \
@@ -1185,17 +1359,24 @@ typedef union { mp_size_t s; mp_limb_t l; } mpfr_size_limb_t;
   (xp = MPFR_TMP_LIMBS_ALLOC(s),                                     \
    MPFR_TMP_INIT1(xp, x, p))
 
-#define MPFR_TMP_INIT_ABS(d, s)                                      \
- ( MPFR_PREC(d) = MPFR_PREC(s),                                      \
-   MPFR_MANT(d) = MPFR_MANT(s),                                      \
-   MPFR_SET_POS(d),                                                  \
-   MPFR_EXP(d)  = MPFR_EXP(s))
+/* Set y to s*significand(x)*2^e, for example MPFR_ALIAS(y,x,1,MPFR_EXP(x))
+   sets y to |x|, and MPFR_ALIAS(y,x,MPFR_SIGN(x),0) sets y to x*2^f such
+   that 1/2 <= |y| < 1. Does not check y is in the valid exponent range.
+   WARNING! x and y share the same mantissa. So, some operations are
+   not valid if x has been provided via an argument, e.g., trying to
+   modify the mantissa of y, even temporarily, or calling mpfr_clear on y.
+*/
+#define MPFR_ALIAS(y,x,s,e)                     \
+  (MPFR_PREC(y) = MPFR_PREC(x),                 \
+   MPFR_SIGN(y) = (s),                          \
+   MPFR_EXP(y) = (e),                           \
+   MPFR_MANT(y) = MPFR_MANT(x))
 
-#define MPFR_TMP_INIT_NEG(d, s)                                      \
- ( MPFR_PREC(d) = MPFR_PREC(s),                                      \
-   MPFR_MANT(d) = MPFR_MANT(s),                                      \
-   MPFR_SET_OPPOSITE_SIGN(d,s),                                      \
-   MPFR_EXP(d)  = MPFR_EXP(s))
+#define MPFR_TMP_INIT_ABS(y,x) \
+  MPFR_ALIAS (y, x, MPFR_SIGN_POS, MPFR_EXP (x))
+
+#define MPFR_TMP_INIT_NEG(y,x) \
+  MPFR_ALIAS (y, x, - MPFR_SIGN (x), MPFR_EXP (x))
 
 
 /******************************************************
@@ -1224,6 +1405,9 @@ typedef union { mp_size_t s; mp_limb_t l; } mpfr_size_limb_t;
         But: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80454
      2. Use designated initializers when supported. But this needs a
         configure test.
+   Using a diagnostic pragma to ignore the warning in this particular case
+   is not really possible, because the warning occurs when the macro is
+   expanded and one cannot put a pragma in the contents of a #define.
 */
 #define MPFR_DECL_INIT_CACHE(_cache,_func)                           \
   MPFR_DEFERRED_INIT_MASTER_DECL(_func,                              \
@@ -1246,14 +1430,25 @@ typedef union { mp_size_t s; mp_limb_t l; } mpfr_size_limb_t;
  ******************  Useful macros  *******************
  ******************************************************/
 
-/* Theses macros help the compiler to determine if a test is
+/* The MAX, MIN and ABS macros may already be defined if gmp-impl.h has
+   been included. They have the same semantics as in gmp-impl.h, but the
+   expressions may be slightly different. So, it's better to undefine
+   them first, as required by the ISO C standard. */
+#undef MAX
+#undef MIN
+#undef ABS
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define ABS(x) (((x)>0) ? (x) : -(x))
+
+/* These macros help the compiler to determine if a test is
    likely or unlikely. The !! is necessary in case x is larger
    than a long. */
 #if defined MPFR_DEBUG_PREDICTION && __MPFR_GNUC(3,0)
 
 /* Code to debug branch prediction, based on Ulrich Drepper's paper
  * "What Every Programmer Should Know About Memory":
- *   http://people.freebsd.org/~lstewart/articles/cpumemory.pdf
+ *   https://people.freebsd.org/~lstewart/articles/cpumemory.pdf
  */
 asm (".section predict_data, \"aw\"; .previous\n"
      ".section predict_line, \"a\"; .previous\n"
@@ -1304,19 +1499,8 @@ asm (".section predict_data, \"aw\"; .previous\n"
    VAR = VAR trick (see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=36296#c3)
    only with gcc as this is undefined behavior, and we don't know what other
    compilers do (they may also be smarter). This self-initialization trick
-   could be disabled with future gcc versions.
-   However, for clang (which defines __GNUC__), this trick must not be used
-   as it currently generates a warning, at least with:
-     Debian clang version 3.0-6.2 (tags/RELEASE_30/final) (based on LLVM 3.0)
-     __VERSION__ "4.2.1 Compatible Debian Clang 3.0 (tags/RELEASE_30/final)"
-     __clang__ 1
-     __clang_major__ 3
-     __clang_minor__ 0
-     __clang_patchlevel__ 0
-     __clang_version__ "3.0 (tags/RELEASE_30/final)"
-   (see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=705583 for this
-   problem with clang). */
-#if defined(__GNUC__) && !defined(__clang__)
+   could be disabled with future gcc versions. */
+#if defined(__GNUC__)
 # define INITIALIZED(VAR) VAR = VAR
 #else
 # define INITIALIZED(VAR) VAR
@@ -1338,6 +1522,7 @@ asm (".section predict_data, \"aw\"; .previous\n"
    with some build options; a loop could be used if x > ULONG_MAX. If
    the type of x is <= unsigned long, then no additional code will be
    generated thanks to obvious compiler optimization. */
+#ifdef MPFR_LONG_WITHIN_LIMB
 # define MPFR_INT_CEIL_LOG2(x)                            \
     (MPFR_UNLIKELY ((x) == 1) ? 0 :                       \
      __extension__ ({ int _b; mp_limb_t _limb;            \
@@ -1345,11 +1530,26 @@ asm (".section predict_data, \"aw\"; .previous\n"
       _limb = (x) - 1;                                    \
       MPFR_ASSERTN (_limb == (x) - 1);                    \
       count_leading_zeros (_b, _limb);                    \
-      (GMP_NUMB_BITS - _b); }))
+      _b = GMP_NUMB_BITS - _b;                            \
+      MPFR_ASSERTD (_b >= 0);                             \
+      _b; }))
+#else
+# define MPFR_INT_CEIL_LOG2(x)                              \
+  (MPFR_UNLIKELY ((x) == 1) ? 0 :                           \
+   __extension__ ({ int _c = 0; unsigned long _x = (x) - 1; \
+       MPFR_ASSERTN ((x) > 1);                              \
+       while (_x != 0)                                      \
+         {                                                  \
+           _x = _x >> 1;                                    \
+           _c ++;                                           \
+         };                                                 \
+       MPFR_ASSERTD (_c >= 0);                              \
+       _c; }))
+#endif /* MPFR_LONG_WITHIN_LIMB */
 #else
 # define MPFR_INT_CEIL_LOG2(x) \
   (MPFR_ASSERTN (x <= ULONG_MAX), __gmpfr_int_ceil_log2(x))
-#endif
+#endif /* __MPFR_GNUC(2,95) || __MPFR_ICC(8,1,0) */
 
 /* Add two integers with overflow handling */
 /* Example: MPFR_SADD_OVERFLOW (c, a, b, long, unsigned long,
@@ -1416,9 +1616,13 @@ do {                                                                  \
 #define SAFE_ABS(type,x) ((x) >= 0 ? (type)(x) : -(type)(x))
 #define SAFE_DIFF(type,x,y) (MPFR_ASSERTD((x) >= (y)), (type)(x) - (type)(y))
 
+#define ULONG2LONG(U) ((U) > LONG_MAX ? -1 - (long) ~(U) : (long) (U))
+
 /* Check whether an integer type (after integer promotion) is signed.
-   This can be determined at compilation time, but unfortunately this
-   is not a constant expression, so that this cannot be used for a
+   This can be determined at compilation time, but unfortunately,
+   when used in practice, this is not a constant expression (because
+   the argument X is not a constant expression, even though the result
+   does not depend on its value), so that this cannot be used for a
    static assertion. */
 #define IS_SIGNED(X) ((X) * 0 - 1 < 0)
 
@@ -1451,8 +1655,10 @@ do {                                                                  \
    this can be found in practice: https://reviews.llvm.org/D27167 says:
    "I found this problem on FreeBSD 11, where thousands_sep in fr_FR.UTF-8
    is a no-break space (U+00A0)."
-   Note, however, that this is not allowed by the C standard, which just
-   says "character" and not "multibyte character".
+   Under Linux, this is U+202F NARROW NO-BREAK SPACE (e2 80 af).
+   And in the ps_AF locale,
+     decimal_point = U+066B ARABIC DECIMAL SEPARATOR (d9 ab)
+     thousands_sep = U+066C ARABIC THOUSANDS SEPARATOR (d9 ac)
    In the mean time, in case of non-single-byte character, revert to the
    default value. */
 #if MPFR_LCONV_DPTS
@@ -1471,28 +1677,54 @@ do {                                                                  \
 #define MPFR_THOUSANDS_SEPARATOR ((char) '\0')
 #endif
 
-
-/* Set y to s*significand(x)*2^e, for example MPFR_ALIAS(y,x,1,MPFR_EXP(x))
-   sets y to |x|, and MPFR_ALIAS(y,x,MPFR_SIGN(x),0) sets y to x*2^f such
-   that 1/2 <= |y| < 1. Does not check y is in the valid exponent range.
-   WARNING! x and y share the same mantissa. So, some operations are
-   not valid if x has been provided via an argument, e.g., trying to
-   modify the mantissa of y, even temporarily, or calling mpfr_clear on y.
-*/
-#define MPFR_ALIAS(y,x,s,e)                     \
-  do                                            \
-    {                                           \
-      MPFR_PREC(y) = MPFR_PREC(x);              \
-      MPFR_SIGN(y) = (s);                       \
-      MPFR_EXP(y) = (e);                        \
-      MPFR_MANT(y) = MPFR_MANT(x);              \
-    } while (0)
-
 /* Size of an array, as a constant expression. */
 #define numberof_const(x)  (sizeof (x) / sizeof ((x)[0]))
 
+/* Size of an array, safe version but not a constant expression:
+   Since an array can silently be converted to a pointer, we check
+   that this macro is applied on an array, not a pointer.
+   Also make sure that the type is signed ("long" is sufficient
+   in practice since the sizes come from the MPFR source), so that
+   the value can be used in arbitrary expressions without the risk
+   of silently switching to unsigned arithmetic. */
+/* TODO: Make numberof() a constant expression and always use it in
+   the MPFR code instead of numberof_const(). See the tricks at
+     https://gcc.gnu.org/pipermail/gcc/2020-September/233763.html
+     "[PATCH v2] <sys/param.h>: Add nitems() and snitems() macros"
+     by Alejandro Colomar
+   but this needs to be fully tested on various platforms and with
+   various compilers and compilation options.
+   Moreover, change "long" to "ptrdiff_t", as used at the above URL? */
+#undef numberof
+#if 0
+/* The following should work with GCC as documented in its manual,
+   but fails: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=38377#c10
+   Thus disabled for now. */
+# define numberof(x)                                                    \
+  ( __extension__ ({                                                    \
+      int is_array = (void *) &(x) == (void *) &(x)[0];                 \
+      MPFR_STAT_STATIC_ASSERT (__builtin_constant_p (is_array) ?        \
+                               is_array : 1);                           \
+      MPFR_ASSERTN (is_array);                                          \
+      (long) numberof_const (x);                                        \
+    }) )
+#else
+# define numberof(x)                                    \
+  (MPFR_ASSERTN ((void *) &(x) == (void *) &(x)[0]),    \
+   (long) numberof_const (x))
+#endif
+
 /* Addition with carry (detected by GCC and other good compilers). */
 #define ADD_LIMB(u,v,c) ((u) += (v), (c) = (u) < (v))
+
+/* umul_hi(h, x, y) puts in h the high part of x*y */
+/* MPFR_NEED_LONGLONG_H needs to be defined to use it. */
+#define umul_hi(h, x, y)                        \
+  do {                                          \
+    mp_limb_t _l;                               \
+    umul_ppmm (h, _l, x, y);                    \
+    (void) _l;  /* unused variable */           \
+  } while (0)
 
 
 /******************************************************
@@ -1509,17 +1741,13 @@ typedef struct {
   mpfr_exp_t saved_emax;
 } mpfr_save_expo_t;
 
-/* Minimum and maximum exponents of the extended exponent range. */
-#define MPFR_EXT_EMIN MPFR_EMIN_MIN
-#define MPFR_EXT_EMAX MPFR_EMAX_MAX
-
 #define MPFR_SAVE_EXPO_DECL(x) mpfr_save_expo_t x
 #define MPFR_SAVE_EXPO_MARK(x)     \
  ((x).saved_flags = __gmpfr_flags, \
   (x).saved_emin = __gmpfr_emin,   \
   (x).saved_emax = __gmpfr_emax,   \
-  __gmpfr_emin = MPFR_EXT_EMIN,    \
-  __gmpfr_emax = MPFR_EXT_EMAX)
+  __gmpfr_emin = MPFR_EMIN_MIN,    \
+  __gmpfr_emax = MPFR_EMAX_MAX)
 #define MPFR_SAVE_EXPO_FREE(x)     \
  (__gmpfr_flags = (x).saved_flags, \
   __gmpfr_emin = (x).saved_emin,   \
@@ -1751,8 +1979,8 @@ typedef struct {
    v=1 or v=x.
 
    y is the destination (a mpfr_t), v the value to set (a mpfr_t),
-   err1+err2 with err2 <= 3 the error term (mpfr_exp_t's), dir (an int) is
-   the direction of the committed error (if dir = 0, it rounds toward 0,
+   err1+err2 with 0 <= err2 <= 3 the error term (mpfr_exp_t's), dir (an int)
+   is the direction of the committed error (if dir = 0, it rounds toward 0,
    if dir=1, it rounds away from 0), rnd the rounding mode.
 
    It returns from the function a ternary value in case of success.
@@ -1820,23 +2048,25 @@ typedef struct {
 /* To safely increase some precision, detecting integer overflows.
    This macro is particularly useful when determining the initial
    working precision before Ziv's loop. P is a precision, X is an
-   arbitrary nonnegative integer.
+   arbitrary non-negative integer.
    Note: On 2012-02-23, the MPFR_PREC_MAX value has been decreased
    by 256 from the maximum value representable in the mpfr_prec_t
    type, in order to avoid some integer overflows when this macro
    is not used (if the result is larger than MPFR_PREC_MAX, this
    should be detected with a later assertion, e.g. in mpfr_init2).
    But this change is mainly for existing code that has not been
-   updated yet. So, it is advised to always use MPFR_ADD_PREC if
-   the result can be larger than MPFR_PREC_MAX. */
+   updated yet. So, it is advised to always use MPFR_ADD_PREC or
+   MPFR_INC_PREC if the result can be larger than MPFR_PREC_MAX. */
 #define MPFR_ADD_PREC(P,X) \
   (MPFR_ASSERTN ((X) <= MPFR_PREC_MAX - (P)), (P) + (X))
+#define MPFR_INC_PREC(P,X) \
+  (MPFR_ASSERTN ((X) <= MPFR_PREC_MAX - (P)), (P) += (X))
 
 #ifndef MPFR_USE_LOGGING
 
 #define MPFR_ZIV_DECL(_x) mpfr_prec_t _x
 #define MPFR_ZIV_INIT(_x, _p) (_x) = GMP_NUMB_BITS
-#define MPFR_ZIV_NEXT(_x, _p) ((_p) = MPFR_ADD_PREC (_p, _x), (_x) = (_p)/2)
+#define MPFR_ZIV_NEXT(_x, _p) (MPFR_INC_PREC (_p, _x), (_x) = (_p)/2)
 #define MPFR_ZIV_FREE(x)
 
 #else
@@ -1886,7 +2116,7 @@ typedef struct {
 #define MPFR_ZIV_NEXT(_x, _p)                                           \
   do                                                                    \
     {                                                                   \
-      (_p) = MPFR_ADD_PREC (_p, _x);                                    \
+      MPFR_INC_PREC (_p, _x);                                           \
       (_x) = (_p) / 2;                                                  \
       if (mpfr_log_level >= 0)                                          \
         _x ## _bad += (_x ## _cpt == 1);                                \
@@ -1964,16 +2194,18 @@ __MPFR_DECLSPEC extern mpfr_prec_t mpfr_log_prec;
   while (0)
 
 #define MPFR_LOG_VAR(x)                                                 \
-  LOG_PRINT (MPFR_LOG_INTERNAL_F, "%s.%d:%s[%#Pu]=%.*Rg\n", __func__,   \
-             __LINE__, #x, mpfr_get_prec (x), mpfr_log_prec, x)
+  LOG_PRINT (MPFR_LOG_INTERNAL_F, "%s.%d:%s[%#Pd]=%.*Rg\n", __func__,   \
+             (int) __LINE__, #x, mpfr_get_prec (x), mpfr_log_prec, x)
 
 #define MPFR_LOG_MSG2(format, ...)                                      \
-  LOG_PRINT (MPFR_LOG_MSG_F, "%s.%d: "format, __func__, __LINE__, __VA_ARGS__)
+  LOG_PRINT (MPFR_LOG_MSG_F, "%s.%d: "format, __func__, (int) __LINE__, \
+             __VA_ARGS__)
 #define MPFR_LOG_MSG(x) MPFR_LOG_MSG2 x
 
 #define MPFR_LOG_BEGIN2(format, ...)                                    \
   mpfr_log_current ++;                                                  \
-  LOG_PRINT (MPFR_LOG_INPUT_F, "%s:IN  "format"\n", __func__, __VA_ARGS__); \
+  LOG_PRINT (MPFR_LOG_INPUT_F, "%s:IN  flags=%x "format"\n", __func__,  \
+             (unsigned int) __gmpfr_flags, __VA_ARGS__);                \
   if ((MPFR_LOG_TIME_F & mpfr_log_type) &&                              \
       (mpfr_log_current <= mpfr_log_level))                             \
     __gmpfr_log_time = mpfr_get_cputime ();
@@ -1984,7 +2216,8 @@ __MPFR_DECLSPEC extern mpfr_prec_t mpfr_log_prec;
 #define MPFR_LOG_END2(format, ...)                                      \
   LOG_PRINT (MPFR_LOG_TIME_F, "%s:TIM %dms\n", __mpfr_log_fname,        \
              mpfr_get_cputime () - __gmpfr_log_time);                   \
-  LOG_PRINT (MPFR_LOG_OUTPUT_F, "%s:OUT "format"\n", __mpfr_log_fname,  \
+  LOG_PRINT (MPFR_LOG_OUTPUT_F, "%s:OUT flags=%x "format"\n",           \
+             __mpfr_log_fname, (unsigned int) __gmpfr_flags,            \
              __VA_ARGS__);                                              \
   mpfr_log_current --;
 #define MPFR_LOG_END(x)                                                 \
@@ -2025,7 +2258,21 @@ __MPFR_DECLSPEC extern mpfr_prec_t mpfr_log_prec;
 struct mpfr_group_t {
   size_t     alloc;
   mp_limb_t *mant;
+#if MPFR_GROUP_STATIC_SIZE != 0
   mp_limb_t  tab[MPFR_GROUP_STATIC_SIZE];
+#else
+  /* In order to detect memory leaks when testing, MPFR_GROUP_STATIC_SIZE
+     can be set to 0, in which case tab will not be used. ISO C does not
+     support zero-length arrays[*], thus let's use a flexible array member
+     (which will be equivalent here). Note: this is new in C99, but this
+     is just used for testing.
+     [*] Zero-length arrays are a GNU extension:
+           https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
+         and as such an extension is forbidden in ISO C, it triggers an
+         error with -Werror=pedantic.
+  */
+  mp_limb_t  tab[];
+#endif
 };
 
 #define MPFR_GROUP_DECL(g) struct mpfr_group_t g
@@ -2178,8 +2425,8 @@ __MPFR_DECLSPEC int mpfr_pow_general (mpfr_ptr, mpfr_srcptr, mpfr_srcptr,
 __MPFR_DECLSPEC void mpfr_setmax (mpfr_ptr, mpfr_exp_t);
 __MPFR_DECLSPEC void mpfr_setmin (mpfr_ptr, mpfr_exp_t);
 
-__MPFR_DECLSPEC long mpfr_mpn_exp (mp_limb_t *, mpfr_exp_t *, int,
-                                   mpfr_exp_t, size_t);
+__MPFR_DECLSPEC int mpfr_mpn_exp (mp_limb_t *, mpfr_exp_t *, int,
+                                  mpfr_exp_t, size_t);
 
 #ifdef _MPFR_H_HAVE_FILE
 __MPFR_DECLSPEC void mpfr_fdump (FILE *, mpfr_srcptr);
@@ -2245,7 +2492,8 @@ __MPFR_DECLSPEC void mpfr_rand_raw (mpfr_limb_ptr, gmp_randstate_t,
 __MPFR_DECLSPEC mpz_srcptr mpfr_bernoulli_cache (unsigned long);
 __MPFR_DECLSPEC void mpfr_bernoulli_freecache (void);
 
-__MPFR_DECLSPEC int mpfr_sincos_fast (mpfr_t, mpfr_t, mpfr_srcptr, mpfr_rnd_t);
+__MPFR_DECLSPEC int mpfr_sincos_fast (mpfr_ptr, mpfr_ptr, mpfr_srcptr,
+                                      mpfr_rnd_t);
 
 __MPFR_DECLSPEC double mpfr_scale2 (double, int);
 
@@ -2256,15 +2504,24 @@ __MPFR_DECLSPEC void mpfr_gamma_one_and_two_third (mpfr_ptr, mpfr_ptr,
                                                    mpfr_prec_t);
 
 __MPFR_DECLSPEC void mpfr_mpz_init (mpz_ptr);
-__MPFR_DECLSPEC void mpfr_mpz_init2 (mpz_t, mp_bitcnt_t);
+__MPFR_DECLSPEC void mpfr_mpz_init2 (mpz_ptr, mp_bitcnt_t);
 __MPFR_DECLSPEC void mpfr_mpz_clear (mpz_ptr);
 
 __MPFR_DECLSPEC int mpfr_odd_p (mpfr_srcptr);
+
+__MPFR_DECLSPEC int mpfr_nbits_ulong (unsigned long);
+#ifdef _MPFR_H_HAVE_INTMAX_T
+__MPFR_DECLSPEC int mpfr_nbits_uj (uintmax_t);
+#endif
 
 #ifdef _MPFR_H_HAVE_VA_LIST
 /* Declared only if <stdarg.h> has been included. */
 __MPFR_DECLSPEC int mpfr_vasnprintf_aux (char**, char*, size_t, const char*,
                                          va_list);
+#endif
+
+#if MPFR_WANT_ASSERT >= 2
+__MPFR_DECLSPEC void flags_fout (FILE *, mpfr_flags_t);
 #endif
 
 #if defined (__cplusplus)
@@ -2375,14 +2632,89 @@ extern "C" {
    which is assumed to be present (with a value in it) when the usual
    exponent field has the value MPFR_EXP_UBF. The goal of this compatible
    representation is to easily be able to support UBF in "normal" code
-   and hopefully avoid aliasing issues at the same time. And code that
-   accepts UBF in input should also accept mpfr_t as a consequence; this
-   makes mpfr_t to UBF conversion unnecessary.
-   When an input of a public function is a UBF, the semantic remains
-   internal to MPFR and can change in the future.
+   using the public API. This is some form of "subtyping".
+
+   Unfortunately this breaks aliasing rules, and C does not provide any way
+   to avoid that (except with additional syntax ugliness and API breakage,
+   though there is a workaround -- see the end of this comment):
+
+     https://news.ycombinator.com/item?id=11753236
+
+   The alignment requirement for __mpfr_ubf_struct (UBF) needs to be at least
+   as strong as the one for __mpfr_struct (MPFR number); this is not required
+   by the C standard, but this should always be the case in practice, since
+   __mpfr_ubf_struct starts with the same members as those of __mpfr_struct.
+   If ever this would not be the case with some particular C implementation,
+   an _Alignas alignment attribute (C11) could be added for UBF.
+
+   When an input of a public function is an UBF, the semantic remains
+   internal to MPFR and can change in the future. UBF arguments need
+   to be explicitly converted to mpfr_ptr (or mpfr_srcptr); be careful
+   with variadic functions, as the compiler will not be able to check
+   in general. See fmma.c as an example of usage.
+
+   In general, the type used for values that may be UBF must be either
+   mpfr_ubf_t or mpfr_ubf_ptr. The type mpfr_ptr or mpfr_srcptr may be
+   used for UBF only in the case where the pointer has been converted
+   from mpfr_ubf_ptr, in order to ensure valid alignment. For instance,
+   in mpfr_fmma_aux, one uses mpfr_ubf_t to generate the exact products
+   as UBF; then the corresponding pointers are converted to mpfr_srcptr
+   for mpfr_add (even though they point to UBF).
+
+   Functions that can accept either MPFR arguments (mpfr_ptr type) or
+   UBF arguments (mpfr_ubf_ptr type) must use a pointer type that can
+   always be converted from both, typically mpfr_ptr or mpfr_srcptr.
+   For instance, that's why mpfr_ubf_exp_less_p uses mpfr_srcptr.
+   Note: "void *" could also be used, but mpfr_ptr is more meaningful
+   and practical.
+
    Note that functions used for logging need to support UBF (currently
-   done by printing that a number is a UBF, as it may be difficult to
-   do more without significant changes). */
+   done by printing that a number is an UBF, as it may be difficult to
+   do more without significant changes).
+
+   --------
+
+   A workaround to avoid breaking aliasing rules should be to use mpfr_ptr
+   to access the usual mpfr_t members and mpfr_ubf_ptr to access the
+   additional member _mpfr_zexp. And never use __mpfr_ubf_struct as a
+   declared type; otherwise this would force __mpfr_ubf_struct to be the
+   effective type of the whole object. Thus instead of
+
+     typedef __mpfr_ubf_struct mpfr_ubf_t[1];
+
+   one could use the following definition as a trick to allocate an UBF as
+   an automatic variable with the required alignment but without forcing
+   the effective type to __mpfr_ubf_struct.
+
+      typedef union {
+        __mpfr_ubf_struct u[1];
+        __mpfr_struct m[1];
+      } mpfr_ubf_t;
+
+   Then adapt the related code to select to right member, depending on the
+   context. Unfortunately, this triggers -Wstrict-aliasing false positives
+   with GCC in the MPFR_UBF_CLEAR_EXP expansion:
+
+     https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94337
+
+   (see changeset r13820 in the ubf2 branch). So, for the time being,
+   as long as the code does not break, do not change anything.
+
+   Note: The condition "use mpfr_ptr to access the usual mpfr_t members and
+   mpfr_ubf_ptr to access the additional member _mpfr_zexp" may be ignored
+   if the union type is visible within the function (see ISO C99 6.5.2.3#5
+   and 6.5.2.3#8 for the example, this implementation being very similar to
+   the valid fragment of this example), which must be the case as the union
+   is declared globally. However, this seems to be buggy in GCC:
+
+     https://gcc.gnu.org/bugzilla/show_bug.cgi?id=14319
+     https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65892
+
+   Alternatively, GCC's may_alias attribute could conditionally be used
+   on the __mpfr_ubf_struct and __mpfr_struct types (though it would be
+   much stronger than needed since only these two types may alias each
+   other).
+*/
 
 typedef struct {
   mpfr_prec_t  _mpfr_prec;
@@ -2405,11 +2737,28 @@ __MPFR_DECLSPEC mpfr_exp_t mpfr_ubf_diff_exp (mpfr_srcptr, mpfr_srcptr);
 }
 #endif
 
-#define MPFR_ZEXP(x)                                                    \
-  ((void) (x)->_mpfr_exp /* to check that x has a correct type */,      \
+/* Get the _mpfr_zexp field (pointer to a mpz_t) of an UBF object.
+   For practical reasons, the type of the argument x can be either
+   mpfr_ubf_ptr or mpfr_ptr, since the latter is used in functions
+   that accept both MPFR numbers and UBF's; this is checked by the
+   code "(x)->_mpfr_exp" (the "sizeof" prevents an access, which
+   could be invalid when MPFR_ZEXP(x) is used for an assignment,
+   and also avoids breaking the aliasing rules if they are dealt
+   with in the future).
+   This macro can be used when building an UBF. So we do not check
+   that the _mpfr_exp field has the value MPFR_EXP_UBF. */
+#define MPFR_ZEXP(x)                            \
+  ((void) sizeof ((x)->_mpfr_exp),              \
    ((mpfr_ubf_ptr) (x))->_mpfr_zexp)
 
+/* If x is an UBF, clear its mpz_t exponent. */
 #define MPFR_UBF_CLEAR_EXP(x) \
   ((void) (MPFR_IS_UBF (x) && (mpz_clear (MPFR_ZEXP (x)), 0)))
+
+/* Like MPFR_GET_EXP, but accepts UBF (with exponent saturated to
+   the interval [MPFR_EXP_MIN,MPFR_EXP_MAX]). */
+#define MPFR_UBF_GET_EXP(x)                                     \
+  (MPFR_IS_UBF (x) ? mpfr_ubf_zexp2exp (MPFR_ZEXP (x)) :        \
+   MPFR_GET_EXP ((mpfr_ptr) (x)))
 
 #endif /* __MPFR_IMPL_H__ */

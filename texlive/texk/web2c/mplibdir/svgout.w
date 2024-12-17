@@ -382,8 +382,9 @@ The two correction values are calculated by the function that writes
 the initial |<svg>| tag, and  are stored in two globals:
 
 @<Globals@>=
-integer dx;
-integer dy;
+double dx;
+double dy;
+
 
 @ @c
 void mp_svg_pair_out (MP mp,double x, double y) { 
@@ -1097,7 +1098,7 @@ void mp_svg_stroke_out (MP mp,  mp_graphic_object *h,
          }
          append_char(';');
       }
-
+    }  
     if (gr_ljoin_val((mp_stroked_object *)h)!=0) {
       append_string ("stroke-linejoin: ");
       switch (gr_ljoin_val((mp_stroked_object *)h)) {
@@ -1113,7 +1114,7 @@ void mp_svg_stroke_out (MP mp,  mp_graphic_object *h,
       mp_svg_store_double(mp, gr_miterlim_val((mp_stroked_object *)h)); 
       append_char(';');
     }
-    }
+
 
     append_string("fill: ");
     if (fill_also) {
@@ -1190,7 +1191,7 @@ void mp_svg_clip_out (MP mp, mp_clip_object *p) {
 
   append_string("url(#CLIP");
   mp_svg_store_int(mp, mp->svg->clipid);
-  append_string(");");
+  append_string(")");
   mp_svg_attribute(mp, "clip-path", mp->svg->buf);
   mp_svg_reset_buf(mp);
 

@@ -1,6 +1,6 @@
 /* mpfr_beta -- beta function
 
-Copyright 2017-2019 Free Software Foundation, Inc.
+Copyright 2017-2023 Free Software Foundation, Inc.
 Contributed by the AriC and Caramba projects, INRIA.
 
 This file is part of the GNU MPFR Library.
@@ -94,7 +94,7 @@ mpfr_beta (mpfr_ptr r, mpfr_srcptr z, mpfr_srcptr w, mpfr_rnd_t rnd_mode)
                   mpfr_clear (t);
                   MPFR_SAVE_EXPO_FREE (expo);
                   /* q contains the low bits of trunc(w) where trunc() rounds
-                     towards zero, thus if q is odd, then -2k-2 < w < -2k-1 */
+                     toward zero, thus if q is odd, then -2k-2 < w < -2k-1 */
                   MPFR_SET_INF(r);
                   if ((unsigned long) q & 1)
                     MPFR_SET_NEG(r);
@@ -123,7 +123,7 @@ mpfr_beta (mpfr_ptr r, mpfr_srcptr z, mpfr_srcptr w, mpfr_rnd_t rnd_mode)
         }
       else /* z or w is 0 */
         {
-          /* If x is not a nonpositive integer, Gamma(x) is regular, so that
+          /* If x is not a non-positive integer, Gamma(x) is regular, so that
              when y -> 0 with either y >= 0 or y <= 0,
                Beta(x,y) ~ Gamma(x) * Gamma(y) / Gamma(x) = Gamma(y)
              Gamma(y) tends to an infinity of the same sign as y.

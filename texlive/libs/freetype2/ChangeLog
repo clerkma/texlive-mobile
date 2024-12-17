@@ -1,3 +1,70 @@
+2024-08-13  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import freetype-2.13.3.
+	* version.ac: Adjusted.
+
+2023-08-26  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import freetype-2.13.2.
+	* version.ac: Adjusted.
+
+2023-06-25  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import freetype-2.13.1.
+	* version.ac: Adjusted.
+
+2023-02-24  Karl Berry  <karl@freefriends.org>
+
+	* freetype-src/configure: test for grep -E, don't assume it.
+	Not present on Solaris 5.10, for which we still build TL.
+
+2023-02-11  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import freetype-2.13.0.
+	* version.ac: Adjusted.
+
+2022-11-06  Sam James  <sam@gentoo.org>
+
+	* freetype-src/builds/unix/freetype2.m4: placate clang16.
+	https://tug.org/pipermail/tlbuild/2022q4/005273.html
+
+2022-05-07  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import freetype-2.12.1.
+	* version.ac: Adjusted.
+
+2021-12-03  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import freetype-2.11.1.
+	* version.ac: Adjusted.
+
+2021-09-01  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import freetype-2.11.0.
+	* version.ac: Adjusted.
+
+2021-01-03  Karl Berry  <karl@freefriends.org>
+
+	* Makefile.am (ft-config): pass --without-brotli, in hopes
+	of working around
+	https://tug.org/pipermail/tlbuild/2021q1/004768.html
+	* configure.ac: doc fix.
+
+2020-10-21  Akira Kakuto  <kakuto@w32tex.org>
+
+	Import freetype-2.10.4.
+	* version.ac: Adjusted.
+
+2020-10-11  Akira Kakuto  <kakuto@w32tex.org>
+
+	Import freetype-2.10.3.
+	* configure.ac, version.ac: Adjusted.
+
+2020-05-10  Akira Kakuto  <kakuto@w32tex.org>
+
+	Import freetype-2.10.2.
+	* version.ac: Adjusted.
+
 2019-07-02  Akira Kakuto  <kakuto@w32tex.org>
 
 	Import freetype-2.10.1.

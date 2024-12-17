@@ -4,9 +4,7 @@
 **
 **  MODULE
 **
-**      $RCSfile: utils.c,v $
-**      $Revision: 3.71 $
-**      $Date: 1996/08/18 20:37:06 $
+**      file: utils.c
 **
 **  DESCRIPTION
 **
@@ -123,7 +121,9 @@
 
 #include <stdarg.h>
 #ifdef WIN32
+#if !defined(KPATHSEA)
 #include <getopt.h>
+#endif
 #else
 #include <unistd.h>
 #endif
@@ -135,9 +135,7 @@
 #include <kpathsea/paths.h>
 #include <kpathsea/variable.h>
 #include <kpathsea/lib.h>
-#ifndef WIN32
 #include <kpathsea/getopt.h>
-#endif
 #endif
 
 #include "sysdep.h"
@@ -148,6 +146,12 @@
 #include "utils.h"
 #include "version.h"
 
+#if defined(WIN32) && defined(KPATHSEA)
+#undef fopen
+#define fopen fsyscp_fopen
+#undef vfprintf
+#define vfprintf win32_vfprintf
+#endif
 
 /*
 ** Useful macros to keep the code nicely formatted.
@@ -1081,7 +1085,7 @@ void parse_cmd_line (int argc, char **argv)
                 break;
 
             case 'v':       /**************** -v, --version ************/
-                FPRINTF (TERM_OUT, "%s\n", BANNER);
+                FPRINTF (TERM_OUT, "%s-x%s (%s)\n", BANNER, EXT_VERSION, TL_VERSION);
                 FPRINTF (TERM_OUT, "Implementation:  %s\n", IMPLEMENTATION);
                 FPRINTF (TERM_OUT, "Release version: %s\n", VERSION);
 #ifdef UTF_8
@@ -1126,6 +1130,22 @@ void parse_cmd_line (int argc, char **argv)
         }                       /* end switch (c) */
     }                           /* end while (1) */
 
+#ifdef KPATHSEA
+    kpse_set_program_name(argv[0], PROGNAME);
+
+#ifdef WIN32
+    {
+        int ac;
+        char **av, *enc;
+
+        enc = kpse_var_value("command_line_encoding");
+        if (get_command_line_args_utf8(enc, &ac, &av)) {
+            argc = ac;
+            argv = av;
+        }
+    }
+#endif
+#endif
 
     /*
     ** Check that a single .aux file was specified.
@@ -1213,7 +1233,7 @@ void report_bibtex_capacity (void)
         LOG_CAPACITY (Max_Cites);
         LOG_CAPACITY (Max_Fields);
         LOG_CAPACITY (Max_Glob_Strs);
-        LOG_CAPACITY (MAX_PRINT_LINE);
+        LOG_CAPACITY (Max_Print_Line);
         LOG_CAPACITY (Max_Strings);
         LOG_CAPACITY (Min_Crossrefs);
         LOG_CAPACITY (MIN_PRINT_LINE);
@@ -1284,7 +1304,7 @@ void report_search_paths (void)
 **============================================================================
 */
 static void setup_bound_variable (Integer_T *var, const char *name,
-                                  unsigned long def_value)
+                                  unsigned long def_value, unsigned long min_value)
 {
 #ifdef KPATHSEA
     char *expansion = kpse_var_value (name);
@@ -1295,11 +1315,12 @@ static void setup_bound_variable (Integer_T *var, const char *name,
     const char *me = PROGNAME;
     const char *src = "";
 #endif
+    int threshold = min_value ? min_value : def_value;
 
     *var = def_value;
     if (expansion) {
         int conf_val = atoi (expansion);
-        if (conf_val < def_value)
+        if (conf_val < threshold)
             fprintf (stderr,
             "%s: Bad value (%ld) in environment%s for %s, keeping %ld.\n",
             me, (long) conf_val, src, name, def_value);
@@ -1322,9 +1343,10 @@ static void setup_bound_variable (Integer_T *var, const char *name,
 */
 static void setup_params (void)
 {
-    setup_bound_variable (&Ent_Str_Size, "ent_str_size", ENT_STR_SIZE);
-    setup_bound_variable (&Glob_Str_Size, "glob_str_size", GLOB_STR_SIZE);
-    setup_bound_variable (&Max_Strings, "max_strings", MAX_STRINGS);
+    setup_bound_variable (&Ent_Str_Size, "ent_str_size", ENT_STR_SIZE, 0);
+    setup_bound_variable (&Glob_Str_Size, "glob_str_size", GLOB_STR_SIZE, 0);
+    setup_bound_variable (&Max_Strings, "max_strings", MAX_STRINGS, 0);
+    setup_bound_variable (&Max_Print_Line, "max_print_line", MAX_PRINT_LINE, MIN_PRINT_LINE);
 
     /* Obsolete: Max_Strings specified via command line.  */
     if (Flag_big)
@@ -1565,6 +1587,7 @@ void usage (const char *printf_fmt, ...)
     FSO ("  -W  --wolfgang          same as --mstrings 30000\n");
     FSO ("  -M  --min_crossrefs ##  set min_crossrefs to ##\n");
     FSO ("      --mstrings ##       allow ## unique strings\n");
+    FSO ("\nEmail bug reports to " PACKAGE_BUGREPORT ".\n");
 
     debug_msg (DBG_MISC, "calling longjmp (Exit_Program_Flag) ... ");
     longjmp (Exit_Program_Flag, 1);

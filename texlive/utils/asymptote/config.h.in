@@ -9,6 +9,9 @@
 /* System directory for global .asy files */
 #undef ASYMPTOTE_SYSDIR
 
+/* Define to 1 if you have GLSL compute shaders. */
+#undef HAVE_COMPUTE_SHADER
+
 /* Define to 1 if you have the <curses.h> header file. */
 #undef HAVE_CURSES_H
 
@@ -17,6 +20,9 @@
 
 /* Define to 1 if you have the <editline/readline.h> header file. */
 #undef HAVE_EDITLINE_READLINE_H
+
+/* Define to 1 if you have the <Eigen/Dense> header file. */
+#undef HAVE_EIGEN_DENSE
 
 /* Define to 1 if you have the `feenableexcept' function. */
 #undef HAVE_FEENABLEEXCEPT
@@ -44,6 +50,9 @@
 
 /* Define to 1 if you have the `lgamma' function. */
 #undef HAVE_LGAMMA
+
+/* Define to 1 if you have the `curl' library (-lcurl). */
+#undef HAVE_LIBCURL
 
 /* Define to 1 if you have the `ncurses' library (-lncurses). */
 #undef HAVE_LIBCURSES
@@ -93,6 +102,9 @@
 /* Define to 1 if you have the `tinfo' library (-ltinfo). */
 #undef HAVE_LIBTINFO
 
+/* Define to 1 if you have the `tirpc' library (-ltirpc). */
+#undef HAVE_LIBTIRPC
+
 /* Define to 1 if you have the `z' library (-lz). */
 #undef HAVE_LIBZ
 
@@ -102,8 +114,8 @@
 /* Define to 1 if the system has the type `long long'. */
 #undef HAVE_LONG_LONG
 
-/* Define to 1 if you have the <memory.h> header file. */
-#undef HAVE_MEMORY_H
+/* Define to 1 if you have Language server protocol. */
+#undef HAVE_LSP
 
 /* Define to 1 if you have the `memrchr' function. */
 #undef HAVE_MEMRCHR
@@ -129,14 +141,17 @@
 /* Define to 1 if the system has the type `ptrdiff_t'. */
 #undef HAVE_PTRDIFF_T
 
-/* Define to 1 if you have a working <tirpc/rpc/rpc.h> header. */
-#undef HAVE_RPC_RPC_H
+/* Define to 1 if you have GLSL shader storage buffer objects. */
+#undef HAVE_SSBO
 
 /* Define to 1 if you have the <stddef.h> header file. */
 #undef HAVE_STDDEF_H
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdio.h> header file. */
+#undef HAVE_STDIO_H
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
@@ -152,6 +167,9 @@
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strnlen' function. */
+#undef HAVE_STRNLEN
 
 /* Define to 1 if you have the `strptime' function. */
 #undef HAVE_STRPTIME
@@ -211,10 +229,9 @@
    your system. */
 #undef PTHREAD_CREATE_JOINABLE
 
-/* Define as the return type of signal handlers (`int' or `void'). */
-#undef RETSIGTYPE
-
-/* Define to 1 if you have the ANSI C header files. */
+/* Define to 1 if all of the C90 standard headers exist (not just the ones
+   required in a freestanding environment). This macro is provided for
+   backward compatibility; new code need not use it. */
 #undef STDC_HEADERS
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
@@ -245,7 +262,7 @@
 #undef inline
 #endif
 
-/* Define to `int' if <sys/types.h> does not define. */
+/* Define as a signed integer type capable of holding a process identifier. */
 #undef pid_t
 
 /* Define to `unsigned int' if <sys/types.h> does not define. */

@@ -2,7 +2,7 @@
 ** PathClipper.cpp                                                      **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -51,14 +51,14 @@ inline DPair to_DPair (const IntPoint &p) {
  *  is called. */
 class FlattenActions : public CurvedPath::IterationActions {
 	public:
-		FlattenActions (vector<Bezier> &curves, Polygons &polygons, int &numLines)
+		FlattenActions (vector<CubicBezier> &curves, Polygons &polygons, int &numLines)
 			: _polygons(polygons), _curves(curves), _numLines(numLines) {}
 
 		void moveto (const CurvedPath::Point &p) override {
 			if (p == _currentPoint && !_currentPoly.empty())
 				return;
 			closepath();
-			_currentPoly.emplace_back(IntPoint(to_cInt(p.x()), to_cInt(p.y()), 0));
+			_currentPoly.emplace_back(to_cInt(p.x()), to_cInt(p.y()), 0);
 			_currentPoint = _startPoint = p;
 		}
 
@@ -66,20 +66,20 @@ class FlattenActions : public CurvedPath::IterationActions {
 			if (p == _currentPoint && !_currentPoly.empty())
 				return;
 			if (_currentPoly.empty()) // this shouldn't happen but in case it does...
-				_currentPoly.emplace_back(IntPoint(0, 0, 0)); // ...add a start point first
+				_currentPoly.emplace_back(0, 0, 0); // ...add a start point first
 			_numLines--;
 			_currentPoly.back().Z.label2 = _numLines;
-			_currentPoly.emplace_back(IntPoint(to_cInt(p.x()), to_cInt(p.y()), ZType(_numLines, 0)));
+			_currentPoly.emplace_back(to_cInt(p.x()), to_cInt(p.y()), ZType(_numLines, 0));
 			_currentPoint = p;
 		}
 
 		void quadto (const CurvedPath::Point &p1, const CurvedPath::Point &p2) override {
-			Bezier bezier(_currentPoint, p1, p2);
-			addCurvePoints(bezier);
+			QuadBezier qbezier(_currentPoint, p1, p2);
+			addCurvePoints(CubicBezier(qbezier));
 		}
 
 		void cubicto (const CurvedPath::Point &p1, const CurvedPath::Point &p2, const CurvedPath::Point &p3) override {
-			Bezier bezier(_currentPoint, p1, p2, p3);
+			CubicBezier bezier(_currentPoint, p1, p2, p3);
 			addCurvePoints(bezier);
 		}
 
@@ -98,9 +98,9 @@ class FlattenActions : public CurvedPath::IterationActions {
 		}
 
 	protected:
-		void addCurvePoints (const Bezier &bezier) {
+		void addCurvePoints (const CubicBezier &bezier) {
 			if (_currentPoly.empty()) // this shouldn't happen but in case it does, ...
-				_currentPoly.emplace_back(IntPoint(0, 0, 0)); // ...add a start point first
+				_currentPoly.emplace_back(0, 0, 0); // ...add a start point first
 			vector<DPair> points;  // points of flattened curve
 			vector<double> t;      // corresponding 'time' parameters
 			bezier.approximate(0.01, points, &t);
@@ -113,7 +113,7 @@ class FlattenActions : public CurvedPath::IterationActions {
 					continue;
 				_currentPoly.back().Z.label2 = ZLabel(_curves.size(), t[i-1]);
 				ZLabel label(_curves.size(), t[i]);
-				_currentPoly.emplace_back(IntPoint(to_cInt(p.x()), to_cInt(p.y()), ZType(label, label)));
+				_currentPoly.emplace_back(to_cInt(p.x()), to_cInt(p.y()), ZType(label, label));
 				_currentPoint = p;
 			}
 		}
@@ -122,7 +122,7 @@ class FlattenActions : public CurvedPath::IterationActions {
 		CurvedPath::Point _startPoint, _currentPoint;
 		Polygon _currentPoly;    ///< polygon being created
 		Polygons &_polygons;     ///< all polygons created
-		vector<Bezier> &_curves;
+		vector<CubicBezier> &_curves;
 		int &_numLines;
 };
 
@@ -211,7 +211,7 @@ inline ZLabel division_label (const IntPoint &p1, const IntPoint &p2, const IntP
 	int32_t id = segment_id(p1, p2, t1, t2);
 	if (id > 0)
 		s = t1+(t2-t1)*division_ratio(p1, p2, q);
-	return ZLabel(id, s);
+	return {id, s};
 }
 
 
@@ -288,7 +288,7 @@ void PathClipper::reconstruct (const Polygon &polygon, CurvedPath &path) {
 		if (diff == 1 || label1.id <= 0)  // line segment?
 			path.lineto(to_DPair(polygon[index2]));
 		else {  // Bézier curve segment
-			Bezier bezier(_curves[label1.id-1], label1.t, label2.t);
+			CubicBezier bezier(_curves[label1.id-1], label1.t, label2.t);
 			if (label1.t > label2.t)
 				bezier.reverse();
 			path.cubicto(bezier.point(1), bezier.point(2), bezier.point(3));
@@ -310,22 +310,37 @@ inline PolyFillType polyFillType (CurvedPath::WindingRule wr) {
 }
 
 
-/** Computes the intersection of to curved paths.
+/** Combines two curved paths by applying a boolean operation on them.
+ *  @param[in] op operation to perform
  *  @param[in] p1 first curved path
  *  @param[in] p2 second curved path
- *  @param[out] result intersection of p1 and p2 */
-void PathClipper::intersect (const CurvedPath &p1, const CurvedPath &p2, CurvedPath &result) {
-	if (p1.size() < 2 || p2.size() < 2)
-		return;
-	Clipper clipper;
-	Polygons polygons;
-	flatten(p1, polygons);
-	clipper.AddPaths(polygons, ptSubject, true);
-	polygons.clear();
-	flatten(p2, polygons);
-	clipper.AddPaths(polygons, ptClip, true);
-	clipper.ZFillFunction(callback);
-	Polygons flattenedPath;
-	clipper.Execute(ctIntersection, flattenedPath, polyFillType(p1.windingRule()), polyFillType(p2.windingRule()));
-	reconstruct(flattenedPath, result);
+ *  @return intersection of p1 and p2 */
+CurvedPath PathClipper::combine (ClipType op, const CurvedPath &p1, const CurvedPath &p2) {
+	CurvedPath result;
+	if (p1.size() > 1 && p2.size() > 1) {
+		Clipper clipper;
+		Polygons polygons;
+		flatten(p1, polygons);
+		clipper.AddPaths(polygons, ptSubject, true);
+		polygons.clear();
+		flatten(p2, polygons);
+		clipper.AddPaths(polygons, ptClip, true);
+		clipper.ZFillFunction(callback);
+		Polygons flattenedPath;
+		clipper.Execute(op, flattenedPath, polyFillType(p1.windingRule()), polyFillType(p2.windingRule()));
+		reconstruct(flattenedPath, result);
+	}
+	return result;
+}
+
+
+/** Returns the intersection of two curved paths. */
+CurvedPath PathClipper::intersect (const CurvedPath &p1, const CurvedPath &p2) {
+	return combine(ctIntersection, p1, p2);
+}
+
+
+/** Returns the union of two curved paths. */
+CurvedPath PathClipper::unite (const CurvedPath &p1, const CurvedPath &p2) {
+	return combine(ctUnion, p1, p2);
 }

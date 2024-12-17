@@ -1,0 +1,12 @@
+diff -ur pmx-3.0.0/libf2c/main.c pmx-src/libf2c/main.c
+--- pmx-3.0.0/libf2c/main.c	Sat Feb 11 06:51:05 2023
++++ pmx-src/libf2c/main.c	Mon Feb 13 10:05:04 2023
+@@ -106,7 +106,7 @@
+ #ifdef KR_headers
+ main(argc, argv) int argc; char **argv;
+ #else
+-main(int argc, char **argv)
++int main(int argc, char **argv)
+ #endif
+ {
+ xargc = argc;

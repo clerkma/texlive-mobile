@@ -2,7 +2,7 @@
 ** UtilityTest.cpp                                                      **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -80,6 +80,9 @@ TEST(UtilityTest, split) {
 	ASSERT_EQ(parts.size(), 1u);
 	EXPECT_EQ(parts[0], "");
 
+	parts = split("", ",", true);
+	ASSERT_EQ(parts.size(), 0u);
+
 	parts = split("abcde", "");
 	ASSERT_EQ(parts.size(), 1u);
 	EXPECT_EQ(parts[0], "abcde");
@@ -91,14 +94,14 @@ TEST(UtilityTest, split) {
 	parts = split("1,2 , 3, 4 ,,5", ",");
 	ASSERT_EQ(parts.size(), 6u);
 	size_t count=0;
-	for (const string &part : {"1", "2 ", " 3", " 4 ", "", "5"}) {
+	for (string part : {"1", "2 ", " 3", " 4 ", "", "5"}) {
 		EXPECT_EQ(parts[count++], part);
 	}
 
 	parts = split("1 sep2sep3, sep", "sep");
 	ASSERT_EQ(parts.size(), 4u);
 	count=0;
-	for (const string &part : {"1 ", "2", "3, ", ""}) {
+	for (string part : {"1 ", "2", "3, ", ""}) {
 		EXPECT_EQ(parts[count++], part);
 	}
 }
@@ -145,4 +148,81 @@ TEST(UtilityTest, base64_copy) {
 	ASSERT_EQ(base64("abc"), "YWJj");
 	ASSERT_EQ(base64("abcd"), "YWJjZA==");
 	ASSERT_EQ(base64("aBcDe\nFgHiJ\n"), "YUJjRGUKRmdIaUoK");
+}
+
+
+TEST(UtilityTest, count_leading_zeros) {
+	EXPECT_EQ(count_leading_zeros(int8_t(0)), 8);
+	EXPECT_EQ(count_leading_zeros(int16_t(0)), 16);
+	EXPECT_EQ(count_leading_zeros(int32_t(0)), 32);
+	for (int i=0; i < 8; i++) {
+		EXPECT_EQ(count_leading_zeros(uint8_t(1 << i)), 7-i);
+		EXPECT_EQ(count_leading_zeros(uint8_t((1 << i) | 1)), 7-i);
+		EXPECT_EQ(count_leading_zeros(uint8_t(0xff >> i)), i);
+	}
+	for (int i=0; i < 16; i++) {
+		EXPECT_EQ(count_leading_zeros(uint16_t(1 << i)), 15-i);
+		EXPECT_EQ(count_leading_zeros(uint16_t((1 << i) | 1)), 15-i);
+		EXPECT_EQ(count_leading_zeros(uint16_t(0xffff >> i)), i);
+	}
+	for (int i=0; i < 32; i++) {
+		EXPECT_EQ(count_leading_zeros(uint32_t(1 << i)), 31-i);
+		EXPECT_EQ(count_leading_zeros(uint32_t((1 << i) | 1)), 31-i);
+		EXPECT_EQ(count_leading_zeros(uint32_t(0xffffffff >> i)), i);
+	}
+}
+
+
+TEST(UtilityTest, ilog2) {
+	EXPECT_EQ(ilog2(0), -1);
+	for (int i=0; i < 8; i++) {
+		EXPECT_EQ(ilog2(uint8_t(1 << i)), i);
+		EXPECT_EQ(ilog2(uint8_t((1 << i)|1)), i);
+		EXPECT_EQ(ilog2(uint8_t(0xff >> i)), 7-i);
+	}
+	for (int i=0; i < 16; i++) {
+		EXPECT_EQ(ilog2(uint16_t(1 << i)), i);
+		EXPECT_EQ(ilog2(uint16_t((1 << i)|1)), i);
+		EXPECT_EQ(ilog2(uint16_t(0xffff >> i)), 15-i);
+	}
+	for (int i=0; i < 32; i++) {
+		EXPECT_EQ(ilog2(uint32_t(1 << i)), i);
+		EXPECT_EQ(ilog2(uint32_t((1 << i)|1)), i);
+		EXPECT_EQ(ilog2(uint32_t(0xffffffff >> i)), 31-i);
+	}
+}
+
+
+TEST(UtilityTest, read_double) {
+	istringstream iss("123 -456 .123 -.456 0.123 -0.456 +123.456 -123.456 10e-3 -1e-3 4.5e2 1.23e-3 2.30.4");
+	double value=0;
+	EXPECT_TRUE(util::read_double(iss, value));
+	EXPECT_NEAR(value, 123.0, 0.000001);
+	EXPECT_TRUE(util::read_double(iss, value));
+	EXPECT_NEAR(value, -456.0, 0.000001);
+	EXPECT_TRUE(util::read_double(iss, value));
+	EXPECT_NEAR(value, .123, 0.000001);
+	EXPECT_TRUE(util::read_double(iss, value));
+	EXPECT_NEAR(value, -.456, 0.000001);
+	EXPECT_TRUE(util::read_double(iss, value));
+	EXPECT_NEAR(value, .123, 0.000001);
+	EXPECT_TRUE(util::read_double(iss, value));
+	EXPECT_NEAR(value, -.456, 0.000001);
+	EXPECT_TRUE(util::read_double(iss, value));
+	EXPECT_NEAR(value, 123.456, 0.000001);
+	EXPECT_TRUE(util::read_double(iss, value));
+	EXPECT_NEAR(value, -123.456, 0.000001);
+	EXPECT_TRUE(util::read_double(iss, value));
+	EXPECT_NEAR(value, 10e-3, 0.000001);
+	EXPECT_TRUE(util::read_double(iss, value));
+	EXPECT_NEAR(value, -1e-3, 0.000001);
+	EXPECT_TRUE(util::read_double(iss, value));
+	EXPECT_NEAR(value, 4.5e2, 0.000001);
+	EXPECT_TRUE(util::read_double(iss, value));
+	EXPECT_NEAR(value, 1.23e-3, 0.000001);
+	EXPECT_TRUE(util::read_double(iss, value));
+	EXPECT_NEAR(value, 2.3, 0.000001);
+	EXPECT_TRUE(util::read_double(iss, value));
+	EXPECT_NEAR(value, .4, 0.000001);
+	EXPECT_FALSE(util::read_double(iss, value));  // eof, no further characters to read
 }

@@ -1,3 +1,74 @@
+2024-05-02  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	* pmp.ch: sync with the new mp.w.
+
+2024-03-10  Karl Berry  <karl@tug.org>
+
+	* TL'24 release.
+
+2024-02-03  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* {,u}pmpsamp.test: Tweak.
+
+2024-02-01  Luigi Scarso  <luigi.scarso@gmail.com>
+
+	* pmp.ch: bump MetaPost version to 2.10 for mpfi.
+	* am/pmpost.am: link with mpfi.
+
+2023-09-16  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* pmp.ch: Bump upmpost version to 2.02-0.04-u1.30.
+
+2023-08-20  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* {,u}{pmpost,pmpsamp}.test:
+	Make easier to test on Windows.
+
+2023-03-09  Karl Berry  <karl@tug.org>
+
+	* TL'23 release.
+
+2022-07-23  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* pmp.ch: Bump upmpost version to 2.02-0.04-u1.29.
+
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2022-01-23  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* pmp.ch: Bump upmpost version to 2.02-0.04-u1.28.
+
+2022-01-22  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* pmp.ch: Adapt to arguments of input_line2() in ptexenc-1.4.0.
+
+2022-01-18  Karl Berry  <karl@freefriends.org>
+
+	* pmp.ch: Sync with the version 2.02 mp.w (three times).
+
+2022-01-10  Karl Berry  <karl@freefriends.org>
+
+	* am/pmpost.am: do not silence tangle-sh.
+
+2021-04-11  Akira Kakuto  <kakuto@w32tex.org>
+
+	* pmp.ch: Sync with the version 2.01 mp.w.
+
+2021-03-23  Karl Berry  <karl@tug.org>
+
+	* TL'21.
+
+2020-10-25  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* pmp.ch: Bump upmpost version to 2.00-0.04-u1.27.
+
+2020-05-17  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* pmp.ch: Avoid a compiler warning: equality comparison with
+	extraneous parentheses.
+
 2020-02-23  Akira Kakuto  <kakuto@w32tex.org>
 
 	* pmp.ch: Bump upmpost version to 2.00-0.04-u1.26.

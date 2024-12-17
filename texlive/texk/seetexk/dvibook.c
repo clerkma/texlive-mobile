@@ -1,4 +1,4 @@
-/* Copyright (c) 1987, 1989, 2012 University of Maryland Department of
+/* Copyright (c) 1987, 1989, 2012, 2020 University of Maryland Department of
    Computer Science.
    
    Permission is hereby granted, free of charge, to any person obtaining
@@ -45,6 +45,9 @@
 extern char *optarg;
 extern int   optind;
 #endif
+#if defined(WIN32)
+#include <sys/stat.h>
+#endif
 
 #include "types.h"
 #include "dviclass.h"
@@ -56,15 +59,9 @@ extern int   optind;
 #include <stdio.h>
 #include <ctype.h>
 #include "seek.h"
-
-#if defined(WIN32) && defined(KPATHSEA)
-#undef fopen
-#define fopen  fsyscp_fopen
-#endif
+#include "common.h"
 
 #define white(x) ((x) == ' ' || (x) == '\t' || (x) == ',')
-
-#define MAXDVIPAGES 1000 /* max (absolute) pages in DVI file */
 
 char  *ProgName;
 
@@ -104,8 +101,8 @@ const char	*DVIFileName;		/* name of input DVI file */
 FILE	*inf;			/* the input file itself */
 FILE	*outf;			/* the output DVI file */
 
-long	StartOfPage[MAXDVIPAGES];	/* The file positions of the
-					   input pages */
+long	*StartOfPage;		/* The file positions of the input pages */
+long	StartOfPageSpace;	/* Number of entries of StartOfPage array */
 
 long	StartOfLastPage;	/* The file position just before we
 				   started the last page */
@@ -130,7 +127,8 @@ i32	Count[10];		/* the 10 \count variables */
 char	writeerr[] = "error writing DVI file";
 
 #ifndef KPATHSEA
-char *malloc(), *realloc();
+void *malloc(), *realloc();
+void free();
 #endif
 /*
  * You may get lint warnings about sprintf's return value.
@@ -409,11 +407,13 @@ main(int argc, char **argv)
 	int ac;
 	char **av, *enc;
 
-	kpse_set_program_name(argv[0], "dvibook");
-	enc = kpse_var_value("command_line_encoding");
-	if (get_command_line_args_utf8(enc, &ac, &av)) {
-		argc = ac;
-		argv = av;
+	if (argc>1) {
+		kpse_set_program_name(argv[0], "dvibook");
+		enc = kpse_var_value("command_line_encoding");
+		if (get_command_line_args_utf8(enc, &ac, &av)) {
+			argc = ac;
+			argv = av;
+		}
 	}
 #endif
 
@@ -466,6 +466,8 @@ main(int argc, char **argv)
 
 		case '?':
 usage:
+			(void) fprintf(stderr,
+				"dvibook  in SeeTeX Ver.%s (%s)\n", VERSION, TL_VERSION);
 #ifdef	ASCIIPTEX
 			(void) fprintf(stderr, "\
 Usage: %s [-s signature] [-q] [-i infile] [-o outfile] [-r] [infile [outfile]]\n",
@@ -475,6 +477,8 @@ Usage: %s [-s signature] [-q] [-i infile] [-o outfile] [-r] [infile [outfile]]\n
 Usage: %s [-s signature] [-q] [-i infile] [-o outfile] [infile [outfile]]\n",
 				ProgName);
 #endif
+			(void) fprintf(stderr,
+				"\nEmail bug reports to %s.\n", BUG_ADDRESS);
 			(void) fflush(stderr);
 			exit(1);
 		}
@@ -490,6 +494,16 @@ Usage: %s [-s signature] [-q] [-i infile] [-o outfile] [infile [outfile]]\n",
 		else
 			goto usage;
 	}
+#if defined(WIN32)
+	if (DVIFileName == NULL && outname == NULL) {
+		struct stat sti, sto;
+		int fdi = fileno(stdin), fdo = fileno(stdout);
+		if (isatty(fdi) == 0 && fstat(fdi, &sti) == 0 && S_ISFIFO(sti.st_mode)
+			&& isatty(fdo) == 0 && fstat(fdo, &sto) == 0 && S_ISFIFO(sto.st_mode)) {
+			goto usage;
+		}
+	}
+#endif
 	if (DVIFileName == NULL) {
 		DVIFileName = "`stdin'";
 		inf = stdin;
@@ -519,6 +533,12 @@ Usage: %s [-s signature] [-q] [-i infile] [-o outfile] [infile [outfile]]\n",
 #endif
 	InputPageNumber = 0;
 	StartOfLastPage = -1;
+	StartOfPageSpace = 32;
+	StartOfPage = malloc(sizeof(long) * StartOfPageSpace);
+	if (!StartOfPage) {
+		error(1, -1, "cannot allocate list of pages; out of memory");
+	}
+
 	HandlePreAmble();
 	ScanDVIFile();
 #ifdef	ASCIIPTEX
@@ -527,6 +547,7 @@ Usage: %s [-s signature] [-q] [-i infile] [-o outfile] [infile [outfile]]\n",
 	else
 #endif
 	HandleDVIFile();
+	free(StartOfPage);
 	HandlePostAmble();
 	if (!SFlag)
 		(void) fprintf(stderr, "\nWrote %d page%s, %ld bytes\n",
@@ -730,11 +751,23 @@ char	oplen[128] = {
 static void
 ScanDVIFile(void)
 {
+	long *tmp;
+
 	UseThisPage = 0;
 
 	StartOfPage[InputPageNumber] = ftell(inf);
 	while (HandlePage()) {  /* scan DVI file */
-	        StartOfPage[++InputPageNumber] = ftell(inf);
+		++InputPageNumber;
+		if (InputPageNumber >= StartOfPageSpace) {
+			StartOfPageSpace *= 2;
+			tmp = realloc(StartOfPage, sizeof(long) * StartOfPageSpace);
+			if (!tmp) {
+				error(1, -1, "cannot grow list of pages; out of memory");
+			}
+			StartOfPage = tmp;
+		}
+
+		StartOfPage[InputPageNumber] = ftell(inf);
 	}
 }
 

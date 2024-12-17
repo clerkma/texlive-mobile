@@ -1,4 +1,4 @@
-## $Id: Makefile.am 53614 2020-01-31 18:59:27Z karl $
+## $Id: Makefile.am 71119 2024-04-29 17:11:37Z karl $
 ## Makefile.am for the TeX Live top-level
 ##
 ## Copyright 2016-2020 Karl Berry <tex-live@tug.org>
@@ -53,8 +53,11 @@ world: all
 	@echo "top-level make $@: running install-strip..."
 	$(MAKE) $(AM_MAKEFLAGS) install-strip
 #
-	@echo "top-level make $@: making run-texlinks in $(texlinks_dir) ..."
-	cd $(texlinks_dir) && $(MAKE) $(AM_MAKEFLAGS) run-texlinks
+# Just in case it's not a full checkout.
+	if test -d "$(texlinks_dir)"; then \
+	  echo "top-level make $@: making run-texlinks in $(texlinks_dir) ..."; \
+	  cd $(texlinks_dir) && $(MAKE) $(AM_MAKEFLAGS) run-texlinks; \
+	else :; fi
 #
 	@echo "top-level make $@: running $(check_target)..."
 	$(MAKE) $(AM_MAKEFLAGS) $(check_target)
@@ -100,3 +103,16 @@ texlinks:
 .PHONY: triptrap
 triptrap:
 	cd texk && $(MAKE) $(AM_MAKEFLAGS) $@
+
+# We aren't trying to keep make dist working. Sorry.
+distdir:
+	@echo "Sorry, we don't try to keep make dist working in TeX Live."
+	@echo
+	@echo "You can retrieve the development and/or released sources"
+	@echo "  in various ways: https://tug.org/texlive/svn"
+	@echo
+	@echo "For info on how to integrate the built binaries into a runnable"
+	@echo "  system, see: https://tug.org/texlive/build.html#deploy"
+	@echo
+	@echo "The result of make install is not usable by itself."
+	@false

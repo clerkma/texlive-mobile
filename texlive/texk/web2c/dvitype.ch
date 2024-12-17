@@ -20,12 +20,23 @@
 % 01/16/90 (SR)  To version 3.2.
 % (more recent changes in the ChangeLog)
 
+@x [0] l.29
+\def\(#1){} % this is used to make section names sort themselves better
+@y
+\def\({} % this is used to make section names sort themselves better
+@z
+
+@x [0] l.32
+\def\title{DVI$\,$\lowercase{type}}
+@y
+\def\title{DVI$\,$\lowercase{type} changes for C}
+@z
+
 @x [0] WEAVE: print changes only.
 \pageno=\contentspagenumber \advance\pageno by 1
 @y
 \pageno=\contentspagenumber \advance\pageno by 1
 \let\maybe=\iffalse
-\def\title{DVI$\,$\lowercase{type} changes for C}
 @z
 
 @x [1] Define my_name
@@ -50,7 +61,7 @@ procedure initialize; {this procedure gets things started properly}
   var i:integer; {loop index for initializations}
   begin print_ln(banner);@/
 @y
-@<Define |parse_arguments|@>
+@<Define \(|parse_arguments|@>
 procedure initialize; {this procedure gets things started properly}
   var i:integer; {loop index for initializations}
   begin
@@ -58,6 +69,22 @@ procedure initialize; {this procedure gets things started properly}
   parse_arguments;
   print (banner);
   print_ln (version_string);
+@z
+
+@x [4] Purge non-local 'goto'.
+@ If the program has to stop prematurely, it goes to the
+`|final_end|'. Another label, |done|, is used when stopping normally.
+
+@d final_end=9999 {label for the end of it all}
+@d done=30 {go here when finished with a subtask}
+
+@<Labels...@>=final_end,done;
+@y
+@ Label |done| is used when stopping normally.
+
+@d done=30 {go here when finished with a subtask}
+
+@<Labels...@>=done;
 @z
 
 % There were no complaints that these values are too small, and adjusting
@@ -83,6 +110,13 @@ procedure initialize; {this procedure gets things started properly}
 @z
 
 @x [7] Remove non-local goto.
+so a procedure called |jump_out| has been introduced. This procedure, which
+simply transfers control to the label |final_end| at the end of the program,
+contains the only non-local |goto| statement in \.{DVItype}.
+@y
+so a procedure called |jump_out| has been introduced.
+@z
+@x
 @d abort(#)==begin print(' ',#); jump_out;
     end
 @d bad_dvi(#)==abort('Bad DVI file: ',#,'!')
@@ -465,6 +499,14 @@ endcases;
   if show_opcodes and (o >= 128) then print (' {', o:1, '}');
 @z
 
+@x [99]
+    begin define_font(first_par(k)); k:=nop;
+@y
+    begin define_font(first_par(k));
+      if out_mode<>errors_only then print_ln(' ');
+      k:=nop;
+@z
+
 @x [107] (main) No dialog; remove unused label.
 dialog; {set up all the options}
 @y
@@ -499,7 +541,7 @@ Parse a Unix-style command line.
 
 @d argument_is (#) == (strcmp (long_options[option_index].name, #) = 0)
 
-@<Define |parse_arguments|@> =
+@<Define \(|parse_arguments|@> =
 procedure parse_arguments;
 const n_options = 8; {Pascal won't count array lengths for us.}
 var @!long_options: array[0..n_options] of getopt_struct;
@@ -513,7 +555,7 @@ begin
     getopt_return_val := getopt_long_only (argc, argv, '', long_options,
                                            address_of (option_index));
     if getopt_return_val = -1 then begin
-      {End of arguments; we exit the loop below.} ;
+      do_nothing; {End of arguments; we exit the loop below.}
 
     end else if getopt_return_val = "?" then begin
       usage (my_name);

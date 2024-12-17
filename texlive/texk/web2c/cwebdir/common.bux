@@ -1,0 +1,31 @@
+@$ctangle {COMMON}2 \&{cweb}@>
+@$cweave {COMMON}2 \&{cweb}@>
+@$ctwill {COMMON}2 \&{cweb}@>
+
+@$text_info {CTANGLE.W}20 \&{text} [\,]@>
+
+@$equiv {CTANGLE.W}22 \\{equiv\_or\_xref}@>
+
+@$ac {CWEAVE.W}2 \&{int}@>
+@$av {CWEAVE.W}2 \&{char} ${*}{*}$@>
+@$main {CWEAVE.W}2 \&{int} (\,)@>
+
+@$ilk {CWEAVE.W}11 \\{dummy.Ilk}@>
+
+@$xmem {CWEAVE.W}23 \&{xref\_info} [\,]@>
+
+@$xref {CWEAVE.W}24 \\{equiv\_or\_xref}@>
+
+@$init_node {CWEAVE.W}32 \&{void} (\,)@>
+@$names_match {CWEAVE.W}32 \&{boolean} (\,)@>
+
+@$print_stats {CWEAVE.W}270 \&{void} (\,)@>
+
+@$kpse_set_program_name "<kpathsea/progname.h>" \zip@>
+@$kpse_find_file "<kpathsea/tex-file.h>" \zip@>
+@$kpathsea_debug "<kpathsea/types.h>" \zip@>
+@$kpse_cweb_format "<kpathsea/types.h>" \zip@>
+@$kpse_program_name "<kpathsea/types.h>" \zip@>
+@$kpse_var_expand "<kpathsea/variable.h>" \zip@>
+@$printversionandexit "<lib/lib.h>" \zip@>
+@$versionstring "<lib/lib.h>" \zip@>

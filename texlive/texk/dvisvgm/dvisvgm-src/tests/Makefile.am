@@ -1,5 +1,5 @@
 ## This file is part of dvisvgm
-## Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>
+## Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>
 ##
 ## Process this file with automake.
 
@@ -24,18 +24,11 @@ EXTRA_DIST = gtest/LICENSE \
 
 include ../libs/defs.am
 
-LIBS_CFLAGS = $(XXHASH_CFLAGS)
-LIBS_LIBS   = $(POTRACE_LIBS) $(XXHASH_LIBS)
+LIBS_CFLAGS = $(XXHASH_CFLAGS) -I$(dvisvgm_srcdir)/libs/md5
+LIBS_LIBS   = $(POTRACE_LIBS) $(XXHASH_LIBS) ../libs/md5/libmd5.a
+
 if ENABLE_WOFF
 LIBS_LIBS  += $(WOFF2_LIBS) $(BROTLI_LIBS)
-endif
-
-if USE_BUNDLED_MD5
-LIBS_CFLAGS += -I$(dvisvgm_srcdir)/libs/md5
-LIBS_LIBS   += ../libs/md5/libmd5.a
-else
-LIBS_CFLAGS += $(LIBCRYPTO_CFLAGS)
-LIBS_LIBS   += $(LIBCRYPTO_LIBS)
 endif
 
 AM_CXXFLAGS = -I$(dvisvgm_srcdir)/src -I$(dvisvgm_srcdir)/libs/variant/include \
@@ -53,9 +46,6 @@ hashcheck.cpp: genhashcheck.py $(dvisvgm_srcdir)/src/AGLTable.hpp $(dvisvgm_srcd
 	python $^ >$@
 
 TESTLIBS = libgtest.la ../src/libdvisvgm.la $(LIBS_LIBS) -lfreetype
-if ENABLE_WOFF
-TESTLIBS += ../libs/ff-woff/libfontforge.a
-endif
 TESTLIBS += $(CODE_COVERAGE_LDFLAGS)
 
 TESTS += BezierTest
@@ -208,6 +198,12 @@ GhostscriptTest_SOURCES = GhostscriptTest.cpp testutil.hpp
 GhostscriptTest_CPPFLAGS = -I$(dvisvgm_srcdir)/tests/gtest/include $(LIBS_CFLAGS)
 GhostscriptTest_LDADD = $(TESTLIBS)
 
+TESTS += GraphicsPathParserTest
+check_PROGRAMS += GraphicsPathParserTest
+GraphicsPathParserTest_SOURCES = GraphicsPathParserTest.cpp testutil.hpp
+GraphicsPathParserTest_CPPFLAGS = -I$(dvisvgm_srcdir)/tests/gtest/include $(LIBS_CFLAGS)
+GraphicsPathParserTest_LDADD = $(TESTLIBS)
+
 TESTS += GraphicsPathTest
 check_PROGRAMS += GraphicsPathTest
 GraphicsPathTest_SOURCES = GraphicsPathTest.cpp testutil.hpp
@@ -249,6 +245,12 @@ check_PROGRAMS += MessageExceptionTest
 MessageExceptionTest_SOURCES = MessageExceptionTest.cpp testutil.hpp
 MessageExceptionTest_CPPFLAGS = -I$(dvisvgm_srcdir)/tests/gtest/include $(LIBS_CFLAGS)
 MessageExceptionTest_LDADD = $(TESTLIBS)
+
+TESTS += OFMReaderTest
+check_PROGRAMS += OFMReaderTest
+OFMReaderTest_SOURCES = OFMReaderTest.cpp testutil.hpp
+OFMReaderTest_CPPFLAGS = -I$(dvisvgm_srcdir)/tests/gtest/include $(LIBS_CFLAGS)
+OFMReaderTest_LDADD = $(TESTLIBS)
 
 TESTS += PageRagesTest
 check_PROGRAMS += PageRagesTest
@@ -394,12 +396,6 @@ VectorIteratorTest_SOURCES = VectorIteratorTest.cpp testutil.hpp
 VectorIteratorTest_CPPFLAGS = -I$(dvisvgm_srcdir)/tests/gtest/include $(LIBS_CFLAGS)
 VectorIteratorTest_LDADD = $(TESTLIBS)
 
-TESTS += VectorStreamTest
-check_PROGRAMS += VectorStreamTest
-VectorStreamTest_SOURCES = VectorStreamTest.cpp testutil.hpp
-VectorStreamTest_CPPFLAGS = -I$(dvisvgm_srcdir)/tests/gtest/include $(LIBS_CFLAGS)
-VectorStreamTest_LDADD = $(TESTLIBS)
-
 TESTS += XMLNodeTest
 check_PROGRAMS += XMLNodeTest
 XMLNodeTest_SOURCES = XMLNodeTest.cpp testutil.hpp
@@ -414,7 +410,5 @@ XMLStringTest_LDADD = $(TESTLIBS)
 
 EXTRA_DIST += check-conv genhashcheck.py normalize.xsl
 TESTS += check-conv
-
-@CODE_COVERAGE_RULES@
 
 CLEANFILES = *.gcda *.gcno hashcheck.cpp

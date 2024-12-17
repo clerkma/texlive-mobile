@@ -1,6 +1,6 @@
 /* mpfr_sin_cos -- sine and cosine of a floating-point number
 
-Copyright 2002-2019 Free Software Foundation, Inc.
+Copyright 2002-2023 Free Software Foundation, Inc.
 Contributed by the AriC and Caramba projects, INRIA.
 
 This file is part of the GNU MPFR Library.
@@ -61,8 +61,8 @@ mpfr_sin_cos (mpfr_ptr y, mpfr_ptr z, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
     }
 
   MPFR_LOG_FUNC
-    (("x[%Pu]=%.*Rg rnd=%d", mpfr_get_prec (x), mpfr_log_prec, x, rnd_mode),
-     ("sin[%Pu]=%.*Rg cos[%Pu]=%.*Rg", mpfr_get_prec(y), mpfr_log_prec, y,
+    (("x[%Pd]=%.*Rg rnd=%d", mpfr_get_prec (x), mpfr_log_prec, x, rnd_mode),
+     ("sin[%Pd]=%.*Rg cos[%Pd]=%.*Rg", mpfr_get_prec(y), mpfr_log_prec, y,
       mpfr_get_prec (z), mpfr_log_prec, z));
 
   MPFR_SAVE_EXPO_MARK (expo);
@@ -131,8 +131,8 @@ mpfr_sin_cos (mpfr_ptr y, mpfr_ptr z, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
       return mpfr_sincos_fast (y, z, x, rnd_mode);
     }
 
-  mpfr_init (c);
-  mpfr_init (xr);
+  mpfr_init2 (c, m);
+  mpfr_init2 (xr, m);
 
   MPFR_ZIV_INIT (loop, m);
   for (;;)
@@ -141,6 +141,7 @@ mpfr_sin_cos (mpfr_ptr y, mpfr_ptr z, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
       if (expx >= 2) /* reduce the argument */
         {
           reduce = 1;
+          MPFR_ASSERTN (expx + m - 1 <= MPFR_PREC_MAX);
           mpfr_set_prec (c, expx + m - 1);
           mpfr_set_prec (xr, m);
           mpfr_const_pi (c, MPFR_RNDN);
@@ -177,9 +178,10 @@ mpfr_sin_cos (mpfr_ptr y, mpfr_ptr z, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
       if (!MPFR_CAN_ROUND (c, err, MPFR_PREC (z), rnd_mode))
         goto next_step;
 
-      /* we can't set z now, because in case z = x, and the MPFR_CAN_ROUND()
-         call below fails, we will have clobbered the input */
-      mpfr_set_prec (xr, MPFR_PREC(c));
+      /* We can't set z now, because in case z = x, and the MPFR_CAN_ROUND()
+         call below fails, we will have clobbered the input.
+         Note: m below is the precision of c; see above. */
+      mpfr_set_prec (xr, m);
       mpfr_swap (xr, c); /* save the approximation of the cosine in xr */
       mpfr_sqr (c, xr, MPFR_RNDU); /* the absolute error is bounded by
                                       2^(5-m) if reduce=1, and by 2^(2-m)
@@ -282,13 +284,15 @@ reduce2 (mpz_t S, mpz_t C, mpfr_prec_t prec)
 
    Assumes prec >= 10.
 */
+
+#define KMAX 64
 static unsigned long
 sin_bs_aux (mpz_t Q0, mpz_t S0, mpz_t C0, mpz_srcptr p, mpfr_prec_t r,
             mpfr_prec_t prec)
 {
-  mpz_t T[GMP_NUMB_BITS], Q[GMP_NUMB_BITS], ptoj[GMP_NUMB_BITS], pp;
-  mpfr_prec_t log2_nb_terms[GMP_NUMB_BITS], mult[GMP_NUMB_BITS];
-  mpfr_prec_t accu[GMP_NUMB_BITS], size_ptoj[GMP_NUMB_BITS];
+  mpz_t T[KMAX], Q[KMAX], ptoj[KMAX], pp;
+  mpfr_prec_t log2_nb_terms[KMAX], mult[KMAX];
+  mpfr_prec_t accu[KMAX], size_ptoj[KMAX];
   mpfr_prec_t prec_i_have, h, r0 = r, pp_s, p_s;
   unsigned long i, j, m;
   int alloc, k, l;
@@ -342,7 +346,9 @@ sin_bs_aux (mpz_t Q0, mpz_t S0, mpz_t C0, mpz_srcptr p, mpfr_prec_t r,
       k ++;
       if (k + 1 >= alloc) /* necessarily k + 1 = alloc */
         {
+          MPFR_ASSERTD (k + 1 == alloc);
           alloc ++;
+          MPFR_ASSERTN (k + 1 < KMAX);
           mpz_init (T[k+1]);
           mpz_init (Q[k+1]);
           mpz_init (ptoj[k+1]);
@@ -353,6 +359,7 @@ sin_bs_aux (mpz_t Q0, mpz_t S0, mpz_t C0, mpz_srcptr p, mpfr_prec_t r,
          then                Q[k+1] = (2*i+2)*(2*i+3), T[k+1] = 1,
          which reduces to T[k] = (2*i+2)*(2*i+3)*2^r-pp,
          Q[k] = (2*i)*(2*i+1)*(2*i+2)*(2*i+3). */
+      MPFR_ASSERTN (k < KMAX);
       log2_nb_terms[k] = 1;
       mpz_set_ui (Q[k], 2 * i + 2);
       mpz_mul_ui (Q[k], Q[k], 2 * i + 3);
@@ -371,6 +378,7 @@ sin_bs_aux (mpz_t Q0, mpz_t S0, mpz_t C0, mpz_srcptr p, mpfr_prec_t r,
       l = 1;
       while ((j & 1) == 0) /* combine and reduce */
         {
+          MPFR_ASSERTN (k >= 1);
           mpz_mul (T[k], T[k], ptoj[l]);
           mpz_mul (T[k-1], T[k-1], Q[k]);
           mpz_mul_2exp (T[k-1], T[k-1], r << l);
@@ -457,7 +465,7 @@ sin_bs_aux (mpz_t Q0, mpz_t S0, mpz_t C0, mpz_srcptr p, mpfr_prec_t r,
    Return err such that the relative error is bounded by 2^err ulps.
 */
 static int
-sincos_aux (mpfr_t s, mpfr_t c, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
+sincos_aux (mpfr_ptr s, mpfr_ptr c, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
 {
   mpfr_prec_t prec_s, sh;
   mpz_t Q, S, C, Q2, S2, C2, y;
@@ -502,7 +510,7 @@ sincos_aux (mpfr_t s, mpfr_t c, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
       else
         {
           /* y <- trunc(x2 * 2^sh) = trunc(x * 2^(2*sh-1)) */
-          mpfr_mul_2exp (x2, x2, sh, MPFR_RNDN); /* exact */
+          mpfr_mul_2ui (x2, x2, sh, MPFR_RNDN); /* exact */
           mpfr_get_z (y, x2, MPFR_RNDZ); /* round toward zero: now
                                            0 <= x2 < 2^sh, thus
                                            0 <= x2/2^(sh-1) < 2^(1-sh) */
@@ -548,11 +556,11 @@ sincos_aux (mpfr_t s, mpfr_t c, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
 
   mpfr_set_z (s, S, MPFR_RNDN);
   mpfr_div_z (s, s, Q, MPFR_RNDN);
-  mpfr_div_2exp (s, s, l, MPFR_RNDN);
+  mpfr_div_2ui (s, s, l, MPFR_RNDN);
 
   mpfr_set_z (c, C, MPFR_RNDN);
   mpfr_div_z (c, c, Q, MPFR_RNDN);
-  mpfr_div_2exp (c, c, l, MPFR_RNDN);
+  mpfr_div_2ui (c, c, l, MPFR_RNDN);
 
   mpz_clear (Q);
   mpz_clear (S);
@@ -571,7 +579,7 @@ sincos_aux (mpfr_t s, mpfr_t c, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
    Assumes s differs from c.
  */
 int
-mpfr_sincos_fast (mpfr_t s, mpfr_t c, mpfr_srcptr x, mpfr_rnd_t rnd)
+mpfr_sincos_fast (mpfr_ptr s, mpfr_ptr c, mpfr_srcptr x, mpfr_rnd_t rnd)
 {
   int inexs, inexc;
   mpfr_t x_red, ts, tc;
@@ -615,7 +623,7 @@ mpfr_sincos_fast (mpfr_t s, mpfr_t c, mpfr_srcptr x, mpfr_rnd_t rnd)
           mpfr_init2 (x_red, w);
           mpfr_init2 (pi, (MPFR_EXP(x) > 0) ? w + MPFR_EXP(x) : w);
           mpfr_const_pi (pi, MPFR_RNDN);
-          mpfr_div_2exp (pi, pi, 1, MPFR_RNDN); /* Pi/2 */
+          mpfr_div_2ui (pi, pi, 1, MPFR_RNDN); /* Pi/2 */
           mpfr_remquo (x_red, &q, x, pi, MPFR_RNDN);
           /* x = q * (Pi/2 + eps1) + x_red + eps2,
              where |eps1| <= 1/2*ulp(Pi/2) = 2^(-w-MAX(0,EXP(x))),

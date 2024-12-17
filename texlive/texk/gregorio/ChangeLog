@@ -1,3 +1,17 @@
+2023-08-13  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* gregorio.test: Make easier to test on Windows.
+
+2021-03-14  Karl Berry  <karl@tug.org>
+
+	* Import gregorio-6.0.0.
+	* version.ac: Adapted.
+
+2021-03-04  Karl Berry  <karl@tug.org>
+
+	* Import gregorio-6.0.0-beta2.
+	* version.ac: Adapted.
+
 2019-12-19  Akira Kakuto  <kakuto@w32tex.org>
 
 	* Import gregorio-5.2.1.

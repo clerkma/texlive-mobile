@@ -37,19 +37,15 @@
 
 struct hb_ot_language_map_t
 {
-  static int cmp (const void *key, const void *item)
-  {
-    unsigned int a = * (unsigned int *) key;
-    unsigned int b = ((const hb_ot_language_map_t *) item)->code;
-    return a < b ? -1 : a > b ? +1 : 0;
-  }
+  int cmp (unsigned int key) const
+  { return key < code ? -1 : key > code ? +1 : 0; }
 
   uint16_t	code;
   char		lang[6];
 };
 
 static const hb_ot_language_map_t
-hb_ms_language_map[] =
+_hb_ms_language_map[] =
 {
   {0x0001,	"ar"},	/* ??? */
   {0x0004,	"zh"},	/* ??? */
@@ -302,7 +298,7 @@ hb_ms_language_map[] =
 };
 
 static const hb_ot_language_map_t
-hb_mac_language_map[] =
+_hb_mac_language_map[] =
 {
   {  0,	"en"},	/* English */
   {  1,	"fr"},	/* French */
@@ -433,12 +429,7 @@ _hb_ot_name_language_for (unsigned int code,
 #ifdef HB_NO_OT_NAME_LANGUAGE
   return HB_LANGUAGE_INVALID;
 #endif
-  const hb_ot_language_map_t *entry = (const hb_ot_language_map_t *)
-				      hb_bsearch (&code,
-						  array,
-						  len,
-						  sizeof (array[0]),
-						  hb_ot_language_map_t::cmp);
+  auto *entry = hb_bsearch (code, array, len);
 
   if (entry)
     return hb_language_from_string (entry->lang, -1);
@@ -450,16 +441,16 @@ hb_language_t
 _hb_ot_name_language_for_ms_code (unsigned int code)
 {
   return _hb_ot_name_language_for (code,
-				   hb_ms_language_map,
-				   ARRAY_LENGTH (hb_ms_language_map));
+				   _hb_ms_language_map,
+				   ARRAY_LENGTH (_hb_ms_language_map));
 }
 
 hb_language_t
 _hb_ot_name_language_for_mac_code (unsigned int code)
 {
   return _hb_ot_name_language_for (code,
-				   hb_mac_language_map,
-				   ARRAY_LENGTH (hb_mac_language_map));
+				   _hb_mac_language_map,
+				   ARRAY_LENGTH (_hb_mac_language_map));
 }
 
 #endif /* HB_OT_NAME_LANGUAGE_STATIC_HH */

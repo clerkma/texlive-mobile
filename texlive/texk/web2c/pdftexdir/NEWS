@@ -1,10 +1,87 @@
+- changes:
+  - new primitive \pdfptexuseunderscore: if positive or
+    if \pdfmajorversion >= 2, the PTEX.Fullbanner and other dictionary
+    entries use an _ instead of ., as in PTEX_Fullbanner.
+- bugfixes:
+  - increase tolerance for detecting interword spaces in overfull lines.
+
+pdfTeX 3.141592653-2.6-1.40.26 (TeX Live 2024)
+- bugfixes:
+  - more reliable text extraction on BigEndian systems.
+  - more checks against corrupt pfb, fmt, pdf, files.
+  - avoid writing a corrupt pdf given unusual pdf inclusions.
+
+pdfTeX 3.141592653-2.6-1.40.25 (TeX Live 2023) (March 9, 2023)
+- changes:
+  - new keyword `shipout' for \special and \pdfliteral, delaying
+    expansion until the node is shipped out, like non-\immediate \write.
+  - new primitive \pdfomitinfodict to omit /Info dictionary completely.
+  - new primitive \pdfomitprocset to control omitting /ProcSet array:
+    /ProcSet is included if this parameter is negative, or if this
+    parameter is zero and pdftex is generating PDF 1.x output.
+  - with \pdfinterwordspaceon, if the current font's encoding has a /space
+    character at slot 32, it is used; otherwise, the /space from the
+    (new) default font "pdftexspace" is used. That default font can be
+    overridden with the new primitive \pdfspacefont. This same new
+    procedure is used for \pdffakespace.
+    (In the past, the inserted fake space was always taken from the font
+    "dummy-space", which contained a tiny space character. It turns out
+    a normally-sized space character works with more viewers.)
+
+- bugfixes:
+  - finish omission of /Info dict when \pdfomitinfodict is not 0.
+  - generated beginbfrange should no longer be invalid with certain
+    characters (that is, no longer have have a last byte >255).
+  - include base and accent glyph in /CharSet when the Type 1 seac
+    operator is used (e.g., Lucida, DejaVu Serif).
+
+pdfTeX 3.141592653-2.6-1.40.24 (TeX Live 2022) (March 21, 2021)
+- changes:
+  - new primitive \showstream to redirect \show output.
+  - new primitives \partokenname, \partokencontext to control \par insertion.
+  - support structured destinations from PDF 2.0.
+
+pdfTeX 3.141592653-2.6-1.40.23 (TeX Live 2021 post-release) (June 28, 2021)
+- changes:
+  - for letterspaced fonts, use explicit \fontdimen6 if specified.
+  - always start a warning at the beginning of a line.
+
+- bugfixes:
+  - make .fmt files sharable between 4/8-byte architectures.
+  - for \letterspacefont, avoid problem with single-character control sequence.
+  - for characters with autokern (\pdfappendkern and \pdfprependkern),
+    still do protrusion; likewise autokern implicit and explicit hyphens.
+  
+pdfTeX 3.141592653-2.6-1.40.22 (TeX Live 2021) (March 23, 2021)
+- changes:
+  - new primitives \pdfrunninglinkoff and \pdfrunninglinkon; e.g., for
+    disabling generation of links in headers and footers.
+  - warn instead of aborting when "\pdfendlink ended up in
+    different nesting level than \pdfstartlink". 
+  - dump \pdfglyphtounicode assignments in fmt file.
+  - ttf2afm outputs name information.
+  - If \tracinglostchars is set to 3 or more, missing characters will
+    result in an error, not just a message in the log file, and the
+    missing character code will be shown in hex.
+  - A new integer parameter \tracingstacklevels, if positive, and
+    \tracingmacros is also positive, causes a prefix indicating the macro
+    expansion depth to be output on each relevant log line. Also, macro
+    logging is truncated at a depth >= the parameter value.
+
+- bugfixes:
+  - avoid crash in unusual autoexpand cases.
+
+- source: poppler support removed, as it was too hard to keep in sync
+  with upstream. In native TL, pdftex has always used libs/xpdf,
+  which is cut-down and adapted code from xpdf.
+
 pdfTeX 3.14159265-2.6-1.40.21 (TeX Live 2020) (March 27, 2020)
 - changes:
   - new primitive \pdfmajorversion; this merely changes the version
     number in the PDF output, has no effect on PDF content.
+  - have \pdfximage etc. do same search for image files as for input files, 
   - new \input{...} group-delimited syntax (cross-engine).
   - new option --cnf-line (cross-engine).
-  - have \pdfximage etc. do same search for image files as for input files, 
   - (un)compress .fmt files with zlib (cross-engine).
   
 pdfTeX 3.14159265-2.6-1.40.20 (TeX Live 2019)
@@ -34,27 +111,7 @@ pdfTeX 3.14159265-2.6-1.40.19 (TeX Live 2018)  (April 14, 2018)
     range for Unicode; the implication is that multiple code points must
     now be separated by spaces (as has always been documented).
 
-- source: support xpdf-4 by default, or xpdf-3.04, or poppler-0.57.0
-  and older, via #defines.
-  Provide new files:
-  pdftosrc-newpoppler.cc for poppler-0.59.0 upto poppler-0.70.1.
-  pdftosrc-poppler0.71.0 for poppler-0.71.0.
-  pdftosrc-poppler0.72.0 for poppler-0.72.0 upto poppler-0.75.0.
-  pdftosrc-poppler0.76.0 for poppler-0.76.0 upto poppler-0.82.0.
-  pdftosrc-poppler0.83.0 for poppler-0.83.0 and newer. 
-  pdftoepdf-poppler0.68.0.cc for poppler-0.59.0 upto poppler-0.68.0.
-  pdftoepdf-poppler0.69.0.cc for poppler-0.69.0.
-  pdftoepdf-poppler0.70.0.cc for poppler-0.70.0 and poppler-0.70.1.
-  pdftoepdf-poppler0.71.0.cc for poppler-0.71.0.
-  pdftoepdf-poppler0.72.0.cc for poppler-0.72.0 upto poppler-0.74.0.
-  pdftoepdf-poppler0.75.0.cc for poppler-0.75.0.
-  pdftoepdf-poppler0.76.0.cc for poppler-0.76.0 upto poppler-0.82.0.
-  pdftoepdf-poppler0.83.0.cc for poppler-0.83.0 upto poppler-0.85.0.
-  pdftoepdf-poppler0.86.0.cc for poppler-0.86.0 and newer.
-  Note that pdftosrc-*.cc and pdftoepdf-*.cc should be
-  renamed as pdftosrc.cc, and pdftoepdf.cc, respectively, before
-  compilation. Further, POPPLER_VERSION should be defined properly
-  like -DPOPPLER_VERSION='"0.86.0"'.
+- source: support xpdf-4 by default, or xpdf-3.04, via #defines.
 
 ---------------------------------------------------------------
 pdfTeX 3.14159265-2.6-1.40.18 (TeX Live 2017)  (April 27, 2017)

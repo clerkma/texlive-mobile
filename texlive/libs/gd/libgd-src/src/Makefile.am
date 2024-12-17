@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in -*-Makefile-*-
 
 bin_PROGRAMS = gdcmpgif
-check_PROGRAMS = gifanimtest gd_color_map_test
+check_PROGRAMS = gifanimtest
 
 if HAVE_LIBPNG
 bin_PROGRAMS += gdtopng pngtogd webpng
@@ -49,18 +49,19 @@ EXTRA_DIST = \
 	gd_io_stream.cxx \
 	gdpp.cxx \
 	getopt.c \
-	snprintf.c \
 	msinttypes/inttypes.h \
 	msinttypes/stdint.h
 
-include_HEADERS = gd.h gdfx.h gd_io.h gdcache.h gdfontg.h gdfontl.h gdfontmb.h gdfonts.h gdfontt.h entities.h gd_color_map.h gd_errors.h gdpp.h
+include_HEADERS = gd.h gdfx.h gd_io.h gdcache.h gdfontg.h gdfontl.h gdfontmb.h gdfonts.h gdfontt.h gd_color_map.h gd_errors.h gdpp.h
 
 lib_LTLIBRARIES = libgd.la
 
 libgd_la_SOURCES = \
 	bmp.h \
+	entities.h \
 	gd.c \
 	gd.h \
+	gd_avif.c \
 	gd_bmp.c \
 	gd_color.c \
 	gd_color.h \
@@ -74,6 +75,7 @@ libgd_la_SOURCES = \
 	gd_gd2.c \
 	gd_gif_in.c \
 	gd_gif_out.c \
+	gd_heif.c \
 	gd_intern.h \
 	gd_interpolation.c \
 	gd_io.c \

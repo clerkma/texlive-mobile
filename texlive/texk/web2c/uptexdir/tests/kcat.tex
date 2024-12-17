@@ -1,0 +1,97 @@
+% for INITEX
+\catcode`\{=1
+\catcode`\}=2
+\def\space{ }
+\edef\NAME{Engine \ifx\eTeXversion\undefined\else e-\fi
+  \ifx\enablecjktoken\undefined\else u\fi
+  pTeX p\the\ptexversion.\the\ptexminorversion\ptexrevision
+  \ifx\enablecjktoken\undefined\else -u\the\uptexversion\uptexrevision\fi
+  \ifx\epTeXversion\undefined\else -\the\epTeXversion
+  -\the\eTeXversion\eTeXrevision\fi
+  \space (dummy)}
+\write16{\NAME}
+% not_cjk=15 {is not cjk characters}
+% kanji=16 {kanji}
+% kana=17 {hiragana, katakana}
+% other_kchar=18 {cjk symbol codes}
+% hangul=19 {hangul codes}
+
+% separate in blocks
+\write16{0x00C0::\the\kcatcode"00C0}% U+00C0 "Latin-1 Letters" in Latin-1 Supplement
+\write16{§::\the\kcatcode"00A7}% U+00A7 Latin-1 Supplement
+\write16{！::\the\kcatcode"FF01}% U+FF01 Halfwidth and Fullwidth Forms
+\write16{０::\the\kcatcode"FF10}% U+FF10 "Fullwidth ASCII variants" in Halfwidth and Fullwidth Forms
+\write16{ｦ::\the\kcatcode"FF66}% U+FF66 "Halfwidth Katakana variants" in Halfwidth and Fullwidth Forms
+
+% not_cjk=15 {is not cjk characters}
+\write16{A::\the\kcatcode"0041}% U+0041 Basic Latin
+\write16{0x0100::\the\kcatcode"0100}% U+0100 Latin Extended-A
+\write16{0x0180::\the\kcatcode"0180}% U+0180 Latin Extended-B
+\write16{0x1E00::\the\kcatcode"1E00}% U+1E00 Latin Extended Additional
+
+% kanji=16 {kanji}
+\write16{⺀::\the\kcatcode"2E80}% U+2E80 CJK Radicals Supplement
+\write16{⼀::\the\kcatcode"2F00}% U+2F00 Kangxi Radicals
+\write16{ㄅ::\the\kcatcode"3105}% U+3105 Bopomofo
+\write16{㆐::\the\kcatcode"3190}% U+3190 Kanbun
+\write16{ㆠ::\the\kcatcode"31A0}% U+31A0 Bopomofo Extended
+\write16{㇀::\the\kcatcode"31C0}% U+31C0 CJK Strokes
+\write16{㐀::\the\kcatcode"3400}% U+3400 CJK Unified Ideographs Extension A
+\write16{一::\the\kcatcode"4E00}% U+4E00 CJK Unified Ideographs
+\write16{豈::\the\kcatcode"F900}% U+F900 CJK Compatibility Ideographs
+\write16{𠀀::\the\kcatcode"20000}% U+20000 CJK Unified Ideographs Extension B
+\write16{𪜀::\the\kcatcode"2A700}% U+2A700 CJK Unified Ideographs Extension C
+\write16{𫝀::\the\kcatcode"2B740}% U+2B740 CJK Unified Ideographs Extension D
+\write16{𫠠::\the\kcatcode"2B820}% U+2B820 CJK Unified Ideographs Extension E
+\write16{𬺰::\the\kcatcode"2CEB0}% U+2CEB0 CJK Unified Ideographs Extension F
+\write16{𮯰::\the\kcatcode"2EBF0}% U+2EBF0 CJK Unified Ideographs Extension I
+\write16{丽::\the\kcatcode"2F800}% U+2F800 CJK Compatibility Ideographs Supplement
+\write16{𰀀::\the\kcatcode"30000}% U+30000 CJK Unified Ideographs Extension G
+\write16{𱍐::\the\kcatcode"31350}% U+31350 CJK Unified Ideographs Extension H
+\write16{逸︀::\the\kcatcode"409038}% U+9038 U+FE00 Standardized Variation Sequence
+\write16{逸󠄀::\the\kcatcode"809038}% U+9038 U+E0100 Ideographic Variation Sequence
+
+% kana=17 {hiragana, katakana}
+\write16{あ::\the\kcatcode"3042}% U+3042 Hiragana
+\write16{ア::\the\kcatcode"30A2}% U+30A2 Katakana
+\write16{ㇰ::\the\kcatcode"31F0}% U+31F0 Katakana Phonetic Extensions
+\write16{𚿰::\the\kcatcode"1AFF0}% U+1AFF0 Kana Extended-B
+\write16{𛀀::\the\kcatcode"1B000}% U+1B000 Kana Supplement
+\write16{𛄀::\the\kcatcode"1B100}% U+1B100 Kana Extended-A
+\write16{𛅐::\the\kcatcode"1B150}% U+1B150 Small Kana Extension
+\write16{あ゙::\the\kcatcode"223042}% U+3042 U+3099 Kana with Voiced Sound Mark
+\write16{か゚::\the\kcatcode"24304B}% U+304B U+309A Kana with Semi-Voiced Sound Mark
+
+% other_kchar=18 {cjk symbol codes}
+\write16{※::\the\kcatcode"203B}% U+203B General Punctuation
+\write16{℃::\the\kcatcode"2103}% U+2103 Letterlike Symbols
+\write16{Ⅻ::\the\kcatcode"216B}% U+216B Number Forms
+\write16{⇒::\the\kcatcode"21D2}% U+21D2 Arrows
+\write16{∂::\the\kcatcode"2202}% U+2202 Mathematical Operators
+\write16{①::\the\kcatcode"2460}% U+2460 Enclosed Alphanumerics
+\write16{┟::\the\kcatcode"251F}% U+251F Box Drawing
+\write16{☃::\the\kcatcode"2603}% U+2603 Miscellaneous Symbols
+\write16{⿰::\the\kcatcode"2FF0}% U+2FF0 Ideographic Description Characters
+\write16{〠::\the\kcatcode"3020}% U+3020 CJK Symbols and Punctuation
+\write16{㋐::\the\kcatcode"32D0}% U+32D0 Enclosed CJK Letters and Months
+\write16{㍿::\the\kcatcode"337F}% U+337F CJK Compatibility
+\write16{🇯🇵::\the\kcatcode"25EFF5}% U+1F1EF U+1F1F5 Emoji Flag Sequence
+\write16{👶🏽::\the\kcatcode"2BF476}% U+1F476 U+1F3FD Emoji with Modifier Fitzpatrick
+\write16{0x800030::\the\kcatcode"800030}% U+0030 U+FE0F U+20E3 Emoji Keycap Sequence
+
+% hangul=19 {hangul codes}
+\write16{ᄀ::\the\kcatcode"1100}% U+1100 Hangul Jamo
+\write16{ㄱ::\the\kcatcode"3131}% U+3131 Hangul Compatibility Jamo
+\write16{ꥠ::\the\kcatcode"A960}% U+A960 Hangul Jamo Extended-A
+\write16{가::\the\kcatcode"AC00}% U+AC00 Hangul Syllables
+\write16{ힰ::\the\kcatcode"D7B0}% U+D7B0 Hangul Jamo Extended-B
+
+% modifier=20 {modifier codes}
+\write16{゚\the\kcatcode"309A}% U+309A Combining Kana (Semi-)Voiced Sound Mark
+\write16{⃣::\the\kcatcode"20E3}% U+20E3 Combining Enclosing Keycap
+\write16{🇦::\the\kcatcode"1F1E6}% U+1F1E6 Regional Indicator Symbol Letter
+\write16{🏻::\the\kcatcode"1F3FB}% U+1F3FB Emoji Modifier Fitzpatrick
+\write16{︀::\the\kcatcode"FE00}% U+FE00 Variation Selector
+\write16{󠄀::\the\kcatcode"E0100}% U+E0100 Variation Selector
+
+\relax\end

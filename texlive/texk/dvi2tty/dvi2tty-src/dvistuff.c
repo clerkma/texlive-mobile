@@ -24,21 +24,8 @@
 
 #include "dvi2tty.h"
 
-#if defined(VMS) 
-# include types.h
-# include stat
-#else
-# if defined(THINK_C)
-#  include <unix.h>
-# else
-#  include <sys/types.h>
-#  include <sys/stat.h>
-# endif
-#endif
-
-#if defined(MSDOS) || defined(THINK_C)
-# include <math.h>
-#endif
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "commands.h"
 #include "tex2ucs.h"
@@ -48,20 +35,15 @@
  * Constant definitions
  */
 
-#if defined(VMS) 
-#define mseek vmsseek
-#define ROUND(a)        (a>=0.0 ?  (int) (a + 0.5) : (int) (a - 0.5) )
-#else
 #define mseek fseek
-#endif
 
 #define VERSIONID            2 /* dvi version number that pgm handles      */
 #define VERTICALEPSILON 450000L /* crlf when increasing v more than this   */
 
-#define rightmargin     MAXTERMWIDTH+20 
+#define rightmargin     MAXTERMWIDTH+20
                                /* nr of columns allowed to the right of h=0*/
 #define leftmargin      -50    /* give some room for negative h-coordinate */
-#define LINELEN         rightmargin - leftmargin + 1 
+#define LINELEN         rightmargin - leftmargin + 1
 
 #define MOVE            TRUE   /* if advancing h when outputing a rule     */
 #define STAY            FALSE  /* if not advancing h when outputing a rule */
@@ -96,7 +78,7 @@
  * Structure and variable definitions
  */
 
-const char *dvistuff = "@(#) dvistuff.c  " VERSION " 20101027 M.J.E. Mol (c) 1989-2010";
+/* const char *dvistuff = "@(#) dvistuff.c  " VERSION " 20101027 M.J.E. Mol (c) 1989-2010"; */
 
 typedef struct {
     long hh;
@@ -196,43 +178,6 @@ int    kanji1 = 0;     /* number of rest of trailer bytes in kanji character */
  * Function definitions
  */
 
-#if defined(MSDOS)
-void            postamble       (void);
-void            preamble        (void);
-void            walkpages       (void);
-void            initpage        (void);
-void            dopage          (void);
-void            skippage        (void);
-void            printpage       (void);
-bool            inlist          (long);
-void            rule            (bool, long, long);
-void            ruleaux         (long, long, char);
-long            horizontalmove  (long);
-int             skipnops        (void);
-linetype    *   my_getline      (void);
-linetype    *   findline        (void);
-unsigned long   num             (int);
-long            snum            (int);
-void            dochar          (unsigned char);
-void            symchar         (unsigned char);
-void            michar          (unsigned char);
-void            normchar        (char, unsigned char);
-void            t1char          (unsigned char);
-void            ts1char         (unsigned char);
-void            ot2char         (unsigned char);
-void            t2char          (char, unsigned char);
-void            outchar         (long);
-void            putcharacter    (long);
-void            setchar         (long);
-void            fontdef         (int);
-void            setfont         (long);
-void            jischar         (unsigned long);
-int             compute_jis     (int, unsigned int, unsigned int *, unsigned int *);
-void            dounichar       (long);
-void            dokanji         (long);
-int             getjsubfont     (char *);
-
-#else
 void            postamble       (void);
 void            preamble        (void);
 void            walkpages       (void);
@@ -267,12 +212,6 @@ void            compute_jis     (int f, unsigned int c, unsigned int * ku, unsig
 void            dounichar       (long ch);
 void            dokanji         (long ch);
 int             getjsubfont     (char * s);
-#if defined(VMS)
-long		vmsseek		();
-long		vms_ftell	();
-long		vms_ungetc	();
-#endif
-#endif
 
 
 
@@ -304,19 +243,9 @@ void postamble(void)
 {
     register long size;
     register int  count;
-#if !defined (THINK_C) && defined(VMS)
-    struct stat st;
-#endif
 
-#if defined (THINK_C)
-    size = DVIfile->len;
-#elif defined(VMS)
-    fstat (fileno(DVIfile), &st);
-    size = (long) st.st_size;                   /* get size of file          */
-#else
     fseek (DVIfile, 0L, SEEK_END);
     size = ftell (DVIfile);                     /* get size of file          */
-#endif
 
     count = -1;
     do {              /* back file up past signature bytes (223), to id-byte */
@@ -339,7 +268,7 @@ void postamble(void)
     mseek(DVIfile, 20L, relative); /* lastpageoffset, numerator, denominator */
                                    /* magnification, maxpageheight           */
     maxpagewidth = sget4();
-    charwidth = maxpagewidth / (ttywidth + espace); 
+    charwidth = maxpagewidth / (ttywidth + espace);
     stackmax = (int) get2();
     if ((stack = (stackitem *) malloc(stackmax * sizeof(stackitem))) == NULL)
        errorexit(stkrq);
@@ -361,7 +290,7 @@ void preamble(void)
 {
 
     mseek(DVIfile, 0L, absolute);       /* read the dvifile from the start   */
-    if ((opcode = skipnops()) != PRE)
+    if ((opcode = (int) num(1)) != PRE)
         errorexit(nopre);
     opcode = (int) get1();        /* check id in preamble, ignore rest of it */
     if (opcode != VERSIONID)
@@ -679,11 +608,31 @@ void printpage(void)
 
                 if (ch >= SPACE || allchar) {
 		  if (utf8 && (ch & IS_UNICODE)) {
-		    mbch = UCStoUTF8(ch & MAX_UNICODE);
-		    if (BYTE1(mbch) != 0) putc((unsigned char)BYTE1(mbch), output);
-		    if (BYTE2(mbch) != 0) putc((unsigned char)BYTE2(mbch), output);
-		    if (BYTE3(mbch) != 0) putc((unsigned char)BYTE3(mbch), output);
-		    /* always */          putc((unsigned char)BYTE4(mbch), output);
+#ifdef WIN32
+		    wchar_t wch;
+		    HANDLE hStdout;
+		    DWORD ret;
+		    const int fd = fileno(output);
+
+		    if ((fd == fileno(stdout) || fd == fileno(stderr)) && _isatty(fd)) {
+		      if (fd == fileno(stdout))
+			hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+		      else
+			hStdout = GetStdHandle(STD_ERROR_HANDLE);
+
+		      wch=(wchar_t)(ch & MAX_UNICODE); /* do not expect over BMP */
+		      WriteConsoleW(hStdout, &wch, 1, &ret, NULL);
+
+		    } else {
+#endif
+		      mbch = UCStoUTF8(ch & MAX_UNICODE);
+		      if (BYTE1(mbch) != 0) putc((unsigned char)BYTE1(mbch), output);
+		      if (BYTE2(mbch) != 0) putc((unsigned char)BYTE2(mbch), output);
+		      if (BYTE3(mbch) != 0) putc((unsigned char)BYTE3(mbch), output);
+		      /* always */          putc((unsigned char)BYTE4(mbch), output);
+#ifdef WIN32
+		    }
+#endif
 		  }
 		  else if (japan) {
 		    for (k = 0; k < kanji1; k++) {
@@ -693,7 +642,7 @@ void printpage(void)
 		    }
 		    putc2(ch, output);
 		  }
-		  else 
+		  else
 		    putc(ch, output);
 		}
                 if ((j > (int) foo) && (currentline->charactercount > i+1)) {
@@ -709,13 +658,13 @@ void printpage(void)
 		  }
 		  j = 2;
                 }
-            } 
+            }
         }
         if (japan)
           putc2('\n', output);
-        else 
+        else
           putc('\n', output);
-    } 
+    }
 
     currentline = firstline;
     while (currentline->next != nil) {
@@ -761,7 +710,7 @@ bool inlist(long pagenr)
  * RULE -- Output a rule (vertical or horizontal).
  *         Increment h if moving is true.
  */
- 
+
 void rule(bool moving, long rulewt, long ruleht)
 {
 
@@ -833,20 +782,12 @@ void ruleaux(long rulewt, long ruleht, char ch)
 long horizontalmove(long amount)
 {
 
-#if defined(MSDOS) || defined(THINK_C)
-    if (labs(amount) > charwidth / 4L) {    /* } to make vi happy */
-#else
-    if (abs(amount) > charwidth / 4L) {
-#endif
+    if (labs(amount) > charwidth / 4L) {
         foo = 3*charwidth / 4;
         if (amount > 0)
             amount = ((amount+foo) / charwidth) * charwidth;
         else
-#if defined(VMS)
-            amount = (ROUND( (float) (amount-foo) / charwidth) + 1)* charwidth;
-#else
             amount = ((amount-foo) / charwidth) * charwidth;
-#endif
         h += amount;
         return amount;
     }
@@ -865,8 +806,15 @@ int skipnops(void)
 {
     register int opcode;
 
-    while ((opcode = (int) num(1)) == NOP);
-
+    while (opcode = (int) num(1)) {
+        if (opcode >= FNT_DEF1 && opcode <= FNT_DEF4) {
+            fontdef(opcode - FNT_DEF1 + 1);
+            continue;
+        }
+        else if (opcode == NOP)
+            continue;
+        break;
+    }
     return opcode;
 
 } /* skipnops */
@@ -1001,18 +949,18 @@ long snum(int size)
 
 void dounichar(long ch)
 {
-    unsigned char c[4] = {}, *cc;
+    unsigned char c[4] = {0}, *cc;
 
     if (noligaturefi && 0xFB00<=ch && ch<=0xFB04) {
         switch (ch) {
-            case 0xFB00: strcpy(c,"ff");  break;
-            case 0xFB01: strcpy(c,"fi");  break;
-            case 0xFB02: strcpy(c,"fl");  break;
-            case 0xFB03: strcpy(c,"ffi"); break;
-            case 0xFB04: strcpy(c,"ffl"); break;
+            case 0xFB00: strcpy((char*)c,"ff");  break;
+            case 0xFB01: strcpy((char*)c,"fi");  break;
+            case 0xFB02: strcpy((char*)c,"fl");  break;
+            case 0xFB03: strcpy((char*)c,"ffi"); break;
+            case 0xFB04: strcpy((char*)c,"ffl"); break;
         }
         cc=c;
-        while (*cc) { outchar(*cc); cc++; }
+        while (*cc) { outchar((long)*cc); cc++; }
         return;
     }
     if (ch>0x7F)
@@ -1029,7 +977,7 @@ void dounichar(long ch)
 /*
  * DOKANJI -- Process a kanji character opcode.
  */
- 
+
 void dokanji(long ch)
 {
     long i;
@@ -1057,6 +1005,7 @@ void dokanji(long ch)
 void dochar(unsigned char ch)
 {
     char flag;
+    if (!fnt) errorexit(bdfnt);
     flag = fnt->flags;
 
     if (nttj && fnt->fontnum)
@@ -1089,7 +1038,7 @@ void dochar(unsigned char ch)
 
 void symchar(unsigned char ch)
 {
-    unsigned char c[4] = {}, *cc;
+    unsigned char c[4] = {0}, *cc;
     long ucs;
 
     ucs = oms_to_ucs[ch];
@@ -1158,7 +1107,7 @@ void symchar(unsigned char ch)
 
 void michar(unsigned char ch)
 {
-    unsigned char c[4] = {}, *cc;
+    unsigned char c[4] = {0}, *cc;
     long ucs;
 
     if (allchar) {
@@ -1203,7 +1152,7 @@ void michar(unsigned char ch)
 
 void normchar(char flag, unsigned char ch)
 {
-    unsigned char c[4] = {}, *cc;
+    unsigned char c[4] = {0}, *cc;
     const unsigned short *tex_to_ucs;
     long ucs;
 
@@ -1353,7 +1302,7 @@ void normchar(char flag, unsigned char ch)
         case 39  :                                    /* ' */
         case 96  :  c[0] = ch; break;                 /* ` */
 
-	/* diacritical marks */
+        /* diacritical marks */
         case 18  :  c[0] = '`'  ; break;   /* grave        from \` */
         case 19  :  c[0] = latin1 ? 0xb4 : '\''; break;
                                            /* acute        from \' */
@@ -1387,7 +1336,7 @@ void normchar(char flag, unsigned char ch)
 
 void t1char(unsigned char ch)
 {
-    unsigned char c[4] = {}, *cc;
+    unsigned char c[4] = {0}, *cc;
     long ucs;
 
     if (allchar) {
@@ -1605,7 +1554,7 @@ void t1char(unsigned char ch)
         case 0xfc:  c[0] = '"';  c[1] ='u'; break;   /* "u */
         case 0xfd:  c[0] = '\''; c[1] ='y'; break;   /* 'y */
 
-	/* diacritical marks */
+        /* diacritical marks */
         case 0x00:  c[0] = '`'  ; break;   /* grave        from \` */
         case 0x01:  c[0] = latin1 ? 0xb4 : '\''; break;
                                            /* acute        from \' */
@@ -1640,7 +1589,7 @@ void t1char(unsigned char ch)
 
 void ts1char(unsigned char ch)
 {
-    unsigned char c[4] = {}, *cc;
+    unsigned char c[4] = {0}, *cc;
     long ucs;
 
     if (allchar) {
@@ -1740,7 +1689,7 @@ void ts1char(unsigned char ch)
         case 0x38:  case 0x39:  case 0x3A:  case 0x3B:
                     c[0] = ch; break;
 
-	/* diacritical marks */
+        /* diacritical marks */
         case 0x00:  c[0] = '`'  ; break;   /* grave        from \` */
         case 0x01:  c[0] = latin1 ? 0xb4 : '\''; break;
                                            /* acute        from \' */
@@ -1775,7 +1724,7 @@ void ts1char(unsigned char ch)
 
 void t2char(char flag, unsigned char ch)
 {
-    unsigned char c[4] = {}, *cc;
+    unsigned char c[4] = {0}, *cc;
     const unsigned short *tex_to_ucs;
     long ucs;
 
@@ -1809,7 +1758,7 @@ void t2char(char flag, unsigned char ch)
         case T2BFONT: tex_to_ucs=t2b_to_ucs; break;
         case T2CFONT: tex_to_ucs=t2c_to_ucs; break;
         case X2FONT : tex_to_ucs=x2_to_ucs;  break;
-        default : exit; /* not supported */
+        default : exit(41); /* not supported */
     }
     ucs = tex_to_ucs[ch];
     if (utf8) {
@@ -1854,7 +1803,7 @@ void t2char(char flag, unsigned char ch)
         case 0xBF:  c[0] = '>'; c[1] = '>';      /* \guillemotright    */
                     break;
 
-	/* diacritical marks */
+        /* diacritical marks */
         case 0x00:  c[0] = '`'  ; break;   /* grave        from \` */
         case 0x01:  c[0] = latin1 ? 0xb4 : '\''; break;
                                            /* acute        from \' */
@@ -1906,7 +1855,7 @@ void t2char(char flag, unsigned char ch)
 
 void ot2char(unsigned char ch)
 {
-    unsigned char c[4] = {}, *cc;
+    unsigned char c[4] = {0}, *cc;
     long ucs;
 
     if (allchar) {
@@ -1954,8 +1903,8 @@ void ot2char(unsigned char ch)
         case 0x60:  c[0] = '\''; break;          /* \textquoteleft     */
         case 0x22:                               /* \textquotedblright */
         case 0x5C:  c[0] = '"'; break;           /* \textquotedblleft  */
-       
-	/* diacritical marks */
+
+        /* diacritical marks */
         case 0x20:  c[0] = '"'  ; break;   /* diaeresis    from \" */
         case 0x24:  c[0] = '~'  ; break;   /* breve        from \u */
         case 0x26:  c[0] = latin1 ? 0xb4 : '\''; break;
@@ -1989,11 +1938,7 @@ void outchar(long ch)
 
 /*     fprintf(stderr, "hor: %ld, ver: %ld\n", h, v); */
 
-#if defined(MSDOS) || defined(THINK_C)
     if (labs(v - currentline->vv) > lineheight / 2L)
-#else
-    if (abs(v - currentline->vv) > lineheight / 2L)
-#endif
         currentline = findline();
 
 #if 0
@@ -2053,7 +1998,7 @@ void outchar(long ch)
         }
     }
     if (!allchar && compose && (latin1 || utf8)) {
-	  if (strchr("aAeEiIoOuUnCcNYy", ch) != NULL || (ch & MAX_UNICODE) == 0x131) {
+          if (strchr("aAeEiIoOuUnCcNYy", ch) != NULL || (ch & MAX_UNICODE) == 0x131) {
             for (i = IMAX(leftmargin, j-2);
                  i <= IMIN(rightmargin, j+2);
                  i++) {
@@ -2157,10 +2102,10 @@ void outchar(long ch)
     if (foo == leftmargin-1) {
       if (japan) {
         while (((currentline->text[j - leftmargin] != SPACE) ||
-	        (kanji1 && (currentline->text[j+kanji1 - leftmargin] != SPACE)))
+                (kanji1 && (currentline->text[j+kanji1 - leftmargin] != SPACE)))
                 && (j < rightmargin)) {
-	  j++;
-	  h += charwidth;
+          j++;
+          h += charwidth;
         }
       } else {
         while (j < rightmargin &&
@@ -2172,7 +2117,6 @@ void outchar(long ch)
     }
     if ( allchar || ((ch >= SPACE) && (ch != DEL)) ||
          ((latin1 || scascii) && (ch == 23)) ) {
-          /*  ((latin1 || scascii) && (ch == DEL)) )     if VMS ??? */
         if (j < rightmargin)
             currentline->text[j - leftmargin] = ch;
         else
@@ -2235,7 +2179,7 @@ void setchar(long charnr)
 static const char *ptex_fontchk[] = {
     "min", "goth", "jis",
     "hmin", "hgoth", "hmgoth",               /* japanese-otf package */
-    "nmlmin", "nmlgoth", "nmlmgoth", 
+    "nmlmin", "nmlgoth", "nmlmgoth",
     "hiramin", "hirakaku", "hiramaru",
     NULL /* end */
 };
@@ -2244,7 +2188,7 @@ static const char *uptex_fontchk[] = {
     "umin", "ugoth", "ujis",
     "upjis", "upjpn", "upsch", "uptch", "upkor",
     "uphmin", "uphgoth", "uphmgoth",         /* japanese-otf package */
-    "upnmlmin", "upnmlgoth", "upnmlmgoth", 
+    "upnmlmin", "upnmlgoth", "upnmlmgoth",
     "uphiramin", "uphirakaku", "uphiramaru",
     NULL /* end */
 };
@@ -2294,7 +2238,7 @@ void fontdef(int x)
     if (fnt == NULL) {
         if ((fnt = (font *) malloc(sizeof(font))) == NULL) {
             perror("fontdef");
-            exit(1);
+            exit(40);
         }
         fnt->num = fntnum;
         new = 1;
@@ -2303,12 +2247,12 @@ void fontdef(int x)
         free(fnt->name);    /* free old name */
     if ((name = (char *) malloc((namelen+1) * sizeof(char))) == NULL) {
         perror("fontdef");
-        exit(1);
+        exit(40);
     }
-    
+
     for (i = 0; i < namelen; i++)
         name[i] = get1();
-    name[i] = '\0';	/* properly end string */
+    name[i] = '\0';     /* properly end string */
     fnt->name = name;
     if (new) {
         fnt->next = fonts;
@@ -2464,7 +2408,7 @@ void setfont(long fntnum)
          while (*d) {putcharacter(*d); d++;}
          while (*s) {putcharacter(*s); s++;}
          while (d-- > delim) {putcharacter(*d);}
-    }                                      
+    }
 
     return;
 
@@ -2485,7 +2429,7 @@ void jischar(unsigned long ch)
     return;
 
 } /* jischar */
-  
+
 #define	kushift(c)	c+0x20
 #define	tenshift(c)	c+0x20
 
@@ -2528,107 +2472,3 @@ void compute_jis(int f, unsigned int c, unsigned int *ku, unsigned int *ten)
 
 } /* compute_jis */
 
-   
-
-/* 
- * VMS CODE 
- */
-
-#if defined(VMS)
-long vmsseek(fp,n,dir)
-FILE *fp;
-long n;
-long dir;
-{
-    long k,m,pos,val,oldpos;
-    struct stat buffer;
-
-    for (;;) {                     /* loops only once or twice */
-        switch (dir) {
-            case 0:            /* from BOF */
-                    oldpos = vms_ftell(fp);
-                    k = n & 511;
-                    m = n >> 9;
-                    if (((*fp)->_cnt) && ((oldpos >> 9) == m)) {
-                        val = 0; /* still in */
-                        (*fp)->_ptr = ((*fp)->_base) + k;
-                        (*fp)->_cnt = 512 - k;
-                    }
-                    else {
-                        val = fseek(fp, m << 9, 0);
-                        if (val == 0) {
-                            (*fp)->_cnt = 0;
-                            (void) fgetc(fp);
-                            (*fp)->_ptr = ((*fp)->_base) + k;
-                            (*fp)->_cnt = 512 - k;
-                        }
-                    }
-                    return(val);
-
-            case 1: pos = vms_ftell(fp);
-                    if (pos == EOF)
-                        return (EOF);
-                    n += pos;
-                    dir = 0;
-                    break;
-
-            case 2: val = fstat(fileno(fp), &buffer);
-                    if (val == EOF)
-                        return (EOF);
-                    n += buffer.st_size - 1;
-
-                    dir = 0;
-                    break;
-
-            default : return (EOF);
-        }
-    }
-
-    /* NOTREACHED */
-
-} /* vmsseek */
-        
-
-
-long vms_ftell(fp)
-FILE *fp;
-{
-    char c;
-    long pos;
-    long val;
-
-    if ((*fp)->_cnt == 0) {
-        c = fgetc(fp);
-        val = vms_ungetc(c, fp);
-        if (val != c)
-            return (EOF);
-    }
-    pos = ftell(fp);
-    if (pos >= 0)
-        pos += ((*fp)->_ptr) - ((*fp)->_base);
-
-    return (pos);
-
-} /* vms_ftell */
-
-
-
-long vms_ungetc(c,fp)
-char c;
-FILE *fp;
-{
-
-    if ((c == EOF) && feof(fp))
-        return (EOF);
-
-    if ((*fp)->_cnt >= 512)
-        return (EOF);
-    
-    (*fp)->_cnt++;
-    (*fp)->_ptr--;
-    *((*fp)->_ptr) = c;
-
-    return (c);
-
-} /*vms_ungetc */
-#endif

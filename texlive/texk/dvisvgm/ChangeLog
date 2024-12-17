@@ -1,3 +1,84 @@
+2024-01-27  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* tests/dvisvgm-{uptex,hara}.test:
+	Split tests for upTeX DVIs into two.
+	* Makefile.am: Adjusted.
+
+2024-01-20  Karl Berry  <karl@tug.org>
+
+	* dvisvgm-src/src/Makefile.am (dvisvgm_LDADD) [TEXLIVE_BUILD]:
+	forgot LIBGS_LIBS, i.e., -ldl.
+
+2024-01-18  Karl Berry  <karl@freefriends.org>
+
+	* configure.ac,
+	* Makefile.am,
+	* TLpatches/patch-04-configure,
+	* TLpatches/patch-08-makefiles: tweaks from Martin for non-TL build.
+	https://github.com/mgieseki/dvisvgm/issues/259
+
+2024-01-18  Karl Berry  <karl@freefriends.org>
+
+	* Import dvisvgm-3.2.
+
+2024-01-01  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* tests/dvisvgm.test: Make easier to test on Windows.
+	* tests/dvisvgm-sample.test, tests/sample_v{2,3}_{nf,wf}.svg:
+	New tests using samples in the original source.
+	* tests/dvisvgm-uptex.test, tests/upjf.dvi, tests/upj{f,v}{,-{r,g}}.tfm,
+	tests/upj{f,v}-{r,g}00.ofm, tests/upj{f{,1},v}_{full,omit}.vf,
+	upjf{,_hara}.map, upjf{,1}.svg: New tests for upTeX DVIs.
+	* Makefile.am: Adjusted.
+
+2023-06-18  Karl Berry  <karl@freefriends.org>
+
+	* configure.ac: no more AM_PROG_AR, it's in KPSE_COMMON now.
+
+2023-03-11  Karl Berry  <karl@freefriends.org>
+
+	* dvisvgm-src/src/Process.cpp: apply last-minute patch for
+	communication with mupdf, in lieu of importing the whole release.
+	https://github.com/mgieseki/dvisvgm/issues/232
+	https://github.com/mgieseki/dvisvgm/commit/f0ab3d07c942acc1d3fd0d8b94498a355fa92d6c.patch
+
+2023-02-28  Luigi Scarso  <luigi.scarso@gmail.com>
+
+	* dvisvgm-src/src/ttf/Makefile.am (AM_CXXFLAGS): add ZLIB_INCLUDES,
+	found with mingw cross-compile.
+
+2022-11-05  Sam James  <sam@gentoo.org>
+
+	* configure.ac (Ghostscript version): #include <stdlib.h>
+	to declare exit and placate clang16.
+	https://tug.org/pipermail/tlbuild/2022q4/005269.html
+
+2022-08-29  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* dvisvgm-src/*, version.ac: 2.14; update sources and patches.
+
+2021-06-26  Karl Berry  <karl@freefriends.org>
+
+	* dvisvgm-src/libs/ff-woff/Makefile.am (AM_CFLAGS): use ZLIB_INCLUDES
+	not ZLIB_CFLAGS (again).
+	* dvisvgm-src/Makefile.am (AM_CXXFLAGS): use ZLIB_INCLUDES (again).
+	* TLpatches/patch-08-makefiles: update.
+	Report from Luigi Scarso.
+
+2021-02-19  Karl Berry  <karl@freefriends.org>
+
+	* configure.ac: AC_SEARCH_LIBS(clock_gettime, rt) for Solaris 10.
+	https://tug.org/pipermail/tlbuild/2021q1/004830.html
+
+2021-01-23  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvisvgm-src/*, version.ac: 2.11.1; update sources and patches.
+
+2020-06-07  Karl Berry  <karl@freefriends.org>
+
+	* configure.ac,
+	* Makefile.am: omit $Id$ from generated Makefile.in.
+
 2019-11-19  Martin Gieseking  <martin.gieseking@uos.de>
 
 	* version.ac: 2.8.1; update sources and patches.

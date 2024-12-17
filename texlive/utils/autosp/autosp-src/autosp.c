@@ -1,6 +1,6 @@
-char version[12] = "2020-03-11";
+char version[12] = "2023-10-07";
 
-/*  Copyright (C) 2014-20 R. D. Tennent School of Computing,
+/*  Copyright (C) 2014-23 R. D. Tennent School of Computing,
  *  Queen's University, rdt@cs.queensu.ca
  *
  *  This program is free software; you can redistribute it
@@ -107,9 +107,6 @@ char version[12] = "2020-03-11";
 
 # define SHORT_LEN 256
 
-bool debug;
-bool dottedbeamnotes;          /* dotted beam notes ignored?        */
-
 char infilename[SHORT_LEN];
 char *infilename_n;
 char outfilename[SHORT_LEN];
@@ -126,7 +123,6 @@ usage ()
 {
   printf ("Usage: autosp [-v | --version | -h | --help]\n");
   printf ("       autosp [-d | --dotted] [-l | --log] infile[.aspc] [outfile[.tex]]\n");
-  printf ("       autosp [-d | --dotted] [-l | --log] infile.tex outfile[.tex]\n");
 }
 
 
@@ -146,8 +142,8 @@ int main (int argc, char *argv[])
   };
   
   printf ("This is autosp, version %s.\n", version);
-  printf ("Copyright (C) 2014-20  R. D. Tennent\n" );
-  printf ("School of Computing, Queen's University, rdt@cs.queensu.ca\n" );
+  printf ("Copyright (C) 2014-23  R. D. Tennent\n" );
+  printf ("School of Computing, Queen's University, rdtennent@gmail.com\n" );
   printf ("License GNU GPL version 2 or later <http://gnu.org/licences/gpl.html>.\n" );
   printf ("There is NO WARRANTY, to the extent permitted by law.\n\n" );
 

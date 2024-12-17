@@ -20,7 +20,10 @@ add_library(goo_objs OBJECT
   gmem.cc
   gmempp.cc
   parseargs.c
+  Trace.cc
 )
+set_property(TARGET goo_objs
+             PROPERTY POSITION_INDEPENDENT_CODE True)
 
 add_library(goo
   $<TARGET_OBJECTS:goo_objs>

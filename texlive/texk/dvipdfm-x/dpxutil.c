@@ -1,6 +1,6 @@
 /* This is dvipdfmx, an eXtended version of dvipdfm by Mark A. Wicks.
 
-    Copyright (C) 2002-2019 by Jin-Hwan Cho and Shunsaku Hirata,
+    Copyright (C) 2002-2023 by Jin-Hwan Cho and Shunsaku Hirata,
     the dvipdfmx project team.
 
     Copyright (C) 1998, 1999 by Mark A. Wicks <mwicks@kettering.edu>
@@ -69,6 +69,92 @@ max4 (double x1, double x2, double x3, double x4)
   return v;
 }
 
+/* Duplicate from pdfparse.c */
+static void
+skip_white (const char **pp, const char *endptr)
+{
+  while (*pp < endptr &&
+         (**pp == ' '  || **pp == '\t' || **pp == '\f' ||
+          **pp == '\r' || **pp == '\n' || **pp == '\0')) {
+    (*pp)++;
+  }
+}
+
+/* This need to allow 'true' prefix for unit and length value must be divided
+ * by current magnification.
+ */
+int
+dpx_util_read_length (double *vp, double mag, const char **pp, const char *endptr)
+{
+  char   *q;
+  const char *p = *pp;
+  double  v, u = 1.0;
+  const char *_ukeys[] = {
+#define K_UNIT__PT  0
+#define K_UNIT__IN  1
+#define K_UNIT__CM  2
+#define K_UNIT__MM  3
+#define K_UNIT__BP  4
+#define K_UNIT__PC  5
+#define K_UNIT__DD  6
+#define K_UNIT__CC  7
+#define K_UNIT__SP  8
+    "pt", "in", "cm", "mm", "bp", "pc", "dd", "cc", "sp",
+     NULL
+  };
+  int     k, error = 0;
+
+  q = parse_float_decimal(&p, endptr);
+  if (!q) {
+    *vp = 0.0; *pp = p;
+    return  -1;
+  }
+
+  v = atof(q);
+  RELEASE(q);
+
+  skip_white(&p, endptr);
+  q = parse_c_ident(&p, endptr);
+  if (q) {
+    char *qq = q; /* remember this for RELEASE, because q may be advanced */
+    if (strlen(q) >= strlen("true") &&
+        !memcmp(q, "true", strlen("true"))) {
+      u /= mag != 0.0 ? mag : 1.0; /* inverse magnify */
+      q += strlen("true");
+    }
+    if (strlen(q) == 0) { /* "true" was a separate word from the units */
+      RELEASE(qq);
+      skip_white(&p, endptr);
+      qq = q = parse_c_ident(&p, endptr);
+    }
+    if (q) {
+      for (k = 0; _ukeys[k] && strcmp(_ukeys[k], q); k++);
+      switch (k) {
+      case K_UNIT__PT: u *= 72.0 / 72.27; break;
+      case K_UNIT__IN: u *= 72.0; break;
+      case K_UNIT__CM: u *= 72.0 / 2.54 ; break;
+      case K_UNIT__MM: u *= 72.0 / 25.4 ; break;
+      case K_UNIT__BP: u *= 1.0 ; break;
+      case K_UNIT__PC: u *= 12.0 * 72.0 / 72.27 ; break;
+      case K_UNIT__DD: u *= 1238.0 / 1157.0 * 72.0 / 72.27 ; break;
+      case K_UNIT__CC: u *= 12.0 * 1238.0 / 1157.0 * 72.0 / 72.27 ; break;
+      case K_UNIT__SP: u *= 72.0 / (72.27 * 65536) ; break;
+      default:
+        WARN("Unknown unit of measure: %s", q);
+        error = -1;
+        break;
+      }
+      RELEASE(qq);
+    }
+    else {
+      WARN("Missing unit of measure after \"true\"");
+      error = -1;
+    }
+  }
+
+  *vp = v * u; *pp = p;
+  return  error;
+}
 
 #if defined(_MSC_VER)
 #define strtoll _strtoi64
@@ -104,80 +190,66 @@ dpx_util_get_unique_time_if_given(void)
   return ret;
 }
 
-
-#ifndef HAVE_TM_GMTOFF
-#ifndef HAVE_TIMEZONE
-
-/* auxiliary function to compute timezone offset on
-   systems that do not support the tm_gmtoff in struct tm,
-   or have a timezone variable.  Such as i386-solaris.  */
-
-static int32_t
-compute_timezone_offset()
-{
-  time_t now;
-  struct tm tm;
-  struct tm local;
-  time_t gmtoff;
-
-  now = get_unique_time_if_given();
-  if (now == INVALID_EPOCH_VALUE) {
-    now = time(NULL);
-    localtime_r(&now, &local);
-    gmtime_r(&now, &tm);
-    return (mktime(&local) - mktime(&tm));
-  } else {
-    return(0);
-  }
-}
-
-#endif /* HAVE_TIMEZONE */
-#endif /* HAVE_TM_GMTOFF */
-
 /*
  * Docinfo
  */
+#define TIME_STR_SIZE 30
 int
 dpx_util_format_asn_date (char *date_string, int need_timezone)
 {
-  int32_t     tz_offset;
+  int32_t     off, off_hours, off_mins;
   time_t      current_time;
-  struct tm  *bd_time;
+  struct tm   bd_time, gmt;
+  size_t      size;
 
   current_time = dpx_util_get_unique_time_if_given();
   if (current_time == INVALID_EPOCH_VALUE) {
     time(&current_time);
-    bd_time = localtime(&current_time);
-
-#ifdef HAVE_TM_GMTOFF
-    tz_offset = bd_time->tm_gmtoff;
-#else
-#  ifdef HAVE_TIMEZONE
-    tz_offset = -timezone;
-#  else
-    tz_offset = compute_timezone_offset();
-#  endif /* HAVE_TIMEZONE */
-#endif /* HAVE_TM_GMTOFF */
+    bd_time = *localtime(&current_time);
   } else {
-    bd_time = gmtime(&current_time);
-    tz_offset = 0;
+    bd_time = *gmtime(&current_time);
   }
+
+  size = strftime(date_string, TIME_STR_SIZE, "D:%Y%m%d%H%M%S", &bd_time);
+  /* expected format: "YYYYmmddHHMMSS" */
+  if (size == 0) {
+    /* unexpected, contents of date_string is undefined */
+    date_string[0] = '\0';
+    return 0;
+  }
+
+  /* correction for seconds: %S can be in range 00..61,
+     the PDF reference expects 00..59,
+     therefore we map "60" and "61" to "59" */
+  if (date_string[14] == '6') {
+    date_string[14] = '5';
+    date_string[15] = '9';
+    date_string[16] = '\0';    /* for safety */
+  }
+
+/* calculate the time zone offset in the same way as in texmfmp.c */
+  gmt = *gmtime(&current_time);
+  off = 60 * (bd_time.tm_hour - gmt.tm_hour) + bd_time.tm_min - gmt.tm_min;
+  if (bd_time.tm_year != gmt.tm_year) {
+    off += (bd_time.tm_year > gmt.tm_year) ? 1440 : -1440;
+  } else if (bd_time.tm_yday != gmt.tm_yday) {
+    off += (bd_time.tm_yday > gmt.tm_yday) ? 1440 : -1440;
+  }
+
   if (need_timezone) {
-    if (bd_time->tm_isdst > 0) {
-      tz_offset += 3600;
+    if (off == 0) {
+      date_string[size++] = 'Z';
+      date_string[size] = 0;
+    } else {
+      off_hours = off / 60;
+      off_mins = abs(off - off_hours * 60);
+      sprintf(&date_string[size], "%+03d'%02d'", off_hours, off_mins);
     }
-    sprintf(date_string, "D:%04d%02d%02d%02d%02d%02d%c%02d'%02d'",
-            bd_time->tm_year + 1900, bd_time->tm_mon + 1, bd_time->tm_mday,
-            bd_time->tm_hour, bd_time->tm_min, bd_time->tm_sec,
-            (tz_offset > 0) ? '+' : '-', abs(tz_offset) / 3600,
-                                        (abs(tz_offset) / 60) % 60);
   } else {
-    sprintf(date_string, "D:%04d%02d%02d%02d%02d%02d",
-            bd_time->tm_year + 1900, bd_time->tm_mon + 1, bd_time->tm_mday,
-            bd_time->tm_hour, bd_time->tm_min, bd_time->tm_sec);
+    date_string[size] = 0;
   }
 
-  return strlen(date_string);
+  return (int)strlen(date_string);
 }
 
 void
@@ -188,6 +260,125 @@ skip_white_spaces (unsigned char **s, unsigned char *endptr)
       break;
     else
       (*s)++;
+}
+
+void
+dpx_stack_init (dpx_stack *stack)
+{
+  stack->size   = 0;
+  stack->top    = NULL;
+  stack->bottom = NULL;
+}
+
+void
+dpx_stack_push (dpx_stack *stack, void *data)
+{
+  stack_elem  *elem;
+
+  ASSERT(stack);
+
+  elem = NEW(1, stack_elem);
+  elem->prev = stack->top;
+  elem->data = data;
+
+  stack->top = elem;
+  if (stack->size == 0)
+    stack->bottom = elem;
+
+  stack->size++;
+
+  return;
+}
+
+void *
+dpx_stack_pop (dpx_stack *stack)
+{
+  stack_elem *elem;
+  void       *data;
+
+  ASSERT(stack);
+
+  if (stack->size == 0)
+    return NULL;
+
+  data = stack->top->data;
+  elem = stack->top;
+  stack->top = elem->prev;
+  if (stack->size == 1)
+    stack->bottom = NULL;
+  RELEASE(elem);
+
+  stack->size--;
+
+  return data;
+}
+
+void *
+dpx_stack_top (dpx_stack *stack)
+{
+  void  *data;
+
+  ASSERT(stack);
+
+  if (stack->size == 0)
+    return NULL;
+
+  data = stack->top->data;
+
+  return data;
+}
+
+void *
+dpx_stack_at (dpx_stack *stack, int pos)
+{
+  void       *data = NULL;
+  stack_elem *elem;
+
+  if (stack->size == 0)
+    return NULL;
+
+  elem = stack->top;
+  while (pos > 0) {
+    elem = elem->prev;
+    pos--;
+  }
+  if (elem)
+    data = elem->data;
+  
+  return data;
+}
+
+void
+dpx_stack_roll (dpx_stack *stack, int n, int j)
+{
+  if (n > stack->size)
+    return;
+  if (n == 1)
+    return;
+  j = j % n;
+  if (j < 0)
+    j = n + j;
+  while (j-- > 0) {
+    int         m = n;
+    stack_elem *elem, *prev, *top;
+
+    elem = top = stack->top;
+    while (--m > 0) {
+      elem = elem->prev;
+    }
+    prev = elem->prev;
+    stack->top = top->prev;
+    elem->prev = top;
+    top->prev  = prev;
+  }
+}
+
+int
+dpx_stack_depth (dpx_stack *stack)
+{
+  ASSERT(stack);
+
+  return stack->size;
 }
 
 void

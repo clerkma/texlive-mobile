@@ -14,6 +14,7 @@
 #if !UCONFIG_NO_FORMATTING
 
 #include "intltest.h"
+#include "number_decimalquantity.h"
 #include "unicode/localpointer.h"
 #include "unicode/plurrule.h"
 
@@ -21,7 +22,7 @@
  * Test basic functionality of various API functions
  **/
 class PluralRulesTest : public IntlTest {
-    void runIndexedTest( int32_t index, UBool exec, const char* &name, char* par = NULL );
+    void runIndexedTest( int32_t index, UBool exec, const char* &name, char* par = nullptr ) override;
 
 private:
     /**
@@ -30,19 +31,38 @@ private:
     void testAPI();
     void testGetUniqueKeywordValue();
     void testGetSamples();
+    void testGetDecimalQuantitySamples();
+    void testGetOrAddSamplesFromString();
+    void testGetOrAddSamplesFromStringCompactNotation();
+    void testSamplesWithExponent();
+    void testSamplesWithCompactNotation();
     void testWithin();
     void testGetAllKeywordValues();
+    void testCompactDecimalPluralKeyword();
+    void testDoubleValue();
+    void testLongValue();
+    void testScientificPluralKeyword();
     void testOrdinal();
     void testSelect();
-    void testAvailbleLocales();
+    void testSelectRange();
+    void testAvailableLocales();
     void testParseErrors();
     void testFixedDecimal();
     void testSelectTrailingZeros();
     void testLocaleExtension();
+    void testDoubleEqualSign();
+    void test22638LongNumberValue();
 
     void assertRuleValue(const UnicodeString& rule, double expected);
     void assertRuleKeyValue(const UnicodeString& rule, const UnicodeString& key,
                             double expected);
+    void checkNewSamples(UnicodeString description, 
+                         const LocalPointer<PluralRules> &test,
+                         UnicodeString keyword,
+                         UnicodeString samplesString,
+                         ::icu::number::impl::DecimalQuantity firstInRange);
+    UnicodeString getPluralKeyword(const LocalPointer<PluralRules> &rules,
+                                   Locale locale, double number, const char16_t* skeleton);
     void checkSelect(const LocalPointer<PluralRules> &rules, UErrorCode &status, 
                                   int32_t line, const char *keyword, ...);
     void compareLocaleResults(const char* loc1, const char* loc2, const char* loc3);

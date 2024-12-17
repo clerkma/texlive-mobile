@@ -1,3 +1,69 @@
+2024-06-18  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctie-k.ch: Recreate with 'f-c-l -ph ctie.w ctie-k.ch'.
+
+2023-09-03  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* ctie.test: Make easier to test on Windows.
+
+2023-05-21  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctie-k.ch: Handle deletion of last line in 'master' file.
+
+2021-04-06  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctie-k.ch: Use 'putc' for single newline character.
+
+2021-04-04  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctie-k.ch: Include TeX Live versionstring in banner line.
+
+2021-03-10  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctie-k.ch: More concise 'find/fopen' logic.
+
+2020-07-24  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctie-k.ch: Format types in boldface prior to their definition.
+
+2020-06-10  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctie-k.ch: A few random finds while skimming the formatted code.
+
+2020-06-08  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctie-k.ch: Put 'date' at the bottom of table-of-contents page.
+
+2020-06-07  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctie-k.ch: Underscore 'enum'erated values in index.
+
+2020-06-05  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctie-k.ch: Format changes similar to CWEB.
+
+2020-05-31  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctie-k.ch: Format title page similar to CWEB.
+
+2020-05-29  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctie-k.ch: C and CWEB refreshing for ctie.w.
+
+2020-04-30  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctie-k.ch: More editorial modifications for ctie.w.
+
+2020-04-27  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctie-k.ch: Editorial modifications for ctie.w.
+
+2020-04-26  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctie-k.ch: Fix several typos in ctie.w.
+	Use British English also in the changefile.
+	Make the result TeXable, preserving section numbers.
+
 2014-06-18  Peter Breitenlohner  <peb@mppmu.mpg.de>
 
 	* ctie-k.ch: Avoid useless char subscript warnings.

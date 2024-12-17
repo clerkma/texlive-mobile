@@ -6,9 +6,9 @@
 #include <ptexdir/ptex_version.h> /* for PTEX_VERSION */
 #include <uptexdir/uptex_version.h> /* for UPTEX_VERSION */
 
-#define BANNER "This is upTeX, Version 3.14159265-" PTEX_VERSION "-" UPTEX_VERSION
+#define BANNER "This is upTeX, Version 3.141592653-" PTEX_VERSION "-" UPTEX_VERSION
 #define COPYRIGHT_HOLDER "D.E. Knuth"
-#define AUTHOR NULL
+#define AUTHOR "Japanese TeX Development Community"
 #define PROGRAM_HELP UPTEXHELP
 #define BUG_ADDRESS "issue@texjp.org"
 #define DUMP_VAR TEXformatdefault

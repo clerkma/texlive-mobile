@@ -111,7 +111,7 @@ LOOP:
 				if (nest==0) {
 					if (buff[j]==level) {
 						esc=0;
-						if (indent>=2) {
+						if (indent>=MAXDEPTH-1) {
 							fprintf(efp,"\nError: Extra `%c\' in %s, line %d.",level,filename,ind[i].lnum);
 							if (efp!=stderr) fprintf(stderr,"\nError: Extra `%c\' in %s, line %d.",level,filename,ind[i].lnum);
 							eflg++;
@@ -150,9 +150,9 @@ LOOP:
 						if (buff[j]==encap) {
 							j++;
 							cc=getestr(&buff[j],estr);
-							if (cc<0) {
-								fprintf(efp,"\nBad encap string in %s, line %d.",filename,ind[i].lnum);
-								if (efp!=stderr) fprintf(stderr,"\nBad encap string in %s, line %d.",filename,ind[i].lnum);
+							if (cc<0 || strchr(estr,encap)) {
+								fprintf(efp,"\nError: Bad encap string in %s, line %d.",filename,ind[i].lnum);
+								if (efp!=stderr) fprintf(stderr,"\nError: Bad encap string in %s, line %d.",filename,ind[i].lnum);
 								eflg++;
 								reject++;
 								n++;
@@ -207,6 +207,17 @@ LOOP:
 
 			if (buff[j]!=escape) esc=0;
 			copy_multibyte_char(buff, wbuff, &j, &k);
+		}
+		for (k=0; k<=indent; k++) {
+			if ((u_strlen(ind[i].idx[k])==0 && ind[i].org[k]==NULL) ||
+				 (ind[i].org[k] && u_strlen(ind[i].org[k])==0)) {
+				fprintf(efp,"\nError: Illegal null field in %s, line %d.",filename,ind[i].lnum);
+				if (efp!=stderr) fprintf(stderr,"\nError: Illegal null field in %s, line %d.",filename,ind[i].lnum);
+				eflg++;
+				reject++;
+				n++;
+				goto LOOP;
+			}
 		}
 		ind[i].words=indent+1;
 
@@ -268,7 +279,7 @@ LOOP:
 					nest++;
 				else if (buff[j]==arg_close) {
 					if (nest==0) {
-						table[k]='\0';	
+						table[k]='\0';
 						ind[0].p[0].page=xstrdup(table);
 						break;
 					}
@@ -344,7 +355,7 @@ LOOP:
 					copy_multibyte_char(buff, table, &j, &k);
 				}
 
-				table[k]='\0';	
+				table[k]='\0';
 
 				for (k=0;k<=ind[l].num;k++) {
 					if (strcmp(ind[l].p[k].page,table)==0) {
@@ -356,9 +367,9 @@ LOOP:
 					ind[l].num++;
 					if (!((ind[l].num)%16)) ind[l].p=(struct page *)xrealloc(ind[l].p,sizeof(struct page)*((int)((ind[l].num)/16)+1)*16);
 
-					ind[l].p[ind[l].num].page=xstrdup(table);	
+					ind[l].p[ind[l].num].page=xstrdup(table);
 
-					ind[l].p[ind[l].num].enc=xstrdup(estr);	
+					ind[l].p[ind[l].num].enc=xstrdup(estr);
 					chkpageattr(&ind[l].p[ind[l].num]);
 				}
 			}
@@ -388,15 +399,15 @@ LOOP:
 						nest++;
 					if (buff[j]==arg_close) {
 						if (nest==0) {
-							table[k]='\0';	
-							ind[i].p[0].page=xstrdup(table);	
+							table[k]='\0';
+							ind[i].p[0].page=xstrdup(table);
 							break;
 						}
 						else nest--;
 					}
 					copy_multibyte_char(buff, table, &j, &k);
 				}
-				ind[l].p[0].enc=xstrdup(estr);	
+				ind[l].p[0].enc=xstrdup(estr);
 				chkpageattr(&ind[i].p[0]);
 			}
 		}
@@ -493,60 +504,113 @@ int widechar_to_multibyte(char *mbstr, int32_t size, UChar *wcstr)
 
 static void chkpageattr(struct page *p)
 {
-	int i,j,cc=0;
+	int i,j,cc=0,cnt,pplen,pclen;
+	char buff[16],*pcpos,*page0;
+	static char pattr_prev[PAGE_COMPOSIT_DEPTH] = {0};
 
+	pplen=strlen(page_precedence);
+	pclen=strlen(page_compositor);
 	for (i=0;i<strlen(p->page);i++) {
-		if (strncmp(page_compositor,&p->page[i],strlen(page_compositor))==0) {
+		page0=&p->page[i];
+		if (strncmp(page_compositor,page0,pclen)==0) {
 			p->attr[cc]=pattr[cc];
 			cc++;
-			i+=strlen(page_compositor)-1;
+			i+=pclen-1;
+			if (cc>=PAGE_COMPOSIT_DEPTH) {
+				if (pclen>0)
+					verb_printf(efp, "\nToo many fields of page number \"%s\".\n", p->page);
+				else
+					verb_printf(efp, "\nIllegular page_comositor specification.\n");
+				exit(253);
+			}
 		}
 		else {
-ATTRLOOP:
-			if (!((p->page[i]>='0' && p->page[i]<='9') || (p->page[i]>='A' && p->page[i]<='Z') || (p->page[i]>='a' && p->page[i]<='z'))) {
+			cnt=0;
+			if (!((*page0>='0' && *page0<='9') || (*page0>='A' && *page0<='Z') || (*page0>='a' && *page0<='z'))) {
 				p->attr[cc]= -1;
 				if (cc<2) p->attr[++cc]= -1;
 				return;
 			}
+			pcpos=strstr(page0,page_compositor);
+			j=pcpos ? pcpos-page0 : strlen(page0);
+			if (j>15) {
+				verb_printf(efp, "\nToo long page number string \"%s\".\n", page0);
+				exit(253);
+			}
+			strncpy(buff,page0,j);
+			buff[j]='\0';
+ATTRLOOP:
+			cnt++;
+			if (cnt>pplen) {
+				verb_printf(efp, "\nFailed to find page type for page \"%s\" in page_precedence specification (%s).\n",
+					    page0, page_precedence);
+				exit(253);
+			}
+
 			switch(page_precedence[pattr[cc]]) {
 			case 'r':
-				if (strchr("ivxlcdm",p->page[i])==NULL) {
-					pattr[cc]++;
-					for (j=cc+1;j<3;j++) pattr[j]=0;
+				if (strchr("ivxlcdm",*page0)==NULL ||
+				    (strchr("lcdm",*page0) && strchr(page_precedence,'a') && strlen(buff)==1 &&
+				        pattr_prev[cc]!='r')) {
+					/* heuristic detection as alphabet since L=50, C=100, D=100, M=1000 are quite large */
+					if (pattr[cc]<pplen-1)
+						pattr[cc]++;
+					else pattr[cc]=0;
+					for (j=cc+1;j<PAGE_COMPOSIT_DEPTH;j++) pattr[j]=0;
 					goto ATTRLOOP;
 				}
 				break;
 			case 'R':
-				if (strchr("IVXLCDM",p->page[i])==NULL) {
-					pattr[cc]++;
-					for (j=cc+1;j<3;j++) pattr[j]=0;
+				if (strchr("IVXLCDM",*page0)==NULL ||
+				    (strchr("LCDM",*page0) && strchr(page_precedence,'A') && strlen(buff)==1 &&
+				        pattr_prev[cc]!='R')) {
+					/* heuristic detection as alphabet since L=50, C=100, D=100, M=1000 are quite large */
+					if (pattr[cc]<pplen-1)
+						pattr[cc]++;
+					else pattr[cc]=0;
+					for (j=cc+1;j<PAGE_COMPOSIT_DEPTH;j++) pattr[j]=0;
 					goto ATTRLOOP;
 				}
 				break;
 			case 'n':
-				if (p->page[i]<'0' || p->page[i]>'9') {
-					pattr[cc]++;
-					for (j=cc+1;j<3;j++) pattr[j]=0;
+				if (*page0<'0' || *page0>'9') {
+					if (pattr[cc]<pplen-1)
+						pattr[cc]++;
+					else pattr[cc]=0;
+					for (j=cc+1;j<PAGE_COMPOSIT_DEPTH;j++) pattr[j]=0;
 					goto ATTRLOOP;
 				}
 				break;
 			case 'a':
-				if (p->page[i]<'a' || p->page[i]>'z') {
-					pattr[cc]++;
-					for (j=cc+1;j<3;j++) pattr[j]=0;
+				if (*page0<'a' || *page0>'z' || strlen(buff)>1 ||
+				    (strchr("ivx",*page0) && strchr(page_precedence,'r') &&
+				        pattr_prev[cc]!='a')) {
+					/* heuristic detection as roman number since I=1, V=5, X=10 are quite small */
+					if (pattr[cc]<pplen-1)
+						pattr[cc]++;
+					else pattr[cc]=0;
+					for (j=cc+1;j<PAGE_COMPOSIT_DEPTH;j++) pattr[j]=0;
 					goto ATTRLOOP;
 				}
 				break;
 			case 'A':
-				if (p->page[i]<'A' || p->page[i]>'Z') {
-					pattr[cc]++;
-					for (j=cc+1;j<3;j++) pattr[j]=0;
+				if (*page0<'A' || *page0>'Z' || strlen(buff)>1 ||
+				    (strchr("IVX",*page0) && strchr(page_precedence,'R') &&
+				        pattr_prev[cc]!='A')) {
+					/* heuristic detection as roman number since I=1, V=5, X=10 are quite small */
+					if (pattr[cc]<pplen-1)
+						pattr[cc]++;
+					else pattr[cc]=0;
+					for (j=cc+1;j<PAGE_COMPOSIT_DEPTH;j++) pattr[j]=0;
 					goto ATTRLOOP;
 				}
 				break;
 			default:
-				break;
+				verb_printf(efp, "\nUnknown page type '%c' in page_precedence specification (%s).\n",
+					   page_precedence[pattr[cc]], page_precedence);
+				exit(253);
 			}
+			pattr_prev[cc] = page_precedence[pattr[cc]];
 		}
 	}
 	p->attr[cc]=pattr[cc];

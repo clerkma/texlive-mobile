@@ -58,11 +58,7 @@ extern int optind;
 #include "search.h"
 #include <stdio.h>
 #include <ctype.h>
-
-#if defined(WIN32) && defined(KPATHSEA)
-#undef fopen
-#define fopen  fsyscp_fopen
-#endif
+#include "common.h"
 
 #define white(x) ((x) == ' ' || (x) == '\t' || (x) == ',')
 
@@ -539,11 +535,13 @@ main(int argc, char **argv)
 	int ac;
 	char **av, *enc;
 
-	kpse_set_program_name(argv[0], "dviselect");
-	enc = kpse_var_value("command_line_encoding");
-	if (get_command_line_args_utf8(enc, &ac, &av)) {
-		argc = ac;
-		argv = av;
+	if (argc>1) {
+		kpse_set_program_name(argv[0], "dviselect");
+		enc = kpse_var_value("command_line_encoding");
+		if (get_command_line_args_utf8(enc, &ac, &av)) {
+			argc = ac;
+			argv = av;
+		}
 	}
 #endif
 
@@ -571,9 +569,13 @@ main(int argc, char **argv)
 
 		case '?':
 usage:
+			(void) fprintf(stderr,
+				"dviselect  in SeeTeX Ver.%s (%s)\n", VERSION, TL_VERSION);
 			(void) fprintf(stderr, "\
 Usage: %s [-s] [-i infile] [-o outfile] pages [...] [infile [outfile]]\n",
 				ProgName);
+			(void) fprintf(stderr,
+				"\nEmail bug reports to %s.\n", BUG_ADDRESS);
 			(void) fflush(stderr);
 			exit(1);
 		}

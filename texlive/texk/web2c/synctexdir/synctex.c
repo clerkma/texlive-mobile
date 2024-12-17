@@ -1,5 +1,5 @@
 /* 
- Copyright (c) 2008-2017 jerome DOT laurens AT u-bourgogne DOT fr
+ Copyright (c) 2008-2024 jerome DOT laurens AT u-bourgogne DOT fr
  
  This file is part of the SyncTeX package.
  
@@ -301,13 +301,34 @@ static int fsyscp_remove(char *name);
 #endif /* pdfTeX ... */
 #endif /* _WIN32 */
 
+#if defined(pTeX) || defined(upTeX) || defined(epTeX) || defined(eupTeX)
+#define IS_pTeX 1
+#else
+#define IS_pTeX 0
+#endif
+
 /*  This macro layer was added to take luatex into account as suggested by T. Hoekwater. */
+# if IS_pTeX && !defined(_WIN32)
+char *SYNCTEX_GET_JOB_NAME()
+{
+   char *tmp = gettexstring(jobname);
+   char *tmpa = ptenc_from_internal_enc_string_to_utf8(tmp);
+   if (tmpa) { SYNCTEX_FREE(tmp); return tmpa; } else return tmp;
+}
+char *SYNCTEX_GET_LOG_NAME()
+{
+   char *tmp = gettexstring(texmflogname);
+   char *tmpa = ptenc_from_internal_enc_string_to_utf8(tmp);
+   if (tmpa) { SYNCTEX_FREE(tmp); return tmpa; } else return tmp;
+}
+# else
 #   if !defined(SYNCTEX_GET_JOB_NAME)
 #       define SYNCTEX_GET_JOB_NAME() (gettexstring(jobname))
 #   endif
 #   if !defined(SYNCTEX_GET_LOG_NAME)
 #       define SYNCTEX_GET_LOG_NAME() (gettexstring(texmflogname))
 #   endif
+# endif
 #   if !defined(SYNCTEX_CURRENT_TAG)
 #       define SYNCTEX_CURRENT_TAG (curinput.synctextagfield)
 #   endif
@@ -948,7 +969,7 @@ void synctexterminate(boolean log_opened)
 #ifdef W32UPTEXSYNCTEX
                         {
                         char *stmp = chgto_oem(tmp);
-                        printf((synctex_ctxt.flags.quoted ? "SyncTeX written on \"%s\"\n" : "\nSyncTeX written on %s.\n"),
+                        printf((synctex_ctxt.flags.quoted ? "\nSyncTeX written on \"%s\"\n" : "\nSyncTeX written on %s.\n"),
                                stmp);
                         free(stmp);
                         }
@@ -2039,14 +2060,14 @@ static inline void synctex_record_node_kern(halfword p)
 #   endif
     if (SYNCTEX_SHOULD_COMPRESS_V) {
         len = SYNCTEX_fprintf(SYNCTEX_FILE, "k%i,%i:%i,=:%i\n",
-                              SYNCTEX_TAG_MODEL(p,glue),
-                              SYNCTEX_LINE_MODEL(p,glue),
+                              SYNCTEX_TAG_MODEL(p,kern),
+                              SYNCTEX_LINE_MODEL(p,kern),
                               SYNCTEX_CTXT_CURH UNIT,
                               SYNCTEX_WIDTH(p) UNIT);
     } else {
         len = SYNCTEX_fprintf(SYNCTEX_FILE, "k%i,%i:%i,%i:%i\n",
-                              SYNCTEX_TAG_MODEL(p,glue),
-                              SYNCTEX_LINE_MODEL(p,glue),
+                              SYNCTEX_TAG_MODEL(p,kern),
+                              SYNCTEX_LINE_MODEL(p,kern),
                               SYNCTEX_CTXT_CURH UNIT,
                               SYNCTEX_CTXT_CURV UNIT,
                               SYNCTEX_WIDTH(p) UNIT);

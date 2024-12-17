@@ -1,6 +1,6 @@
 /* mpfr_ai -- Airy function Ai
 
-Copyright 2010-2019 Free Software Foundation, Inc.
+Copyright 2010-2023 Free Software Foundation, Inc.
 Contributed by the AriC and Caramba projects, INRIA.
 
 This file is part of the GNU MPFR Library.
@@ -70,8 +70,8 @@ mpfr_ai1 (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
 
   /* Logging */
   MPFR_LOG_FUNC (
-    ("x[%Pu]=%.*Rg rnd=%d", mpfr_get_prec (x), mpfr_log_prec, x, rnd),
-    ("y[%Pu]=%.*Rg", mpfr_get_prec (y), mpfr_log_prec, y) );
+    ("x[%Pd]=%.*Rg rnd=%d", mpfr_get_prec (x), mpfr_log_prec, x, rnd),
+    ("y[%Pd]=%.*Rg", mpfr_get_prec (y), mpfr_log_prec, y) );
 
   /* Save current exponents range */
   MPFR_SAVE_EXPO_MARK (expo);
@@ -106,6 +106,9 @@ mpfr_ai1 (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
       return mpfr_check_range (y, r, rnd);
     }
 
+  /* now x is not zero */
+  MPFR_ASSERTD(!MPFR_IS_ZERO(x));
+
   /* FIXME: underflow for large values of |x| ? */
 
 
@@ -133,56 +136,69 @@ mpfr_ai1 (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
   mpfr_init2 (tmp2_sp, MPFR_SMALL_PRECISION);
   mpfr_abs (tmp_sp, x, MPFR_RNDU);
   mpfr_pow_ui (tmp_sp, tmp_sp, 3, MPFR_RNDU);
-  mpfr_sqrt (tmp_sp, tmp_sp, MPFR_RNDU); /* tmp_sp ~ x^3/2 */
+  mpfr_sqrt (tmp_sp, tmp_sp, MPFR_RNDU); /* tmp_sp ~ |x|^(3/2) */
 
   /* 0.96179669392597567 >~ 2/3 * log2(e). See algorithms.tex */
   mpfr_set_str (tmp2_sp, "0.96179669392597567", 10, MPFR_RNDU);
   mpfr_mul (tmp2_sp, tmp_sp, tmp2_sp, MPFR_RNDU);
 
   /* cond represents the number of lost bits in the evaluation of the sum */
-  if ( (MPFR_IS_ZERO (x)) || (MPFR_GET_EXP (x) <= 0) )
+  if (MPFR_GET_EXP (x) <= 0)
     cond = 0;
   else
-    cond = mpfr_get_ui (tmp2_sp, MPFR_RNDU) - (MPFR_GET_EXP (x)-1)/4 - 1;
+    {
+      MPFR_BLOCK_DECL (flags);
+
+      MPFR_BLOCK (flags, cond = mpfr_get_ui (tmp2_sp, MPFR_RNDU));
+      MPFR_ASSERTN (! MPFR_ERANGEFLAG (flags));
+      cond -= (MPFR_GET_EXP (x) - 1) / 4 + 1;
+    }
 
   /* The variable assumed_exponent is used to store the maximal assumed */
   /* exponent of Ai(x). More precisely, we assume that |Ai(x)| will be  */
   /* greater than 2^{-assumed_exponent}.                                */
-  if (MPFR_IS_ZERO (x))
-    assumed_exponent = 2;
-  else
+  if (MPFR_IS_POS (x))
     {
-      if (MPFR_IS_POS (x))
-        {
-          if (MPFR_GET_EXP (x) <= 0)
-            assumed_exponent = 3;
-          else
-            assumed_exponent = (2 + (MPFR_GET_EXP (x)/4 + 1)
-                                + mpfr_get_ui (tmp2_sp, MPFR_RNDU));
-        }
-      /* We do not know Ai (x) yet */
-      /* We cover the case when EXP (Ai (x))>=-10 */
+      if (MPFR_GET_EXP (x) <= 0)
+        assumed_exponent = 3;
       else
-        assumed_exponent = 10;
+        {
+          unsigned long int t;
+          MPFR_BLOCK_DECL (flags);
+
+          MPFR_BLOCK (flags, t = mpfr_get_ui (tmp2_sp, MPFR_RNDU));
+          MPFR_ASSERTN (! MPFR_ERANGEFLAG (flags));
+          assumed_exponent = t + 2 + (MPFR_GET_EXP (x) / 4 + 1);
+          MPFR_ASSERTN (assumed_exponent > t);
+        }
     }
+  /* We do not know Ai (x) yet */
+  /* We cover the case when EXP (Ai (x))>=-10 */
+  else
+    assumed_exponent = 10;
 
   {
-    mpfr_prec_t incr =
-      MPFR_INT_CEIL_LOG2 (prec) + 5 + cond + assumed_exponent;
-    wprec = MPFR_ADD_PREC (prec, incr);
+    unsigned long int t, u;
+
+    t = assumed_exponent + cond;
+    MPFR_ASSERTN (t >= cond);
+    u = MPFR_INT_CEIL_LOG2 (prec) + 5;
+    t += u;
+    MPFR_ASSERTN (t >= u);
+    wprec = MPFR_ADD_PREC (prec, t);
   }
 
-  mpfr_init (ti);
-  mpfr_init (tip1);
-  mpfr_init (temp1);
-  mpfr_init (temp2);
-  mpfr_init (x3);
-  mpfr_init (s);
+  mpfr_init2 (ti, wprec);
+  mpfr_init2 (tip1, wprec);
+  mpfr_init2 (temp1, wprec);
+  mpfr_init2 (temp2, wprec);
+  mpfr_init2 (x3, wprec);
+  mpfr_init2 (s, wprec);
 
   /* ZIV loop */
   for (;;)
     {
-      MPFR_LOG_MSG (("Working precision: %Pu\n", wprec));
+      MPFR_LOG_MSG (("Working precision: %Pd\n", wprec));
       mpfr_set_prec (ti, wprec);
       mpfr_set_prec (tip1, wprec);
       mpfr_set_prec (x3, wprec);
@@ -200,7 +216,7 @@ mpfr_ai1 (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
       mpfr_set_ui (ti, 9, MPFR_RNDN);
       mpfr_cbrt (ti, ti, MPFR_RNDN);
       mpfr_mul (ti, ti, temp2, MPFR_RNDN);
-      mpfr_ui_div (ti, 1, ti , MPFR_RNDN); /* ti = 1/( Gamma (2/3)*9^(1/3) ) */
+      mpfr_ui_div (ti, 1, ti, MPFR_RNDN); /* ti = 1/( Gamma (2/3)*9^(1/3) ) */
 
       mpfr_set_ui (tip1, 3, MPFR_RNDN);
       mpfr_cbrt (tip1, tip1, MPFR_RNDN);
@@ -241,18 +257,16 @@ mpfr_ai1 (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
 
       /* err is the number of bits lost due to the evaluation error */
       /* wprec-(prec+1): number of bits lost due to the approximation error */
-      MPFR_LOG_MSG (("Roundoff error: %Pu\n", err));
-      MPFR_LOG_MSG (("Approxim error: %Pu\n", wprec-prec-1));
+      MPFR_LOG_MSG (("Roundoff error: %Pd\n", err));
+      MPFR_LOG_MSG (("Approxim error: %Pd\n", wprec-prec-1));
 
-      if (wprec < err+1)
-        correct_bits=0;
+      if (wprec < err + 1)
+        correct_bits = 0;
+      else if (wprec < err + prec +1)
+        correct_bits =  wprec - err - 1; /* since wprec > err + 1,
+                                            correct_bits > 0 */
       else
-        {
-          if (wprec < err+prec+1)
-            correct_bits =  wprec - err - 1;
-          else
-            correct_bits = prec;
-        }
+        correct_bits = prec;
 
       if (MPFR_LIKELY (MPFR_CAN_ROUND (s, correct_bits, MPFR_PREC (y), rnd)))
         break;
@@ -262,26 +276,24 @@ mpfr_ai1 (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
           assumed_exponent *= 2;
           MPFR_LOG_MSG (("Not a single bit correct (assumed_exponent=%lu)\n",
                          assumed_exponent));
-          wprec = prec + 5 + MPFR_INT_CEIL_LOG2 (k) + cond + assumed_exponent;
+          wprec = prec + 5 + MPFR_INT_CEIL_LOG2 (prec) + cond +
+            assumed_exponent;
+        }
+      else if (correct_bits < prec)
+        { /* The precision was badly chosen */
+          MPFR_LOG_MSG (("Bad assumption on the exponent of Ai(x)"
+                         " (E=%" MPFR_EXP_FSPEC "d)\n",
+                         (mpfr_eexp_t) MPFR_GET_EXP (s)));
+          wprec = prec + err + 1;
         }
       else
-        {
-          if (correct_bits < prec)
-            { /* The precision was badly chosen */
-              MPFR_LOG_MSG (("Bad assumption on the exponent of Ai(x)"
-                             " (E=%" MPFR_EXP_FSPEC "d)\n",
-                             (mpfr_eexp_t) MPFR_GET_EXP (s)));
-              wprec = prec + err + 1;
-            }
-          else
-            { /* We are really in a bad case of the TMD */
-              MPFR_ZIV_NEXT (loop, prec);
+        { /* We are really in a bad case of the TMD */
+          MPFR_ZIV_NEXT (loop, prec);
 
-              /* We update wprec */
-              /* We assume that K will not be multiplied by more than 4 */
-              wprec = prec + (MPFR_INT_CEIL_LOG2 (k)+2) + 5 + cond
-                - MPFR_GET_EXP (s);
-            }
+          /* We update wprec */
+          /* We assume that K will not be multiplied by more than 4 */
+          wprec = prec + (MPFR_INT_CEIL_LOG2 (k) + 2) + 5 + cond
+            - MPFR_GET_EXP (s);
         }
 
     } /* End of ZIV loop */
@@ -305,7 +317,7 @@ mpfr_ai1 (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
 
 
 /* Airy function Ai evaluated by Smith algorithm.
-   Assume that x is a finite number. */
+   Assume that x is a finite non-zero number. */
 static int
 mpfr_ai2 (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
 {
@@ -330,14 +342,13 @@ mpfr_ai2 (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
 
   /* Logging */
   MPFR_LOG_FUNC (
-    ("x[%Pu]=%.*Rg rnd=%d", mpfr_get_prec (x),  mpfr_log_prec, x, rnd),
-    ("y[%Pu]=%.*Rg", mpfr_get_prec (y), mpfr_log_prec, y));
+    ("x[%Pd]=%.*Rg rnd=%d", mpfr_get_prec (x),  mpfr_log_prec, x, rnd),
+    ("y[%Pd]=%.*Rg", mpfr_get_prec (y), mpfr_log_prec, y));
 
   /* Save current exponents range */
   MPFR_SAVE_EXPO_MARK (expo);
 
   /* FIXME: underflow for large values of |x| */
-
 
   /* Set initial precision */
   /* See the analysis for the naive evaluation */
@@ -350,40 +361,57 @@ mpfr_ai2 (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
   mpfr_init2 (tmp2_sp, MPFR_SMALL_PRECISION);
   mpfr_abs (tmp_sp, x, MPFR_RNDU);
   mpfr_pow_ui (tmp_sp, tmp_sp, 3, MPFR_RNDU);
-  mpfr_sqrt (tmp_sp, tmp_sp, MPFR_RNDU); /* tmp_sp ~ x^3/2 */
+  mpfr_sqrt (tmp_sp, tmp_sp, MPFR_RNDU); /* tmp_sp ~ |x|^(3/2) */
 
   /* 0.96179669392597567 >~ 2/3 * log2(e). See algorithms.tex */
   mpfr_set_str (tmp2_sp, "0.96179669392597567", 10, MPFR_RNDU);
   mpfr_mul (tmp2_sp, tmp_sp, tmp2_sp, MPFR_RNDU);
 
   /* cond represents the number of lost bits in the evaluation of the sum */
-  if ( (MPFR_IS_ZERO (x)) || (MPFR_GET_EXP (x) <= 0) )
+  if (MPFR_GET_EXP (x) <= 0)
     cond = 0;
   else
-    cond = mpfr_get_ui (tmp2_sp, MPFR_RNDU) - (MPFR_GET_EXP (x) - 1)/4 - 1;
-
-  /* This variable is used to store the maximal assumed exponent of       */
-  /* Ai (x). More precisely, we assume that |Ai (x)| will be greater than */
-  /* 2^{-assumedExp}.                                                     */
-  if (MPFR_IS_ZERO (x))
-    assumed_exponent = 2;
-  else
     {
-      if (MPFR_IS_POS (x))
-        {
-          if (MPFR_GET_EXP (x) <= 0)
-            assumed_exponent = 3;
-          else
-            assumed_exponent = (2 + (MPFR_GET_EXP (x)/4 + 1)
-                                + mpfr_get_ui (tmp2_sp, MPFR_RNDU));
-        }
-      /* We do not know Ai (x) yet */
-      /* We cover the case when EXP (Ai (x))>=-10 */
-      else
-        assumed_exponent = 10;
+      MPFR_BLOCK_DECL (flags);
+
+      MPFR_BLOCK (flags, cond = mpfr_get_ui (tmp2_sp, MPFR_RNDU));
+      MPFR_ASSERTN (! MPFR_ERANGEFLAG (flags));
+      cond -= (MPFR_GET_EXP (x) - 1) / 4 + 1;
     }
 
-  wprec = prec + MPFR_INT_CEIL_LOG2 (prec) + 6 + cond + assumed_exponent;
+  /* This variable is used to store the maximal assumed exponent of       */
+  /* Ai(x). More precisely, we assume that |Ai(x)| will be greater than   */
+  /* 2^{-assumed_exponent}.                                               */
+  if (MPFR_IS_POS (x))
+    {
+      if (MPFR_GET_EXP (x) <= 0)
+        assumed_exponent = 3;
+      else
+        {
+          unsigned long int t;
+          MPFR_BLOCK_DECL (flags);
+
+          MPFR_BLOCK (flags, t = mpfr_get_ui (tmp2_sp, MPFR_RNDU));
+          MPFR_ASSERTN (! MPFR_ERANGEFLAG (flags));
+          assumed_exponent = t + 2 + (MPFR_GET_EXP (x) / 4 + 1);
+          MPFR_ASSERTN (assumed_exponent > t);
+        }
+    }
+  /* We do not know Ai(x) yet */
+  /* We cover the case when EXP(Ai(x))>=-10 */
+  else
+    assumed_exponent = 10;
+
+  {
+    unsigned long int t, u;
+
+    t = assumed_exponent + cond;
+    MPFR_ASSERTN (t >= cond);
+    u = MPFR_INT_CEIL_LOG2 (prec) + 6;
+    t += u;
+    MPFR_ASSERTN (t >= u);
+    wprec = MPFR_ADD_PREC (prec, t);
+  }
 
   /* We assume that the truncation rank will be ~ prec */
   L = __gmpfr_isqrt (prec);
@@ -392,18 +420,18 @@ mpfr_ai2 (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
   z = (mpfr_t *) mpfr_allocate_func ( (L + 1) * sizeof (mpfr_t) );
   MPFR_ASSERTN (z != NULL);
   for (j=0; j<=L; j++)
-    mpfr_init (z[j]);
+    mpfr_init2 (z[j], wprec);
 
-  mpfr_init (s);
-  mpfr_init (u0); mpfr_init (u1);
-  mpfr_init (result);
-  mpfr_init (temp1);
-  mpfr_init (temp2);
+  mpfr_init2 (s, wprec);
+  mpfr_init2 (u0, wprec); mpfr_init2 (u1, wprec);
+  mpfr_init2 (result, wprec);
+  mpfr_init2 (temp1, wprec);
+  mpfr_init2 (temp2, wprec);
 
   /* ZIV loop */
   for (;;)
     {
-      MPFR_LOG_MSG (("working precision: %Pu\n", wprec));
+      MPFR_LOG_MSG (("working precision: %Pd\n", wprec));
 
       for (j=0; j<=L; j++)
         mpfr_set_prec (z[j], wprec);
@@ -436,7 +464,7 @@ mpfr_ai2 (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
       mpfr_set_ui (u0, 9, MPFR_RNDN);
       mpfr_cbrt (u0, u0, MPFR_RNDN);
       mpfr_mul (u0, u0, temp2, MPFR_RNDN);
-      mpfr_ui_div (u0, 1, u0 , MPFR_RNDN); /* u0 = 1/( Gamma (2/3)*9^(1/3) ) */
+      mpfr_ui_div (u0, 1, u0, MPFR_RNDN); /* u0 = 1/( Gamma (2/3)*9^(1/3) ) */
 
       mpfr_set_ui (u1, 3, MPFR_RNDN);
       mpfr_cbrt (u1, u1, MPFR_RNDN);
@@ -520,8 +548,8 @@ mpfr_ai2 (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
 
       /* err is the number of bits lost due to the evaluation error */
       /* wprec-(prec+1): number of bits lost due to the approximation error */
-      MPFR_LOG_MSG (("Roundoff error: %Pu\n", err));
-      MPFR_LOG_MSG (("Approxim error: %Pu\n", wprec - prec - 1));
+      MPFR_LOG_MSG (("Roundoff error: %Pd\n", err));
+      MPFR_LOG_MSG (("Approxim error: %Pd\n", wprec - prec - 1));
 
       if (wprec < err+1)
         correctBits = 0;
@@ -545,7 +573,7 @@ mpfr_ai2 (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
       z = (mpfr_t *) mpfr_allocate_func ( (L + 1) * sizeof (mpfr_t));
       MPFR_ASSERTN (z != NULL);
       for (j=0; j<=L; j++)
-        mpfr_init (z[j]);
+        mpfr_init2 (z[j], wprec);
 
       if (correctBits == 0)
         {
@@ -629,6 +657,7 @@ mpfr_ai (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
         }
       else if (MPFR_IS_INF (x))
         return mpfr_set_ui (y, 0, rnd);
+      /* the cases x = +0 or -0 will be treated below */
     }
 
   /* The exponent range must be large enough for the computation of temp1. */
@@ -655,5 +684,7 @@ mpfr_ai (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
 
   MPFR_SAVE_EXPO_FREE (expo); /* Ignore all previous exceptions. */
 
+  /* we use ai2 if |x|*AI_THRESHOLD1/3 + PREC(y)*AI_THRESHOLD2 > AI_SCALE,
+     which means x cannot be zero in mpfr_ai2 */
   return use_ai2 ? mpfr_ai2 (y, x, rnd) : mpfr_ai1 (y, x, rnd);
 }

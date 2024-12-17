@@ -1,6 +1,6 @@
-﻿<!--
+<!--
 Copyright (C) 2016 and later: Unicode, Inc. and others.
-License & terms of use: http://www.unicode.org/copyright.html#License
+License & terms of use: http://www.unicode.org/copyright.html
 
 Copyright (c) 2015-2016, International Business Machines Corporation and others. All Rights Reserved.
 -->
@@ -12,7 +12,7 @@ The rules in this directory track the boundary rules from Unicode UAX 14 and 29.
 to provide an expected set of boundary positions to compare with the results from ICU break iteration.
 
 ICU4J also includes copies of the test reference rules, located in the directory
-main/tests/core/src/com/ibm/icu/dev/test/rbbi/break_rules/
+main/core/src/test/resources/com/ibm/icu/dev/test/rbbi/break_rules/
 The copies should be kept synchronized; there should be no differences.
 
 Each set of reference break rules lives in a separate file.

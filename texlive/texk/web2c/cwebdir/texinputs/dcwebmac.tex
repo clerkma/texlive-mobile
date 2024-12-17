@@ -27,11 +27,12 @@
 % Version 3.64 [p20] --- Andreas Scherer, March 2002
 % Version 3.64 [p21] --- Andreas Scherer, Octobre 2005
 % Version 3.64 [p22] --- Andreas Scherer, March 2016
+% Version 4.9 --- Andreas Scherer, June 2022
+% Version 4.12 --- Andreas Scherer, August 2024
 
-\ifx\undefined\documentclass\input Xcwebmac.tex
-\else\endinput\fi % LaTeX will use other macros
+\ifx\undefined\botofcontents\input cwebmac.tex\fi
 
-\input dcwebstrings.tex
+\input dcwebstrings.tex % German translations for some tags and strings
 
 \def\.#1{\leavevmode\hbox{\tentex % typewriter type for strings
   \ifx\Cstringchars\undefined\else\Cstringchars\fi % special string characters
@@ -54,37 +55,38 @@
 \def\fin{\par\vfill\eject % this is done when we are ending the index
   \ifpagesaved\null\vfill\eject\fi % output a null index column
   \if L\lr\else\null\vfill\eject\fi % finish the current page
-  \ifpdftex \makebookmarks \fi % added in Version 3.68
+  \ifpdf \ifpdflua \makebookmarks % added in Version 3.68
+    \countsections \fi\fi % and in Version 4.9
   \parfillskip 0pt plus 1fil
   \let\topsecno=\nullsec
   \redeffin
   \output={\normaloutput\page\lheader\rheader}
   \setpage
-  \def\note##1##2.{\quad{\eightrm##1~\ifacro{\pdfnote##2.}\else{##2}\fi.}}
+  \def\note##1##2.{\quad{\eightrm##1~\ifacrohint{\pdfnote##2.}\else{##2}\fi.}}
   \def\I{\par\hangindent 2em}\let\*=*
   \ifacro \let\Xpdf\X
-  \ifpdftex \pdfdest name {NOS} fith
-    \pdfoutline goto name {NOS} count -\secno {\outsecname}
+  \ifpdflua \pdfdest name {NOS} fith
+    \pdfoutline goto name {NOS} count -\the\countD {\outsecname}
     \def\X##1:##2\X{\Xpdf##1:##2\X \firstsecno##1.%
       {\toksF={}\makeoutlinetoks##2\outlinedone\outlinedone}%
       \pdfoutline goto num \the\toksA \expandafter{\the\toksE}}
-  \else\ifpdf
-    \special{pdf: outline -1 << /Title (\outsecname)
+  \else \special{pdf: outline -1 << /Title (\outsecname)
       /Dest [ @thispage /FitH @ypos ] >>}
     \def\X##1:##2\X{\Xpdf##1:##2\X \firstsecno##1.%
       {\toksF={}\makeoutlinetoks##2\outlinedone\outlinedone}%
       \special{pdf: outline 0 << /Title (\the\toksE)
         /A << /S /GoTo /D (\romannumeral\the\toksA) >> >>}}
-  \fi\fi\fi
+  \fi\fi
   \readsections}
 \def\con{\par\vfill\eject % finish the section names
 % \ifodd\pageno\else\titletrue\null\vfill\eject\fi % for duplex printers
   \rightskip 0pt \hyphenpenalty 50 \tolerance 200
   \setpage \output={\normaloutput\page\lheader\rheader}
-  \titletrue % prepare to output the table of contents
+  \ifpdf\startpdf\fi \titletrue % prepare to output the table of contents
   \pageno=\contentspagenumber
   \redefcon
-  \topofcontents \startpdf
+  \ifhint\HINThome\fi% Mark the Table of contents as home page
+  \topofcontents
   \line{\headerline}
   \let\ZZ=\contentsline
   \readcontents\relax % read the contents info

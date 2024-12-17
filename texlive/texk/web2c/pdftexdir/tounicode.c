@@ -1,5 +1,5 @@
 /*
-Copyright 2006-2019 Han The Thanh, <thanh@pdftex.org>
+Copyright 2006-2023 Han The Thanh, <thanh@pdftex.org>
 
 This file is part of pdfTeX.
 
@@ -66,6 +66,7 @@ void deftounicode(strnumber glyph, strnumber unistr)
     int i, l;
     glyph_unicode_entry *gu, t;
     void **aa;
+    unsigned long sscan_result;
 
     p = makecstring(glyph);
     assert(strlen(p) < SMALL_BUF_SIZE);
@@ -115,13 +116,15 @@ void deftounicode(strnumber glyph, strnumber unistr)
         gu->code = UNI_STRING;
         gu->unicode_seq = xstrdup(buf2);
     } else {
-        i = sscanf(p, "%lX", &(gu->code));
+        i = sscanf(p, "%lX", &sscan_result);
         assert(i == 1);
-        if (gu->code < 0 || gu->code > 0x10FFFF) {
+        if (sscan_result > 0x10FFFF) {
             pdftex_warn("ToUnicode: value out of range [0,10FFFF]: %lX",
-                        gu->code);
+                        sscan_result);
             gu->code = UNI_UNDEF;
         }
+        else
+            gu->code = sscan_result;
     }
     aa = avl_probe(glyph_unicode_tree, gu);
     assert(aa != NULL);
@@ -189,7 +192,7 @@ static char *utf16be_str(long code)
  * taking into account tfmname; in case it returns
  * gp->code == UNI_EXTRA_STRING then the caller is responsible for freeing
  * gp->unicode_seq too */
-static void set_glyph_unicode(const char *s, const char* tfmname, 
+static void set_glyph_unicode(const char *s, const char* tfmname,
                               glyph_unicode_entry *gp)
 {
     char buf[SMALL_BUF_SIZE], buf2[SMALL_BUF_SIZE], *p;
@@ -314,6 +317,19 @@ static void set_glyph_unicode(const char *s, const char* tfmname,
     }
 }
 
+static boolean is_last_byte_valid(int srcCode1, int srcCode2, long code)
+{
+    /*
+       When defining ranges of this type, the value of the last byte in the
+       string shall be less than or equal to 255 − (srcCode2 − srcCode1). This
+       ensures that the last byte of the string shall not be incremented past
+       255; otherwise, the result of mapping is undefined.
+    */
+    char *s = strend(utf16be_str(code)) - 2;
+    long l = strtol(s, NULL, 16);
+    return l < 255 - (srcCode2 - srcCode1);
+}
+
 
 /* tfmname is without .tfm extension, but encname ends in .enc; */
 integer write_tounicode(char **glyph_names, const char *tfmname,
@@ -346,7 +362,7 @@ integer write_tounicode(char **glyph_names, const char *tfmname,
             pdftex_warn("Dubious encoding file name: `%s'", encname);
     } else { /* this is a builtin encoding, so name is e.g. "cmr10-builtin" */
         assert(strlen(tfmname) + strlen(builtin_suffix) + 1 < SMALL_BUF_SIZE);
-        strcat(buf, builtin_suffix);    
+        strcat(buf, builtin_suffix);
     }
 
     objnum = pdfnewobjnum();
@@ -389,8 +405,10 @@ integer write_tounicode(char **glyph_names, const char *tfmname,
             i++;
         } else {                /* gtab[i].code >= 0 */
             j = i;
-            while (i < 256 && gtab[i + 1].code >= 0 &&
-                   gtab[i].code + 1 == gtab[i + 1].code)
+            while (i < 256 && gtab[i + 1].code >= 0
+                    && gtab[i].code + 1 == gtab[i + 1].code
+                    && is_last_byte_valid(j, i, gtab[i].code)
+                  )
                 i++;
             /* at this point i is the last entry of the subrange */
             i++;                /* move i to the next entry */
@@ -474,4 +492,65 @@ integer write_tounicode(char **glyph_names, const char *tfmname,
                "end\n" "end\n" "%%%%EndResource\n" "%%%%EOF\n");
     pdfendstream();
     return objnum;
+}
+
+void dumptounicode(void)
+{
+    struct avl_traverser traverse;
+    integer count;
+    glyph_unicode_entry *gu;
+
+    if (glyph_unicode_tree == NULL) {
+        count = 0;
+        generic_dump(count);
+        return;
+    }
+
+    count = avl_count(glyph_unicode_tree);
+    generic_dump(count);
+
+    avl_t_init(&traverse, glyph_unicode_tree);
+    while (gu = avl_t_next(&traverse)) {
+        dumpcharptr(gu->name);
+        generic_dump(gu->code);
+
+        if (gu->code == UNI_STRING)
+            dumpcharptr(gu->unicode_seq);
+    }
+}
+
+void undumptounicode(void)
+{
+    glyph_unicode_entry *tmp;
+    integer remaining;
+
+    generic_undump(remaining);
+
+    if (remaining == 0)
+        return;
+
+    assert(glyph_unicode_tree == NULL);
+    glyph_unicode_tree =
+        avl_create(comp_glyph_unicode_entry, NULL, &avl_xallocator);
+    assert(glyph_unicode_tree != NULL);
+
+    while (remaining--) {
+        void **result;
+        glyph_unicode_entry *gu = new_glyph_unicode_entry();
+        undumpcharptr(gu->name);
+        if (gu->name == NULL) {
+            pdftex_fail("undumpcharptr(gu->name) got NULL");
+        }
+        generic_undump(gu->code);
+
+        if (gu->code == UNI_STRING) {
+            undumpcharptr(gu->unicode_seq);
+            if (gu->unicode_seq == NULL) {
+                pdftex_fail("undumpcharptr(gu->unicode_seq) got NULL");
+            }
+        }
+
+        result = avl_probe(glyph_unicode_tree, gu);
+        assert(*result == gu);
+    }
 }

@@ -8,6 +8,7 @@ struct simplex {
   int case;
   real[] x;
   real cost;
+  bool dual=false;
 
   int m,n;
   int J;
@@ -41,9 +42,9 @@ struct simplex {
     }
   }
 
-  int iterate(real[][] E, int N, int[] Bindices) {
+  int iterate(real[][] E, int N, int[] Bindices, bool phase1=false) {
     while(true) {
-      // Find first negative entry in bottom (reduced cost) row
+      // Bland's rule: first negative entry in reduced cost (bottom) row enters
       real[] Em=E[m];
       for(J=1; J <= N; ++J)
         if(Em[J] < 0) break;
@@ -67,7 +68,7 @@ struct simplex {
           real r=E[i][0]/u;
           if(r <= t && (r < t || Bindices[i] < Bindices[I])) {
             t=r; I=i;
-          } // Bland's rule: exiting variable has smallest minimizing index
+          } // Bland's rule: exiting variable has smallest minimizing subscript
         }
       }
       if(I == -1)
@@ -76,14 +77,15 @@ struct simplex {
       // Generate new tableau
       Bindices[I]=J;
       rowreduce(E,N,I,J);
+
+      if(phase1 && abs(Em[0]) <= EpsilonA) break;
     }
     return OPTIMAL;
   }
 
-  int iterateDual(real[][] E, int N, int[] Bindices) {
+  int iterateDual(real[][] E, int N, int[] Bindices, bool phase1=false) {
     while(true) {
-      // Find first negative entry in zeroth (basic variable) column
-      real[] Em=E[m];
+      // Bland's rule: negative variable with smallest subscript exits
       int I;
       for(I=0; I < m; ++I) {
         if(E[I][0] < 0) break;
@@ -92,23 +94,30 @@ struct simplex {
       if(I == m)
         break;
 
+      for(int i=I+1; i < m; ++i) {
+        if(E[i][0] < 0 && Bindices[i] < Bindices[I])
+          I=i;
+      }
+
+      real[] Em=E[m];
+      real[] EI=E[I];
       int J=0;
       real t;
       for(int j=1; j <= N; ++j) {
-        real u=E[I][j];
+        real u=EI[j];
         if(u < -EpsilonA) {
-          t=-E[m][j]/u;
+          t=-Em[j]/u;
           J=j;
           break;
         }
       }
       for(int j=J+1; j <= N; ++j) {
-        real u=E[I][j];
+        real u=EI[j];
         if(u < -EpsilonA) {
-          real r=-E[m][j]/u;
-          if(r <= t && (r < t || j < J)) {
+          real r=-Em[j]/u;
+          if(r < t) {
             t=r; J=j;
-          } // Bland's rule: exiting variable has smallest minimizing index
+          } // Bland's rule: smallest minimizing subscript enters
         }
       }
       if(J == 0)
@@ -125,9 +134,7 @@ struct simplex {
   // where A is an m x n matrix, x is a vector of n non-negative numbers,
   // b is a vector of length m, and c is a vector of length n.
   // Can set phase1=false if the last m columns of A form the identity matrix.
-  void operator init(real[] c, real[][] A, real[] b, bool phase1=true,
-                     bool dual=false) {
-    if(dual) phase1=false;
+  void operator init(real[] c, real[][] A, real[] b, bool phase1=true) {
     static real epsilon=sqrt(realEpsilon);
     real normA=norm(A);
     real epsilonA=100.0*realEpsilon*normA;
@@ -177,30 +184,28 @@ struct simplex {
 
     if(phase1) {
       Bindices=new int[m];
-      int p=0;
+      int k=0;
 
       // Check for redundant basis vectors.
-      bool checkBasis(int j) {
-        for(int i=0; i < m; ++i) {
-          real[] Ei=E[i];
-          if(i != p ? abs(Ei[j]) >= epsilonA : Ei[j] <= epsilonA) return false;
+      for(int p=0; p < m; ++p) {
+        bool checkBasis(int j) {
+          for(int i=0; i < m; ++i) {
+            real[] Ei=E[i];
+            if(i != p ? abs(Ei[j]) >= epsilonA : Ei[j] <= epsilonA)
+              return false;
+          }
+          return true;
         }
-        return true;
-      }
 
-      int checkTableau() {
-        for(int j=1; j <= n; ++j)
-          if(checkBasis(j)) return j;
-        return 0;
-      }
+        int checkTableau() {
+          for(int j=1; j <= n; ++j)
+            if(checkBasis(j)) return j;
+          return 0;
+        }
 
-      int k=0;
-      while(p < m) {
         int j=checkTableau();
-        if(j > 0)
-          Bindices[p]=j;
-        else { // Add an artificial variable
-          Bindices[p]=n+1+k;
+        Bindices[p]=n+1+p;
+        if(j == 0) { // Add an artificial variable
           for(int i=0; i < p; ++i)
             E[i].push(0.0);
           E[p].push(1.0);
@@ -209,12 +214,12 @@ struct simplex {
           E[m].push(0.0);
           ++k;
         }
-        ++p;
       }
 
       basicValues();
-      iterate(E,n+k,Bindices);
-  
+
+      iterate(E,n+k,Bindices,true);
+
       if(abs(Em[0]) > EpsilonA) {
       case=INFEASIBLE;
       return;
@@ -229,8 +234,7 @@ struct simplex {
     if(phase1) {
       // Drive artificial variables out of basis.
       for(int i=0; i < m; ++i) {
-        int k=Bindices[i];
-        if(k > n) {
+        if(Bindices[i] > n) {
           real[] Ei=E[i];
           int j;
           for(j=1; j <= n; ++j)
@@ -244,7 +248,7 @@ struct simplex {
       for(int i=0; i < m; ++i) {
         int k=Bindices[i];
         if(k > n) continue;
-        Bindices[ip]=k; 
+        Bindices[ip]=k;
         cB[ip]=c[k-1];
         real[] Dip=D[ip];
         real[] Ei=E[i];
@@ -314,7 +318,7 @@ struct simplex {
         ai[j]=Ai[j];
       }
     }
-  
+
     int k=0;
 
     bool phase1=false;
@@ -324,11 +328,11 @@ struct simplex {
       real[] ai=a[i];
       for(int j=0; j < k; ++j)
         ai[n+j]=0;
+      int si=s[i];
       if(k < count)
-        ai[n+k]=-s[i];
+        ai[n+k]=-si;
       for(int j=k+1; j < count; ++j)
         ai[n+j]=0;
-      int si=s[i];
       if(si == 0) phase1=true;
       else {
         ++k;
@@ -339,19 +343,18 @@ struct simplex {
             for(int j=0; j < n+count; ++j)
               ai[j]=-ai[j];
           }
-        } else if(si*bi > 0) {
-          if(dual && si == 1) {
-            b[i]=-bi;
-            s[i]=-1;
-            for(int j=0; j < n+count; ++j)
-              ai[j]=-ai[j];
-          } else
-            phase1=true;
-        }
+        } else if(dual && si == 1) {
+          b[i]=-bi;
+          s[i]=-1;
+          for(int j=0; j < n+count; ++j)
+            ai[j]=-ai[j];
+        } else if(si*bi > 0)
+          phase1=true;
       }
     }
 
-    operator init(concat(c,array(count,0.0)),a,b,phase1,dual);
+    if(dual) phase1=false;
+    operator init(concat(c,array(count,0.0)),a,b,phase1);
 
     if(case == OPTIMAL && count > 0)
       x.delete(n,n+count-1);

@@ -241,10 +241,37 @@ static void unsave_math_fam_data(int gl)
 
 static sa_tree math_param_head = NULL;
 
+// void def_math_param(int param_id, int style_id, scaled value, int lvl)
+// {
+//     int n = param_id + (256 * style_id);
+//     sa_tree_item sa_value = { 0 };
+//     sa_value.int_value = (int) value;
+//     set_sa_item(math_param_head, n, sa_value, lvl);
+//     if (tracing_assigns_par > 1) {
+//         begin_diagnostic();
+//         tprint("{assigning");
+//         print_char(' ');
+//         print_cmd_chr(set_math_param_cmd, param_id);
+//         print_cmd_chr(math_style_cmd, style_id);
+//         print_char('=');
+//         print_int(value);
+//         print_char('}');
+//         end_diagnostic(false);
+//     }
+// }
+
 void def_math_param(int param_id, int style_id, scaled value, int lvl)
 {
     int n = param_id + (256 * style_id);
     sa_tree_item sa_value = { 0 };
+    if (lvl <= 1) {
+        if (param_id >= math_param_ord_ord_spacing && param_id <= math_param_inner_inner_spacing) {
+            sa_tree_item ti = get_sa_item(math_param_head, n);
+            if (ti.int_value > thick_mu_skip_code && valid_node(ti.int_value)) {
+                free_node(ti.int_value, glue_spec_size);
+            }
+        }
+    }
     sa_value.int_value = (int) value;
     set_sa_item(math_param_head, n, sa_value, lvl);
     if (tracing_assigns_par > 1) {
@@ -266,6 +293,36 @@ scaled get_math_param(int param_id, int style_id)
     return (scaled) get_sa_item(math_param_head, n).int_value;
 }
 
+// static void unsave_math_param_data(int gl)
+// {
+//     sa_stack_item st;
+//     if (math_param_head->stack == NULL)
+//         return;
+//     while (math_param_head->stack_ptr > 0 &&
+//            abs(math_param_head->stack[math_param_head->stack_ptr].level)
+//            >= (int) gl) {
+//         st = math_param_head->stack[math_param_head->stack_ptr];
+//         if (st.level > 0) {
+//             rawset_sa_item(math_param_head, st.code, st.value);
+//             /*tex Do a trace message, if requested. */
+//             if (tracing_restores_par > 1) {
+//                 int param_id = st.code % 256;
+//                 int style_id = st.code / 256;
+//                 begin_diagnostic();
+//                 tprint("{restoring");
+//                 print_char(' ');
+//                 print_cmd_chr(set_math_param_cmd, param_id);
+//                 print_cmd_chr(math_style_cmd, style_id);
+//                 print_char('=');
+//                 print_int(get_math_param(param_id, style_id));
+//                 print_char('}');
+//                 end_diagnostic(false);
+//             }
+//         }
+//         (math_param_head->stack_ptr)--;
+//     }
+// }
+
 static void unsave_math_param_data(int gl)
 {
     sa_stack_item st;
@@ -276,11 +333,17 @@ static void unsave_math_param_data(int gl)
            >= (int) gl) {
         st = math_param_head->stack[math_param_head->stack_ptr];
         if (st.level > 0) {
+            int param_id = st.code % 256;
+            int style_id = st.code / 256;
+            if (param_id >= math_param_ord_ord_spacing && param_id <= math_param_inner_inner_spacing) {
+                sa_tree_item ti = get_sa_item(math_param_head, st.code);
+                if (ti.int_value > thick_mu_skip_code && valid_node(ti.int_value)) {
+                    free_node(ti.int_value, glue_spec_size);
+                }
+            }
             rawset_sa_item(math_param_head, st.code, st.value);
             /*tex Do a trace message, if requested. */
             if (tracing_restores_par > 1) {
-                int param_id = st.code % 256;
-                int style_id = st.code / 256;
                 begin_diagnostic();
                 tprint("{restoring");
                 print_char(' ');
@@ -1399,6 +1462,8 @@ int scan_math(pointer p, int mstyle)
     math_character(p) = mval.character_value;
     if ((mval.class_value == math_use_current_family_code) && cur_fam_par_in_range)
         math_fam(p) = cur_fam_par;
+    else if ((mval.family_value == var_fam_par) && var_fam_par_in_range)
+        math_fam(p) = cur_fam_par;
     else
         math_fam(p) = mval.family_value;
     return 0;
@@ -1445,6 +1510,9 @@ void set_math_char(mathcodeval mval)
             if (cur_fam_par_in_range)
                 math_fam(nucleus(p)) = cur_fam_par;
             subtype(p) = ord_noad_type;
+        } else if ((mval.family_value == var_fam_par) && var_fam_par_in_range) {
+            if (cur_fam_par_in_range)
+                math_fam(nucleus(p)) = cur_fam_par;
         } else {
             math_class_to_type(subtype(p),mval.class_value);
         }
@@ -1577,11 +1645,17 @@ static void scan_delimiter(pointer p, int r)
     return;
 }
 
+/*tex
+    Because \LATEX\ expect some different defaults, we now have |math_defaults_mode_par| controlling
+    the style. By using a variable we can remain downward compatible.
+*/
+
 void math_radical(void)
 {
     halfword q;
     int chr_code = cur_chr;
     halfword options = 0;
+    halfword used_style = cramped_style(m_style);
     tail_append(new_node(radical_noad, chr_code));
     q = new_node(delim_node, 0);
     left_delimiter(tail) = q;
@@ -1600,32 +1674,42 @@ void math_radical(void)
         }
     }
     radicaloptions(tail) = options;
-    if (chr_code == 0)
+    if (chr_code == 0) {
         /*tex \.{\\radical} */
         scan_delimiter(left_delimiter(tail), tex_mathcode);
-    else if (chr_code == 1)
+    } else if (chr_code == 1) {
         /*tex \.{\\Uradical} */
         scan_delimiter(left_delimiter(tail), umath_mathcode);
-    else if (chr_code == 2)
+    } else if (chr_code == 2) {
         /*tex \.{\\Uroot} */
         scan_delimiter(left_delimiter(tail), umath_mathcode);
-    else if (chr_code == 3)
+    } else if (chr_code == 3) {
         /*tex \.{\\Uunderdelimiter} */
         scan_delimiter(left_delimiter(tail), umath_mathcode);
-    else if (chr_code == 4)
+        if (math_defaults_mode_par > 0) {
+            used_style = sub_style(m_style);
+        }
+    } else if (chr_code == 4) {
         /*tex \.{\\Uoverdelimiter} */
         scan_delimiter(left_delimiter(tail), umath_mathcode);
-    else if (chr_code == 5)
+        if (math_defaults_mode_par > 0) {
+            used_style = sup_style(m_style);
+        }
+    } else if (chr_code == 5) {
         /*tex \.{\\Udelimiterunder} */
         scan_delimiter(left_delimiter(tail), umath_mathcode);
-    else if (chr_code == 6)
+        if (math_defaults_mode_par > 0) {
+            used_style = m_style;
+        }
+    } else if (chr_code == 6) {
         /*tex \.{\\Udelimiterover} */
         scan_delimiter(left_delimiter(tail), umath_mathcode);
-    else if (chr_code == 7)
+    } else if (chr_code == 7) {
         /*tex \.{\\Uhextensible} */
         scan_delimiter(left_delimiter(tail), umath_mathcode);
-    else
+    } else {
         confusion("math_radical");
+    }
     if (chr_code == 7) {
         /*tex type will change */
         q = new_node(sub_box_node, 0);
@@ -1645,12 +1729,12 @@ void math_radical(void)
             vlink(degree(tail)) = null;
             q = new_node(math_char_node, 0);
             nucleus(tail) = q;
-            (void) scan_math(nucleus(tail), cramped_style(m_style));
+            (void) scan_math(nucleus(tail), used_style);
         }
     } else {
         q = new_node(math_char_node, 0);
         nucleus(tail) = q;
-        (void) scan_math(nucleus(tail), cramped_style(m_style));
+        (void) scan_math(nucleus(tail), used_style);
     }
 }
 
@@ -1723,6 +1807,8 @@ void math_ac(void)
         math_character(top_accent_chr(tail)) = t.character_value;
         if ((t.class_value == math_use_current_family_code) && cur_fam_par_in_range)
             math_fam(top_accent_chr(tail)) = cur_fam_par;
+        else if ((t.family_value == var_fam_par) && var_fam_par_in_range)
+            math_fam(top_accent_chr(tail)) = cur_fam_par;
         else
             math_fam(top_accent_chr(tail)) = t.family_value;
     }
@@ -1732,6 +1818,8 @@ void math_ac(void)
         math_character(bot_accent_chr(tail)) = b.character_value;
         if ((b.class_value == math_use_current_family_code) && cur_fam_par_in_range)
             math_fam(bot_accent_chr(tail)) = cur_fam_par;
+        else if ((b.family_value == var_fam_par) && var_fam_par_in_range)
+            math_fam(bot_accent_chr(tail)) = cur_fam_par;
         else
             math_fam(bot_accent_chr(tail)) = b.family_value;
     }
@@ -1740,6 +1828,8 @@ void math_ac(void)
         overlay_accent_chr(tail) = q;
         math_character(overlay_accent_chr(tail)) = o.character_value;
         if ((o.class_value == math_use_current_family_code) && cur_fam_par_in_range)
+            math_fam(overlay_accent_chr(tail)) = cur_fam_par;
+        else if ((o.family_value == var_fam_par) && var_fam_par_in_range)
             math_fam(overlay_accent_chr(tail)) = cur_fam_par;
         else
             math_fam(overlay_accent_chr(tail)) = o.family_value;
@@ -1926,6 +2016,8 @@ void math_fraction(void)
                 while (1) {
                     if (scan_keyword("exact")) {
                         options = options | noad_option_exact ;
+                    } else if (scan_keyword("norule")) {
+                        options = options | noad_option_no_rule ;
                     } else {
                         break;
                     }
@@ -2419,13 +2511,31 @@ static void finish_displayed_math(boolean l, pointer eqno_box, pointer p)
                     d = 0;
     }
     tail_append(new_penalty(pre_display_penalty_par,after_display_penalty));
-    if ((d + line_s <= pre_display_size_par) || l) {
+
+    /* tex
+       By default the short skip detection is not adapted to r2l typesetting and that
+      hasn't been the case since the start of the project. Changing it could break
+      hacks that users came up with but when you set \.{\\matheqdirmode} to a positive
+      value direction will be taken into account.
+    */
+    if (math_eq_dir_mode_par<=0) { /* old behavior */
+       if ((d + line_s <= pre_display_size_par) || l) {
         /*tex not enough clearance */
         g1 = above_display_skip_code;
         g2 = below_display_skip_code;
-    } else {
+       } else {
         g1 = above_display_short_skip_code;
         g2 = below_display_short_skip_code;
+       }
+    } else {
+      if ((d + line_s <= pre_display_size_par) || ((! dir_math_save && l) || (dir_math_save && ! l))) {
+        /*tex not enough clearance */
+        g1 = above_display_skip_code;
+        g2 = below_display_skip_code;
+      } else {
+        g1 = above_display_short_skip_code;
+        g2 = below_display_short_skip_code;
+      }
     }
     /*tex
 
@@ -2552,8 +2662,12 @@ void after_math(void)
     }
     if (mode == -m) {
         /*tex end of equation number */
+      RECHECK:
         if (cur_cmd == math_shift_cmd) {
             check_second_math_shift();
+        } else if (suppress_mathpar_error_par && cur_cmd == par_end_cmd) {
+            get_x_token();
+            goto RECHECK;
         } else {
             check_display_math_end();
         }
@@ -2688,8 +2802,12 @@ void after_math(void)
 void finish_display_alignment(pointer p, pointer q, halfword saved_prevdepth)
 {
     do_assignments();
+  RECHECK:
     if (cur_cmd == math_shift_cmd) {
         check_second_math_shift();
+    } else if (suppress_mathpar_error_par && cur_cmd == par_end_cmd) {
+        get_x_token();
+        goto RECHECK;
     } else {
         check_display_math_end();
     }

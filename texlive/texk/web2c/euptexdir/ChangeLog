@@ -1,3 +1,240 @@
+2024-10-20  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* eptex.ech, etex.ch{0,1}, fam256,ch,
+	pdfutils.ch, char-warnings-euptex.ch:
+	Support Latin Unicode and 16bit OFM Level-0.
+	Implement new kcatcode (latin_ucs(14)).
+	* euptex-ofm.test, tests/eup-prim.{tex,log},
+	tests/eup-ofm.{tex,log}, am/euptex.am:
+	Add and update tests.
+	* eptex_version.h, eptex.ech:
+	Bump version to 241020.
+	https://github.com/texjporg/tex-jp-build/issues/170
+
+2024-10-12  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* euptex-prim.test, tests/eup-prim.{tex,log},
+	am/euptex.am: Add a test.
+	* eptex_version.h, eptex.ech:
+	Bump version to 240930.
+
+2024-09-30  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* eptex.ech: kcatcode (latin_ucs(14)) is removed
+	since it will be supported in upTeX-2.00.
+
+2024-09-28  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* euptex-{ctrlsym,kinsoku,prntknj}.test:
+	Skip tests with updvitype if updvitype are not built.
+
+2024-09-21  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* eptex.ech, pdfutils.ch:
+	Better support for kcatcode=20 (modifier).
+	* euptex-{ctrlsym,kinsoku,prntknj,ucs}.test,
+	tests/{control-symbol,ctrlsym.tex,endlinechar,free_{ixsp,pena},
+	inhibitglue,kinsoku_{search,table},postpena,printkanji,ucs}.tex,
+	tests/eup-{endline,inhibitglue,jctrlsym,pknj-{e,s,u}}a.typ,
+	tests/{endline,free_{ixsp,pena},jctrlsym,kinsoku_{search,table},
+	pknj-{e,s,u},postpena,ucs-{e,s,u}}.log:
+	Add regression tests by using Kitagawa-san's and
+	Yamashita-san's sample files.
+	* tests/{free_{ixsp,pena},inhibitglue,kinsoku_{search,table},
+	postpena}.tex: Move from ../ptexdir/tests .
+	* am/euptex.am: Adjust.
+
+2024-06-04  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	* unbalanced-braces-eptex.ch, suppresserrors.ch: sync with the upstream
+
+2024-06-03  Karl Berry  <karl@freefriends.org>
+
+	* suppresserrors.ch (check_outer_validity): comment out hunk
+	for this procedure adding a check for "suppress_outer_error=0", to
+	avoid conflict with new change in tex.ch at the same place.
+
+2024-05-18  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* euptex-ctrlsym.test, tests/ctrlsym.{tex,log},
+	am/euptex.am: Add tests for getting character codes
+	from control symbols by using backquote "`".
+	https://github.com/texjporg/tex-jp-build/issues/167
+
+2024-05-01  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* pdfutils.ch: Revert some patches.
+
+2024-04-27  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* eptex.ech, pdfutils.ch, euptex.defines:
+	Support new encoding of upTeX for combining characters
+	with multiple codepoints.
+	https://github.com/texjporg/tex-jp-build/issues/46
+	* COPYRIGHT: copyright year.
+
+2024-04-24  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* eptex.ech, etex.ch1, euptex.ch{0,1},
+	pdfstrcmp-eup-{pre,post}.ch, pdfutils.ch, am/euptex.am:
+	Clean up building environment.
+	https://github.com/texjporg/tex-jp-build/issues/32
+
+2024-04-14  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* epTeX_doc/{{README,Changes}.txt,ChangeLog,eptex-base.ch},
+	tests/{{fontchar,pdforigin}.{sh,tex},{lastnodefont,
+	lastnodesubtype_math,pdfpagewidth,pdfsavepos,
+	printkanji-eptex,suppress_errors,uchar,zero_search}.tex},
+	euptrip/eptrip.{tex,log}, unbalanced-braces-eptex.ch:
+	Move from ../eptexdir/*.
+	* am/euptex.am, euptexextra.h, e{,u}ptriptest.test,
+	pdfprimitive.test: Remove eptex and eptexdir.
+	We already use alias of e-upTeX (euptex)
+	and will never build e-pTeX binary (eptex).
+	https://github.com/texjporg/tex-jp-build/issues/32
+	* e{,u}ptriptest.test:
+	Filter Web2C year/dev in banner.
+
+2024-03-10  Karl Berry  <karl@tug.org>
+
+	* TL'24 release.
+
+2024-02-10  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* eptex_version.h, eptex.ech, etex.ch{0,1},
+	{char-warning-eptex,fam256,pdfutils,suppresserrors}.ch,
+	eptrip/eptrip.{diffs,log,tex}, eptrip/texmf.cnf,
+	tests/pdfprimitive-test.tex, am/euptex.am:
+	Copy eptex source files from ../eptexdir
+	to cleaning up building environment.
+	https://github.com/texjporg/tex-jp-build/issues/32
+
+2023-12-24  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* wcfname{,0}.test:
+	Avoid errors on parallel test processing.
+
+2023-12-23  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* am/euptex.am:
+	Do not build binaries of e-pTeX and
+	we use alias of e-upTeX for e-pTeX by default.
+	https://github.com/texjporg/tex-jp-build/issues/32
+
+2023-11-25  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* wcfname{,0}.test: Add tests for --recorder and *.fls.
+	https://github.com/texjporg/tex-jp-build/issues/45
+
+2023-11-24  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* wcfname.test: Add test for file names with over-BMP
+	(4byte UTF-8).
+	https://tug.org/pipermail/tex-live/2023-November/049685.html
+	* eptriptest.test, euptriptest.test:
+	Check diffs of trip.{fot,typ} with ignoring trivial changes
+	in trip tests.
+
+2023-09-03  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* {eptriptest,euptriptest,eupver}.test:
+	Update tests for Windows.
+
+2023-08-20  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* am/euptex.am, {eptriptest,euptriptest,eupver,
+	pdfprimitive,wcfname,wcfname0}.test:
+	Make easier to test on Windows.
+
+2023-03-29  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* wcfname.test:
+	Skip tests for Shift_JIS & EUC-JP if conversion failed.
+	Report from Ken Moffat.
+	https://tug.org/pipermail/tex-k/2023-March/003911.html
+
+2023-03-09  Karl Berry  <karl@tug.org>
+
+	* TL'23 release.
+
+2023-02-14  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* wcfname.test:
+	Avoid errors on parallel test processing.
+	Report from Ken Brown.
+
+2023-01-28  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* am/euptex.am:
+	Revert options --enable-uptex(-synctex) for configure.
+	By default, we do not build binary of upTeX (uptex)
+	and we use alias of e-upTeX (euptex) for it.
+	https://github.com/texjporg/tex-jp-build/issues/32
+
+2023-01-15  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* wcfname.test, am/euptex.am:
+	Add tests for file names with JIS X 0208 & UTF-8 characters
+	in `euptex --kanji-internal={euc,sjis,uptex}`.
+	https://github.com/texjporg/tex-jp-build/issues/136
+	* eptriptest.test, am/euptex.am:
+	Add tests for e-pTeX compatible mode.
+	* euptexextra.h:
+	Make AUTHOR "Japanese TeX Development Community".
+	* am/euptex.am:
+	Now we use alias of e-upTeX (euptex) for upTeX (uptex).
+	https://github.com/texjporg/tex-jp-build/issues/32
+	* COPYRIGHT: copyright year.
+
+2022-12-22  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* euptex.defines:
+	Accept file names with JIS X 0208 characters
+	in `euptex --kanji-internal={euc,sjis}`.
+	https://github.com/texjporg/tex-jp-build/issues/136
+
+2022-11-03  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* euptex.ch0, euptex.ch1: Adapt to ptex-base.ch.
+	https://github.com/texjporg/tex-jp-build/issues/152
+
+2022-10-24  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* euptex.defines: Add toJIS.
+
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2022-02-05  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* euptex.defines: Add isterminalUTF8.
+
+2022-01-22  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* euptex.ch1, pdfstrcmp-eup-post.ch, pdfstrcmp-eup-pre.ch:
+	  Change type of str_pool to unsigned short.
+	  We use only 0--511, and use flag 0x100 for Japanese char.
+	  More details in TUGboat 41(2):329--334, 2020.
+	* euptex.defines: Add multistrlen{short,filename}, fromBUFFshort.
+
+2022-01-10  Karl Berry  <karl@freefriends.org>
+
+	* am/euptex.am: do not silence tangle-sh.
+
+2021-12-07  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* am/euptex.am: Add suppresserrors.ch.
+
+2021-03-23  Karl Berry  <karl@tug.org>
+
+	* TL'21.
+
+2020-07-19  Karl Berry  <karl@freefriends.org>
+
+	* am/euptex.am (euptex_ch_srcs): add eptexdir/char-warning-eptex.ch.
+
 2019-12-10  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
 
 	* am/euptex.am (euptex_CPPFLAGS): append $(ZLIB_INCLUDES).

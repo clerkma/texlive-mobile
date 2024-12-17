@@ -1,4 +1,7 @@
+#include <string.h>
+
 #define EXTERN extern
+
 
 #if defined(JIT)
 #include "mfluajitd.h"
@@ -14,13 +17,28 @@
 #include <luajit.h>
 #endif
 
+#include "potrace/luafunc.h"
+
+#include "luapeg/lpeg.h"
+
+/* otfcc */
+#if defined(NO_OTFCC)
+/* */
+#else
+extern int otfcc_build(int argc, char *argv[]);
+extern int otfcc_dump(int argc, char *argv[]);
+#endif
+
+extern int luaopen_lpeg(lua_State *L);
+extern int mfluaopen_lpeg(lua_State * L);
+
 /* See  shell_cmd_is_allowed below */
 int shellenabledp = 1;
 int restrictedshell = 0;
 
 /**************************************************************/
 /*                                                            */
-/* private functions                                          */
+/* MFbuiltin private functions                                */
 /*                                                            */
 /**************************************************************/
 static lua_State *Luas[1];
@@ -471,8 +489,353 @@ static int priv_mflua_banner(lua_State *L)
   return 1;
 }
 
+static int priv_mflua_developid(lua_State *L)
+{
+  lua_pushstring(L,mflua_svn_revision);
+  return 1;
+}
 
 
+
+/**************************************************************/
+/*                                                            */
+/* Adapters for LuaJIT                                        */
+/*                                                            */
+/**************************************************************/
+
+#ifdef MFLuaJIT
+static void lua_len (lua_State *L, int i) {
+  switch (lua_type(L, i)) {
+    case LUA_TSTRING:
+      lua_pushnumber(L, (lua_Number)lua_objlen(L, i));
+      break;
+    case LUA_TTABLE:
+      if (!luaL_callmeta(L, i, "__len"))
+        lua_pushnumber(L, (lua_Number)lua_objlen(L, i));
+      break;
+    case LUA_TUSERDATA:
+      if (luaL_callmeta(L, i, "__len"))
+        break;
+      /* FALLTHROUGH */
+    default:
+      luaL_error(L, "attempt to get length of a %s value",
+                 lua_typename(L, lua_type(L, i)));
+  }
+}
+
+static int lua_absindex (lua_State *L, int i) {
+  if (i < 0 && i > LUA_REGISTRYINDEX)
+    i += lua_gettop(L) + 1;
+  return i;
+}
+static int lua_geti (lua_State *L, int index, lua_Integer i) {
+  index = lua_absindex(L, index);
+  lua_pushinteger(L, i);
+  lua_gettable(L, index);
+  return lua_type(L, -1);
+}
+static void lua_seti (lua_State *L, int index, lua_Integer i) {
+  index = lua_absindex(L, index);
+  lua_pushinteger(L, i);
+  lua_insert(L, -2);
+  lua_settable(L, index);
+}
+#endif
+
+
+/**************************************************************/
+/*                                                            */
+/* otfcc private functions                                    */
+/*                                                            */
+/**************************************************************/
+
+
+static int priv_mflua_otf_dump(lua_State *L) {
+    if (!lua_istable(L, -1)) {
+      fprintf(stderr, "! dump: expected a table\n");
+      lua_pop(L,1);
+      return 0;
+    } else {
+     /* table is in the stack at index '-1' */
+     size_t l=0;
+     int j;
+     char **av;
+
+     lua_len (L, -1);
+     l = (size_t)(lua_tonumber(L,-1));
+     lua_pop(L,1);
+     if (l==0 )
+       return 0;
+     av = malloc((l+1) * sizeof(char*));
+     if (av==NULL) { 
+       fprintf(stderr, "! dump: unable to allocate av\n");
+       return 0;
+     }
+     av[0] = malloc((strlen("/dump")+1)*sizeof(char));
+     if (av[0]==NULL) { 
+       fprintf(stderr, "! dump: unable to allocate av[0]\n");
+       return 0;
+     }
+     strcpy(av[0], "/dump");
+     /* fill the av array */
+     for(j=1;j<=l;j++){
+        const char *k;
+        lua_geti(L,-1,j);
+        k = lua_tostring(L, -1);
+        av[j] = malloc((strlen(k)+1)*sizeof(char));
+        if (av[j]==NULL) { 
+         fprintf(stderr, "! dump: unable to allocate av[%d]\n",j);
+         return 0;
+        }
+        strcpy(av[j], k);
+        lua_pop(L,1);
+     }
+#if defined(NO_OTFCC)
+/* */
+#else 
+     otfcc_dump(l+1,av);
+#endif
+     /* release the av */
+     free(av[0]);
+     for(j=1;j<=l;j++)
+         free(av[j]);
+     free(av);
+     return 0;
+   }
+}
+
+
+static int priv_mflua_otf_build(lua_State *L) {
+    if (!lua_istable(L, -1)) {
+      fprintf(stderr, "! build: expected a table\n");
+      lua_pop(L,1);
+      return 0;
+    } else {
+     /* table is in the stack at index '-1' */
+     size_t l=0;
+     int j;
+     char **av;
+
+     lua_len (L, -1);
+     l = (size_t)(lua_tonumber(L,-1)) ;
+     lua_pop(L,1);
+     if (l==0 )
+       return 0;
+     av = malloc((l+1) * sizeof(char*));
+     if (av==NULL) { 
+       fprintf(stderr, "! build: unable to allocate av\n");
+       return 0;
+     }
+     av[0] = malloc((strlen("/build")+1)*sizeof(char));
+     if (av[0]==NULL) { 
+       fprintf(stderr, "! build: unable to allocate av[0]\n");
+       return 0;
+     }
+     strcpy(av[0], "/build");
+     /* fill the av array */
+     for(j=1;j<=l;j++){
+        const char *k;
+        lua_geti(L,-1,j);
+        k = lua_tostring(L, -1);
+        av[j] = malloc((strlen(k)+1)*sizeof(char));
+        if (av[j]==NULL) { 
+         fprintf(stderr, "! build: unable to allocate av[%d]\n",j);
+         return 0;
+        }
+        strcpy(av[j], k);
+        lua_pop(L,1);
+     }
+#if defined(NO_OTFCC)
+/* */
+#else 
+     otfcc_build(l+1,av);
+#endif
+     /* release the av */
+     free(av[0]);
+     for(j=1;j<=l;j++)
+         free(av[j]);
+     free(av);
+     return 0;
+   }
+}
+
+
+/**************************************************************/
+/*                                                            */
+/* private potrace layer                                      */
+/*                                                            */
+/**************************************************************/
+
+
+static int priv_mflua_potrace_build(lua_State *L) {
+  int w,h;
+  size_t l;
+  const uint8_t *raster;
+  MFoutlines_param_t opt_param;
+  potrace_state_t *trace;
+  potrace_path_t *p;
+  potrace_dpoint_t (*c)[3];
+  double xoffs,yoffs;
+  int n,i,*tag,jj;
+
+  w=h=0;
+  raster=NULL;
+  l=0;
+  opt_param.xoffs = opt_param.yoffs = 0.0;
+  opt_param.potrace_param = NULL;
+  trace = NULL;
+
+  raster = (const uint8_t*) luaL_checklstring(L,1,&l);
+  if (raster==NULL) {
+   fprintf(stderr,"! raster is empty\n");
+   lua_settop(L,0);
+   return 0;
+  }
+  w = (int)luaL_checkinteger(L,2);
+  h = (int)luaL_checkinteger(L,3);
+  
+  if ( (w%8==0? w/8:(w/8+1))*h != l) {
+   fprintf(stderr,"! raster dimension is wrong\n");
+   lua_settop(L,0);
+   return 0;
+  }
+
+  /* optional param table */
+  if (lua_istable(L,4)){
+    lua_getfield(L,4, "xoffs");
+    if (lua_isnumber(L,-1)){
+      opt_param.xoffs = (double)lua_tonumber(L,-1);
+    }
+    lua_pop(L,1);
+    lua_getfield(L,4, "yoffs");
+    if (lua_isnumber(L,-1)){
+      opt_param.yoffs = (double)lua_tonumber(L,-1);
+    }
+    lua_pop(L,1);
+    lua_getfield(L,4, "potrace_params");
+    if (lua_istable(L,-1)){
+      opt_param.potrace_param = potrace_param_default();
+      if (!opt_param.potrace_param) {
+	fprintf(stderr, "! Error allocating potrace_param: %s\n", strerror(errno)); 
+	lua_settop(L,0);
+	return 0;
+      }
+      lua_getfield(L,-1,"turdsize");      if(lua_isnumber(L,-1)){opt_param.potrace_param->turdsize    =(int)(lua_tonumber(L,-1))   ;};lua_pop(L,1); 
+      lua_getfield(L,-1,"alphamax");      if(lua_isnumber(L,-1)){opt_param.potrace_param->alphamax    =(double)(lua_tonumber(L,-1));};lua_pop(L,1);
+      lua_getfield(L,-1,"opticurve");     if(lua_isnumber(L,-1)){opt_param.potrace_param->opticurve   =(int)(lua_tonumber(L,-1))   ;};lua_pop(L,1);
+      lua_getfield(L,-1,"opttolerance");  if(lua_isnumber(L,-1)){opt_param.potrace_param->opttolerance=(double)(lua_tonumber(L,-1));};lua_pop(L,1);
+      lua_getfield(L,-1,"turnpolicy");
+      if(lua_isnumber(L,-1)){
+	switch ((int)(lua_tonumber(L,-1))) {
+	case 1:
+	  opt_param.potrace_param->turnpolicy = POTRACE_TURNPOLICY_BLACK;
+	  break;
+	case 2:
+          opt_param.potrace_param->turnpolicy = POTRACE_TURNPOLICY_WHITE;
+          break;
+	case 3:
+          opt_param.potrace_param->turnpolicy = POTRACE_TURNPOLICY_LEFT;
+          break;
+	case 4:
+          opt_param.potrace_param->turnpolicy = POTRACE_TURNPOLICY_RIGHT;
+          break;
+	case 5: 
+	  opt_param.potrace_param->turnpolicy = POTRACE_TURNPOLICY_MINORITY;
+	  break;
+	case 6:
+	  opt_param.potrace_param->turnpolicy = POTRACE_TURNPOLICY_MAJORITY;
+	  break;;
+	case 7:
+	  opt_param.potrace_param->turnpolicy = POTRACE_TURNPOLICY_RANDOM;
+	  break;
+	default:
+          break;
+	}
+      }
+      lua_pop(L,1);
+    }
+  }
+  lua_pop(L,1);
+
+  if (potrace_getMFoutlines(raster,w,h,opt_param,&trace)) {
+   lua_settop(L,0);
+   return 0;
+  }
+
+  jj=1;
+  lua_newtable(L); // main table 
+
+  xoffs = opt_param.xoffs;yoffs = opt_param.yoffs;
+  //printf("%%%%!PS-Adobe-3.0 EPSF-3.0\n");
+  //printf("%%%%Creator: MFLua / potrace 1.16, written by Peter Selinger 2001-2019\n");
+  //printf("%%%%BoundingBox: %d %d %d %d\n", (int)(xoffs),(int)(yoffs), w, h);
+  //printf("%%%%HiResBoundingBox: %f %f %f %f\n",xoffs,yoffs, (double)(w), (double)(h));
+  //printf("%%%%Pages: 1\n");
+  //printf("%%%%EndComments\n");
+  //printf("gsave\n");
+  /* draw each curve */
+  p = trace->plist;
+  while (p != NULL) {
+    double px,py,c1x,c1y,c2x,c2y,qx,qy;
+    int j=1;
+    lua_newtable(L); // table for the cycle
+    n = p->curve.n;
+    tag = p->curve.tag;
+    c = p->curve.c;
+    //printf("%f %f moveto\n", c[n-1][2].x+xoffs, c[n-1][2].y+yoffs);
+    px=c[n-1][2].x+xoffs;py=c[n-1][2].y+yoffs; //lua_pushnumber(L,py);lua_pushnumber(L,px);lua_seti(L,-3,j++);lua_seti(L,-2,j++);
+    for (i=0; i<n; i++) {
+      lua_pushnumber(L,py);lua_pushnumber(L,px);lua_seti(L,-3,j++);lua_seti(L,-2,j++);
+      switch (tag[i]) {
+      case POTRACE_CORNER:
+        //printf("%f %f lineto\n", c[i][1].x+xoffs, c[i][1].y+yoffs);
+        //printf("%f %f lineto\n", c[i][2].x+xoffs, c[i][2].y+yoffs);
+        c1x=px;c1y=py;                          lua_pushnumber(L,c1y);lua_pushnumber(L,c1x);lua_seti(L,-3,j++);lua_seti(L,-2,j++);
+        c2x=c[i][1].x+xoffs;c2y=c[i][1].y+yoffs;lua_pushnumber(L,c2y);lua_pushnumber(L,c2x);lua_seti(L,-3,j++);lua_seti(L,-2,j++);
+        qx=c2x;qy=c2y;                          lua_pushnumber(L,qy); lua_pushnumber(L,qx); lua_seti(L,-3,j++);lua_seti(L,-2,j++);
+        px=qx;py=qy;                            lua_pushnumber(L,py); lua_pushnumber(L,px); lua_seti(L,-3,j++);lua_seti(L,-2,j++);
+        c1x=px;c1y=py;                          lua_pushnumber(L,c1y);lua_pushnumber(L,c1x);lua_seti(L,-3,j++);lua_seti(L,-2,j++);
+        c2x=c[i][2].x+xoffs;c2y=c[i][2].y+yoffs;lua_pushnumber(L,c2y);lua_pushnumber(L,c2x);lua_seti(L,-3,j++);lua_seti(L,-2,j++);
+        qx=c2x;qy=c2y;                          lua_pushnumber(L,qy); lua_pushnumber(L,qx); lua_seti(L,-3,j++);lua_seti(L,-2,j++);
+        break;
+      case POTRACE_CURVETO:
+        //printf("%f %f %f %f %f %f curveto\n", 
+        //       c[i][0].x+xoffs, c[i][0].y+yoffs,
+        //       c[i][1].x+xoffs, c[i][1].y+yoffs,
+        //       c[i][2].x+xoffs, c[i][2].y+yoffs);
+        c1x=c[i][0].x+xoffs;c1y=c[i][0].y+yoffs;lua_pushnumber(L,c1y);lua_pushnumber(L,c1x);lua_seti(L,-3,j++);lua_seti(L,-2,j++);
+        c2x=c[i][1].x+xoffs;c2y=c[i][1].y+yoffs;lua_pushnumber(L,c2y);lua_pushnumber(L,c2x);lua_seti(L,-3,j++);lua_seti(L,-2,j++);
+        qx=c[i][2].x+xoffs;qy=c[i][2].y+yoffs;  lua_pushnumber(L,qy); lua_pushnumber(L,qx); lua_seti(L,-3,j++);lua_seti(L,-2,j++);
+        break;
+      }
+      px=qx;py=qy;
+    }
+    /* at the end of a group of a positive path and its negative
+       children, fill. */
+    if (p->next == NULL || p->next->sign == '+') {
+      //printf("0 setgray fill\n");
+      lua_pushstring (L,"+");lua_seti(L,-2,j++);
+    } else if(p->next->sign == '-') {
+      lua_pushstring (L,"-");lua_seti(L,-2,j++);
+    }
+    /* save the cycle into the main table */
+    lua_seti(L,-2,jj++);
+    p = p->next;
+  }
+  //printf("grestore\n");
+  //printf("%%%%EOF\n");
+  
+  if (trace) {
+   potrace_state_free(trace);
+  }
+  if(opt_param.potrace_param){
+    potrace_param_free(opt_param.potrace_param);
+  }
+  lua_settop(L,-1); 
+  return 1;
+  //return 0;
+ 
+}
 
 /**************************************************************/
 /*                                                            */
@@ -516,8 +879,21 @@ static const struct luaL_Reg MFbuiltin_l[] = {
   {"turning_number", priv_mfweb_LUAGLOBALGET_turning_number},
   {"mflua_version",priv_mflua_version},
   {"mflua_banner",priv_mflua_banner},
+  {"mflua_developid",priv_mflua_developid},
   {NULL, NULL}                /* sentinel */
 };
+
+static struct luaL_Reg mflua_otfcc[] = {
+    { "build", priv_mflua_otf_build },
+    { "dump", priv_mflua_otf_dump },
+    { NULL,        NULL}
+};
+
+static struct luaL_Reg mflua_trace[] = {
+    { "trace", priv_mflua_potrace_build },
+    { NULL,        NULL}
+};
+
 
 
 #define lua_swap(L) lua_insert(L, -2) 
@@ -545,6 +921,17 @@ int mfluabeginprogram(void)
   luaopen_kpse(L);
   /* to be sure of having a clear stack */
   lua_settop(L,0);
+  /* lpeg */
+#ifdef MFLuaJIT
+  lua_pushcfunction(L, luaopen_lpeg);
+  lua_pushstring(L, "lpeg");
+  lua_call(L, 1, 0);
+#else
+  luaL_requiref(L, "lpeg",luaopen_lpeg,1);
+  lua_pop(L, 1);
+#endif
+  /* to be sure of having a clear stack */
+  lua_settop(L,0);
   
 
   lua_getglobal(L, "mflua");
@@ -557,6 +944,8 @@ int mfluabeginprogram(void)
     if (!lua_istable(L, -1)) {
       printf("mflua table NOT registered!\n");
     } else {
+
+      /* set the MFbuiltin table */
       lua_pushstring(L,"MFbuiltin");
 #ifdef MFLuaJIT
       /* 5.1 */ 
@@ -565,6 +954,28 @@ int mfluabeginprogram(void)
       luaL_register (L,NULL,MFbuiltin_l);
 #else
       luaL_newlib(L,MFbuiltin_l);
+#endif
+      lua_settable(L, -3);
+
+      /* set the otfcc table */
+      lua_pushstring(L,"otf");
+#ifdef MFLuaJIT
+      /* 5.1 */
+      lua_newtable(L);
+      luaL_register (L,NULL,mflua_otfcc);
+#else
+      luaL_newlib(L,mflua_otfcc);
+#endif
+      lua_settable(L, -3);
+
+      /* set the trace table */
+      lua_pushstring(L,"trace");
+#ifdef MFLuaJIT
+      /* 5.1 */
+      lua_newtable(L);
+      luaL_register (L,NULL,mflua_trace);
+#else
+      luaL_newlib(L,mflua_trace);
 #endif
       lua_settable(L, -3);
     }
@@ -594,8 +1005,11 @@ int mfluabeginprogram(void)
   GETGLOBALTABLEMFLUA(mfluabeginprogram);
   if (lua_istable(L, -1)) {
     lua_getfield(L,-1,"begin_program");
-    if((res=lua_pcall(L,0,0,0)))
+    if((res=lua_pcall(L,0,0,0))) {
+      lua_pushstring(L,"error in begin_program:");
+      lua_swap(L);lua_concat (L, 2);
       priv_lua_reporterrors(L, res);
+    }
   }
  EXIT:
   lua_settop(L,0);

@@ -42,6 +42,9 @@
 extern char *optarg;
 extern int optind;
 #endif
+#if defined(WIN32)
+#include <sys/stat.h>
+#endif
 
 #include "types.h"
 #include "dviclass.h"
@@ -52,11 +55,7 @@ extern int optind;
 #include "search.h"
 #include <stdio.h>
 #include <ctype.h>
-
-#if defined(WIN32) && defined(KPATHSEA)
-#undef fopen
-#define fopen  fsyscp_fopen
-#endif
+#include "common.h"
 
 char *ProgName;
 
@@ -408,11 +407,13 @@ main(int argc, char **argv)
 	int ac;
 	char **av, *enc;
 
-	kpse_set_program_name(argv[0], "dviconcat");
-	enc = kpse_var_value("command_line_encoding");
-	if (get_command_line_args_utf8(enc, &ac, &av)) {
-		argc = ac;
-		argv = av;
+	if (argc>1) {
+		kpse_set_program_name(argv[0], "dviconcat");
+		enc = kpse_var_value("command_line_encoding");
+		if (get_command_line_args_utf8(enc, &ac, &av)) {
+			argc = ac;
+			argv = av;
+		}
 	}
 #endif
 
@@ -440,8 +441,12 @@ main(int argc, char **argv)
 		case '?':
 usage:
 			(void) fprintf(stderr,
+				"dviconcat  in SeeTeX Ver.%s (%s)\n", VERSION, TL_VERSION);
+			(void) fprintf(stderr,
 			    "Usage: %s [-m mag] [-o outfile] [files]\n",
 			    ProgName);
+			(void) fprintf(stderr,
+				"\nEmail bug reports to %s.\n", BUG_ADDRESS);
 			(void) fflush(stderr);
 			exit(1);
 		}
@@ -465,6 +470,16 @@ usage:
 	 * We write a preamble based on the first input file.
 	 */
 	if (optind >= argc) {
+#if defined(WIN32)
+		if (outf == stdout) {
+			struct stat sti, sto;
+			int fdi = fileno(stdin), fdo = fileno(stdout);
+			if (isatty(fdi) == 0 && fstat(fdi, &sti) == 0 && S_ISFIFO(sti.st_mode)
+				&& isatty(fdo) == 0 && fstat(fdo, &sto) == 0 && S_ISFIFO(sto.st_mode)) {
+				goto usage;
+			}
+		}
+#endif
 	  if (!isatty(fileno(stdin)))
 	    SET_BINARY(fileno(stdin));
 	  else

@@ -166,7 +166,7 @@ virtualfont(register fontdesctype *curfnt)
       return (0);
 #ifdef DEBUG
    if (dd(D_FONTS))
-      fprintf(stderr,"Loading virtual font %s at %.1fpt\n",
+      fprintf_str(stderr,"Loading virtual font %s at %.1fpt\n",
          name, (real)scaledsize/(alpha*0x100000));
 #endif /* DEBUG */
 
@@ -213,7 +213,10 @@ virtualfont(register fontdesctype *curfnt)
  * Now we look for font definitions.
  */
    fm = NULL;
+   id = 0;
    while ((cmd=vfbyte())>=243) {
+      if (cmd==248 && (id == 9 || id == 11)) /* parent is jfm and no character definitions */
+         goto close_vf;
       if (cmd>246)
          badvf("unexpected command in preamble");
       newf = vfontdef(scaledsize, cmd-242);
@@ -221,13 +224,21 @@ virtualfont(register fontdesctype *curfnt)
          fm->next = newf;
       else {
          curfnt->localfonts = newf;
-         id = 0;
-         if (!noptex) {
+         if (!noptex && id==0) {
             tfmopen(curfnt->localfonts->desc); /* We check if parent is jfm or not. */
             id = tfm16();
-            fclose(tfmfile);
             if (id == 9 || id == 11)
                curfnt->kind = VF_PTEX;
+            else if (id == 0 && !noomega) {
+               int font_level;
+               integer ec;
+               font_level = tfm16();
+               tfm32(); tfm32(); tfm32(); /* li, hd, bc */
+               ec = tfm32();
+               if (font_level==1 && ec>=0x2E80)  /* We interpret the ofm is for pTeX */
+                  curfnt->kind = VF_PTEX;
+            }
+            fclose(tfmfile);
          }
       }
       fm = newf;
@@ -242,7 +253,7 @@ virtualfont(register fontdesctype *curfnt)
          if (length<2) badvf("negative length packet");
          if (length>65535) badvf("packet too long");
          cc = vfquad();
-         if (cc>=no_of_chars && cc<MAX_CODE) {
+         if (cc>=no_of_chars && cc<MAX_VF_CODE) {
             j = VF_MEM_UNIT * ((integer)(cc/VF_MEM_UNIT) + 1);
             curfnt->chardesc = (chardesctype *)xrealloc(curfnt->chardesc,
                          sizeof(chardesctype)*j);
@@ -307,6 +318,7 @@ virtualfont(register fontdesctype *curfnt)
    } while (cmd < 243);
    if (cmd != 248)
       badvf("missing postamble");
+ close_vf:
    fclose(vffile);
    curfnt->loaded = 2;
    if (maxcc+1<no_of_chars) {

@@ -2,7 +2,7 @@
 ** InputReader.cpp                                                      **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -365,8 +365,7 @@ string InputReader::getLine () {
 	while (!eof() && peek() > 0 && peek() != '\n')
 		ret += char(get());
 	// trim trailing whitespace
-	ret.erase(std::find_if(ret.rbegin(), ret.rend(), not1(ptr_fun<int, int>(isspace))).base(), ret.end());
-	return ret;
+	return ret.erase(ret.find_last_not_of(" \t\n\r\f\v")+1);
 }
 
 
@@ -395,7 +394,7 @@ int InputReader::parseAttributes (map<string,string> &attr, bool requireValues, 
 		else if (!requireValues)
 			attr.emplace(std::move(key), "");
 	}
-	return attr.size();
+	return int(attr.size());
 }
 
 //////////////////////////////////////////

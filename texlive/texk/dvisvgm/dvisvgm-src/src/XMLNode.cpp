@@ -2,7 +2,7 @@
 ** XMLNode.cpp                                                          **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -63,6 +63,14 @@ unique_ptr<XMLNode> XMLNode::removeNext () {
 	return oldnext;
 }
 
+
+XMLElement* XMLNode::nextElement () const {
+	for (XMLNode *node = next(); node; node = node->next())
+		if (node->toElement())
+			return node->toElement();
+	return nullptr;
+}
+
 /////////////////////////////////////////////////////////////////////
 
 XMLElement::XMLElement (string name) : _name(std::move(name)) {
@@ -103,11 +111,24 @@ void XMLElement::clear () {
 }
 
 
+/** Returns true if element has no child nodes or, alternatively, only whitespace children.
+ *  @param[in] ignoreWhitespace if true and if there are only whitespace children, the functions returns true */
+bool XMLElement::empty (bool ignoreWhitespace) const {
+	if (!_firstChild || !ignoreWhitespace)
+		return _firstChild == nullptr;
+	for (const XMLNode *node : *this) {
+		if (!node->toWSNode())
+			return false;
+	}
+	return true;
+}
+
+
 void XMLElement::addAttribute (const string &name, const string &value) {
 	if (Attribute *attr = getAttribute(name))
 		attr->value = value;
 	else
-		_attributes.emplace_back(Attribute(name, value));
+		_attributes.emplace_back(name, value);
 }
 
 
@@ -259,7 +280,7 @@ XMLElement* XMLElement::wrap (XMLNode *first, XMLNode *last, const string &name)
 	XMLNode *child = first;
 	while (child && child != last) {
 		XMLNode *next = child->next();
-		wrapper->insertLast(remove(child));
+		wrapper->insertLast(detach(child));
 		child = next;
 	}
 	XMLElement *ret = wrapper.get();
@@ -277,44 +298,41 @@ XMLElement* XMLElement::wrap (XMLNode *first, XMLNode *last, const string &name)
  *  Example: unwrap a child element b of a:
  *  <a>text1<b><c/>text2<d/></b></a> => <a>text1<c/>text2<d/></a>
  *  @param[in] child child element to unwrap
- *  @return raw pointer to the first node C1 of the unwrapped sequence */
-XMLNode* XMLElement::unwrap (XMLElement *child) {
-	if (!child || !child->parent())
+ *  @return raw pointer to the first node C1 of the unwrapped sequence or nullptr if element was empty */
+XMLNode* XMLElement::unwrap (XMLElement *element) {
+	if (!element || !element->parent())
 		return nullptr;
-	XMLElement *parent = child->parent()->toElement();
-	auto removedChild = remove(child);
-	if (child->empty())
-		return child->next();
-	XMLNode *firstGrandchild = child->firstChild();
-	XMLNode *prev = child->prev();
-	unique_ptr<XMLNode> grandchild = std::move(child->_firstChild);
-	while (grandchild) {
-		prev = parent->insertAfter(std::move(grandchild), prev);
-		grandchild = std::move(prev->_next);
-	}
-	return firstGrandchild;
+	XMLElement *parent = element->parent()->toElement();
+	XMLNode *prev = element->prev();
+	auto detachedElement = util::static_unique_ptr_cast<XMLElement>(detach(element));
+	if (detachedElement->empty())
+		return nullptr;
+	XMLNode *firstChild = detachedElement->firstChild();
+	while (auto child = detach(detachedElement->firstChild()))
+		prev = parent->insertAfter(std::move(child), prev);
+	return firstChild;
 }
 
 
-/** Removes a child node from the element.
- *  @param[in] child pointer to child to remove
- *  @return pointer to removed child or nullptr if given child doesn't belong to this element */
-unique_ptr<XMLNode> XMLElement::remove (XMLNode *child) {
-	unique_ptr<XMLNode> node;
-	if (child && child->parent()) {
-		XMLElement *parent = child->parent()->toElement();
-		if (child == parent->_lastChild)
-			parent->_lastChild = child->prev();
-		if (child != parent->firstChild())
-			node = child->prev()->removeNext();
+/** Isolates a node and its descendants from a subtree.
+ *  @param[in] node raw pointer to node to be detached
+ *  @return unique pointer to the detached node. */
+unique_ptr<XMLNode> XMLElement::detach (XMLNode *node) {
+	unique_ptr<XMLNode> uniqueNode;
+	if (node && node->parent()) {
+		XMLElement *parent = node->parent()->toElement();
+		if (node == parent->_lastChild)
+			parent->_lastChild = node->prev();
+		if (node != parent->firstChild())
+			uniqueNode = node->prev()->removeNext();
 		else {
-			node = std::move(parent->_firstChild);
-			if ((parent->_firstChild = std::move(node->_next)))
+			uniqueNode = std::move(parent->_firstChild);
+			if ((parent->_firstChild = std::move(uniqueNode->_next)))
 				parent->_firstChild->prev(nullptr);
 		}
-		child->parent(nullptr);
+		node->parent(nullptr);
 	}
-	return node;
+	return uniqueNode;
 }
 
 
@@ -365,8 +383,9 @@ ostream& XMLElement::write (ostream &os) const {
 		if (attrib.name.front() != '@')
 			os << attrib.name << "='" << attrib.value << '\'';
 		else {
-			os << attrib.name.substr(1) << "='";
-			size_t pos = attrib.value.find("base64,");
+			bool keep = (attrib.name.size() > 1 && attrib.name[1] == '@');
+			os << attrib.name.substr(keep ? 2 : 1) << "='";
+			auto pos = attrib.value.find("base64,");
 			if (pos == string::npos)
 				os << attrib.value;
 			else {
@@ -377,7 +396,7 @@ ostream& XMLElement::write (ostream &os) const {
 					os << '\n';
 					util::base64_copy(ifs, os, 200);
 					ifs.close();
-					if (!KEEP_ENCODED_FILES)
+					if (!KEEP_ENCODED_FILES && !keep)
 						FileSystem::remove(fname);
 				}
 			}
@@ -390,12 +409,12 @@ ostream& XMLElement::write (ostream &os) const {
 		os << '>';
 		// Insert newlines around children except text nodes. According to the
 		// SVG specification, pure whitespace nodes are ignored by the SVG renderer.
-		if (WRITE_NEWLINES && !_firstChild->toText())
+		if (WRITE_NEWLINES && name() != "text" && !_firstChild->toText())
 			os << '\n';
 		for (XMLNode *child = _firstChild.get(); child; child = child->next()) {
 			child->write(os);
 			if (!child->toText()) {
-				if (WRITE_NEWLINES && (!child->next() || !child->next()->toText()))
+				if (WRITE_NEWLINES && name() != "text" && (!child->next() || !child->next()->toText()))
 					os << '\n';
 			}
 		}
@@ -434,6 +453,29 @@ const XMLElement::Attribute* XMLElement::getAttribute (const string &name) const
 		return attr.name == name;
 	});
 	return it != _attributes.end() ? &(*it) : nullptr;
+}
+
+
+/** Checks whether an SVG attribute A of an element E implicitly propagates its properties
+ *  to all child elements of E that don't specify A. For now we only consider a subset of
+ *  the inheritable properties.
+ *  @return true if the attribute is inheritable */
+bool XMLElement::Attribute::inheritable () const {
+	// subset of inheritable properties listed on https://www.w3.org/TR/SVG11/propidx.html
+	// clip-path is not inheritable but can be moved to the parent element as long as
+	// no child gets an different clip-path attribute
+	// https://www.w3.org/TR/SVG11/styling.html#Inheritance
+	static const char *names[] = {
+			"clip-path", "clip-rule", "color", "color-interpolation", "color-interpolation-filters", "color-profile",
+			"color-rendering", "direction", "fill", "fill-opacity", "fill-rule", "font", "font-family", "font-size",
+			"font-size-adjust", "font-stretch", "font-style", "font-variant", "font-weight", "glyph-orientation-horizontal",
+			"glyph-orientation-vertical", "letter-spacing", "paint-order", "stroke", "stroke-dasharray", "stroke-dashoffset",
+			"stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "transform",
+			"visibility", "word-spacing", "writing-mode"
+	};
+	return binary_search(std::begin(names), std::end(names), name, [](const string &name1, const string &name2) {
+		return name1 < name2;
+	});
 }
 
 
@@ -485,7 +527,7 @@ ostream& XMLCData::write (ostream &os) const {
 
 void XMLCData::append (string &&str) {
 	if (_data.empty())
-		_data = move(str);
+		_data = std::move(str);
 	else
 		_data += str;
 }

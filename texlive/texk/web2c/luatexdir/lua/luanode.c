@@ -192,6 +192,7 @@ int lua_appendtovlist_callback(halfword box, int location, halfword prev_depth,
         *next_depth = lua_roundnumber(Luas, -1);
         *prev_set = 1;
     }
+    lua_settop(Luas, s_top); 
     return 1;
 }
 
@@ -417,7 +418,10 @@ void free_user_lua(pointer p)
 void show_pdf_literal(pointer p)
 {
     int t = pdf_literal_type(p);
-    tprint_esc("pdfliteral");
+    if (subtype(p)==pdf_late_literal_node)
+        tprint_esc("pdflateliteral");
+    else 
+        tprint_esc("pdfliteral");
     switch (pdf_literal_mode(p)) {
         case set_origin:
             tprint(" origin");

@@ -1,13 +1,13 @@
-## $Id: Makefile.am 53454 2020-01-19 17:04:02Z karl $
+## $Id: Makefile.am 69416 2024-01-14 18:27:55Z karl $
 ## Makefile.am for the TeX Live subdirectory texk/kpathsea/
 ##
-## Copyright 2015-2019 Karl Berry <tex-live@tug.org>
+## Copyright 2015-2024 Karl Berry <tex-live@tug.org>
 ## Copyright 2009-2015 Peter Breitenlohner <tex-live@tug.org>
 ## You may freely use, modify and/or distribute this file.
 
 SUBDIRS = . doc man
 
-EXTRA_DIST = PROJECTS
+EXTRA_DIST = COPYING.LESSERv2 PROJECTS
 
 AM_CPPFLAGS = -I$(top_builddir)/.. -I$(top_srcdir)/..
 AM_CFLAGS = $(WARNING_CFLAGS)
@@ -278,10 +278,11 @@ AM_TESTS_ENVIRONMENT += LT_OBJDIR='$(LT_OBJDIR)'; export LT_OBJDIR;
 TESTS  = tests/cnfline.test tests/cnfnewline.test
 TESTS += tests/cnfnull.test tests/cnfprog.test
 TESTS += tests/kpseaccess.test
-TESTS += tests/kpsereadlink.test tests/kpsestat.test tests/kpsewhich.test
+TESTS += tests/kpsereadlink.test
+TESTS += tests/kpsesafe.test tests/kpsestat.test tests/kpsewhich.test
 #
 tests/cnfline.log tests/cnfnewline.log tests/cnfnull.log tests/cnfprog.log \
-  tests/kpsewhich.log: kpsewhich$(EXEEXT)
+  tests/kpsesafe.log tests/kpsewhich.log: kpsewhich$(EXEEXT)
 tests/kpseaccess.log: kpseaccess$(EXEEXT)
 tests/kpsereadlink.log: kpsereadlink$(EXEEXT)
 tests/kpsestat.log: kpsestat$(EXEEXT)

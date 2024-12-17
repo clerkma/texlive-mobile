@@ -1,6 +1,6 @@
 /***********************************************************************
  * © 2016 and later: Unicode, Inc. and others.
- * License & terms of use: http://www.unicode.org/copyright.html#License
+ * License & terms of use: http://www.unicode.org/copyright.html
  ***********************************************************************
  ***********************************************************************
  * COPYRIGHT:
@@ -41,7 +41,7 @@ int main(int argc, const char *argv[])
     if (U_FAILURE(status)){
         return status;
     }
-    if (test.run() == FALSE){
+    if (test.run() == false){
         fprintf(stderr, "FAILED: Tests could not be run please check the "
             "arguments.\n");
         return -1;
@@ -69,7 +69,7 @@ CharPerformanceTest::CharPerformanceTest(int32_t argc, const char *argv[],
         int size = - _remainingArgc;
         argv += argc - size;
         argc = size;
-        _remainingArgc = u_parseArgs(argc, (char**)argv, 
+        _remainingArgc = u_parseArgs(argc, const_cast<char**>(argv),
             UPRV_LENGTHOF(options), options);
     }
     MIN_ = 0;
@@ -81,7 +81,6 @@ CharPerformanceTest::CharPerformanceTest(int32_t argc, const char *argv[],
     else {
         MAX_ = 0xffff;
     }
-    printf("MAX_ size will be 0x%x\n", MAX_);
     if (options[MIN_OPTION_].doesOccur) {
         MIN_ = atoi(options[MIN_OPTION_].value);
     }
@@ -123,9 +122,9 @@ UPerfFunction* CharPerformanceTest::runIndexedTest(int32_t index, UBool exec,
         TESTCASE(21, TestStdLibIsWhiteSpace);
         default: 
             name = ""; 
-            return NULL;
+            return nullptr;
     }
-    return NULL;
+    return nullptr;
 }
 
 UPerfFunction* CharPerformanceTest::TestIsAlpha()
@@ -190,38 +189,38 @@ UPerfFunction* CharPerformanceTest::TestIsWhiteSpace()
 
 UPerfFunction* CharPerformanceTest::TestStdLibIsAlpha()
 {
-    return new StdLibCharPerfFunction(StdLibIsAlpha, (wchar_t)MIN_, 
-        (wchar_t)MAX_);
+    return new StdLibCharPerfFunction(StdLibIsAlpha, static_cast<wchar_t>(MIN_),
+        static_cast<wchar_t>(MAX_));
 }
 
 UPerfFunction* CharPerformanceTest::TestStdLibIsUpper()
 {
-    return new StdLibCharPerfFunction(StdLibIsUpper, (wchar_t)MIN_, 
-        (wchar_t)MAX_);
+    return new StdLibCharPerfFunction(StdLibIsUpper, static_cast<wchar_t>(MIN_),
+        static_cast<wchar_t>(MAX_));
 }
 
 UPerfFunction* CharPerformanceTest::TestStdLibIsLower()
 {
-    return new StdLibCharPerfFunction(StdLibIsLower, (wchar_t)MIN_, 
-        (wchar_t)MAX_);
+    return new StdLibCharPerfFunction(StdLibIsLower, static_cast<wchar_t>(MIN_),
+        static_cast<wchar_t>(MAX_));
 }
 
 UPerfFunction* CharPerformanceTest::TestStdLibIsDigit()
 {
-    return new StdLibCharPerfFunction(StdLibIsDigit, (wchar_t)MIN_, 
-        (wchar_t)MAX_);
+    return new StdLibCharPerfFunction(StdLibIsDigit, static_cast<wchar_t>(MIN_),
+        static_cast<wchar_t>(MAX_));
 }
 
 UPerfFunction* CharPerformanceTest::TestStdLibIsSpace()
 {
-    return new StdLibCharPerfFunction(StdLibIsSpace, (wchar_t)MIN_, 
-        (wchar_t)MAX_);
+    return new StdLibCharPerfFunction(StdLibIsSpace, static_cast<wchar_t>(MIN_),
+        static_cast<wchar_t>(MAX_));
 }
 
 UPerfFunction* CharPerformanceTest::TestStdLibIsAlphaNumeric()
 {
-    return new StdLibCharPerfFunction(StdLibIsAlphaNumeric, (wchar_t)MIN_, 
-        (wchar_t)MAX_);
+    return new StdLibCharPerfFunction(StdLibIsAlphaNumeric, static_cast<wchar_t>(MIN_),
+        static_cast<wchar_t>(MAX_));
 }
 
 /**
@@ -231,30 +230,30 @@ UPerfFunction* CharPerformanceTest::TestStdLibIsAlphaNumeric()
 */
 UPerfFunction* CharPerformanceTest::TestStdLibIsPrint()
 {
-    return new StdLibCharPerfFunction(StdLibIsPrint, (wchar_t)MIN_, 
-        (wchar_t)MAX_);
+    return new StdLibCharPerfFunction(StdLibIsPrint, static_cast<wchar_t>(MIN_),
+        static_cast<wchar_t>(MAX_));
 }
 
 UPerfFunction* CharPerformanceTest::TestStdLibIsControl()
 {
-    return new StdLibCharPerfFunction(StdLibIsControl, (wchar_t)MIN_, 
-        (wchar_t)MAX_);
+    return new StdLibCharPerfFunction(StdLibIsControl, static_cast<wchar_t>(MIN_),
+        static_cast<wchar_t>(MAX_));
 }
 
 UPerfFunction* CharPerformanceTest::TestStdLibToLower()
 {
-    return new StdLibCharPerfFunction(StdLibToLower, (wchar_t)MIN_, 
-        (wchar_t)MAX_);
+    return new StdLibCharPerfFunction(StdLibToLower, static_cast<wchar_t>(MIN_),
+        static_cast<wchar_t>(MAX_));
 }
 
 UPerfFunction* CharPerformanceTest::TestStdLibToUpper()
 {
-    return new StdLibCharPerfFunction(StdLibToUpper, (wchar_t)MIN_, 
-        (wchar_t)MAX_);
+    return new StdLibCharPerfFunction(StdLibToUpper, static_cast<wchar_t>(MIN_),
+        static_cast<wchar_t>(MAX_));
 }
 
 UPerfFunction* CharPerformanceTest::TestStdLibIsWhiteSpace()
 {
-    return new StdLibCharPerfFunction(StdLibIsWhiteSpace, (wchar_t)MIN_, 
-        (wchar_t)MAX_);
+    return new StdLibCharPerfFunction(StdLibIsWhiteSpace, static_cast<wchar_t>(MIN_),
+        static_cast<wchar_t>(MAX_));
 }

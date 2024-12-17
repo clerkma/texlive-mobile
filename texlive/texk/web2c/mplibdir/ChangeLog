@@ -1,3 +1,138 @@
+2024-11-12  Ulrich Mueller  <ulm@gentoo.org>
+
+	* am/libmplib.am (libmplibextramath_a_OBJECTS,
+	libmplibbackends_a_OBJECTS): add mplib.h dependency to fix parallel
+	make failure.
+	https://tug.org/pipermail/tex-live/2024-November/050909.html
+	https://bugs.gentoo.org/837875
+
+2024-10-08   Luigi Scarso <luigi.scarso@gmail.com>
+	* Fixed a typo in the svg backend that was confusing the draw attributes --
+	see metapost ml  Missing stroke-linejoin attribute in SVG output for filldraw command
+	(thanks to joshua@kraemer.link).
+
+2024-05-19   Luigi Scarso <luigi.scarso@gmail.com>
+        * Sync with https://github.com/ascherer/mplibdir commit c21f82c1990d1cdb86f51a00b5c81d0088e12454.
+
+2024-05-18   Luigi Scarso <luigi.scarso@gmail.com>
+        * Several patches for CWEB from Andreas Scherer
+
+2024-05-01   Luigi Scarso <luigi.scarso@gmail.com>
+        * Fixed Update |arc| and |t_tot| after |do_arc_test| has just returned |t| 
+          in mp_get_arc_time
+
+2024-03-18  Luigi Scarso <luigi.scarso@gmail.com>
+	* Fixed a bug in n_arg for double and binary mode, 
+          where -0.0 was  different form 0.0. 
+          Work in progress for the  interval mode.
+
+2024-02-16  Luigi Scarso <luigi.scarso@gmail.com>
+	*  Updated manual. MetaPost 2.1
+
+2024-02-12  Luigi Scarso <luigi.scarso@gmail.com>
+	*  Fixed "warning: strncat specified bound 1 equals source length [-Wstringop-overflow=]" in mpxout.w
+
+2024-01-28  Luigi Scarso <luigi.scarso@gmail.com>
+  	*  Merge branch mpfi.
+	
+2024-01-26 Luigi Scarso <luigi.scarso@gmail.com>
+	* Interval arithmetic: Added  source/libs/mpfi/TLpatches and source/libs/mpfi/m4
+
+2024-01-03 Luigi Scarso <luigi.scarso@gmail.com>
+	* Interval arithmetic: Fixed "++" and "+-+" by replacing a*a with sqr(a). Better error message for square root of negative numbers.
+
+2024-01-02 Luigi Scarso <luigi.scarso@gmail.com>
+	*  Interval arithmetic: fixed negate for mpfi.
+
+2023-12-31 Luigi Scarso <luigi.scarso@gmail.com>
+	* Interval arithmetic: fixed check interval for square root
+
+2023-12-30 Luigi Scarso <luigi.scarso@gmail.com>
+	* Interval arithmetic: Fixed allocation of the buffer for the file extension.
+	* Interval arithmetic: Fixed position of verbatim_written in mpxout.w
+
+2023-09-17  Luigi Scarso <luigi.scarso@gmail.com>
+ 	*  Interval arithmetic: mp.w: Fixed a buffer overflow.
+	*  Interval arithmetic: decContext.{c,h}, decNumber.{c,h}, decNumberLocal.h: Convert newline from CRLF to LF  (thanks to TANAKA Takuji).
+
+2023-01-19 Luigi Scarso <luigi.scarso@gmail.com>
+        * MetaPost: svg->dx, svg->dy are now double (better precision) .
+
+2022-11-06  Luigi Scarso <luigi.scarso@gmail.com>
+ 	*  Fixed the value of the clip-path attribute for the svg output.
+
+	
+2022-09-20  Luigi Scarso <luigi.scarso@gmail.com>
+ 	* Interval arithmetic: code for remainder (work in progress).
+
+	
+2022-09-13 Luigi Scarso <luigi.scarso@gmail.com>
+	* Interval arithmetic: new primitives interval_get_left_endpoint,
+	 interval_get_right_endpoint, interval_set.
+
+2022-09-01 Luigi Scarso <luigi.scarso@gmail.com>
+	* Interval arithmetic: mpost compiles without errors.
+
+2022-08-25  Luigi Scarso <luigi.scarso@gmail.com>
+  	*  Interval arithmetic: support for interval arithmetic. Initial commit 
+
+2022-07-31 Luigi Scarso <luigi.scarso@gmail.com>
+	* MetaPost: Working on the file extension (work in progress).
+
+2022-05-28  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+        * mp.w: Typo.
+
+2022-05-23  Luigi Scarso <luigi.scarso@gmail.com>
+	* Fixed mp_begin_iteration (H.Hagen)
+
+2022-05-15  Luigi Scarso <luigi.scarso@gmail.com>
+	* Fixed a memory leak in mplib (H.Hagen)
+
+2022-03-21  Karl Berry  <karl@tug.org>
+	* TL'22 release.
+
+2022-01-19  Luigi Scarso  <luigi.scarso@gmail.com>
+	* mp.w: MetaPost 2.02 (twice).
+
+2022-01-10  Karl Berry  <karl@freefriends.org>
+	* am/libmplib.am,
+	* am/mplib.am: do not silence tangle-sh.
+
+2021-05-09  Luigi Scarso  <luigi.scarso@gmail.com>
+	* Impose mp->stack_size < 1001 in @d push_input to avoid stack overflow 
+          due infinite recursion of macro expansion (thanks to A. Kakuto).
+
+2021-04-10  Luigi Scarso  <luigi.scarso@gmail.com>
+	* Metapost version 2.01 (needed to mark the patch mpx_copy_mpto).
+
+2021-04-02  Luigi Scarso  <luigi.scarso@gmail.com>
+	* Revert the patch in mpx_copy_mpto, it was wrong in tex mode. Added a check if in troff mode.
+
+2021-03-23 Karl Berry <karl@tug.org>
+	* TL'21.
+
+2020-12-28  Luigi Scarso  <luigi.scarso@gmail.com>
+	* Temp, fix in mpx_copy_mpto, changed || with && to avoid a wrong final %
+
+2020-12-27  Luigi Scarso  <luigi.scarso@gmail.com>
+	* Fixed some typos in manual (thank to 胡亚捷 (Hu Yajie) )
+	* Added the undocumented -T option
+	* Added  some autotools files to make reautoconf working again
+
+2020-11-26  Luigi Scarso  <luigi.scarso@gmail.com>
+	* Added mp-tangle dependency to libmplib.am
+	  to fix parallel compilation
+
+2020-08-21  Luigi Scarso  <luigi.scarso@gmail.com>
+	* Changed epsilon in binary and decimal mode from 1E-52 to
+          2^-173 =~0.835E-52, so that mp_solve_rising_cubic now works as
+          expected.
+	* Fix @<Set the height and depth to zero if the bounding box is empty@>
+          in mp_set_text_box when height and depth are both -inf.
+
+2020-06-30 Luigi Scarso  <luigi.scarso@gmail.com> 
+	* SOURCE_DATE_EPOCH support (A. Kakuto)
+
 2020-02-18  Luigi Scarso  <luigi.scarso@gmail.com>
 	* better mp_snprintf macro
 

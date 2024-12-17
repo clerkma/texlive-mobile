@@ -41,18 +41,15 @@
  *
  */
 
-#ifdef __GNUC__
-/* Validate in case of UNIX */
-#define UNIX 1
-#define GCC 1
-#else
-/* Win32 MSVC is assumed */
-#define WIN32 1
+#ifdef WIN32
 #define MSVC 1
+#else
+#define UNIX 1
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #ifndef UNIX
 #include <dos.h>
 #ifdef MSVC
@@ -62,15 +59,16 @@
 #endif
 #include <io.h>
 #endif
-#include <string.h>
 
-#ifdef GCC
+#ifdef __GNUC__
 #include <ctype.h>
+#define GCC 1
 #endif
 
 #include <config.h>
 
 #include "dd.h"
+#include "common.h"
 
 #define ID          2
 #define ID_PTEX     3
@@ -430,7 +428,7 @@ int chk_font_file(FILE * fp)
     finfo = (struct FINFO *)gth_buf;
     fardir = (struct FARDIR *)gth_buf;
 
-    fread(gth_buf, sizeof(struct FINFO), 1, fp);
+    if (fread(gth_buf, sizeof(struct FINFO), 1, fp)<1) goto err;
 
     if (strcmp(gth_buf + 8, "gather") == 0)
         goto gth;
@@ -451,7 +449,7 @@ int chk_font_file(FILE * fp)
         if (f_v)
             printf("\n");
         fseek(fp, start, SEEK_SET);
-        fread((char *)fardir, sizeof(struct FARDIR), 1, fp);
+        if (fread((char *)fardir, sizeof(struct FARDIR), 1, fp)<1) goto err;
 
         start = ftell(fp);
         font.n = fardir->f_name;
@@ -475,11 +473,11 @@ int chk_font_file(FILE * fp)
         if (f_v)
             printf("\n");
         fseek(fp, start, SEEK_SET);
-        fread(gth_buf, sizeof(struct FINFO), 1, fp);
+        if (fread(gth_buf, sizeof(struct FINFO), 1, fp)<1) goto err;
 
         start = ftell(fp);
         font.n = finfo->f_name;
-        printf("%s:%d(%d)\n", 
+        printf("%s:%ld(%ld)\n",
             font.n, to_long(finfo->f_pos), to_long(finfo->f_size));
         f_end = to_long(finfo->f_pos) + to_long(finfo->f_size);
         fseek(fp, to_long(finfo->f_pos), SEEK_SET);
@@ -488,6 +486,10 @@ int chk_font_file(FILE * fp)
             printf("\n");
     }
     return (0);
+
+  err:
+    fprintf(stderr, "Cannot read data\n");
+    exit(250);
 }
 
 void show_dvi_data(DVIFILE_INFO *dvi)
@@ -930,7 +932,7 @@ void tfm_define(FILE * fp)
 
     font.c = read_n(fp,4);          /* header[0] */
     font.d = read_long(fp);         /* header[1] */
-    if (ch == 'j') {    /* check for new features in pTeX p3.8.0 / JFM 2.0 */
+    if (ch == 'j') {    /* check for new features in Community pTeX / JFM 2.0 */
         for (i = 2; i < lh; i++)    /* the rest of header */
             read_long(fp);
         for (i = 0; i < nt; i++){           /* char_type */
@@ -941,11 +943,13 @@ void tfm_define(FILE * fp)
             read_long(fp);
         for (i = 0; i < nw+nh+nd+ni; i++)   /* width, height, depth, italic */
             read_long(fp);
-        for (i = 0; i < nl; i++){            /* glue_kern */
+        for (i = 0; i < nl; i++){           /* glue_kern */
             x = read_byte(fp); read_n(fp,3);
             if (x>0 && x<128) tfmver |= 2;      /* SKIP command */
             if (x>128 && x<=255) tfmver |= 4;   /* rearrangement */
         }
+        if (nk>256) tfmver |= 8;    /* many kern */
+        if (ne>256) tfmver |= 16;   /* many glue */
     }
     fclose(fp);
 
@@ -957,10 +961,12 @@ void tfm_define(FILE * fp)
             printf("\t\"%s\" is a %cfm%s file :%3ld  -> %3ld\n",
                 font.n, ch, u, bc, ec);
             if (ch == 'j' && tfmver > 0) {
-                printf("\t\tNew features in pTeX p3.8.0 / JFM 2.0:\n");
-                if (tfmver & 1) printf("\t\t+ 3-byte kanji code\n");
-                if (tfmver & 2) printf("\t\t+ SKIP command in glue_kern\n");
-                if (tfmver & 4) printf("\t\t+ rearrangement in glue_kern\n");
+                printf("\t\tNew features in Community pTeX / JFM 2.0:\n");
+                if (tfmver & 1) printf("\t\t+ 3-byte kanji code\n"); /* TL18 */
+                if (tfmver & 2) printf("\t\t+ SKIP command in glue_kern\n"); /* TL18 */
+                if (tfmver & 4) printf("\t\t+ rearrangement in glue_kern\n"); /* TL18 */
+                if (tfmver & 8) printf("\t\t+ more than 256 different kern\n"); /* TL24 */
+                if (tfmver & 16) printf("\t\t+ more than 256 different glue\n"); /* TL24 */
             }
         }
         if (f_vv > 0) {
@@ -1284,7 +1290,7 @@ void get_list(char *fname)
             return;
         if (buf[0] == '#' || buf[0] == ';')
             continue;
-        if (sscanf(buf, "%15s %X %X",
+        if (sscanf(buf, "%15s %lX %lX",
                    chkfont[n_data].f_name,
                    &(chkfont[n_data].oldd),
                    &(chkfont[n_data].neww)) != 3) {
@@ -1358,6 +1364,7 @@ void usage()
         "eufm10	BF989013	8F256EB2\n"
         "# The line beginning with # or ; is ignored.\n"
         );
+    fprintf(stderr, "\nEmail bug reports to %s.\n", BUG_ADDRESS);
     exit(0);
 }
 

@@ -20,7 +20,7 @@
 #include "testutil.h"
 #include "intltest.h"
 
-static const UChar HEX[] = u"0123456789ABCDEF";
+static const char16_t HEX[] = u"0123456789ABCDEF";
 
 UnicodeString &TestUtility::appendHex(UnicodeString &buf, UChar32 ch) {
     if (ch >= 0x10000) {
@@ -46,7 +46,7 @@ UnicodeString TestUtility::hex(const UnicodeString& s) {
     return hex(s, u',');
 }
 
-UnicodeString TestUtility::hex(const UnicodeString& s, UChar sep) {
+UnicodeString TestUtility::hex(const UnicodeString& s, char16_t sep) {
     UnicodeString result;
     if (s.isEmpty()) return result;
     UChar32 c;
@@ -146,7 +146,7 @@ UBool TestUtility::checkEqualEdits(IntlTest &test, const UnicodeString &name,
                                    const Edits &e1, const Edits &e2, UErrorCode &errorCode) {
     Edits::Iterator ei1 = e1.getFineIterator();
     Edits::Iterator ei2 = e2.getFineIterator();
-    UBool ok = TRUE;
+    UBool ok = true;
     for (int32_t i = 0; ok; ++i) {
         UBool ei1HasNext = ei1.next(errorCode);
         UBool ei2HasNext = ei2.next(errorCode);
@@ -278,10 +278,10 @@ void TestUtility::checkEditsIter(
     std::reverse(destIndexes.begin(), destIndexes.end());
     // Zig-zag across the indexes to stress next() <-> previous().
     static const int32_t ZIG_ZAG[] = { 0, 1, 2, 3, 2, 1 };
-    for (auto i = 0; i < (int32_t)srcIndexes.size(); ++i) {
+    for (auto i = 0; i < static_cast<int32_t>(srcIndexes.size()); ++i) {
         for (int32_t ij = 0; ij < UPRV_LENGTHOF(ZIG_ZAG); ++ij) {
             int32_t j = ZIG_ZAG[ij];
-            if ((i + j) < (int32_t)srcIndexes.size()) {
+            if ((i + j) < static_cast<int32_t>(srcIndexes.size())) {
                 int32_t si = srcIndexes[i + j];
                 test.assertEquals(name + u" destIndexFromSrc(" + si + u"):" + __LINE__,
                                   destIndexFromSrc(expected, expLength, srcLength, destLength, si),
@@ -289,10 +289,10 @@ void TestUtility::checkEditsIter(
             }
         }
     }
-    for (auto i = 0; i < (int32_t)destIndexes.size(); ++i) {
+    for (auto i = 0; i < static_cast<int32_t>(destIndexes.size()); ++i) {
         for (int32_t ij = 0; ij < UPRV_LENGTHOF(ZIG_ZAG); ++ij) {
             int32_t j = ZIG_ZAG[ij];
-            if ((i + j) < (int32_t)destIndexes.size()) {
+            if ((i + j) < static_cast<int32_t>(destIndexes.size())) {
                 int32_t di = destIndexes[i + j];
                 test.assertEquals(name + u" srcIndexFromDest(" + di + u"):" + __LINE__,
                                   srcIndexFromDest(expected, expLength, srcLength, destLength, di),

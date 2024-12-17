@@ -190,6 +190,8 @@ typedef struct pdf_link_stack_record {
     int ref_link_node;          /* points to original |pdf_start_link_node|, or a
                                    copy of |link_node| created by |append_link| in
                                    case of multi-line link */
+    int direction;
+    int count; 
 } pdf_link_stack_record;
 
 /* types of objects */
@@ -203,26 +205,27 @@ typedef enum {
     obj_type_font = 0,          /* index of linked list of Fonts objects */
     obj_type_outline = 1,       /* index of linked list of outline objects */
     obj_type_dest = 2,          /* index of linked list of destination objects */
-    obj_type_obj = 3,           /* index of linked list of raw objects */
-    obj_type_xform = 4,         /* index of linked list of XObject forms */
-    obj_type_ximage = 5,        /* index of linked list of XObject images */
-    obj_type_thread = 6,        /* index of linked list of num article threads */
-    obj_type_pagestream = 7,    /* Page stream objects */
-    obj_type_page = 8,          /* /Page objects */
-    obj_type_pages = 9,         /* /Pages objects */
-    obj_type_catalog = 10,      /* /Catalog object */
-    obj_type_info = 11,         /* /Info object */
-    obj_type_link = 12,         /* link objects */
-    obj_type_annot = 13,        /* annotation objects */
-    obj_type_annots = 14,       /* /Annots objects */
-    obj_type_bead = 15,         /* thread bead objects */
-    obj_type_beads = 16,        /* /B objects (array of bead objects) */
-    obj_type_objstm = 17,       /* /ObjStm objects */
-    obj_type_others = 18        /* any other objects (also not linked in any list) */
+    obj_type_struct_dest = 3,   /* index of linked list of structure destination objects */
+    obj_type_obj = 4,           /* index of linked list of raw objects */
+    obj_type_xform = 5,         /* index of linked list of XObject forms */
+    obj_type_ximage = 6,        /* index of linked list of XObject images */
+    obj_type_thread = 7,        /* index of linked list of num article threads */
+    obj_type_pagestream = 8,    /* Page stream objects */
+    obj_type_page = 9,          /* /Page objects */
+    obj_type_pages = 10,        /* /Pages objects */
+    obj_type_catalog = 11,      /* /Catalog object */
+    obj_type_info = 12,         /* /Info object */
+    obj_type_link = 13,         /* link objects */
+    obj_type_annot = 14,        /* annotation objects */
+    obj_type_annots = 15,       /* /Annots objects */
+    obj_type_bead = 16,         /* thread bead objects */
+    obj_type_beads = 17,        /* /B objects (array of bead objects) */
+    obj_type_objstm = 18,       /* /ObjStm objects */
+    obj_type_others = 19        /* any other objects (also not linked in any list) */
 } pdf_obj_type;
 
-#  define HEAD_TAB_MAX      6   /* obj_type_thread */
-#  define PDF_OBJ_TYPE_MAX 18   /* obj_type_others */
+#  define HEAD_TAB_MAX      7   /* obj_type_thread */
+#  define PDF_OBJ_TYPE_MAX 19   /* obj_type_others */
 
 typedef struct pdf_resource_struct_ {
     struct avl_table *resources_tree;
@@ -294,6 +297,8 @@ typedef struct pdf_output_file_ {
     int gen_tounicode;
     int omit_cidset;
     int omit_charset;
+    int omit_infodict;
+    int omit_mediabox; 
     int inclusion_copy_font;
     int major_version;          /* fixed major part of the PDF version */
     int minor_version;          /* fixed minor part of the PDF version */
@@ -371,6 +376,7 @@ typedef struct pdf_output_file_ {
     /* the pdf link stack */
     pdf_link_stack_record link_stack[(pdf_max_link_level + 1)];
     int link_stack_ptr;
+    int link_state;
     /* the thread data */
     int last_thread;            /* pointer to the last thread */
     scaled_whd thread;

@@ -40,9 +40,9 @@
 @z
 
 @x
-@d banner=='This is Aleph, Version 3.14159265-',Omega_version_banner,'-',eTeX_version_banner,'-',Aleph_version_banner {printed when \TeX\ starts}
+@d banner=='This is Aleph, Version 3.141592653-',Omega_version_banner,'-',eTeX_version_banner,'-',Aleph_version_banner {printed when \TeX\ starts}
 @y
-@d banner=='This is Aleph, Version 3.14159265-',Omega_version_banner,'-',eTeX_version_banner,'-',Aleph_version_banner {printed when \TeX\ starts}
+@d banner=='This is Aleph, Version 3.141592653-',Omega_version_banner,'-',eTeX_version_banner,'-',Aleph_version_banner {printed when \TeX\ starts}
 @d banner_k==banner {Web2C announces itself}
 @z
 
@@ -210,10 +210,10 @@ if ini_version then
 @!sup_max_in_open = 127;
 
 @!inf_param_size = 60;
-@!sup_param_size = 6000;
+@!sup_param_size = 32767;
 
 @!inf_save_size = 600;
-@!sup_save_size = 80000;
+@!sup_save_size = 30000000;
 
 @!inf_stack_size = 200;
 @!sup_stack_size = 30000;
@@ -230,6 +230,9 @@ if ini_version then
 
 @!sup_hyph_size = ssup_hyph_size;
 @!inf_hyph_size = iinf_hyphen_size; {Must be not less than |hyph_prime|!}
+
+@!inf_expand_depth = 10;
+@!sup_expand_depth = 10000000;
 @z
 
 @x [1.12] l.427 - Constants that are WEB numeric macros.
@@ -466,6 +469,7 @@ tini@/
 @!save_size:integer; {space for saving values outside of current group; must be
   at most |max_halfword|}
 @!dvi_buf_size:integer; {size of the output buffer; must be a multiple of 8}
+@!expand_depth:integer; {limits recursive calls to the |expand| procedure}
 @!quoted_filename:boolean; {current filename is quoted}
 @z
 
@@ -679,6 +683,14 @@ else  begin slow_print(format_ident); print_ln;
   end;
 @z
 
+@x [5.??] term_input: set limit when fatal_error (patch to omtrans.ch)
+if not new_input_ln(term_in,term_in_mode,term_in_translation,true)
+then fatal_error("End of file on the terminal!");
+@y
+if not new_input_ln(term_in,term_in_mode,term_in_translation,true)
+then begin limit:=0; fatal_error("End of file on the terminal!"); end;
+@z
+
 @x [6.73] l.1732 - Add unspecified_mode.
 @d error_stop_mode=3 {stops at every opportunity to interact}
 @y
@@ -729,7 +741,27 @@ do_final_end;
 end;
 @z
 
-@x [6.84] l.1888 - Implement the switch-to-editor option.
+% Original reports:
+%   https://tex.stackexchange.com/questions/551313/
+%   https://tug.org/pipermail/tex-live/2020-June/045876.html
+%
+% This will probably be fixed by DEK in the 2021 tuneup in a different
+% way (so we'll have to remove or alter this change), but the interaction
+% sequence in the reports above causes a segmentation fault in web2c -
+% writing to the closed \write15 stream because we wrongly decrement
+% selector from 16 to 15 in term_input, due to the lack of this check in
+% a recursive error() call.
+%
+%@x [6.83] l.1893 - avoid wrong interaction 
+%applied in 3.141592653
+%loop@+begin continue: clear_for_error_prompt; prompt_input("? ");
+%@y
+%loop@+begin continue:
+%if interaction<>error_stop_mode then return;
+%clear_for_error_prompt; prompt_input("? ");
+%@z
+
+@x [6.84] l.1904 - Implement the switch-to-editor option.
 line ready to be edited. But such an extension requires some system
 wizardry, so the present implementation simply types out the name of the
 file that should be
@@ -755,14 +787,14 @@ been commented~out.
 @z
 
 @x [6.84] l.1903 - Implement the switch-to-editor option.
-"E": if base_ptr>0 then
+"E": if base_ptr>0 then if input_stack[base_ptr].name_field>=256 then
   begin print_nl("You want to edit file ");
 @.You want to edit file x@>
   slow_print(input_stack[base_ptr].name_field);
   print(" at line "); print_int(line);
   interaction:=scroll_mode; jump_out;
 @y
-"E": if base_ptr>0 then
+"E": if base_ptr>0 then if input_stack[base_ptr].name_field>=256 then
     begin edit_name_start:=str_start(edit_file.name_field);
     edit_name_length:=str_start(edit_file.name_field+1) -
     		      str_start(edit_file.name_field);
@@ -931,23 +963,24 @@ page_depth:=0; page_max_depth:=0;
 input and output, establishes the initial values of the date and time.
 @^system dependencies@>
 Since standard \PASCAL\ cannot provide such information, something special
-is needed. The program here simply specifies July 4, 1776, at noon; but
-users probably want a better approximation to the truth.
+is needed. The program here simply assumes that suitable values appear in
+the global variables \\{sys\_time}, \\{sys\_day}, \\{sys\_month}, and
+\\{sys\_year} (which are initialized to noon on 4 July 1776,
+in case the implementor is careless).
 
 @p procedure fix_date_and_time;
-begin time:=12*60; {minutes since midnight}
-day:=4; {fourth day of the month}
-month:=7; {seventh month of the year}
-year:=1776; {Anno Domini}
+begin sys_time:=12*60;
+sys_day:=4; sys_month:=7; sys_year:=1776;  {self-evident truths}
+time:=sys_time; {minutes since midnight}
+day:=sys_day; {day of the month}
+month:=sys_month; {month of the year}
+year:=sys_year; {Anno Domini}
 end;
 @y
 @ The following procedure, which is called just before \TeX\ initializes its
 input and output, establishes the initial values of the date and time.
-It calls a macro-defined |date_and_time| routine.  |date_and_time|
-in turn is a C macro, which calls |get_date_and_time|, passing
-it the addresses of the day, month, etc., so they can be set by the
-routine.  |get_date_and_time| also sets up interrupt catching if that
-is conditionally compiled in the C code.
+It calls an externally defined |date_and_time|, which also sets up
+interrupt catching. See more comments in \.{tex.ch}.
 @^system dependencies@>
 
 @d fix_date_and_time==o_date_and_time(int_base+time_code,
@@ -1008,6 +1041,39 @@ begin input_ptr:=0; max_in_stack:=0;
 @y
 begin input_ptr:=0; max_in_stack:=0;
 source_filename_stack[0]:=0;full_source_filename_stack[0]:=0;
+@z
+
+@x [25.366] l.7672 - expansion depth overflow
+begin cv_backup:=cur_val; cvl_backup:=cur_val_level; radix_backup:=radix;
+@y
+begin
+incr(expand_depth_count);
+if expand_depth_count>=expand_depth then overflow("expansion depth",expand_depth);
+cv_backup:=cur_val; cvl_backup:=cur_val_level; radix_backup:=radix;
+@z
+
+@x [25.366] l.7678 - expansion depth overflow
+cur_order:=co_backup; link(backup_head):=backup_backup;
+@y
+cur_order:=co_backup; link(backup_head):=backup_backup;
+decr(expand_depth_count);
+@z
+
+% Original report: https://tex.stackexchange.com/questions/609423
+% TeX bug entry: https://tug.org/texmfbug/newbug.html#B155endwrite
+@x [25.369] l.7717 - disallow \noexpand\endwrite
+if t>=cs_token_flag then
+@y
+if (t>=cs_token_flag)and(t<>end_write_token) then
+@z
+
+@x [27.???] set limit when fatal_error
+else fatal_error("*** (cannot \read from terminal in nonstop modes)")
+@y
+else begin
+  limit:=0;
+  fatal_error("*** (cannot \read from terminal in nonstop modes)");
+  end
 @z
 
 @x [28.501] l.9747 - \eof18
@@ -1605,7 +1671,7 @@ if name=str_ptr-1 then {we can try to conserve string pool space now}
 @z
 
 @x [29.537] l.10359 - start_input: don't return filename to string pool.
-if name=str_ptr-1 then {we can conserve string pool space now}
+if name=str_ptr-1 then {conserve string pool space (but see note above)}
   begin flush_string; name:=cur_name;
   end;
 @y
@@ -1990,9 +2056,9 @@ not_found:
 @z
 
 @x [43.943] l.18346 - web2c can't parse negative lower bounds in arrays.  Sorry.
-@!init@! trie_op_hash:array[-trie_op_size..trie_op_size] of 0..trie_op_size;
+@!init @!trie_op_hash:array[-trie_op_size..trie_op_size] of 0..trie_op_size;
 @y
-@!init@! trie_op_hash:array[neg_trie_op_size..trie_op_size] of 0..trie_op_size;
+@!init @!trie_op_hash:array[neg_trie_op_size..trie_op_size] of 0..trie_op_size;
 @z
 
 @x [43.944] l.18365 - web2c can't parse negative lower bounds in arrays.  Sorry
@@ -2038,7 +2104,7 @@ tini
 @z
 
 @x [43.590] l.18524 - Dynamically allocate & larger tries.
-@!init@!trie_taken:packed array[1..trie_size] of boolean;
+@!init @!trie_taken:packed array[1..trie_size] of boolean;
   {does a family start here?}
 @t\hskip10pt@>@!trie_min:array[ASCII_code] of trie_pointer;
   {the first possible slot for each character}
@@ -2046,7 +2112,7 @@ tini
 @t\hskip10pt@>@!trie_not_ready:boolean; {is the trie still in linked form?}
 tini
 @y
-@!init@!trie_taken: ^boolean;
+@!init @!trie_taken: ^boolean;
   {does a family start here?}
 @t\hskip10pt@>@!trie_min:^trie_pointer;
   {the first possible slot for each character}
@@ -2256,7 +2322,7 @@ format_debug('string pool checksum')(x);
 if x<>@$ then begin {check that strings are the same}
   wake_up_terminal;
   wterm_ln('---! ', stringcast(name_of_file+1),
-           ' made by different executable version');
+           ' made by different executable version, strings are different');
   goto bad_fmt;
 end;
 undump_int(x);
@@ -2518,6 +2584,7 @@ begin @!{|start_here|}
   setup_bound_var (79)('error_line')(error_line);
   setup_bound_var (50)('half_error_line')(half_error_line);
   setup_bound_var (79)('max_print_line')(max_print_line);
+  setup_bound_var (10000)('expand_depth')(expand_depth);
   const_chk (main_memory);
 @+init
   if ini_version then begin
@@ -2597,6 +2664,12 @@ final_end: do_final_end;
 end {|main_body|};
 @z
 
+@x
+begin @<Finish the extensions@>; new_line_char:=-1;
+@y
+begin @<Finish the extensions@>; set_new_eqtb_int(int_base+new_line_char_code,-1);
+@z
+
 @x [51.1333] l.24254 - Print new line before termination; switch to editor if necessary.
     slow_print(log_name); print_char(".");
     end;
@@ -2613,6 +2686,12 @@ if (edit_name_start<>0) and (interaction>batch_mode) then
 @x [51.1334] l. - Remove reference to fontmemsize
   wlog_ln(', out of ',font_mem_size:1,' for ',font_max-font_base:1);@/
 @y
+@z
+
+@x
+begin c:=cur_chr; if c<>1 then new_line_char:=-1;
+@y
+begin c:=cur_chr; if c<>1 then set_new_eqtb_int(int_base+new_line_char_code,-1);
 @z
 
 @x [51.1335] l.24335 - Only do dump if ini.
@@ -2668,8 +2747,8 @@ if trie_not_ready then begin {initex without format loaded}
 % running.  The best approximation is to do a core dump, then run the
 % debugger on it later.
 @x [52.1338] l.24411 - Core-dump in debugging mode on 0 input.
-    begin goto breakpoint;@\ {go to every label at least once}
-    breakpoint: m:=0; @{'BREAKPOINT'@}@\
+    begin goto breakpoint;@/ {go to every declared label at least once}
+    breakpoint: m:=0; @{'BREAKPOINT'@}@/
     end
 @y
     dump_core {do something to cause a core dump}
@@ -2823,9 +2902,15 @@ system-dependent section allows easy integration of Web2c and e-\TeX, etc.)
 @ The |edit_name_start| will be set to point into |str_pool| somewhere after
 its beginning if \TeX\ is supposed to switch to an editor on exit.
 
+Initialize the |stop_at_space| variable for filename parsing.
+
+Initialize the |halting_on_error_p| variable to avoid infloop with
+\.{--halt-on-error}.
+
 @<Set init...@>=
 edit_name_start:=0;
 stop_at_space:=true;
+halting_on_error_p:=false;
 
 @ These are used when we regenerate the representation of the first 256
 strings.
@@ -2956,6 +3041,28 @@ exit:end;
 begin
     get_nullstr := "";
 end;
+
+
+@* \[54/web2c] More changes for Web2c.
+% Related to [25.366] expansion depth check
+Sometimes, recursive calls to the |expand| routine may
+cause exhaustion of the run-time calling stack, resulting in
+forced execution stops by the operating system. To diminish the chance
+of this happening, a counter is used to keep track of the recursion
+depth, in conjunction with a constant called |expand_depth|.
+
+This does not catch all possible infinite recursion loops, just the ones
+that exhaust the application calling stack. The actual maximum value of
+|expand_depth| is outside of our control, but the initial setting of
+|10000| should be enough to prevent problems.
+@^system dependencies@>
+
+@<Global...@>=
+expand_depth_count:integer;
+
+@ @<Set init...@>=
+expand_depth_count:=0;
+
 
 @* \[54] System-dependent changes.
 @z

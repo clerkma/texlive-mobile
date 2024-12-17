@@ -1,6 +1,7 @@
+## $Id: euptex.am 72600 2024-10-20 06:53:25Z takuji $
 ## texk/web2c/euptexdir/am/euptex.am: Makefile fragment for e-upTeX.
 ##
-## Copyright 2015-2019 Karl Berry <tex-live@tug.org>
+## Copyright 2015-2024 Karl Berry <tex-live@tug.org>
 ## Copyright 2011-2015 Peter Breitenlohner <tex-live@tug.org>
 ## You may freely use, modify and/or distribute this file.
 
@@ -8,6 +9,13 @@
 ##
 if EUPTEX
 bin_PROGRAMS += euptex
+if !UPTEX
+bin_links += euptex$(EXEEXT):uptex
+endif !UPTEX
+bin_links += euptex$(EXEEXT):eptex
+if !PTEX
+bin_links += euptex$(EXEEXT):ptex
+endif !PTEX
 endif EUPTEX
 EXTRA_PROGRAMS += euptex
 
@@ -23,8 +31,8 @@ nodist_euptex_SOURCES = $(euptex_c_h) euptex-pool.c
 dist_euptex_SOURCES = euptexdir/euptexextra.c euptexdir/euptexextra.h
 
 # We must create euptexd.h and [eu]ptexdir/[eu]ptex_version.h before building the euptex_OBJECTS.
-euptex_prereq = euptexd.h etexdir/etex_version.h ptexdir/ptex_version.h \
-	eptexdir/eptex_version.h uptexdir/uptex_version.h
+euptex_prereq = euptexd.h etexdir/etex_version.h uptexdir/ptex_version.h \
+	euptexdir/eptex_version.h uptexdir/uptex_version.h
 $(euptex_OBJECTS): $(euptex_prereq)
 
 $(euptex_c_h): euptex-web2c
@@ -37,9 +45,9 @@ euptex-pool.c: euptex.pool euptexd.h $(makecpool_stamp)
 
 # Tangling e-upTeX
 euptex.p euptex.pool: euptex-tangle
-	@$(texmf_tangle) euptex euptex
+	$(texmf_tangle) euptex euptex
 euptex-tangle: tangle$(EXEEXT) euptex.web euptex.ch tangle-sh
-	@$(texmf_tangle) euptex euptex
+	$(texmf_tangle) euptex euptex
 
 # Generate euptex.web
 euptex.web: tie$(EXEEXT) $(euptex_web_srcs)
@@ -49,6 +57,10 @@ euptex_web_srcs = \
 	etexdir/etex.ch \
 	etexdir/tex.ch0 \
 	tex.ch \
+	tracingstacklevels.ch \
+	partoken.ch \
+	locnull-optimize.ch \
+	showstream.ch \
 	zlib-fmt.ch \
 	etexdir/tex.ech
 
@@ -56,18 +68,17 @@ euptex_web_srcs = \
 euptex.ch: tie$(EXEEXT) euptex.web $(euptex_ch_srcs)
 	$(tie_c) euptex.web $(euptex_ch_srcs)
 euptex_ch_srcs = \
-	eptexdir/etex.ch0 \
-	ptexdir/ptex-base.ch \
+	euptexdir/etex.ch0 \
+	uptexdir/ptex-base.ch \
 	uptexdir/uptex-m.ch \
-	euptexdir/euptex.ch0 \
-	eptexdir/eptex.ech \
-	eptexdir/etex.ch1 \
-	euptexdir/euptex.ch1 \
+	euptexdir/eptex.ech \
+	euptexdir/etex.ch1 \
 	$(euptex_ch_synctex) \
-	eptexdir/fam256.ch \
-	euptexdir/pdfstrcmp-eup-pre.ch \
-	eptexdir/pdfutils.ch \
-	euptexdir/pdfstrcmp-eup-post.ch \
+	euptexdir/fam256.ch \
+	euptexdir/pdfutils.ch \
+	euptexdir/suppresserrors.ch \
+	euptexdir/unbalanced-braces-eptex.ch \
+	euptexdir/char-warning-eptex.ch \
 	tex-binpool.ch
 
 EXTRA_DIST += $(euptex_web_srcs) $(euptex_ch_srcs) euptexdir/euptex.defines
@@ -84,10 +95,26 @@ EXTRA_DIST += \
 
 # e-upTeX Tests
 #
-euptex_tests = euptexdir/euptriptest.test euptexdir/pdfprimitive.test euptexdir/eupver.test
-euptexdir/euptriptest.log: euptex$(EXEEXT) dvitype$(EXEEXT) pltotf$(EXEEXT) tftopl$(EXEEXT)
+euptex_tests = \
+	euptexdir/euptriptest.test euptexdir/eptriptest.test \
+	euptexdir/pdfprimitive.test \
+	euptexdir/eupver.test \
+	euptexdir/upkcat.test \
+	euptexdir/wcfname.test euptexdir/wcfname0.test \
+	euptexdir/euptex-ctrlsym.test \
+	euptexdir/euptex-prntknj.test \
+	euptexdir/euptex-kinsoku.test \
+	euptexdir/euptex-ofm.test euptexdir/euptex-prim.test \
+	euptexdir/euptex-ucs.test
+euptexdir/euptriptest.log euptexdir/eptriptest.log: \
+	euptex$(EXEEXT) dvitype$(EXEEXT) pltotf$(EXEEXT) tftopl$(EXEEXT)
 euptexdir/pdfprimitive.log: euptex$(EXEEXT)
-euptexdir/eupver.log: euptex$(EXEEXT)
+euptexdir/eupver.log euptexdir/upkcat.log \
+	euptexdir/wcfname.log euptexdir/wcfname0.log \
+	euptexdir/euptex-ctrlsym.log euptexdir/euptex-prntknj.log \
+	euptexdir/euptex-kinsoku.log \
+	euptexdir/euptex-ofm.log euptexdir/euptex-prim.log \
+	euptexdir/euptex-ucs.log: euptex$(EXEEXT)
 
 EXTRA_DIST += $(euptex_tests)
 
@@ -101,20 +128,54 @@ endif EUPTEX
 ##
 ## euptexdir/euptriptest.test
 EXTRA_DIST += \
-	eptexdir/eptrip/eptrip.log \
-	eptexdir/eptrip/eptrip.tex \
+	euptexdir/eptrip/eptrip.log \
+	euptexdir/eptrip/eptrip.tex \
 	euptexdir/euptrip/euptrip.diffs \
 	euptexdir/euptrip/texmf.cnf
+DISTCLEANFILES += euptrip.diffs
+## euptexdir/pdfprimitive.test
+EXTRA_DIST += \
+	euptexdir/pdfprimitive.test \
+	euptexdir/tests/pdfprimitive-test.tex \
+	euptexdir/tests/pdfprimitive-euptex.log
+DISTCLEANFILES += pdfprimitive-euptex.*
+
+## euptex-ctrlsym.test
+EXTRA_DIST += euptexdir/tests/ctrlsym.tex euptexdir/tests/ctrlsym.log \
+	euptexdir/tests/endlinechar.tex euptexdir/tests/endline.log \
+	euptexdir/tests/control-symbol.tex euptexdir/tests/jctrlsym.log \
+	euptexdir/tests/eup-endlinea.typ euptexdir/tests/eup-jctrlsyma.typ
+DISTCLEANFILES += eup-ctrlsym.log eup-ctrlsym.out eup-ctrlsym.tex \
+	eup-endline*.* eup-jctrlsym*.*
+## euptex-prntknj.test
+EXTRA_DIST += euptexdir/tests/printkanji.tex euptexdir/tests/pknj-s.log \
+	euptexdir/tests/pknj-e.log euptexdir/tests/pknj-u.log \
+	euptexdir/tests/eup-pknj-sa.typ euptexdir/tests/eup-pknj-ea.typ \
+	euptexdir/tests/eup-pknj-ua.typ
+DISTCLEANFILES += eup-pknj-*.*
+## euptex-kinsoku.test
+EXTRA_DIST += euptexdir/tests/postpena.tex euptexdir/tests/postpena.log \
+	euptexdir/tests/free_ixsp.tex euptexdir/tests/free_ixsp.log \
+	euptexdir/tests/free_pena.tex euptexdir/tests/free_pena.log \
+	euptexdir/tests/inhibitglue.tex euptexdir/tests/eup-inhibitgluea.typ \
+	euptexdir/tests/kinsoku-table.tex euptexdir/tests/kinsoku-table.log \
+	euptexdir/tests/kinsoku-search.tex euptexdir/tests/kinsoku-search.log
+DISTCLEANFILES += eup-postpena*.* eup-free_*.* eup-inhibitglue*.* eup-kinsoku*.*
+## euptex-ofm.test
+EXTRA_DIST += euptexdir/tests/eup-ofm.tex euptexdir/tests/eup-ofm.log
+DISTCLEANFILES += eup-ofm.*
+## euptex-prim.test
+EXTRA_DIST += euptexdir/tests/eup-prim.tex euptexdir/tests/eup-prim.log
+DISTCLEANFILES += eup-prim.*
+## euptex-ucs.test
+EXTRA_DIST += euptexdir/tests/ucs.tex euptexdir/tests/ucs-s.log \
+	euptexdir/tests/ucs-e.log euptexdir/tests/ucs-u.log
+DISTCLEANFILES += eup-ucs*.*
+
 euptrip.diffs: euptex$(EXEEXT) dvitype$(EXEEXT) pltotf$(EXEEXT) tftopl$(EXEEXT)
 	$(triptrap_diffs) $@
 .PHONY: euptrip-clean
 euptrip-clean:
 	rm -rf euptripdir
-DISTCLEANFILES += euptrip.diffs
-## euptexdir/pdfprimitive.test
-EXTRA_DIST += \
-	euptexdir/pdfprimitive.test \
-	eptexdir/tests/pdfprimitive-test.tex \
-	euptexdir/tests/pdfprimitive-euptex.log
-DISTCLEANFILES += pdfprimitive-euptex.*
 
+# (end of euptex.am)

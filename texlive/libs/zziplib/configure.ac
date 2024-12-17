@@ -1,5 +1,7 @@
+dnl $Id: configure.ac 71105 2024-04-28 16:42:00Z karl $
 dnl Process this file with autoconf to produce a configure script.
 dnl
+dnl   Copyright (C) 2016-2024 Karl Berry <tex-live@tug.org>
 dnl   Copyright (C) 2010-2014 Peter Breitenlohner <tex-live@tug.org>
 dnl
 dnl   based on zziplib-0.13.58:
@@ -22,6 +24,8 @@ AC_CANONICAL_HOST
 
 # Checks for programs.
 AC_PROG_CC
+AM_PROG_AS
+AM_PROG_AR
 AC_PROG_RANLIB
 AC_PROG_LN_S
 
@@ -36,7 +40,7 @@ AC_CHECK_HEADERS([sys/types.h sys/mman.h sys/stat.h sys/param.h]) dnl posix'ish
 AC_CHECK_HEADERS([io.h direct.h byteswap.h])
 AC_CHECK_HEADERS([fnmatch.h])
 
-# ---------------------------------------------------------------
+# mmap ---------------------------------------------------------------
 AC_MSG_CHECKING([whether can use mmap for file scanning])
 enable_mmap='no (just a bit slower)'
 test "x$ac_cv_header_winbase_h" = xyes && enable_mmap="yes, winbase.h"
@@ -47,6 +51,10 @@ AC_MSG_RESULT([$enable_mmap])
 AC_SUBST([ZZIPLIB_DEFINES])
 
 AC_SYS_LARGEFILE_SENSITIVE
+
+# Need this to avoid off64_t error with system extensions enabled.
+KPSE_LARGEFILE([ZZIPLIB_DEFINES], [_LARGEFILE64_SOURCE])
+
 AC_FUNC_FSEEKO
 
 # Checks for typedefs, structures, and compiler characteristics.

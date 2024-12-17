@@ -2,7 +2,7 @@
 ** Font.hpp                                                             **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -50,6 +50,7 @@ struct GlyphMetrics {
 	double wl, wr, h, d;
 };
 
+struct FontVisitor;
 
 /** Abstract base for all font classes. */
 class Font {
@@ -69,17 +70,19 @@ class Font {
 		virtual const char* path () const =0;
 		virtual const char* filename () const;
 		virtual const FontEncoding* encoding () const;
-		virtual bool getGlyph (int c, Glyph &glyph, GFGlyphTracer::Callback *callback=nullptr) const =0;
+		virtual bool getGlyph (int c, Glyph &glyph, GFGlyphTracer::Callback *callback) const =0;
 		virtual void getGlyphMetrics (int c, bool vertical, GlyphMetrics &metrics) const;
 		virtual uint32_t unicode (uint32_t c) const;
 		virtual void tidy () const {}
 		virtual bool findAndAssignBaseFontMap () {return true;}
-		virtual bool verticalLayout () const     {return getMetrics() ? getMetrics()->verticalLayout() : false;}
+		virtual bool verticalLayout () const     {return getMetrics() != nullptr && getMetrics()->verticalLayout();}
 		virtual bool verifyChecksums () const    {return true;}
 		virtual int fontIndex () const           {return 0;}
 		virtual const FontStyle* style () const  {return nullptr;}
 		virtual Color color () const             {return Color::BLACK;}
 		virtual const FontMap::Entry* fontMapEntry () const;
+		virtual void visit (FontVisitor &visitor) =0;
+		virtual void visit (FontVisitor &visitor) const =0;
 };
 
 
@@ -100,7 +103,9 @@ class EmptyFont : public Font {
 		double italicCorr (int c) const override           {return 0;}
 		const FontMetrics* getMetrics () const override    {return nullptr;}
 		const char* path () const override                 {return nullptr;}
-		bool getGlyph (int c, Glyph &glyph, GFGlyphTracer::Callback *cb=nullptr) const override {return false;}
+		bool getGlyph (int c, Glyph &glyph, GFGlyphTracer::Callback*) const override {return false;}
+		void visit (FontVisitor &visitor) override {}
+		void visit (FontVisitor &visitor) const override {}
 
 	private:
 		std::string _fontname;
@@ -115,11 +120,11 @@ class PhysicalFont : public virtual Font {
 		static std::unique_ptr<Font> create (const std::string &name, uint32_t checksum, double dsize, double ssize, PhysicalFont::Type type);
 		static std::unique_ptr<Font> create (const std::string &name, int fontindex, uint32_t checksum, double dsize, double ssize);
 		virtual Type type () const =0;
-		bool getGlyph (int c, Glyph &glyph, GFGlyphTracer::Callback *cb=nullptr) const override;
-		virtual bool getExactGlyphBox (int c, BoundingBox &bbox, GFGlyphTracer::Callback *cb=nullptr) const;
-		virtual bool getExactGlyphBox (int c, GlyphMetrics &metrics, bool vertical, GFGlyphTracer::Callback *cb=nullptr) const;
+		bool getGlyph (int c, Glyph &glyph, GFGlyphTracer::Callback *cb) const override;
+		virtual bool getExactGlyphBox (int c, BoundingBox &bbox, GFGlyphTracer::Callback *cb) const;
+		virtual bool getExactGlyphBox (int c, GlyphMetrics &metrics, bool vertical, GFGlyphTracer::Callback *cb) const;
 		virtual bool isCIDFont () const;
-		virtual int hAdvance () const;
+		virtual int hAverageAdvance () const;
 		virtual std::string familyName () const;
 		virtual std::string styleName () const;
 		virtual double hAdvance (int c) const;
@@ -129,12 +134,15 @@ class PhysicalFont : public virtual Font {
 		virtual double scaledAscent () const;
 		virtual int ascent () const;
 		virtual int descent () const;
-		virtual int traceAllGlyphs (bool includeCached, GFGlyphTracer::Callback *cb=nullptr) const;
+		virtual int traceAllGlyphs (bool includeCached, GFGlyphTracer::Callback *cb) const;
 		virtual int collectCharMapIDs (std::vector<CharMapID> &charmapIDs) const;
 		virtual CharMapID getCharMapID () const =0;
 		virtual void setCharMapID (const CharMapID &id) {}
 		virtual Character decodeChar (uint32_t c) const;
+		virtual int charIndexByName (const std::string &charname) const;
 		const char* path () const override;
+		void visit (FontVisitor &visitor) override;
+		void visit (FontVisitor &visitor) const override;
 
 	protected:
 		bool createGF (std::string &gfname) const;
@@ -154,12 +162,14 @@ class PhysicalFont : public virtual Font {
 class VirtualFont : public virtual Font {
 	friend class FontManager;
 	public:
-		using DVIVector = std::vector<uint8_t>;
+		using DVIVector = std::vector<char>;
 
 	public:
 		static std::unique_ptr<Font> create (const std::string &name, uint32_t checksum, double dsize, double ssize);
 		virtual const DVIVector* getDVI (int c) const =0;
-		bool getGlyph (int c, Glyph &glyph, GFGlyphTracer::Callback *cb=nullptr) const override {return false;}
+		bool getGlyph (int c, Glyph &glyph, GFGlyphTracer::Callback*) const override {return false;}
+		void visit (FontVisitor &visitor) override;
+		void visit (FontVisitor &visitor) const override;
 
 	protected:
 		virtual void assignChar (uint32_t c, DVIVector &&dvi) =0;
@@ -261,20 +271,28 @@ class NativeFont : public PhysicalFont {
 		std::unique_ptr<Font> clone (double ds, double sc) const override =0;
 		std::string name () const override;
 		Type type () const override;
-		double designSize () const override  {return _ptsize;}
-		double scaledSize () const override  {return _ptsize;}
+		const NativeFont* uniqueFont () const override   {return this;}
+		double designSize () const override              {return _ptsize;}
+		double scaledSize () const override              {return _ptsize;}
 		double charWidth (int c) const override;
 		double charDepth (int c) const override;
 		double charHeight (int c) const override;
-		double italicCorr (int c) const override         {return 0;}
+		double italicCorr (int c) const override;
+		virtual double hAdvance (Character c) const;
+		virtual double vAdvance (Character c) const;
 		const FontMetrics* getMetrics () const override  {return nullptr;}
 		const FontStyle* style () const override         {return &_style;}
 		Color color () const override                    {return _color;}
 		const FontMap::Entry* fontMapEntry () const override {return nullptr;}
+		virtual void mapCharToUnicode (uint32_t c, uint32_t codepoint) =0;
 		static std::string uniqueName (const std::string &path, const FontStyle &style);
+		void visit (FontVisitor &visitor) override;
+		void visit (FontVisitor &visitor) const override;
 
 	protected:
 		NativeFont (double ptsize, const FontStyle &style, Color color) : _ptsize(ptsize), _style(style), _color(color) {}
+		using PhysicalFont::hAdvance;
+		using PhysicalFont::vAdvance;
 
 	private:
 		double _ptsize;    ///< font size in PS point units
@@ -294,12 +312,18 @@ class NativeFontProxy : public NativeFont {
 			return std::unique_ptr<NativeFontProxy>(new NativeFontProxy(this , sc, *style(), color()));
 		}
 
-		const Font* uniqueFont () const override          {return _nfont;}
+		const NativeFont* uniqueFont () const override    {return _nfont;}
 		const char* path () const override                {return _nfont->path();}
 		int fontIndex () const override                   {return _nfont->fontIndex();}
 		Character decodeChar (uint32_t c) const override  {return _nfont->decodeChar(c);}
 		uint32_t unicode (uint32_t c) const override      {return _nfont->unicode(c);}
 		CharMapID getCharMapID () const override          {return _nfont->getCharMapID();}
+		bool verticalLayout() const override              {return _nfont->verticalLayout();}
+		std::string name () const override                {return _nfont->name();}
+
+		void mapCharToUnicode (uint32_t c, uint32_t codepoint) override {
+			const_cast<NativeFont*>(_nfont)->mapCharToUnicode(c, codepoint);
+		}
 
 	protected:
 		NativeFontProxy (const NativeFont *nfont, double ptsize, const FontStyle &style, Color color)
@@ -315,6 +339,8 @@ class NativeFontImpl : public NativeFont {
 		NativeFontImpl (std::string fname, int fontIndex, double ptsize, const FontStyle &style, Color color)
 			: NativeFont(ptsize, style, color), _path(std::move(fname)), _fontIndex(fontIndex) {}
 
+		NativeFontImpl (std::string fname, std::string fontname, double ptsize);
+
 		std::unique_ptr<NativeFont> clone (double ptsize, const FontStyle &style, Color color) const override {
 			return std::unique_ptr<NativeFontProxy>(new NativeFontProxy(this, ptsize, style, color));
 		}
@@ -323,18 +349,20 @@ class NativeFontImpl : public NativeFont {
 			return std::unique_ptr<NativeFontProxy>(new NativeFontProxy(this , sc, *style(), color()));
 		}
 
-		const Font* uniqueFont () const override          {return this;}
 		const char* path () const override                {return _path.c_str();}
-		int fontIndex() const override                    {return _fontIndex;}
-		std::string fontFamily () const;
+		int fontIndex () const override                   {return _fontIndex;}
+		std::string name () const override                {return _name.empty() ? NativeFont::name() : _name;}
 		bool findAndAssignBaseFontMap () override;
 		CharMapID getCharMapID () const override          {return CharMapID::NONE;}
 		Character decodeChar (uint32_t c) const override;
 		uint32_t unicode (uint32_t c) const override;
+		bool verticalLayout() const override;
+		void mapCharToUnicode (uint32_t c, uint32_t codepoint) override;
 
 	private:
 		std::string _path;
-		int _fontIndex;
+		std::string _name;
+		int _fontIndex = 0;
 		ToUnicodeMap _toUnicodeMap; ///< maps from char indexes to unicode points
 };
 
@@ -388,6 +416,33 @@ class VirtualFontImpl : public VirtualFont, public TFMFont {
 	private:
 		std::unordered_map<uint32_t, DVIVector> _charDefs; ///< dvi subroutines defining the characters
 };
+
+
+struct FontVisitor {
+	virtual ~FontVisitor () =default;
+	virtual void visited (const PhysicalFont *font) {}
+	virtual void visited (const VirtualFont *font) {}
+	virtual void visited (const NativeFont *font) {visited(static_cast<const PhysicalFont*>(font));}
+	virtual void visited (PhysicalFont *font) {}
+	virtual void visited (VirtualFont *font) {}
+	virtual void visited (NativeFont *font) {visited(static_cast<PhysicalFont*>(font));}
+};
+
+
+/** This function works similar to dynamic_cast but only on pointers to Font classes.
+ *  It uses double dispatch instead of RTTI and should therefore be faster.
+ *  @param[in] font font pointer to be cast
+ *  @return cast pointer on success, nullptr otherwise */
+template <typename C>
+C font_cast (typename util::set_const_of<Font>::by<typename std::remove_pointer<C>::type>::type *font) {
+	struct : FontVisitor {
+		void visited (C font) override {result = font;}
+		C result = nullptr;
+	} visitor;
+	if (font)
+		font->visit(visitor);
+	return visitor.result;
+}
 
 
 struct FontException : public MessageException {

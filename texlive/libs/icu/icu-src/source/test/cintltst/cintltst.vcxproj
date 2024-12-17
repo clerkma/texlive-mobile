@@ -14,22 +14,6 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
-  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
@@ -50,7 +34,6 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <CompileAs>Default</CompileAs>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <AdditionalIncludeDirectories>..\..\..\include;..\..\tools\ctestfw;..\..\common;..\..\i18n;..\..\tools\toolutil;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>U_ATTRIBUTE_DEPRECATED=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderOutputFile>$(OutDir)\cintltst.pch</PrecompiledHeaderOutputFile>
@@ -104,9 +87,6 @@
     <ClCompile Include="cmsccoll.c" />
     <ClCompile Include="cturtst.c" />
     <ClCompile Include="encoll.c" />
-    <ClCompile Include="usrchdat.c">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="usrchtst.c" />
     <ClCompile Include="chashtst.c" />
     <ClCompile Include="sorttest.c" />
@@ -143,6 +123,8 @@
     <ClCompile Include="utmstest.c" />
     <ClCompile Include="cldrtest.c" />
     <ClCompile Include="cloctst.c" />
+    <ClCompile Include="ulocaletst.c" />
+    <ClCompile Include="ulocbuildertst.c" />
     <ClCompile Include="cposxtst.c" />
     <ClCompile Include="crelativedateformattest.c" />
     <ClCompile Include="crestst.c" />
@@ -175,6 +157,7 @@
     <ClCompile Include="ulistfmttest.c" />
     <ClCompile Include="unumberformattertst.c" />
     <ClCompile Include="uformattedvaluetst.c" />
+    <ClCompile Include="unumberrangeformattertst.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cbiditst.h" />
@@ -192,6 +175,7 @@
     <ClInclude Include="cjaptst.h" />
     <ClInclude Include="cturtst.h" />
     <ClInclude Include="encoll.h" />
+    <ClInclude Include="usrchdat.inc" />
     <ClInclude Include="ccapitst.h" />
     <ClInclude Include="nccbtst.h" />
     <ClInclude Include="ncnvfbts.h" />

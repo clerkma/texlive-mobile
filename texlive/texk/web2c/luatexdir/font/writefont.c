@@ -634,6 +634,9 @@ static void write_fontdictionary(PDF pdf, fo_entry * fo)
         if (fo->fe != NULL) {
             fo->tounicode_objnum = write_tounicode(pdf, fo->fe->glyph_names, fo->fe->name);
         } else if (is_type1(fo->fm)) {
+            if (fo->fd->builtin_glyph_names==NULL) {
+              normal_error("font", "builtin glyph names is empty");
+            }
             fo->tounicode_objnum = write_tounicode(pdf, fo->fd->builtin_glyph_names, fo->fm->tfm_name);
         }
     }
@@ -851,10 +854,24 @@ void do_pdf_font(PDF pdf, internal_font_number f)
         create_cid_fontdictionary(pdf, f);
     } else {
         /*tex By now |font_map(f)|, if any, should have been set via |pdf_init_font|. */
-        if ((fm = font_map(f)) == NULL || (fm->ps_name == NULL && fm->ff_name == NULL))
-            writet3(pdf, f);
+        if (font_psname(f) != NULL && strstr(font_psname(f),"none"))
+            writet3user(pdf, f);
+        else if ((fm = font_map(f)) == NULL || (fm->ps_name == NULL && fm->ff_name == NULL))
+            writet3pk(pdf, f);
         else
             create_fontdictionary(pdf, f);
+    }
+}
+
+int do_pdf_preroll_font(PDF pdf, internal_font_number f)
+{
+    if (!font_has_subset(f)) {
+        return 0;
+    } else if (font_encodingbytes(f) != 2 && font_psname(f) != NULL && strstr(font_psname(f),"none")) {
+        prerollt3user(pdf, f);
+        return 1;
+    } else {
+        return 0;
     }
 }
 
@@ -959,13 +976,7 @@ static void write_cid_charwidth_array(PDF pdf, fo_entry * fo)
             j = glyph->wd;
         }
         pdf_check_space(pdf);
-        if (j < 0) {
-            pdf_out(pdf, '-');
-            j = -j;
-        }
-        pdf_printf(pdf, "%i", (j / 10));
-        if ((j % 10) != 0)
-            pdf_printf(pdf, ".%i", (j % 10));
+        pdf_print_cid_charwidth(pdf, fo->tex_font, j);
         i = (int) glyph->id;
         pdf_set_space(pdf);
     }

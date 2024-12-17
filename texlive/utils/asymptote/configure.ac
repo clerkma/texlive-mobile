@@ -3,14 +3,10 @@
 # this file.
 
 AC_PREREQ(2)
-AC_INIT([Asymptote],[2.65],[http://sourceforge.net/projects/asymptote])
+AC_INIT([Asymptote],[2.88],[https://github.com/vectorgraphics/asymptote/issues])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
-
-test "$CXXFLAGS" || CXXFLAGS="-std=c++11"
-
-test "$CFLAGS" || CFLAGS="-g -O3"
 
 AC_C_BIGENDIAN
 AC_CANONICAL_HOST
@@ -20,6 +16,20 @@ Datadir=$datadir
 test "$Datadir" = '${datarootdir}' && Datadir=$datarootdir
 test "$Datadir" = '${prefix}/share' && Datadir=$prefix/share
 AC_SUBST(Datadir)
+
+AC_ARG_ENABLE(lsp,
+[AS_HELP_STRING(--enable-lsp[[[=yes]]],enable Language Server Protocol)])
+if test "x$enable_lsp" != "xno"; then
+cxxstd="c++14"
+else
+cxxstd="c++11"
+AC_MSG_NOTICE([*** Language Server Protocol disabled by configure flag ***])
+fi
+
+test "$CXXFLAGS" || CXXFLAGS="-std=$cxxstd"
+echo Compiling with $CXXFLAGS
+
+test "$CFLAGS" || CFLAGS="-g -O3"
 
 AC_ARG_WITH(latex,
         [AS_HELP_STRING(--with-latex=PATH,
@@ -55,7 +65,7 @@ fi
 ])
 
 AC_CHECK_PROGS(TEXI2DVI,[texi2dvi],
-[@echo \*\*\*\*\*\*\*\*\*\* Please install texi2dvi or put http://asymptote.sourceforge.net/asymptote.pdf in the doc directory: cannot execute texi2dvi])
+[@echo \*\*\*\*\*\*\*\*\*\* Please install texi2dvi or put https://asymptote.sourceforge.io/asymptote.pdf in the doc directory: cannot execute texi2dvi])
 
 AC_SUBST(TEXI2DVI)
 
@@ -99,12 +109,19 @@ AC_CONFIG_SRCDIR([absyn.cc])
 AC_LANG([C++])
 
 # Checks for programs.
-AC_PROG_LEX
+AC_PROG_LEX(noyywrap)
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_CC
 AC_PROG_MAKE_SET
-AC_PROG_YACC
+
+AC_ARG_VAR([BISON], [bison command])
+AC_CHECK_PROG([BISON], [bison -y], [yes], [no])
+AS_IF([test "x$BISON" = "xno"], [AC_MSG_ERROR([bison not found])])
+
+AC_ARG_VAR([FLEX], [flex command])
+AC_CHECK_PROG([FLEX], [flex -y], [yes], [no])
+AS_IF([test "x$FLEX" = "xno"], [AC_MSG_ERROR([flex not found])])
 
 if test "$GXX" = yes ; then
    ac_gcc_version=`echo __GNUC__ | $CC -E - | grep -v ^\#`
@@ -138,10 +155,10 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
                    DEFINE([<unordered_map>])),
   [AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
 
-ASYGLVERSION=1.00
+ASYGLVERSION=1.02
 
-GCVERSION=8.0.4
-ATOMICVERSION=7.6.10
+GCVERSION=8.2.4
+ATOMICVERSION=7.6.12
 
 GCFILE=gc-$GCVERSION
 ac_cv_use_gc="system"
@@ -159,14 +176,13 @@ enable system Boehm garbage collector)]
                         fi
                         ])
 
-OPTIONS="-D_FILE_OFFSET_BITS=64 "
+OPTIONS="-D_FILE_OFFSET_BIS=64 "
 GCLIB=
 GCPPLIB=
 INCL="-I."
 GCNAME="Boehm Garbage Collector"
-GCOPTIONS="--disable-shared"
 if test "x$ac_cv_use_gc" != "xno" ; then
-   OPTIONS=$OPTIONS"-DUSEGC "
+   OPTIONS=$OPTIONS"-DUSEGC -DLSPCPP_USEGC "
    case _$ac_cv_use_gc in
    _|_system|_*[[\\/]]*)
       if test "x$ac_cv_use_gc" = "xsystem" ; then
@@ -227,8 +243,6 @@ AC_ARG_ENABLE(gc-full-debug,
  fi
 ])
 
-INCL=$INCL" -I/usr/include/tirpc"
-
 if test "$OSTYPE" = "msdos"; then
 CPPFLAGS=$CPPFLAGS" -D__MSDOS__ -I/usr/include/w32api -I/usr/include -DCALLBACK=__stdcall $INCL"
 else
@@ -245,16 +259,27 @@ AC_SUBST(ATOMICVERSION)
 AC_SUBST(GCOPTIONS)
 AC_SUBST(GCLIB)
 AC_SUBST(GCPPLIB)
+AC_SUBST(LSPLIB)
+AC_SUBST(LSPLIBS)
 AC_SUBST(INCL)
 AC_SUBST(OPTIONS)
 AC_SUBST(GLEW)
 
 # Checks for libraries.
-AC_SEARCH_LIBS([lgamma],[m c],,
-AC_MSG_ERROR([*** Please install libm on your system ***]))
+#AC_SEARCH_LIBS([lgamma],[m c],,
+#AC_MSG_ERROR([*** Please install libm on your system ***]))
 AC_CHECK_LIB([z], [deflate],,
 AC_MSG_ERROR([*** Please install libz or zlib-devel on your system ***]))
-AX_PTHREAD
+
+GCOPTIONS="--disable-shared "
+AC_ARG_ENABLE(threads,
+[AS_HELP_STRING(--enable-threads[[[=yes]]],enable POSIX threads)])
+
+if test "x$enable_threads" != "xno"; then
+   AX_PTHREAD
+else
+   GCOPTIONS=$GCOPTIONS"--disable-threads "
+fi
 
 AC_ARG_ENABLE(sigsegv,
 [AS_HELP_STRING(--enable-sigsegv[[[=yes]]],enable GNU Stack Overflow Handler)])
@@ -264,6 +289,27 @@ if test "x$enable_sigsegv" != "xno"; then
 fi
 
 AC_CHECK_LIB([rt], [sched_yield])
+
+AC_ARG_ENABLE(curl,
+[AS_HELP_STRING(--enable-curl[[[=yes]]],enable libcurl and compile with optional URL support)])
+if test "x$enable_curl" != "xno"; then
+  AC_CHECK_LIB([curl],[curl_easy_init],,
+  AC_MSG_NOTICE([*** Could not find libcurl: will compile without optional URL support. ***]))
+else
+  AC_MSG_NOTICE([*** libcurl support disabled by configure flag: will compile without optional URL support. ***])
+fi
+
+LSPLIBS=
+LSPLIB=
+if test "x$enable_lsp" != "xno" -a "x$enable_threads" != "xno"; then
+  AC_CHECK_LIB([boost_filesystem],[opendir],
+  [AC_CHECK_LIB([boost_thread],[pthread_attr_getdetachstate],
+  [AC_DEFINE(HAVE_LSP,1,DEFINE([Language server protocol]))
+   LSPLIBS="-llspcpp -lnetwork-uri -lboost_filesystem -lboost_thread "
+   LSPLIB=liblspcpp.a],
+  AC_MSG_NOTICE([*** Could not find libboost_thread: will compile without optional Language Server Protocol. ***]))],
+  AC_MSG_NOTICE([*** Could not find libboost_filesystem: will compile without optional Language Server Protocol. ***]))
+fi
 
 AC_ARG_ENABLE(readline,
 [AS_HELP_STRING(--enable-readline[[[=yes]]],enable GNU Readline Library)])
@@ -309,6 +355,8 @@ LDFLAGS=$LDFLAGS0
 ])
 
 if test "x$enable_readline" != "xno"; then
+CPPFLAGS="$CPPFLAGS "`pkg-config --cflags readline`
+LDFLAGS="$LDFLAGS "`pkg-config --libs readline`
 AC_COMPILE_IFELSE([
 AC_LANG_PROGRAM([
 #include <stdio.h>
@@ -333,11 +381,20 @@ AC_ARG_ENABLE(fftw,
 [AS_HELP_STRING(--enable-fftw[[[=yes]]],enable FFTW Library)])
 
 if test "x$enable_fftw" != "xno"; then
-
+CPPFLAGS="$CPPFLAGS "`pkg-config --cflags fftw3`
+LDFLAGS="$LDFLAGS "`pkg-config --libs fftw3`
 AC_CHECK_HEADER(fftw3.h,
 AC_CHECK_LIB_STATIC([fftw3],[fftw_execute],HAVE_LIBFFTW3,
            AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
      AC_MSG_NOTICE([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
+fi
+
+AC_ARG_ENABLE(eigen,
+[AS_HELP_STRING(--enable-eigen[[[=yes]]],enable Eigen Library)])
+
+if test "x$enable_eigen" != "xno"; then
+CPPFLAGS="$CPPFLAGS "`pkg-config --cflags eigen3`
+AC_CHECK_HEADERS(Eigen/Dense)
 fi
 
 # Checks for header files.
@@ -346,17 +403,27 @@ AC_CHECK_HEADERS([fenv.h stddef.h libintl.h])
 AC_CHECK_HEADERS(fpu_control.h)
 AC_CHECK_FUNCS([feenableexcept])
 
+case "$OSTYPE" in
+     darwin*)
+     ;;
+     *)
+     CPPFLAGS="$CPPFLAGS "`pkg-config --cflags libtirpc`
+     LDFLAGS="$LDFLAGS "`pkg-config --libs libtirpc`
+     ;;
+esac
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "xstream.h"])],
                    [AC_SEARCH_LIBS([xdrstdio_create],[nsl tirpc])
-                    AC_DEFINE(HAVE_RPC_RPC_H,1,
+                    AC_DEFINE(HAVE_LIBTIRPC,1,
                    DEFINE([a working <tirpc/rpc/rpc.h> header]))],
-   AC_MSG_WARN([*** Broken rpc headers; XDR support disabled ***]))
+   AC_MSG_WARN([*** Broken rpc headers; XDR/V3D support disabled ***]))
 
 AC_ARG_ENABLE(gsl,
 [AS_HELP_STRING(--enable-gsl[[[=yes]]],enable GNU Scientific Library)])
 
 if test "x$enable_gsl" != "xno"; then
+  CPPFLAGS="$CPPFLAGS "`pkg-config --cflags gsl`
+  LDFLAGS="$LDFLAGS "`pkg-config --libs gsl`
   AC_CHECK_HEADER(gsl/gsl_sf.h,
    AC_CHECK_LIB([gsl], gsl_sf_debye_6, [AC_DEFINE(HAVE_LIBGSL,1,
    DEFINE_LIB[gsl]) LIBS=$LIBS"-lgsl -lgslcblas "],
@@ -367,8 +434,24 @@ fi
 AC_ARG_ENABLE(gl,
 [AS_HELP_STRING(--enable-gl[[[=yes]]],enable OpenGL Library)])
 
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [#include <GL/gl.h>]
+    [#if !defined(GL_VERSION_4_3) && !defined(GL_ARB_shader_storage_buffer_object)]
+    [#error]
+    [#endif ]
+    )],
+    AC_DEFINE(HAVE_SSBO,1,DEFINE([GLSL shader storage buffer objects])))
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [#include <GL/gl.h>]
+    [#if !defined(GL_VERSION_4_3) && !defined(GL_ARB_compute_shader)]
+    [#error]
+    [#endif ]
+    )],
+    AC_DEFINE(HAVE_COMPUTE_SHADER,1,DEFINE([GLSL compute shaders])))
+
 AC_ARG_ENABLE(offscreen,
-[AS_HELP_STRING(--enable-offscreen[[[=no]]],enable experimental offscreen rendering using OSMesa library)])
+[AS_HELP_STRING(--enable-offscreen[[[=no]]],use OSMesa library to implement offscreen rendering)])
 
 AC_ARG_ENABLE(OpenImageIO,
 [AS_HELP_STRING(--enable-openimageio[[[=no]]],enable experimental OpenImageIO Library)])
@@ -438,19 +521,16 @@ AC_CHECK_TYPES([long long])
 AC_CHECK_TYPES([long])
 AC_C_CONST
 AC_C_INLINE
-AC_TYPE_SIGNAL
-
-AC_DEFUN([ac_FUNC_STRPTIME], [
-    AC_CHECK_FUNCS(strptime)
-])
 
 # Checks for library functions.
 AC_FUNC_FORK
 AC_CHECK_FUNCS([dup2 floor memset strchr tgamma lgamma memrchr popcount])
 AC_FUNC_STRFTIME
-ac_FUNC_STRPTIME
 AC_FUNC_ERROR_AT_LINE
 AC_FUNC_FSEEKO
+
+AC_CHECK_FUNCS(strptime)
+AC_CHECK_FUNCS(strnlen)
 
 AC_CONFIG_HEADERS(config.h)
 
@@ -464,7 +544,7 @@ if test "x$GCDIR" != "x" ; then
    echo FOR EXAMPLE, USE THE COMMANDS:
    echo
    echo wget https://github.com/ivmai/bdwgc/releases/download/v$GCVERSION/$GCFILE.tar.gz
-   echo wget http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-$ATOMICVERSION.tar.gz
+   echo wget https://github.com/ivmai/libatomic_ops/releases/download/v$ATOMICVERSION/libatomic_ops-$ATOMICVERSION.tar.gz
 
    echo
    exit 1

@@ -1,23 +1,12 @@
-Changes applied to the libpaper-1.1.24+nmu2/ tree as obtained from:
-	ftp://ftp.de.debian.org/debian/pool/main/libp/libpaper/
+Changes applied to libpaper_1.1.29.tar.gz as obtained from:
+	http://ftp.debian.org/debian/pool/main/libp/libpaper/
 
-Removed:
-	COPYING
-	INSTALL
-	Makefile.in
-	aclocal.m4
-	compile
-	config.guess
-	config.sub
-	configure
-	depcomp
-	install-sh
-	ltmain.sh
-	missing
-	mkinstalldirs
-	lib/Makefile.in
-	man/Makefile.in
-	src/Makefile.in
+Renamed and reserved:
+	debian/changelog -> changelog.debian
+
+Removed empty files:
+	AUTHORS
+	NEWS
 
 Removed unused dirs:
 	debian

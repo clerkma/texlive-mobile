@@ -1,7 +1,7 @@
-# $Id: bin_links.am 43248 2017-02-16 21:38:29Z karl $
-# am/bin_links.am: Makefile fragment for bindir links.
+## $Id: bin_links.am 61576 2022-01-11 22:54:49Z karl $
+## am/bin_links.am: Makefile fragment for bindir links.
 ##
-## Copyright 2017      Karl Berry <tex-live@tug.org>
+## Copyright 2017-2022 Karl Berry <tex-live@tug.org>
 ## Copyright 2011-2013 Peter Breitenlohner <tex-live@tug.org>
 ## You may freely use, modify and/or distribute this file.
 ##
@@ -13,6 +13,7 @@
 ##    script:bar
 ##  respectively, such that the links created on cygwin are
 ##    'foo->binprog.exe' and 'bar->script'.
+
 .PHONY: install-bin-links uninstall-bin-links
 
 install-bin-links:
@@ -36,3 +37,4 @@ if !WIN32
 	done
 endif !WIN32
 
+# (end of bin_links.am)

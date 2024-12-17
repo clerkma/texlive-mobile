@@ -22,7 +22,7 @@ class IntlTestRBNF : public IntlTest {
  public:
 
   // IntlTest override
-  virtual void runIndexedTest(int32_t index, UBool exec, const char* &name, char* par);
+  virtual void runIndexedTest(int32_t index, UBool exec, const char* &name, char* par) override;
 
 #if U_HAVE_RBNF
   /** 
@@ -60,6 +60,12 @@ class IntlTestRBNF : public IntlTest {
    * Perform a simple spot check on the duration-formatting rules
    */
   void TestDurations();
+    
+  /**
+   * Test that rounding works correctly on multiplier substitutions that use
+   * a DecimalFormat.
+   */
+  void TestDFRounding();
 
   /**
    * Perform a simple spot check on the Spanish spellout rules
@@ -100,6 +106,11 @@ class IntlTestRBNF : public IntlTest {
    * Perform a simple spot check on the Thai spellout rules
    */
   void TestThaiSpellout();
+
+  /**
+   * Perform a simple spot check on the Norwegian (no,nb) spellout rules
+   */
+  void TestNorwegianSpellout();
 
   /**
    * Perform a simple spot check on the Swedish spellout rules
@@ -149,6 +160,9 @@ class IntlTestRBNF : public IntlTest {
     void TestCompactDecimalFormatStyle();
     void TestParseFailure();
     void TestMinMaxIntegerDigitsIgnored();
+    void TestNumberingSystem();
+    void TestMemoryLeak22899();
+    void TestInfiniteRecursion();
 
 protected:
   virtual void doTest(RuleBasedNumberFormat* formatter, const char* const testData[][2], UBool testParsing);

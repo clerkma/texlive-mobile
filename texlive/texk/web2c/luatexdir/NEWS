@@ -1,4 +1,156 @@
 ==============================================================
+LuaTeX 1.18.0 2024-02-13
+==============================================================
+
+- New kpse.in_name_ok_silent_extended and kpse.in_name_ok_silent_extended
+- New kpse.in_name_ok, kpse.in_name_ok
+- New lfs.mkdirp that make parent directories as needed
+- In kpse mode os.rename,os.remove, lfs.attributes,
+  lfs.chdir, lfs.lock_dir, lfs.dir, lfs.link,
+  lfs.mkdir, lfs.mkdirp, lfs.rmdir, lfs.symlinkattributes, lfs.touch 
+  are now validated with kpse.in_name_ok_silent_extended  *and* kpse.out_name_ok_silent_extended;
+  lfs.attributes, lfs.dir and lfs.symlinkattributes are now validated only against kpse.in_name_ok_silent_extended
+- With --safer, all debug functions except traceback are nil 
+- New commandline switch --[no-]check-dvi-total-pages  exit when DVI exceeds 65535 pages (default: check).
+  This breaks backward compatibility.
+- texconfig.trace_extra_newline adds a newline in \tracingmacros. Default is false, so the 
+  output match pdftex. Previously an extra newline was added and 
+  with texconfig.trace_extra_newline=true it is again inserted as before.
+- Some fixes, among others:  
+  * setgentounicode has a glyph_unicode_tree not NULL (thanks M. Chernoff)
+  * Character index within the  limits in defining a Type 3 font (H.Hagen). Thanks M. Chernoff.
+  * Fix for dubious cff fonts (not following the 1000 unit recommendation) (Hans Hagen).
+  * TEXMF_OUTPUT_DIRECTORY and output_directory have the same value, having output_directory
+    the priority on TEXMF_OUTPUT_DIRECTORY.
+
+
+==============================================================
+LuaTeX 1.17.0 2023-04-29
+==============================================================
+ 
+- A breaking backward compatibility change: by default the socket 
+  library is not enabled . 
+  The new option --socket enable the socket library as 
+  before, as also --shell-escape (without --shell-restricted);
+  --nosocket, --no-socket , --safer disabled the library, and 
+  they have the priority in case of conflicting options.
+  The mime library is always available; socket.sleep
+  and socket.gettime are duplicated as os.socketsleep
+  and os.socketgettime, both always available.
+  The new os.kpsepopen replace io.popopen in kpse mode
+  (i.e. when kpse_init is not zero) as it was before
+  but the permission now cannot be changed anymore with 
+  kpse.check_permission . 
+  The function os.kpsepopen follows the same restrictions
+  as io.popen .
+  Thanks to Max Chernoff for debugging.
+
+ 
+
+
+==============================================================
+LuaTeX 1.16.0 2023-02-19
+==============================================================
+
+- new "late special" feature by Phelype Oleinik,  adapted and
+  extended  by H.Hagen.
+- new primitive \variablefam:  use a family number as signal 
+  for using the current family. This permits classifying 
+  characters with a class and still let the family adapt.
+    \variablefam"24
+    \Umathchardef\foo "3 "24 123
+    \foo \fam9
+  results in a curly left brace taken from family 9 with class 
+  ‘relation’ and spacing around it will be accordingly.
+- improved r2l annotation areas
+
+Several bug fixes (see ChangeLog).
+
+
+
+==============================================================
+LuaTeX 1.15.0 2021-12-31 
+==============================================================
+
+New primitive \matheqdirmode.
+By default the short skip detection is not adapted to r2l typesetting and that
+hasn't been the case since the start of the project. Changing it could break
+hacks that users came up with but when you set \matheqdirmode to a positive
+value direction will be taken into account.
+
+Several bug fixes (see ChangeLog).
+
+
+
+==============================================================
+LuaTeX 1.14.1 2021-12-30
+==============================================================
+
+struct dest (M.F. Krüger);
+
+Ignore paragraphs with only a local par node followed by 
+direction synchronization nodes (paragraphs like that are seen 
+as empty paragraphs) (Hans Hagen);
+
+more efficient fontdimen allocation (Hans Hagen);
+
+improvements for glyph_stream_provider with TTF fonts (M.F. Krüger);
+
+provide interface for variable fonts in luaharfbuzz (M.F. Krüger);
+
+partoken primitives (Hans Hagen & Petr Olsak);
+
+PNG /Smask for  pdf 2.0;
+
+\discretionaryligaturemode: optionally block select disc creation 
+(see [Dev-luatex] [PATCH] Nested discretionaries M.F. Krüger) (Hans Hagen);
+
+different radical style defaults in mathdefaultsmode 
+(see [Dev-luatex] Uunderdelimiter & friends and mathstyles by M.F. Krüger) (Hans Hagen).
+
+
+Several bug fixes (see ChangeLog).
+
+
+
+
+==============================================================
+LuaTeX 1.13.2 2021-04-10
+==============================================================
+
+MetaPost 2.01 (to mark the patch on the unwanted space in 
+btex etex).
+
+
+
+==============================================================
+LuaTeX 1.13.1 2021-04-02
+==============================================================
+
+Fixed an unwanted space in btex etex in metapost, introduced 
+after a patch for troff.
+
+
+
+
+==============================================================
+LuaTeX 1.13.0 2021-03-12
+==============================================================
+
+This is the release for TeX live 2021.
+Callback for nesting level used in tracingmacros.
+It is is a variant of \tracingstacklevels
+by Petr Olsak implemented in pdftex and xetex.
+Two TeX January 2021 DEK buglet fixes (H.Hagen)
+Mark math glyphs as protected (in order to prevent processing
+as text in base mode).
+Removed width/ic compensation for traditional math code path.
+When restricted system commands is enabled  os.setenv has no effect.
+Minor clean-up and bugs fixed (see ChangeLog)
+
+
+
+==============================================================
 LuaTeX 1.12.0 2020-03-15
 ==============================================================
 

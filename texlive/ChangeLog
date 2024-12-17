@@ -1,3 +1,79 @@
+2024-07-12  Karl Berry  <karl@freefriends.org>
+
+	* reautoconf with automake 1.17.
+
+2024-04-29  Karl Berry  <karl@freefriends.org>
+
+	* Makefile.am (distdir): override default dist generation,
+	since we don't try to keep make dist working any more.
+	https://tug.org/pipermail/tlbuild/2024q2/005547.html
+
+2023-12-31  Karl Berry  <karl@freefriends.org>
+
+	* reautoconf: add -f / --force option to pass to autoreconf.
+
+2023-12-26  Karl Berry  <karl@freefriends.org>
+
+	* reautoconf: don't bother with environment variables;
+	because the autotools have many subprograms, setting PATH
+	is what makes sense.
+
+2023-12-23  Karl Berry  <karl@tug.org>
+
+	* reautoconf with autoconf-2.72.
+
+2023-12-21  Karl Berry  <karl@freefriends.org>
+
+	* reautoconf (do_it): abort the run if any command fails.
+
+2023-02-25  Karl Berry  <karl@tug.org>
+
+	* Build: show full uname -a.
+
+2023-02-09  Karl Berry  <karl@freefriends.org>
+
+	* version.ac: 2023, no more /dev.
+
+2022-03-21  Karl Berry  <karl@freefriends.org>
+
+	* tardate.ac (tex_live_tardate): 2022-03-21 for TL'22.
+
+2022-01-18  Karl Berry  <karl@freefriends.org>
+
+	* version.ac: 2022, no more /dev.
+
+2021-10-04  Karl Berry  <karl@freefriends.org>
+
+	* reautoconf with automake-1.16.5.
+
+2021-06-27  Karl Berry  <karl@freefriends.org>
+
+	* reautoconf: pass -Wno-obsolete by default, since Autoconf 2.70
+	and later obsoletes many common macros. See m4/README for more.
+	Also standardize shell usage, etc., but no other functional changes.
+
+2021-04-17  Karl Berry  <karl@tug.org>
+
+	* version.ac: now 2022/dev since TL'21 is released.
+
+2021-03-23  Karl Berry  <karl@tug.org>
+
+	* tardate.ac (tex_live_tardate): 2020-03-23 for TL'21.
+
+2021-02-17  Karl Berry  <karl@tug.org>
+
+	* version.ac: 2021, no more /dev.
+
+2020-05-28  Karl Berry  <karl@freefriends.org>
+
+	* Makefile.am (world): do not descend into $(texlinks_dir) if it
+	doesn't exist. Report from Andreas Scherer,
+	https://tug.org/pipermail/tlbuild/2020q1/004614.html.
+
+2020-05-14  Karl Berry  <karl@freefriends.org>
+
+	* reautoconf for removal of poppler support.
+
 2020-04-10  Karl Berry  <karl@tug.org>
 
 	* version.ac: 2020/dev.

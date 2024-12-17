@@ -1,7 +1,7 @@
 /*
  * miscellaneous string utility functions
  * 
- * Copyright (c) 2001-2004 the xdvik development team
+ * Copyright (c) 2001-2022 the xdvik development team
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -635,10 +635,10 @@ canonicalize_path(const char *path)
     return start;
 }
 
-/* Escape all of the following characters in str:
-   ` \ ; ( )
-   making it safe to pass str to a shell. Return result in a newly
-   allocated string, which the caller is responsible to free() after use.
+/* Escape shell metacharacters in str, hopefully making it safe to pass
+   str to system(), i.e., /bin/sh -c, without further quoting. Return
+   result in a newly allocated string, which the caller is responsible
+   to free() after use.
 */
 char *
 shell_escape_string(const char *str)
@@ -651,9 +651,20 @@ shell_escape_string(const char *str)
     while (*src_ptr != '\0') {
 	if (*src_ptr == '\\'
 	    || *src_ptr == '`'
-	    || *src_ptr == '('
-	    || *src_ptr == ')'
-	    || *src_ptr == ';') {
+	    || *src_ptr == '\''
+	    || *src_ptr == '"'
+	    || *src_ptr == '(' || *src_ptr == ')'
+	    || *src_ptr == '{' || *src_ptr == '}'
+	    || *src_ptr == '[' || *src_ptr == ']'
+	    || *src_ptr == '<' || *src_ptr == '>'
+	    || *src_ptr == '&'
+	    || *src_ptr == '|'
+	    || *src_ptr == '!'
+	    || *src_ptr == '$'
+	    || *src_ptr == '*'
+	    || *src_ptr == '?'
+	    || *src_ptr == ';'
+	    || *src_ptr == ' ' || *src_ptr == '\t' || *src_ptr == '\n') {
 #if 0
 	    /* only if not yet escaped? */
  	    && (src_ptr == str || (src_ptr > str && *(src_ptr - 1) != '\\'))) {

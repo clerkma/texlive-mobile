@@ -1,0 +1,8 @@
+*.c text=auto eol=lf
+*.h text=auto eol=lf
+Makefile text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.html binary
+*.js binary

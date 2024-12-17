@@ -10,13 +10,17 @@
 @define function setencstring ();
 @define procedure setpriorfileenc;
 @define function isinternalUPTEX;
+@define function isterminalUTF8;
 
 @define function iskanji1 ();
 @define function is1stchr ();
 @define function ismultichr ();
 
 @define function multistrlen ();
+@define function multistrlenshort ();
+@define function multistrlenfilename ();
 @define function fromBUFF ();
+@define function fromBUFFshort ();
 @define function toBUFF ();
 
 @define function fromDVI ();
@@ -24,6 +28,12 @@
 @define function putc2 ();
 @define function fputs2 ();
 @define function inputline2 ();
+@define function ptencconvfirstline ();
+@define function UVScombinecode ();
+@define function UVSgetcodepointlength ();
+@define function UVSgetcodepointinsequence ();
+@define function ptencucsto8bitcode ();
+@define function ptenc8bitcodetoucs ();
 
 @define function setinfileenc ();
 @define function setstdinenc ();
@@ -34,6 +44,7 @@
 @define function fromKUTEN ();
 @define function fromUCS ();
 @define function UCStoUTF8 ();
+@define function toJIS ();
 @define function toUCS ();
 
 @define function notkanjicharseq ();
@@ -42,6 +53,8 @@
 @define function ischarkanji ();
 @define function ismultiprn ();
 @define function calcpos ();
+@define function ktokentocmd ();
+@define function ktokentochr ();
 @define function kcatcodekey ();
 @define function multilenbuffchar ();
 @define function nrestmultichr ();

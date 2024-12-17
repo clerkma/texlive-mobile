@@ -1,4 +1,25 @@
 
+/*  Copyright (C) 2014-23 R. D. Tennent School of Computing,
+ *  Queen's University, rdt@cs.queensu.ca
+ *
+ *  This program is free software; you can redistribute it
+ *  and/or modify it under the terms of the GNU General
+ *  Public License as published by the Free Software
+ *  Foundation; either version 2 of the License, or (at your
+ *  option) any later version.
+ *
+ *  This program is distributed in the hope that it will
+ *  be useful, but WITHOUT ANY WARRANTY; without even the
+ *  implied warranty of MERCHANTABILITY or FITNESS FOR A
+ *  PARTICULAR PURPOSE. See the GNU General Public License
+ *  for more details.
+ *
+ *  You should have received a copy of the GNU General
+ *  Public License along with this program; if not, write to
+ *  the Free Software Foundation, Inc., 51 Franklin Street,
+ *  Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 # include "process_score.h"
 
 # define APPOGG_SPACING SP(64)+SP(256)  /* not a legitimate spacing */
@@ -171,7 +192,7 @@ void checkn (char *s)
 
 PRIVATE
 void filter_output (int i)
-{ /* discard \sk \bsk \Qsk \TQsk \HQsk \QQsk and \Cpause */
+{ /* discard \sk \bsk \Qsk \TQsk \HQsk \QQsk \Cp and \Cpause */
   char *s = notes[i];
   while (s < current[i])
   { char *t;
@@ -180,6 +201,7 @@ void filter_output (int i)
     if (!prefix ("\\sk", s)
      && !prefix ("\\bsk", s)
      && !prefix ("\\Cpause", s) 
+     && !prefix ("\\Cp", s) 
      && !prefix ("\\Qsk", s) 
      && !prefix ("\\HQsk", s) 
      && !prefix ("\\TQsk", s) 
@@ -606,7 +628,7 @@ void process_command (char **ln)
     else if (prefix ("\\Largevalue", instrument_size[n]))
       instr_numsize[n] = 1.44;
     else 
-      error ("\\setsize argument unreadable.");    
+      /* number? */
     if (debug)
     {
       fprintf (logfile, "instr_numsize[%d] = %f\n", n, instr_numsize[n]);
@@ -798,7 +820,7 @@ void process_command (char **ln)
     }
   }
 
-  else if ( prefix("\\anotes", *ln) )
+  else if ( prefix("\\an", *ln) )
   { if (debug)
     { fprintf (logfile, "\nProcessing %s", *ln);
       fprintf (logfile, "lineno=%d\n",  lineno);

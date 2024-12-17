@@ -29,7 +29,7 @@ make4ht [options] filename ["tex4ht.sty op." "tex4ht op." "t4ht op" "latex op"]
 
 -- set version number. the template should be replaced by the
 -- actual version number by the build script
-local version = "v0.3e"
+local version = "v0.4b"
 mkparams.version_number = version
 
 local args = mkparams.get_args()
@@ -39,11 +39,16 @@ local parameters = mkparams.process_args(args)
 log:status("Conversion started")
 log:status("Input file: " .. parameters.tex_file)
 
+
+if parameters.builddir and parameters.builddir ~= "" then
+  mkutils.make_path(parameters.builddir)
+end
+
 local mode = parameters.mode
 local build_file = parameters.build_file 
 
 -- handle output formats
-local allowed_output_formats = {xhtml = true, html5=true, odt = true, docbook=true, tei=true}
+local allowed_output_formats = {xhtml = true, html5=true, odt = true, docbook=true, tei=true, jats=true}
 -- formatter is Lua library which must provide at least prepare_parameters
 -- and process_build_sequence functions
 local formatter
@@ -76,6 +81,9 @@ make.params = parameters
 if make:length() < 1 then
 	if mode == "draft" then
 		make:htlatex()
+  elseif mode == "clean" then
+    make:clean()
+    make.no_dvi_process = true
 	else
 		make:htlatex()
 		make:htlatex()
@@ -84,7 +92,7 @@ if make:length() < 1 then
 end
 
 
-if not args["no-tex4ht"] then
+if not args["no-tex4ht"] and not make.no_dvi_process then
   make:tex4ht()
 end
 
@@ -92,7 +100,11 @@ local ext = args.xetex and "xdv" or "dvi"
 if #make.image_patterns > 0 then
   make.params.t4ht_par = make.params.t4ht_par .. " -p"
 end
-make:t4ht {ext = ext}
+
+if not make.no_dvi_process then
+  make:t4ht {ext = ext}
+end
+
 -- run extensions which modify the build sequence
 if #extensions > 0 then
   make = mkutils.extensions_modify_build(extensions, make)
@@ -113,14 +125,22 @@ make:match("tmp$", function(filename,params)
 
 make:match(".*",function(filename,par)
 	local outdir =  '' --par["outdir"] and par["outdir"] .."/" or ''
-	if par['outdir'] ~= "" then outdir = par['outdir'] .. '/' end
-	log:info("outdir: "..outdir)
-	local outfilename = outdir .. filename
-	mkutils.copy(filename,outfilename)
+	if par['outdir'] ~= "" then 
+    outdir = par['outdir'] .. '/' 
+  else
+    -- don't run unnecessary copy without output dir
+    log:info("No output directory")
+    return true
+  end
+  log:info("outdir: "..outdir)
+  local outfilename = filename:gsub("^" .. (par.builddir or ""), "")
+  outfilename = outdir .. outfilename
+  mkutils.copy(filename,outfilename)
 	return true
 end)
 
 make:run()
 
 log:status("Conversion finished")
+logging.exit_status()
 

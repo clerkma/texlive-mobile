@@ -915,6 +915,9 @@ static struct option mpost_options[]
       } else if (STREQ (optarg, "binary")) {
         options->math_mode = mp_math_binary_mode;
         internal_set_option("numbersystem=\"binary\"");
+      } else if (STREQ (optarg, "interval")) {
+        options->math_mode = mp_math_interval_mode;
+        internal_set_option("numbersystem=\"interval\"");
       } else {
         fprintf(stdout,"Ignoring unknown argument `%s' to --numbersystem\n", optarg);
       }
@@ -1029,7 +1032,7 @@ fprintf(stdout,
 "  -ini                      be inimpost, for dumping mem files\n"
 "  -interaction=STRING       set interaction mode (STRING=batchmode/nonstopmode/\n"
 "                            scrollmode/errorstopmode)\n"
-"  -numbersystem=STRING      set number system mode (STRING=scaled/double/binary/decimal)\n"
+"  -numbersystem=STRING      set number system mode (STRING=scaled/double/binary/interval/decimal)\n"
 "  -jobname=STRING           set the job name to STRING\n"
 "  -progname=STRING          set program (and mem) name to STRING\n"
 "  -tex=TEXPROGRAM           use TEXPROGRAM for text labels\n"
@@ -1043,6 +1046,7 @@ fprintf(stdout,
 "  -recorder                 enable filename recorder\n"
 "  -restricted               be secure: disable tex, makempx and editor commands\n"
 "  -troff                    set prologues:=1 and assume TEXPROGRAM is really troff\n"
+"  -T                        same as -troff\n"
 "  -s INTERNAL=\"STRING\"      set internal INTERNAL to the string value STRING\n"
 "  -s INTERNAL=NUMBER        set internal INTERNAL to the integer value NUMBER\n"
 "  -help                     display this help and exit\n"

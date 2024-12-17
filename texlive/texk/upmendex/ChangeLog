@@ -1,3 +1,360 @@
+2024-11-09  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* version 1.10  Stable version.
+	* configure.ac: Bump version.
+	* {mendex,var,exvar}.h, fread.c, fwrite.c, sort.c, styfile.c:
+	Support for indices with four sublevels,
+	conventionally two sublevels.
+	Thanks to upll request by Sergei Golovan.
+	https://github.com/t-tk/upmendex-package/pull/9
+	* fread.c: Improve error message when reading index entries.
+	https://github.com/t-tk/upmendex-package/issues/13
+	* sort.c: Extend RULEBUFSIZE to adjust ICU 76.1.
+	Revise to avoid compiler warnings.
+	* convert.c: Tweak comment.
+	* tests/{upmendex,pprec,icu}.test: Split test scripts.
+	* tests/nest.test, tests/nested{,3}.{ist,idx,ind},
+	tests/toodeep.idx: Add new tests for nested depth.
+	* tests/upmendex.test, tests/tort{,W}.idx, tests/ok-tort.ind:
+	Add new tests for error/warning.
+	* Makefile.am: Adjust.
+
+2024-07-06  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* version 1.09  Stable version.
+	* configure.ac: Bump version.
+	* fwrite.c:
+	Improve heading of Ö,ö,Ő,ő,Ü,ü,Ű,ű in Hungarian.
+	Thanks to @hair-splitter for the report.
+	https://github.com/t-tk/upmendex-package/issues/10
+
+2024-03-10  Karl Berry  <karl@tug.org>
+
+	* TL'24 release.
+
+2024-02-05  Karl Berry  <karl@freefriends.org>
+
+	* COPYRIGHT,
+	* main.c: 2024.
+
+2023-12-16  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* version 1.08  Stable version.
+	* configure.ac: Bump version.
+	* sort.c: Warn if remaining buffer is small for custom collation rules
+	when "icu_locale" and "icu_rules" are specified in style file.
+	Add CJK Unified Ideograph Extension I in Unicode 15.1.
+	It works with ICU 74.1 or later.
+	* tests/upmendex.test, tests/locale3.ist, tests/locale3-rule.ind,
+	Makefile.am: Update tests.
+
+2023-08-11  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* tests/upmendex.test:
+	Make easier to test on Windows.
+
+2023-07-05  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* fwrite.c, mendex.h:
+	Enable to build with system ICU DLL icu.dll
+	for Windows 10 version 1903 (May 2019 Update) or later.
+	https://learn.microsoft.com/en-us/windows/win32/intl/international-components-for-unicode--icu-
+
+2023-03-09  Karl Berry  <karl@tug.org>
+
+	* TL'23 release.
+
+2023-02-26  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* hanzi.h: Update references.
+
+2022-11-20  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* version 1.07  Stable version.
+	* configure.ac: Bump version.
+	* sort.c, fwrite.c, {,ex}hanzi.h:
+	Improve detection of hanzi header to support
+	Chinese polyphone (多音字).
+
+2022-11-16  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* version 1.06  Stable version.
+	* configure.ac: Bump version.
+	* sort.c: Add parameter option "@" to character_order,
+	which denotes character order is defined by icu_rules.
+	* fwrite.c: Better treatment for Marathi KSSA, JNYA.
+	* upmendex.ja.txt: Update document.
+
+2022-10-08  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* version 1.05  Stable version.
+	* configure.ac: Bump version.
+	* main.c, sort.c, convert.c, fwrite.c, {,ex}kana.h, mendex.h:
+	Support U+1B001 Hiragana Letter Archaic Ye.
+	* fwrite.c:
+	Strict check for dotted/dotless I/i in Turkish.
+	Strict check for Thai reordering.
+
+2022-09-17  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* fwrite.c:
+	Fix a bug on Thai words started with vowel followed by consonant.
+
+2022-09-11  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* version 1.03  Stable version.
+	* configure.ac: Bump version.
+	* main.c, sort.c, convert.c, fwrite.c, kana.h:
+	Support U+1B11F..1B122 Hiragana/Katakana Letter Archaic Wu, Yi, Ye.
+
+2022-09-04  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* version 1.02  Stable version.
+	* configure.ac: Bump version.
+	* fwrite.c:
+	Support U+1B132, U+1B155 Hiragana/Katakana Letter Small Ko.
+	They have not been supported yet but will be supported in ICU collator.
+	Support U+0626 Arabic Letter Yeh with Hamza Above for Uyghur.
+	Support U+0149 Latin Small Letter N Preceded By Apostrophe for Afrikaans.
+	Support digraphs dd, ff, ng, ph, rh for Welsh.
+	* sort.c: Add Latin Extended-F and -G.
+	Add CJK Unified Ideograph Extension H, Cyrillic Extended-D,
+	Devanagari Extended-A and Arabic Extended-C in Unicode 15.0.
+
+2022-09-02  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* main.c:
+	Moved calls of KP_entry_filetype() after checking options.
+	This change prevents unwanted looking for texmf.cnf.
+	https://github.com/texjporg/tex-jp-build/pull/144
+
+2022-05-22  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* version 1.01  Stable version.
+	* configure.ac: Bump version.
+	* fread.c:
+	Modify heuristic detection of page number types
+	for ambiguous ones between roman number and alphabet.
+	* tests/upmendex.test, tests/pprec[567].ist,
+	tests/romalp[ABCD].idx, tests/romalpA-[56].ind,
+	tests/romalp[BD]-[567].ind, tests/romalpC-5.ind, Makefile.am:
+	Update tests.
+
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2022-03-07  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* fwrite.c: output to file instead of accumulating too much.
+	https://github.com/texjporg/tex-jp-build/issues/137
+
+2022-01-18  Karl Berry  <karl@freefriends.org>
+
+	* COPYRIGHT,
+	* main.c: 2022.
+
+2021-11-20  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* version 1.00  Stable version.
+	* configure.ac: Bump version.
+	* {,ex}var.h, fwrite.c, styfile.c:
+	Add options "script_preamble" and "script_postamble"
+	in style file.
+	* sort.c: Add Latin Extended-F and -G.
+	Add U_FORMAT_CHAR to is_type_mark_or_punct().
+	* mendex.h, var.h, convert.c, fwrite.c, sort.c, styfile.c:
+	Supports Arabic, Hebrew scripts (experimental).
+	* upmendex.ja.txt:
+	Update document.
+
+2021-10-24  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* version 0.60  Beta version.
+	* configure.ac: Bump version.
+	* Makefile.am, convert.c, fwrite.c, sort.c,
+	{,ex}kana.h, ktable.h, mendex.h:
+	Enhance procedure of classifying characters:
+	Newly classifies by character type of
+	General Category in Unicode Script Property.
+	https://github.com/t-tk/upmendex-package/issues/8
+
+2021-09-19  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* fread.c:
+	Modify heuristic detection of page number types.
+	* tests/upmendex.test, tests/range.idx, tests/range[123].ind,
+	tests/pprecB.idx, tests/pprec[34].ist, tests/pprecB-[034].ind:
+	Update tests.
+
+2021-09-18  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* fread.c, fwrite.c, sort.c, mendex.h, {,ex}var.h:
+	Extend levels of page numbers from 3 to 10
+	for compatibility with makeindex.
+	Fix a bug of page ranges with multi-level page numbers.
+	* fread.c:
+	Strict check for "page_precedence" and "page_compositor" in style file.
+	* fwrite.c:
+	Do not break lines before "delim_n".
+	* tests/upmendex.test, tests/range.idx, tests/range[123].{ist,ind},
+	removed tests/rangetwo.*:
+	Update tests.
+
+2021-09-05  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* fwrite.c:
+	Support I-Y ordering in Lithuanian.
+
+2021-09-04  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* version 0.59  Beta version.
+	* configure.ac: Bump version.
+	* fwrite.c, styfile.c, {,ex}var.h:
+	Support output order of symbols and numbers separately
+	when "symbol_flag" is 2 in style file.
+	* sort.c:
+	Accept combination of "icu_locale" and "icu_rules" in style file.
+	If simultaneously specified, collation rules specified by "icu_rules" are
+	added on collation rules specified by "icu_locale".
+	* tests/upmendex.test, tests/rule.{idx,ind}, tests/locale2.ist,
+	tests/{locale1,attri1,locale2-rule}.ind:
+	Add a new test and update conventional tests.
+
+2021-08-29  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* styfile.c:
+	Strict check for "icu_attributes" in style file.
+	* sort.c:
+	Strict check for "character_order" in style file.
+	* fwrite.c:
+	Fix a bug when "symbol_flag" is 0.
+	* tests/upmendex.test, tests/attr1.{ist,ind},
+	tests/locale1.ind, tests/rule.{idx,ind}:
+	Add a new test and update conventional tests.
+
+2021-08-28  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* styfile.c:
+	Add a alias "headings_flag" of the keyword "heading_flag"
+	in style file for compatibility with makeindex.
+	Warn if specifier in style file is unknown.
+
+2021-08-26  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* sort.c:
+	Initialize a variable.
+	* tests/upmendex.test, tests/locale1.{ist,ind}:
+	Add a new test for "icu_locale".
+
+2021-08-25  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* sort.c:
+	Initialize a string. Check malformed input for "icu_rules".
+	* tests/upmendex.test, tests/rule[34].ist:
+	Add new tests.
+
+2021-08-23  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* tests/upmendex.test, tests/rule[12].ist, tests/rule.{idx,ind}:
+	Add new tests for the keyword "icu_rules" in style file.
+
+2021-08-08  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* version 0.58  Beta version.
+	* configure.ac: Bump version.
+	* main.c, convert.c, fwrite.c, sort.c, styfile.c, mendex.h, {,ex}kana.h, {,ex}var.h:
+	Supports Devanagari, Thai scripts (experimental).
+	Add keywords "devanagari_head", "thai_head" to style file.
+	Add a keyword "hangul_head" to style file, let "tumumja" deprecated.
+	* styfile.c:
+	Add an option "numeric-ordering" to the keyword "icu_attributes" in style file.
+	* upmendex.ja.txt:
+	Update document.
+
+2021-06-19  Karl Berry  <karl@freefriends.org>
+
+	* configure.ac: pthread doc update; also needed in bibtexu (q.v.).
+
+2021-06-19  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* configure.ac: variadic checks before AC_PROG_CXX, to avoid error
+	of C++ compiler detection in some environments.
+	Report from Vadim Kantorov,
+	https://github.com/t-tk/upmendex-package/issues/1
+	
+	* main.c: Add ICU version to banner.
+
+2021-06-13  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	Same fixes as for mendex.
+	* fwrite.c:
+	Avoid segmentation fault for unwritable fopen.
+	* pageread.c, styfile.c: Exit code 255 for non-existent
+	style/log file.
+
+2021-06-06  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* version 0.57  Beta version.
+	* configure.ac: Bump version.
+	* main.c, styfile.c:
+	Accept multiple numbers of style files by option '-s'.
+	* main.c, sort.c, styfile.c, fwrite.c, {,ex}kana.h, {,ex}var.h:
+	Add a keyword "kana_head" to style file.
+	Treat "Circled Katakana" as kana.
+	* tests/upmendex.test, tests/uni[12].ist,
+	tests/rangetwo.{idx,ind,ist}:
+	Add new tests.
+	* upmendex.ja.txt:
+	Update document.
+	Ref. https://github.com/texjporg/tex-jp-build/issues/116
+
+2021-05-19  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* version 0.56  Beta version.
+	* configure.ac: Bump version.
+	* styfile.c:
+	Fix a bug of reading keywords "setpage_prefix", "setpage_suffix"
+	in style file.
+	More strictly check string length.
+
+2021-05-09  Karl Berry  <karl@freefriends.org>
+
+	* mendex.h (page.attr): use int, not char, since we do signed
+	comparison and aarch64 apparently treats char as unsigned.
+	(index.words): use unsigned char for consistency.
+	
+	Same fixes as for mendex; see mendexk/ChangeLog.
+	Report from Johannes Hielscher,
+	  https://tug.org/pipermail/tlbuild/2021q1/004873.html
+	and follow-up:
+	  https://tug.org/pipermail/tlbuild/2021q2/004911.html
+
+2021-03-23  Karl Berry  <karl@tug.org>
+
+	* TL'21.
+
+2021-03-21  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* version 0.55  Beta version.
+	* configure.ac: Bump version.
+	* fread.c: Fix a bug about page_precedence in style.
+	Thanks to Suzana Sagadin for the report.
+	* tests/pprec[012].ist, tests/pprecA.idx, tests/pprecA-[012].ind,
+	tests/upmendex.test, Makefile.am:
+	Add new tests.
+
+2021-02-17  Karl Berry  <karl@freefriends.org>
+
+	* COPYRIGHT,
+	* main.c: copyright 2021.
+
+2020-05-01  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* main.c, version.h, Makefile.am: Add bug report addresses
+	on command line help.
+	* convert.c: Tune buffer sizes to avoid tool warnings.
+
 2020-02-22  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
 
 	* version 0.54  Beta version.

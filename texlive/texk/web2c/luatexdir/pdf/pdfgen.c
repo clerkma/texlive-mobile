@@ -916,12 +916,23 @@ void pdf_print_toks(PDF pdf, halfword p)
     xfree(s);
 }
 
+/*
 void pdf_add_rect_spec(PDF pdf, halfword r)
 {
     pdf_add_bp(pdf, pdf_ann_left(r));
     pdf_add_bp(pdf, pdf_ann_bottom(r));
     pdf_add_bp(pdf, pdf_ann_right(r));
     pdf_add_bp(pdf, pdf_ann_top(r));
+}
+*/
+
+void pdf_add_rect_spec(PDF pdf, halfword r)
+{
+    /* the check is now here */
+    pdf_add_bp(pdf, (pdf_ann_left(r)   < pdf_ann_right(r) ? pdf_ann_left(r)   : pdf_ann_right(r) ) - pdf_ann_margin(r));
+    pdf_add_bp(pdf, (pdf_ann_bottom(r) < pdf_ann_top(r)   ? pdf_ann_bottom(r) : pdf_ann_top(r)   ) - pdf_ann_margin(r));
+    pdf_add_bp(pdf, (pdf_ann_left(r)   < pdf_ann_right(r) ? pdf_ann_right(r)  : pdf_ann_left(r)  ) + pdf_ann_margin(r));
+    pdf_add_bp(pdf, (pdf_ann_bottom(r) < pdf_ann_top(r)   ? pdf_ann_top(r)    : pdf_ann_bottom(r)) + pdf_ann_margin(r));
 }
 
 void pdf_rectangle(PDF pdf, halfword r)
@@ -1667,6 +1678,7 @@ void pdf_begin_page(PDF pdf)
         form_margin = obj_xform_margin(pdf, pdf_cur_form);
         if (xform_attributes != null)
             pdf_print_toks(pdf, xform_attributes);
+        print_pdf_table_string(pdf, "xformattributes");
         if (obj_xform_attr(pdf, pdf_cur_form) != null) {
             pdf_print_toks(pdf, obj_xform_attr(pdf, pdf_cur_form));
             delete_token_ref(obj_xform_attr(pdf, pdf_cur_form));
@@ -1789,13 +1801,16 @@ void pdf_end_page(PDF pdf)
         pdf_dict_add_name(pdf, "Type", "Page");
         pdf_dict_add_ref(pdf, "Contents", pdf->last_stream);
         pdf_dict_add_ref(pdf, "Resources", res_p->last_resources);
-        pdf_add_name(pdf, "MediaBox");
-        pdf_begin_array(pdf);
-        pdf_add_int(pdf, 0);
-        pdf_add_int(pdf, 0);
-        pdf_add_bp(pdf, pdf->page_size.h);
-        pdf_add_bp(pdf, pdf->page_size.v);
-        pdf_end_array(pdf);
+        pdf->omit_mediabox = pdf_omit_mediabox;
+        if (! pdf->omit_mediabox) {
+            pdf_add_name(pdf, "MediaBox");
+            pdf_begin_array(pdf);
+            pdf_add_int(pdf, 0);
+            pdf_add_int(pdf, 0);
+            pdf_add_bp(pdf, pdf->page_size.h);
+            pdf_add_bp(pdf, pdf->page_size.v);
+            pdf_end_array(pdf);
+        }
         page_attributes = pdf_page_attr ;
         if (page_attributes != null)
             pdf_print_toks(pdf, page_attributes);
@@ -1952,6 +1967,7 @@ void pdf_end_page(PDF pdf)
         if (xform_resources != null) {
             pdf_print_toks(pdf, xform_resources);
         }
+        print_pdf_table_string(pdf, "xformresources");
         if (obj_xform_resources(pdf, pdf_cur_form) != null) {
             pdf_print_toks(pdf, obj_xform_resources(pdf, pdf_cur_form));
             delete_token_ref(obj_xform_resources(pdf, pdf_cur_form));
@@ -2004,7 +2020,7 @@ void pdf_end_page(PDF pdf)
         pdf_end_dict(pdf);
     }
     /*tex Generate |ProcSet| in version 1.*/
-    if (pdf->major_version == 1) {
+    if (pdf->major_version == 1 && ! pdf_omit_procset) {
         pdf_add_name(pdf, "ProcSet");
         pdf_begin_array(pdf);
         if ((procset & PROCSET_PDF) != 0)
@@ -2054,6 +2070,38 @@ static void check_nonexisting_destinations(PDF pdf)
     }
 }
 
+/*tex
+
+    For structure destinations we don't have a fallback structure element to use when
+    they are not defined, so we insert "null" instead
+    referenced but don't exists have |obj_dest_ptr=null|. Leaving them undefined
+    might cause troubles for PDF browsers, so we need to fix them; they point to
+    the last page.
+
+*/
+
+static void check_nonexisting_structure_destinations(PDF pdf)
+{
+    int k;
+    for (k = pdf->head_tab[obj_type_struct_dest]; k != 0; k = obj_link(pdf, k)) {
+        if (obj_dest_ptr(pdf, k) == null) {
+            if (obj_info(pdf, k) < 0) {
+                char *ss = makecstring(-obj_info(pdf, k));
+                formatted_warning("pdf backend", "unreferenced structure destination with name '%s'",ss);
+            } else {
+                formatted_warning("pdf backend", "unreferenced structure destination with num '%d'",obj_info(pdf,k));
+            }
+
+            pdf_begin_obj(pdf, k, OBJSTM_ALWAYS);
+            pdf_begin_array(pdf);
+            pdf_add_null(pdf);
+            pdf_add_name(pdf, "Fit");
+            pdf_end_array(pdf);
+            pdf_end_obj(pdf);
+        }
+    }
+}
+
 static void check_nonexisting_pages(PDF pdf)
 {
     struct avl_traverser t;
@@ -2080,6 +2128,11 @@ static boolean substr_of_str(const char *s, const char *t)
     if (strstr(t, s) == NULL)
         return false;
     return true;
+}
+
+const char* pdf_pdf_prefix_str(const char *a, const char *b)
+{
+    return (pdf_ptex_prefix ? a : b);
 }
 
 static int pdf_print_info(PDF pdf, int luatexversion, str_number luatexrevision)
@@ -2147,7 +2200,7 @@ static int pdf_print_info(PDF pdf, int luatexversion, str_number luatexrevision)
         pdf_dict_add_name(pdf, "Trapped", "False");
     }
     if ((pdf_suppress_optional_info & 1) == 0) {
-        pdf_dict_add_string(pdf, "PTEX.FullBanner", luatex_banner);
+        pdf_dict_add_string(pdf, pdf_pdf_prefix_str("PTEX_FullBanner", "PTEX.FullBanner"), luatex_banner);
     }
     pdf_end_dict(pdf);
     pdf_end_obj(pdf);
@@ -2182,11 +2235,13 @@ void pdf_finish_file(PDF pdf, int fatal_error) {
         print_err(" ==> Fatal error occurred, no output PDF file produced!");
     } else {
         int i, j, k;
-        int root, info;
+        int root = 0;
+        int info = 0;
         int xref_stm = 0;
         int outlines = 0;
         int threads = 0;
         int names_tree = 0;
+        int prerolled = 0;
         size_t xref_offset_width;
         int luatexversion = luatex_version;
         str_number luatexrevision = get_luatexrevision();
@@ -2204,6 +2259,10 @@ void pdf_finish_file(PDF pdf, int fatal_error) {
             }
         } else {
             if (pdf->draftmode == 0) {
+                pdf->gen_tounicode = pdf_gen_tounicode;
+                pdf->omit_cidset = pdf_omit_cidset;
+                pdf->omit_charset = pdf_omit_charset;
+                pdf->omit_infodict = pdf_omit_infodict;
                 /*tex We make sure that the output file name has been already created. */
                 pdf_flush(pdf);
                 /*tex Flush page 0 objects from JBIG2 images, if any. */
@@ -2214,14 +2273,42 @@ void pdf_finish_file(PDF pdf, int fatal_error) {
                 if (total_pages > 0) {
                     check_nonexisting_pages(pdf);
                     check_nonexisting_destinations(pdf);
+                    check_nonexisting_structure_destinations(pdf);
                 }
-                /*tex Output fonts definition. */
+                /*tex
+                    The first pass over the list will flag the slots that are
+                    used so that we can do a preroll for type 3 fonts.
+                */
                 for (k = 1; k <= max_font_id(); k++) {
                     if (font_used(k) && (pdf_font_num(k) < 0)) {
                         i = -pdf_font_num(k);
                         for (j = font_bc(k); j <= font_ec(k); j++)
                             if (quick_char_exists(k, j) && pdf_char_marked(k, j))
                                 pdf_mark_char(i, j);
+                    }
+                }
+                k = pdf->head_tab[obj_type_font];
+                while (k != 0) {
+                    int f = obj_info(pdf, k);
+                    if (do_pdf_preroll_font(pdf, f)) {
+                        prerolled = 1;
+                    }
+                    k = obj_link(pdf, k);
+                }
+                /*tex
+                    Just in case the user type 3 font has used fonts, we need to
+                    do a second pass. We also collect some additional data here.
+                */
+                for (k = 1; k <= max_font_id(); k++) {
+                    if (font_used(k) && (pdf_font_num(k) < 0)) {
+                        i = -pdf_font_num(k);
+                        if (prerolled) {
+                            for (j = font_bc(k); j <= font_ec(k); j++)
+                                if (quick_char_exists(k, j) && pdf_char_marked(k, j))
+                                    pdf_mark_char(i, j);
+                        } else {
+                            /*tex No need to waste time on checking again. */
+                        }
                         if ((pdf_font_attr(i) == 0) && (pdf_font_attr(k) != 0)) {
                             set_pdf_font_attr(i, pdf_font_attr(k));
                         } else if ((pdf_font_attr(k) == 0) && (pdf_font_attr(i) != 0)) {
@@ -2231,9 +2318,6 @@ void pdf_finish_file(PDF pdf, int fatal_error) {
                         }
                     }
                 }
-                pdf->gen_tounicode = pdf_gen_tounicode;
-                pdf->omit_cidset = pdf_omit_cidset;
-                pdf->omit_charset = pdf_omit_charset;
                 k = pdf->head_tab[obj_type_font];
                 while (k != 0) {
                     int f = obj_info(pdf, k);
@@ -2241,6 +2325,9 @@ void pdf_finish_file(PDF pdf, int fatal_error) {
                     k = obj_link(pdf, k);
                 }
                 write_fontstuff(pdf);
+                /*tex
+                    We're done with the fonts.
+                */
                 if (total_pages > 0) {
                     pdf->last_pages = output_pages_tree(pdf);
                     /*tex Output outlines. */
@@ -2304,7 +2391,8 @@ void pdf_finish_file(PDF pdf, int fatal_error) {
                 print_pdf_table_string(pdf, "catalog");
                 pdf_end_dict(pdf);
                 pdf_end_obj(pdf);
-                info = pdf_print_info(pdf, luatexversion, luatexrevision);
+                if (! pdf->omit_infodict) 
+                    info = pdf_print_info(pdf, luatexversion, luatexrevision);
                 if (pdf->os_enable) {
                     pdf_buffer_select(pdf, OBJSTM_BUF);
                     pdf_os_write_objstream(pdf);
@@ -2338,7 +2426,8 @@ void pdf_finish_file(PDF pdf, int fatal_error) {
                     pdf_add_int(pdf, 1);
                     pdf_end_array(pdf);
                     pdf_dict_add_ref(pdf, "Root", root);
-                    pdf_dict_add_ref(pdf, "Info", info);
+                    if (! pdf->omit_infodict) 
+                        pdf_dict_add_ref(pdf, "Info", info);
                     if (pdf_trailer_toks != null) {
                         pdf_print_toks(pdf, pdf_trailer_toks);
                         delete_token_ref(pdf_trailer_toks);
@@ -2396,7 +2485,8 @@ void pdf_finish_file(PDF pdf, int fatal_error) {
                     pdf_begin_dict(pdf);
                     pdf_dict_add_int(pdf, "Size", pdf->obj_ptr + 1);
                     pdf_dict_add_ref(pdf, "Root", root);
-                    pdf_dict_add_ref(pdf, "Info", info);
+                    if (! pdf->omit_infodict) 
+                        pdf_dict_add_ref(pdf, "Info", info);
                     if (pdf_trailer_toks != null) {
                         pdf_print_toks(pdf, pdf_trailer_toks);
                         delete_token_ref(pdf_trailer_toks);

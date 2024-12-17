@@ -2,7 +2,7 @@
 ** EllipticalArc.cpp                                                    **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -156,7 +156,7 @@ void EllipticalArc::transform (const Matrix &matrix) {
 /** Approximates an arc of the unit circle by a single cubic Bézier curve.
  *  @param[in] phi start angle of the arc in radians
  *  @param[in] delta length of the arc */
-static Bezier approx_unit_arc (double phi, double delta) {
+static CubicBezier approx_unit_arc (double phi, double delta) {
 	double c = 0.551915024494;  // see http://spencermortensen.com/articles/bezier-circle
 	if (abs(delta + math::HALF_PI) < 1e-7)
 		c = -c;
@@ -166,18 +166,18 @@ static Bezier approx_unit_arc (double phi, double delta) {
 	DPair p4(cos(phi+delta), sin(phi+delta));
 	DPair p2(p1.x()-c*p1.y(), p1.y()+c*p1.x());
 	DPair p3(p4.x()+c*p4.y(), p4.y()-c*p4.x());
-	return Bezier(p1, p2, p3, p4);
+	return CubicBezier(p1, p2, p3, p4);
 }
 
 
 /** Approximates the arc by a sequence of cubic Bézier curves. */
-vector<Bezier> EllipticalArc::approximate () const {
-	vector<Bezier> beziers;
+vector<CubicBezier> EllipticalArc::approximate () const {
+	vector<CubicBezier> beziers;
 	if (_startPoint != _endPoint) {
 		if (isStraightLine()) {
 			DPair dir = (_endPoint - _startPoint);
 			dir /= dir.length()/3.0;
-			beziers.emplace_back(Bezier(_startPoint, _startPoint+dir, _endPoint-dir, _endPoint));
+			beziers.emplace_back(_startPoint, _startPoint+dir, _endPoint-dir, _endPoint);
 		}
 		else {
 			CenterParams cparams = getCenterParams();
@@ -190,11 +190,11 @@ vector<Bezier> EllipticalArc::approximate () const {
 			if (numCurves > 0) {
 				double c = cos(_rotationAngle);
 				double s = sin(_rotationAngle);
-				Matrix ellipse = {_rx*c, -_ry*s, cparams.center.x(), _rx*s, _ry*c, cparams.center.y()};
+				Matrix ellipse{_rx*c, -_ry*s, cparams.center.x(), _rx*s, _ry*c, cparams.center.y()};
 				double angle = cparams.startAngle;
 				double diff = cparams.deltaAngle/numCurves;
 				while (numCurves-- > 0) {
-					beziers.emplace_back(approx_unit_arc(angle, diff).transform(ellipse));
+					beziers.push_back(approx_unit_arc(angle, diff).transform(ellipse));
 					angle += diff;
 				}
 			}

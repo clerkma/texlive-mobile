@@ -1,7 +1,7 @@
 /*
 ***********************************************************************
 * © 2016 and later: Unicode, Inc. and others.
-* License & terms of use: http://www.unicode.org/copyright.html#License
+* License & terms of use: http://www.unicode.org/copyright.html
 ***********************************************************************
 ***********************************************************************
 * Copyright (c) 2002-2005, International Business Machines
@@ -36,10 +36,10 @@ private:
 public:
     CmdPattern(const char * pattern):pat(pattern,""){
     }
-    virtual long getOperationsPerIteration(){
+    long getOperationsPerIteration() override {
         return 1;
     }
-    virtual void call(UErrorCode* pErrorCode){
+    void call(UErrorCode* pErrorCode) override {
         set.applyPattern(pat, *pErrorCode);
     }
 };
@@ -56,28 +56,28 @@ public:
         bs.clearAll();
         for (UChar32 cp=0; cp<0x110000; ++cp) {
             if (u_charType(cp) == prop) {
-                bs.set((int32_t) cp);
+                bs.set(static_cast<int32_t>(cp));
                 ++total;
             }
         }
     }
-    virtual long getOperationsPerIteration(){
+    long getOperationsPerIteration() override {
         return total;
     }
 
-    virtual void call(UErrorCode* pErrorCode){
+    void call(UErrorCode* pErrorCode) override {
         (this->*op)();
     }
-    void add (void){
+    void add(){
         us.clear();
         for (UChar32 cp=0; cp<0x110000; ++cp) {
-            if (bs.get((int32_t) cp)) {
+            if (bs.get(static_cast<int32_t>(cp))) {
                 us.add(cp);
             }
         }
     }
 
-    void contains(void){
+    void contains(){
         int32_t temp = 0;
         us.clear();
         for (UChar32 cp=0; cp<0x110000; ++cp) {
@@ -87,7 +87,7 @@ public:
         }
     }
 
-    void iterator(void){
+    void iterator(){
         int32_t temp = 0;
         UnicodeSetIterator uit(us);
         while (uit.next()) {
@@ -101,7 +101,7 @@ public:
     UsetPerformanceTest(int32_t argc, const char *argv[], UErrorCode &status) :UPerfTest(argc,argv,status){
     }
 
-    virtual UPerfFunction* runIndexedTest( int32_t index, UBool exec, const char* &name, char* par = NULL ){
+    UPerfFunction* runIndexedTest(int32_t index, UBool exec, const char*& name, char* par = nullptr) override {
         switch (index) {
             case 0: name = "titlecase_letter_add"; 
                 if (exec) return new CmdOp(U_TITLECASE_LETTER, &CmdOp::add) ; break;
@@ -123,7 +123,7 @@ public:
                 if (exec) return new CmdPattern(PAT[2])  ; break;
             default: name = ""; break;
         }
-        return NULL;
+        return nullptr;
     }
 };
 
@@ -138,7 +138,7 @@ int main(int argc, const char *argv[])
         return status;
     }
         
-    if (test.run() == FALSE){
+    if (test.run() == false){
         fprintf(stderr, "FAILED: Tests could not be run please check the "
 			            "arguments.\n");
         return -1;

@@ -180,6 +180,11 @@ boolean luainit;
 
 boolean tracefilenames;
 
+/*tex Extra line in tracingmacros? */
+
+boolean traceextranewline;
+
+
 /*tex
 
 This program has two important variations: (1) There is a long and slow version
@@ -237,6 +242,14 @@ int strings_free;
 int font_k;
 
 /*tex
+    putting a character in front of a macro trace (feature suggested by PO on
+    tex implementor list
+*/
+
+int level_max;
+int level_chr;
+
+/*tex
     maximum number of characters simultaneously present in current lines of open
     files and in control sequences between \.{\\csname} and \.{\\endcsname}; must
     not exceed |max_halfword|
@@ -274,9 +287,9 @@ int save_size;
 
 int expand_depth;
 
-/*tex parse the first line for options */
+/* parse the first line for options is ignored. */
 
-int parsefirstlinep;
+/*int parsefirstlinep;*/
 
 /*tex format messages as file:line:error */
 
@@ -285,6 +298,10 @@ int filelineerrorstylep;
 /*tex stop at first error */
 
 int haltonerrorp;
+
+/*tex already trying to halt? */
+
+boolean haltingonerrorp; 
 
 /*tex current filename is quoted */
 
@@ -298,6 +315,10 @@ int get_luatexversion(void)
 /*tex the number of pages that have been shipped out */
 
 int total_pages = 0;
+
+/*tex abort when DVI exceeds 65535 pages  */
+
+int check_dvi_total_pages = 1;
 
 /*tex recent outputs that didn't ship anything out */
 
@@ -378,6 +399,8 @@ int main_initialize(void)
     setup_bound_var(0, "hash_extra", hash_extra);
     setup_bound_var(72, "pk_dpi", pk_dpi);
     setup_bound_var(10000, "expand_depth", expand_depth);
+    setup_bound_var(0, "level_max", level_max);
+    setup_bound_var('.', "level_chr", level_chr);
     /*tex
         Check other constants against their sup and inf.
     */

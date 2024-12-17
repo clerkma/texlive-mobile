@@ -1,3 +1,24 @@
+2023-08-13  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvipos.test: Make easier to test on Windows.
+
+2022-08-30  Karl Berry  <karl@freefriends.org>
+
+	* dvipos.1: typo fixes from Hilmar Preu\ss{}e,
+	https://tug.org/pipermail/tex-live/2022-June/048227.html
+
+2021-03-07  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvipos.test, Makefile.am:
+	Tweak a test.
+
+2021-02-07  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* dvipos.c:
+	Show bug report address in usage.
+	* dvipos.test, tests/play.{dvi,loc,pos}, tests/ptmr.tfm, Makefile.am:
+	Add a new test.
+
 2018-01-27  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
 
 	* tfm.c, utils.[ch]: Support new JFM spec (3-byte characters

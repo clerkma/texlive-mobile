@@ -55,7 +55,7 @@ public:
     // Returns the center of dayPeriod. Half hours are indicated with a .5 .
     double getMidPointForDayPeriod(DayPeriod dayPeriod, UErrorCode &errorCode) const;
 
-/* nothing private to placate old compilers --karl/koch private: */
+private:
     DayPeriodRules();
 
     // Translates "morning1" to DAYPERIOD_MORNING1, for example.
@@ -66,7 +66,7 @@ public:
     // Sets period type for all hours in [startHour, limitHour).
     void add(int32_t startHour, int32_t limitHour, DayPeriod period);
 
-    // Returns TRUE if for all i, DayPeriodForHour[i] has a type other than UNKNOWN.
+    // Returns true if for all i, DayPeriodForHour[i] has a type other than UNKNOWN.
     // Values of HasNoon and HasMidnight do not affect the return value.
     UBool allHoursAreSet();
 

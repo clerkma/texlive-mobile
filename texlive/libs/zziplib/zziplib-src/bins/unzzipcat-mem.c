@@ -24,10 +24,9 @@
 #include <io.h>
 #endif
 
-static int exitcode(int e)
-{
-    return EXIT_ERRORS;
-}
+/* Functions in unzzip.c: */
+extern int exitcode(int);
+extern FILE* create_fopen(char*, char*, int);
 
 static void unzzip_mem_entry_fprint(ZZIP_MEM_DISK* disk, 
 				  ZZIP_MEM_ENTRY* entry, FILE* out)
@@ -36,7 +35,7 @@ static void unzzip_mem_entry_fprint(ZZIP_MEM_DISK* disk,
     if (file) 
     {
 	char buffer[1024]; int len;
-	while ((len = zzip_mem_disk_fread (buffer, 1024, 1, file)))
+	while (0 < (len = zzip_mem_disk_fread (buffer, 1024, 1, file)))
 	    fwrite (buffer, len, 1, out);
 	
 	zzip_mem_disk_fclose (file);
@@ -49,42 +48,13 @@ static void unzzip_mem_disk_cat_file(ZZIP_MEM_DISK* disk, char* name, FILE* out)
     if (file) 
     {
 	char buffer[1025]; int len;
-	while ((len = zzip_mem_disk_fread (buffer, 1, 1024, file))) 
+	while (0 < (len = zzip_mem_disk_fread (buffer, 1, 1024, file))) 
 	{
 	    fwrite (buffer, 1, len, out);
 	}
 	
 	zzip_mem_disk_fclose (file);
     }
-}
-
-static void makedirs(const char* name)
-{
-      char* p = strrchr(name, '/');
-      if (p) {
-          char* dir_name = _zzip_strndup(name, p-name);
-          makedirs(dir_name);
-          free (dir_name);
-      }
-      if (_zzip_mkdir(name, 0775) == -1 && errno != EEXIST)
-      {
-          DBG3("while mkdir %s : %s", name, strerror(errno));
-      }
-      errno = 0;
-}
-
-static FILE* create_fopen(char* name, char* mode, int subdirs)
-{
-   if (subdirs)
-   {
-      char* p = strrchr(name, '/');
-      if (p) {
-          char* dir_name = _zzip_strndup(name, p-name);
-          makedirs(dir_name); 
-          free (dir_name);
-      }
-   }
-   return fopen(name, mode);      
 }
 
 static int unzzip_cat (int argc, char ** argv, int extract)
@@ -95,7 +65,7 @@ static int unzzip_cat (int argc, char ** argv, int extract)
 
     if (argc == 1)
     {
-	printf (__FILE__" version "ZZIP_PACKAGE" "ZZIP_VERSION"\n");
+	printf (__FILE__ " version " ZZIP_PACKAGE_NAME " " ZZIP_PACKAGE_VERSION "\n");
 	return EXIT_OK; /* better provide an archive argument */
     }
 

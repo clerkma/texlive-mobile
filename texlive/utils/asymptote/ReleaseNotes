@@ -1,3 +1,252 @@
+Release Notes for Version 2.88
+
+Building against specific static libraries is supported again.
+An ambiguity in statistics.h was resolved.
+The output of dvisvgm is optimized by default.
+PDF 1.5 output is now generated.
+
+Release Notes for Version 2.87
+
+Templated imports were implemented.
+An incorrect dvisvgm optimization is avoided.
+SVG gradient shading offsets were fixed.
+Integer are now implicitly formatted with full precision.
+Inferred assignment of void type is prohibited.
+An LSP segmentation fault was fixed.
+Repeated stripping of file extensions is avoided.
+The --output-directory option of latexmk is supported.
+The OSMesa compatibility profile is used for offscreen rendering.
+The fitscreen toggle is fixed. 
+The context menu in Xasy is now only opened for GUI-drawn items.
+A -v3d option allows embedding V3D content within a PDF file.
+A workaround was implemented for a MacOS libc++ parsing bug.
+The documentation was updated.
+
+Release Notes for Version 2.86
+
+PDF transfer functions are automatically applied;
+EPS output suppresses .setblendmode.
+NaN and inf values can be read in cvs mode.
+The OpenGL index buffer is properly initialized.
+WebGL and V3D primitives are used only when unscaled.
+Bugs in the inversion section of the geometry module were fixed.
+Portability issues were addressed.
+
+Release Notes for Version 2.85
+
+Intersections of 3D paths with Bezier triangles were implemented.
+A workaround for broken offscreen graphics drivers was implemented.
+The icon resource file is now pregenerated. Uninitialized variables and
+a division by zero were fixed. The 3D animation timer and keyboard controls
+were fixed. A workaround for a linetype bug in the QtSvg library was fixed. 
+Xasy now centers images upon loading. Compilation issues were fixed.
+The resolution of cputime().change.user was improved.
+
+Release Notes for Version 2.84
+
+PDF image compression is now disabled by default for alternative output
+formats. The default UNIX postscript and PDF viewers were changed to evince.
+Makefile dependencies were fixed. A Qt compatibility bug was fixed in Xasy.
+A bug in XDR reads was fixed. A runtime error in the TexHead arrow was fixed.
+An inversion bug was fixed in the geometry module. A division by zero error
+in the vectorfield function was fixed. An option to display environment
+settings was added. The default labelmargin function now accounts for
+the pen linewidth. The resolution of the wall clock timer was improved.
+
+Release Notes for Version 2.83
+
+WebGL triangle groups were fixed. Context menus were added to Xasy objects
+to allow one to edit the fill type, line type, color, line cap, and
+optionally add arrowheads. Support for begingroup() and endgroup() was
+added to Xasy. Scaling in the vectorfield function was fixed.
+A quotient(x,y) bug when -1 < x/y < 0, introduced in version 2.42, was fixed.
+
+Release Notes for Version 2.82
+
+Support for Ghostscript 9.56 was added.
+Ambiguous functions are listed.
+The dvisvgmMultipleFiles option is now enabled by default. 
+A bug in generating PDF labels was fixed.
+The mean color of multicoloured patches is output only for PRC code.
+Subdivision crack adjustments were disabled for transparent patches.
+The OpenGL transparency shader was further accelerated.
+WebGL bounding boxes are now computed by the client upon loading.
+Version 1.02 of the AsyGL library was released.
+
+Release Notes for Version 2.81
+
+Schur decompositions were implemented. A bug in uniform() was fixed.
+The Xasy bounding box and a crash when opening Xasy files were fixed.
+The transparency offset buffer is zeroed when GPU compression is unavailable.
+The surface constructor for solids of revolution was documented.
+Support for pkg-config was added. Opaque rendering on platforms lacking
+GL_ARB_fragment_shader_interlock was fixed.
+
+Release Notes for Version 2.80
+
+Compression of empty transparent pixel counts and other optimizations were
+implemented in the transparency shader. A weighted least-squares fit was added.
+
+Release Notes for Version 2.79
+
+The transparency shader was further optimized. The tensorshade fillrule was
+fixed. A compatibility fix was made to xasyBezierInterface.py.
+A real operator ecast(rational r) was implemented up to maxDenominator=100000. 
+The dvisvgmMultipleFiles option, which speeds up xasy deconstruction with
+PDF TeX engines, was documented.   
+
+Release Notes for Version 2.78
+
+The transparency shader was further optimized; an incorrect buffer size and
+export issues were fixed. A substitute was implemented for a missing strnlen
+function.
+
+Release Notes for Version 2.77
+
+A buffer overflow in the partialsum transparency shader was fixed;
+the workload distribution over the GPU processors was improved.
+
+Release Notes for Version 2.76
+
+WebGL and V3D bounds were fixed, along with the WebGL zoom and viewportshift.
+Under the Asymptote Web Application, the currentprojection is now persistent;
+for other WebGL instances, the 'c' keyboard binding can be used to display
+the currentprojection. The correct defaultfilename is set on reading V3D
+files from the command line. Portability issues were addressed.
+
+Release Notes for Version 2.75
+
+A 2D transparency bug was fixed. Vim support was improved.
+To support PNG transparency, the default driver was changed from pngalpha
+to png16m and the pdflatex TeX engine is used instead of latex.
+A pngdriver option was added. To support WebGL, billboard labels are enabled
+when configured for offscreen rendering. The subdivision crack work around for
+PRC output was removed. Compilation without the tirpc library is supported
+again (but not recommended since the V3D format requires XDR support).
+
+Release Notes for Version 2.74
+
+Order-independent transparency is disabled if SSBO support is unavailable.
+Embedded 3D renderings now work in inline TeX mode. The tiling pen was fixed. 
+Support was added for filling contour plots by quantizing color density images.
+Unwanted shifting in PDF output when using non-letter size paper was fixed.
+Due to its limitations, the color.sty package was abandoned in favour of
+low-level specials. The bounding box contributions of the linejoin and
+linecap qualifiers are now correctly taken into account. The erase command
+is inhibited for svg and html output. A crash on save in the lsp server
+was fixed. Links to the gallery were fixed in the documentation.
+
+Release Notes for Version 2.73
+
+The asygl library was updated to support embedding of WebGL and WebGL2 scenes
+on the same page.
+
+Release Notes for Version 2.72
+
+WebGL2 is enabled by default only for examples that use image-based lighting.
+Multiple output formats in threaded interactive mode are now handled correctly.
+CPU partial sum indexing is used in the 3D transparency shader if the compute
+shader fails to compile.  
+
+Release Notes for Version 2.71
+
+Support for the portable compressed 3D vector file format V3D was added.
+The default value of settings.prc was changed to false. 
+Efficient order-independent transparency was implemented for modern OpenGL
+platforms and the OSMesa offscreen rendering engine (with no interactive
+transparency support for Mac OS X and WebGL). The WebGL library now uses
+WebGL2 if available. Image-based lighting was implemented.
+Many bug fixes and improvements were made to Xasy, allowing objects drawn
+with the graphical editor to be saved to and restored from a .xasy file, as
+well as being exportable to an .asy file. A function was added to graph a
+parametric function with control points determined by the specified
+derivative. The recommended PostScript viewer for MSWindows is now Sumatra PDF.
+The workflow for generating transparent PDFs and PNGs was fixed.
+Emacs lasy-mode was patched to work with Emacs >= 23. Support for the Language
+Server Protocol was added. Compilation with COMPACT=0 is supported again. 
+All threads now return the same error code. A remote command-line interface to
+http://asymptote.ualberta.ca is now available.
+
+Release Notes for Version 2.70
+
+A stack overflow was fixed. Under MSWindows, problems with SVG generation and
+Xasy installation were fixed. Compiler warning messages were addressed.
+
+Release Notes for Version 2.69
+
+A segmentation fault in subpath3 was fixed. The fuzz parameter in bezulate
+was increased to handle font precision issues. A missing above argument was
+added in plain_boxes.asy. Scaling bugs in the palette module were fixed.
+The contour module now respects picture scaling. Bugs in reading null
+fields were fixed. Orthographic scaling is now consistent with perspective
+scaling when keepAspect=false. The obsolete everypage package was removed.
+A compilation issue with LIBCURL and compilation warnings were fixed. 
+
+Release Notes for Version 2.68
+
+Floating point exceptions in OpenGL libraries are now masked.
+A normalization used to render tubes was fixed.  A Label align(Label,dir)
+function was added for aligning label normals.  A new settings.compress=true
+option controls PDF image compression.  A bool isometry(transform) function
+was added.  Various bugs in the geometry module were fixed.
+The transpose function ignores uninitialized elements.
+Null fields are treated as undefined values in cvs mode and in line mode.
+Uninitialized rendering variables were fixed. A RELEASE variable was added.
+Logarithmic graphs of surfaces are supported. Files are opened
+without assuming an asy suffix.  Support for Ghostscript 9.53 was implemented.
+The end argument of Margin functions is now optional. A function
+cputime().change.clock that returns the high-resolution elapsed wall clock
+time was added.  A --disable-curl option was added.
+The centering of slides was fixed.  Null characters and null strings are
+supported in the replace function.  Configuration without readline support
+was fixed.  In binary mode, an entire file can be read into a string.
+The getc function now works properly when reading the NUL character.
+Reproducible builds are supported.
+
+Release Notes for Version 2.67
+
+Support was added for importing and inputting URLs. Compilation and 2D SVG
+to HTML conversion no longer requires the GLM library; 2D html output is
+fit to the canvas unless settings.absolute=true. Diagnostics for dvisvgm
+were enabled; SVG clipping was fixed.  A -globalread setting (default true)
+was implemented.  Files are opened using the search path, which now
+includes the examples directory.  An invalid array dimensions error was fixed.
+A WebGL resize event listener was added; the + and - keys now zoom in and out,
+rather than expanding and shrinking the viewport. Remeshing on export is
+forced; unnecessary remeshing on zoom in AsyGL is avoided. 
+The triple dir(path3, path3) function was normalized.  The repositioning of
+OpenGL windows was fixed. The copy constructors for path and path3 were fixed.
+Asymptote errors no longer cause Xasy to hang. A numerical precision issue
+was fixed.  A portable way of skipping whitespace was implemented; casts
+from empty strings now yield uninitialized values. Interrupt handling under
+MacOS X was fixed. A devicepixelratio setting was implemented. The error
+location is displayed in the console. Segmentation faults were fixed.
+The documentation was updated and the code was reformatted. A hang on exit
+under MSWindows was fixed. Obsolete encoding modules were removed.  
+
+Release Notes for Version 2.66
+
+A bug in the Bezier patch bounds was fixed. Vertex and material data are
+copied from the CPU to GPU only when necessary. The default Headlamp light
+was brightened. WebGL output is centered in the viewport, extending to the
+canvas boundary; the precision of planar Bezier surfaces was increased  
+to avoid artifacts. Fullscreen mode has been fixed; the new default
+maxviewport=(0,0) specifies the screen dimensions. Camera adjustment was fixed.
+Problems with Xasy and interactive signals under MSWindows were fixed.
+A background color for both 2D and 3D images can be specified with
+currentlight.background. Offscreen rendering on headless machines has been
+reinstated; while the setting offscreen has been removed, one can again
+configure asy for either onscreen or offscreen rendering. Clipping was removed
+from the slopefield module. Functions mapArray, mapTemplate, real abs2(pair),
+and real abs2(triple) were implemented. The new Ghostscript transparency model
+requires Ghostscript 9.52 or later. The detection of TeX errors was improved.
+An array segmentation fault was fixed; array dimensions are checked.
+Flattened monochrome tensor patches with interior internal control points are
+now drawn as filled cyclic paths. PDF offsets were fixed, along with the
+auto-reload feature for Acroread. SVG support was improved; 2D images can now
+be output in HTML format using inline SVG code, to support the
+Asymptote Web Application, a new cloud service at http://asymptote.ualberta.ca.
+
 Release Notes for Version 2.65
 
 A bug in rendering 2D preview images of a 3D scene was fixed.
@@ -279,7 +528,7 @@ A work around for a clang 3.7.0 compiler bug was implemented.
 The smoothcontour routine was sped up. Several bugs in the file read routines
 were fixed. A bug in rest argument signature equivalence was fixed.
 Threads are no longer used in batch mode, except under MacOS X. A convenience
-function graphicscale was added for using graphic with the conTeXt tex
+function graphicscale was added for using graphic with the ConTeXt tex
 engine. The splinetype detection for Spline surfaces was fixed.
 
 Release Notes for Version 2.35
@@ -436,7 +685,7 @@ logarithmic axes were fixed. Offscreen and non-offscreen rendering are now
 supported in a single binary (requiring OSMesa version 8), with
 settings.offscreen defaulting to false. The media9 LaTeX style file is now
 used to embed 3D PRC content instead of movie15. Local 3D coordinates are
-now used. PRC Part names are nolonger generated by default. A bug in 
+now used. PRC Part names are no longer generated by default. A bug in 
 bezulate was fixed. A settings.axes3 flag was added to control the
 visibility of PRC axes. An efficient 3D routine for drawing many
 triangles, with specified vertices and optional normals or vertex colors,
@@ -603,7 +852,7 @@ Release Notes for Version 1.98
 Memory usage and garbage collection were greatly improved, and many
 optimizations were made. Labels are now aligned using the rotational instead of
 the shiftless part of the transform. A portable CYGWIN memory limit fix was
-implemented. Noncyclic stokepaths are discarded to work around a bug in gs 8.71.
+implemented. Noncyclic strokepaths are discarded to work around a bug in gs 8.71.
 
 Release Notes for Version 1.97
 
@@ -867,7 +1116,7 @@ Release Notes for Version 1.75
 
 Issues with 3D labels and texpath, both in inlinetex mode and with the
 ConTeXt TeX engine, were resolved. A bug in bezulate was fixed. A partial
-workaround was added for the unimplememented -output-directory ConTeXt
+workaround was added for the unimplemented -output-directory ConTeXt
 option (the current directory must still be writeable). The aspect ratio
 and viewportmargin calculation in module three was improved, with tighter
 3D bounds. A bug in the intersections(path3, surface) routine was fixed.
@@ -2138,7 +2387,7 @@ were fixed.  The autoscaling of unextended axes was fixed.  The xline and
 yline routines were renamed to xequals and yequals, Dot was renamed to dot,
 Cross was renamed to cross, the function "Angle(pair)" was renamed to
 "degrees(pair)", and a "Degrees(pair)" function was added to math.asy.  The
-Metapost --- operator and the replacement :: for the MetaPost ...  operator
+MetaPost --- operator and the replacement :: for the MetaPost ...  operator
 were implemented. A segmentation fault involving controls points with
 direction specifiers and a bug in "string font(pen)" were fixed. Tensions
 in straight sections of paths are now handled as in MetaPost. The -l option

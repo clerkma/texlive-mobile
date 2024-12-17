@@ -1,14 +1,14 @@
 #!/usr/bin/env perl
-# $Id: fmtutil.pl 54303 2020-03-14 22:04:10Z karl $
+# $Id: fmtutil.pl 71424 2024-06-04 10:25:53Z preining $
 # fmtutil - utility to maintain format files.
 # (Maintained in TeX Live:Master/texmf-dist/scripts/texlive.)
 # 
-# Copyright 2014-2020 Norbert Preining
+# Copyright 2014-2024 Norbert Preining
 # This file is licensed under the GNU General Public License version 2
 # or any later version.
 #
 # History:
-# Original shell script (C) 2001 Thomas Esser, public domain
+# Original shell script 2001 Thomas Esser, public domain
 
 my $TEXMFROOT;
 
@@ -24,11 +24,11 @@ BEGIN {
   TeX::Update->import();
 }
 
-my $svnid = '$Id: fmtutil.pl 54303 2020-03-14 22:04:10Z karl $';
-my $lastchdate = '$Date: 2020-03-14 23:04:10 +0100 (Sat, 14 Mar 2020) $';
+my $svnid = '$Id: fmtutil.pl 71424 2024-06-04 10:25:53Z preining $';
+my $lastchdate = '$Date: 2024-06-04 12:25:53 +0200 (Tue, 04 Jun 2024) $';
 $lastchdate =~ s/^\$Date:\s*//;
 $lastchdate =~ s/ \(.*$//;
-my $svnrev = '$Revision: 54303 $';
+my $svnrev = '$Revision: 71424 $';
 $svnrev =~ s/^\$Revision:\s*//;
 $svnrev =~ s/\s*\$$//;
 my $version = "r$svnrev ($lastchdate)";
@@ -36,16 +36,15 @@ my $version = "r$svnrev ($lastchdate)";
 use strict;
 use Getopt::Long qw(:config no_autoabbrev ignore_case_always);
 use File::Basename;
-use File::Copy;
 use File::Spec;
 use Cwd;
 
 # don't import anything automatically, this requires us to explicitly
 # call functions with TeXLive::TLUtils prefix, and makes it easier to
 # find and if necessary remove references to TLUtils
-use TeXLive::TLUtils qw();
+use TeXLive::TLUtils qw(wndws);
 
-require TeXLive::TLWinGoo if TeXLive::TLUtils::win32;
+require TeXLive::TLWinGoo if wndws();
 
 # numerical constants
 my $FMT_NOTSELECTED = 0;
@@ -54,11 +53,18 @@ my $FMT_FAILURE     = 2;
 my $FMT_SUCCESS     = 3;
 my $FMT_NOTAVAIL    = 4;
 
-my $nul = (win32() ? 'nul' : '/dev/null');
-my $sep = (win32() ? ';' : ':');
+my $nul = (wndws() ? 'nul' : '/dev/null');
+my $sep = (wndws() ? ';' : ':');
 
 my @deferred_stderr;
 my @deferred_stdout;
+# $::opt_verbosity = 3; # manually enable debugging
+
+my $first_time_creation_in_usermode = 0;
+my $first_time_usermode_warning = 1; # give lengthy warning if warranted?
+
+my $DRYRUN = "";
+my $STATUS_FH;
 
 (our $prg = basename($0)) =~ s/\.pl$//;
 
@@ -78,7 +84,7 @@ chomp(our $TEXMFSYSCONFIG = `kpsewhich -var-value=TEXMFSYSCONFIG`);
 chomp(our $TEXMFHOME = `kpsewhich -var-value=TEXMFHOME`);
 
 # make sure that on windows *everything* is in lower case for comparison
-if (win32()) {
+if (wndws()) {
   $TEXMFDIST = lc($TEXMFDIST);
   $TEXMFVAR = lc($TEXMFVAR);
   $TEXMFSYSVAR = lc($TEXMFSYSVAR);
@@ -89,11 +95,12 @@ if (win32()) {
 }
 
 #
-# these need to be our since they are used from the 
-# functions in TLUtils.pm
+# these need to be "our" variables since they are used from the 
+# functions in TLUtils.pm.
 our $texmfconfig = $TEXMFCONFIG;
 our $texmfvar    = $TEXMFVAR;
 our $alldata;
+
 # command line options with defaults
 # 20160623 - switch to turn on strict mode
 our %opts = ( quiet => 0 , strict => 1 );
@@ -103,7 +110,6 @@ our %opts = ( quiet => 0 , strict => 1 );
 my @cmdline_cmds = (  # in same order as help message
   "all",
   "missing",
-  "refresh",
   "byengine=s",
   "byfmt=s",
   "byhyphen=s",
@@ -117,12 +123,15 @@ our @cmdline_options = (  # in same order as help message
   "sys",
   "user",
   "cnffile=s@", 
+  "dry-run|n",
   "fmtdir=s",
   "no-engine-subdir",
   "no-error-if-no-engine=s",
   "no-error-if-no-format",
   "nohash",
   "recorder",
+  "refresh",
+  "status-file=s",
   "strict!",
   "quiet|silent|q",
   "catcfg",
@@ -156,13 +165,25 @@ sub main {
     # (and nothing else), since kpathsea can only deal with one.
     $mktexfmtMode = 1;
 
-    # TODO TODO
-    # which mode are we running in?
-    # what happens if root runs mktexfmt?
+    # we default to user mode here, in particular because **if** TEXMFSYSVAR
+    # is writable we will use it to save format dumps created by mktexfmt
+    # If root is running mktexfmt, then most probably the formats will end
+    # up in TEXMFSYSVAR which is fine.
     $opts{'user'} = 1;
 
-    GetOptions ( "help" => \$opts{'help'}, "version" => \$opts{'version'} )
-      || die "$prg: Unknown option in mktexfmt command line arguments.\n";
+    my @save_argv = @ARGV;
+    GetOptions (
+      "dry-run|n", \$opts{'dry-run'},
+      "help" => \$opts{'help'},
+      "version" => \$opts{'version'}
+      ) || die "$prg: Unknown option in mktexfmt command line: @save_argv\n";
+
+    help() if $opts{'help'};
+    if ($opts{'version'}) {
+      print version();
+      exit 0;  # no final print_info
+    }
+
     if ($ARGV[0]) {
       if ($ARGV[0] =~ m/^(.*)\.(fmt|mem|base?)$/) {
         $opts{'byfmt'} = $1;
@@ -202,15 +223,37 @@ sub main {
                   . "Try $prg --help if you need it.\n");
       return 1;
     } elsif (@cmds == 0) {
-      print_error("no command specified; try $prg --help if you need it.\n");
-      return 1;
+      if ($opts{'refresh'}) {
+        # backward compatibility: till 2021 we had --refresh as a command
+        # but now we allow combining it with --byfmt etc
+        # In case that --refresh was given without any other command, we
+        # treat it as --all --refresh as it was the case till the change.
+        $opts{'all'} = 1;
+      } else {
+        print_error("no command specified; try $prg --help if you need it.\n");
+        return 1;
+      }
+    }
+  }
+
+  $DRYRUN = "echo " if ($opts{'dry-run'});
+
+  if ($opts{'status-file'} && ! $opts{'dry-run'}) {
+    if (! open($STATUS_FH, '>>', $opts{'status-file'})) {
+      print_error("cannot open status file >>$opts{'status-file'}: $!\n");
+      print_error("not writing status information!\n");
     }
   }
   
-  # these two functions should go to TLUtils (for use in updmap)
-  ($texmfconfig, $texmfvar) = 
-    TeXLive::TLUtils::setup_sys_user_mode($prg, \%opts,
-      $TEXMFCONFIG, $TEXMFSYSCONFIG, $TEXMFVAR, $TEXMFSYSVAR);
+  # get the config/var trees we will use.
+  ($texmfconfig, $texmfvar)
+    = TeXLive::TLUtils::setup_sys_user_mode($prg, \%opts,
+                       $TEXMFCONFIG, $TEXMFSYSCONFIG, $TEXMFVAR, $TEXMFSYSVAR);
+  
+  # if we are using the sys tree, we don't want to give the usermode warning.
+  if ($texmfvar eq $TEXMFSYSVAR) {
+    $first_time_usermode_warning = 0;
+  }
 
   determine_config_files("fmtutil.cnf");
   my $changes_config_file = $alldata->{'changes_config'};
@@ -237,14 +280,14 @@ sub main {
     # but for compatibility we'll silently keep the option.
     $cmd = 'edit';
     my $editor = $ENV{'VISUAL'} || $ENV{'EDITOR'};
-    $editor ||= (&win32 ? "notepad" : "vi");
+    $editor ||= (&wndws ? "notepad" : "vi");
     if (-r $changes_config_file) {
       &copyFile($changes_config_file, $bakFile);
     } else {
       touch($bakFile);
       touch($changes_config_file);
     }
-    system($editor, $changes_config_file);
+    system("$DRYRUN$editor", $changes_config_file);
     $changed = files_are_different($bakFile, $changes_config_file);
 
   } elsif ($opts{'showhyphen'}) {
@@ -288,9 +331,6 @@ sub main {
   } elsif ($opts{'byhyphen'}) {
     return callback_build_formats('byhyphen', $opts{'byhyphen'});
 
-  } elsif ($opts{'refresh'}) {
-    return callback_build_formats('refresh');
-
   } elsif ($opts{'missing'}) {
     return callback_build_formats('missing');
 
@@ -304,6 +344,11 @@ sub main {
     # redundant with check above, but just in case ...
     print_error("missing command; try $prg --help if you need it.\n");
     return 1;
+  }
+
+  if ($STATUS_FH) {
+    close($STATUS_FH)
+    || print_error("cannot close $opts{'status-file'}: $!\n");
   }
 
   unless ($opts{'nohash'}) {
@@ -323,6 +368,12 @@ sub dump_data {
   print Data::Dumper::Dumper($alldata);
 }
 
+#
+sub log_to_status {
+  if ($STATUS_FH) {
+    print $STATUS_FH "@_\n";
+  }
+}
 
 #  callback_build_formats - (re)builds the formats as selected,
 # returns exit status or dies.  Exit status is always zero unless
@@ -332,43 +383,52 @@ sub dump_data {
 sub callback_build_formats {
   my ($what, $whatarg) = @_;
 
+  # sometimes (missing, all) there is no argument passed.
+  # Avoid warning from undef value being logged.
+  # https://tug.org/pipermail/tex-live/2023-September/049526.html
+  $whatarg = "" if ! defined $whatarg;
+
   # set up a tmp dir
   # On W32 it seems that File::Temp creates restrictive permissions (ok)
   # that are copied over with the files created inside it (not ok).
   # So make our own temp dir.
-  my $tmpdir;
-  if (win32()) {
-    my $foo;
-    my $tmp_deflt = File::Spec->tmpdir;
-    for my $i (1..5) {
-      # $foo = "$texmfvar/temp.$$." . int(rand(1000000));
-      $foo = (($texmfvar =~ m!^//!) ? $tmp_deflt : $texmfvar)
-        . "/temp.$$." . int(rand(1000000));
-      if (! -d $foo) {
-        TeXLive::TLUtils::mkdirhier($foo);
-        sleep 1;
-        if (-d $foo) {
-          $tmpdir = $foo;
-          last;
+  my $tmpdir = "";
+  if (! $opts{"dry-run"}) {
+    if (wndws()) {
+      my $foo;
+      my $tmp_deflt = File::Spec->tmpdir;
+      for my $i (1..5) {
+        # $foo = "$texmfvar/temp.$$." . int(rand(1000000));
+        $foo = (($texmfvar =~ m!^//!) ? $tmp_deflt : $texmfvar)
+          . "/temp.$$." . int(rand(1000000));
+        if (! -d $foo) {
+          TeXLive::TLUtils::mkdirhier($foo);
+          sleep 1;
+          if (-d $foo) {
+            $tmpdir = $foo;
+            last;
+          }
         }
       }
+      if (! $tmpdir) {
+        die "Cannot get a temporary directory after five iterations, sorry!";
+      }
+      if ($texmfvar =~ m!^//!) {
+        # used File::Spec->tmpdir; fix permissions
+        TeXLive::TLWinGoo::maybe_make_ro ($tmpdir);
+      }
+    } else {
+      $tmpdir = File::Temp::tempdir(CLEANUP => 1);
     }
-    if (! $tmpdir) {
-      die "Cannot get a temporary directory after five iterations ... sorry!";
-    }
-    if ($texmfvar =~ m!^//!) {
-      # used File::Spec->tmpdir; fix permissions
-      TeXLive::TLWinGoo::maybe_make_ro ($tmpdir);
-    }
-  } else {
-    $tmpdir = File::Temp::tempdir(CLEANUP => 1);
   }
   # set up destination directory
   $opts{'fmtdir'} ||= "$texmfvar/web2c";
-  TeXLive::TLUtils::mkdirhier($opts{'fmtdir'}) if (! -d $opts{'fmtdir'});
-  if (! -w $opts{'fmtdir'}) {
-    print_error("format directory not writable: $opts{fmtdir}\n");
-    exit 1;
+  if (! $opts{"dry-run"}) {
+    TeXLive::TLUtils::mkdirhier($opts{'fmtdir'}) if (! -d $opts{'fmtdir'});
+    if (! -w $opts{'fmtdir'}) {
+      print_error("format directory not writable: $opts{fmtdir}\n");
+      exit 1;
+    }
   }
   # since the directory does not exist, we can make it absolute with abs_path
   # without any trickery around non-existing dirs
@@ -380,7 +440,6 @@ sub callback_build_formats {
   # code taken over from the original shell script for KPSE_DOT etc
   my $thisdir = cwd();
   $ENV{'KPSE_DOT'} = $thisdir;
-
   # due to KPSE_DOT, we don't search the current directory, so include
   # it explicitly for formats that \write and later on \read
   $ENV{'TEXINPUTS'} ||= "";
@@ -388,12 +447,18 @@ sub callback_build_formats {
   #
   # for formats that load other formats (e.g., jadetex loads latex.fmt),
   # add the current directory to TEXFORMATS, too.  Currently unnecessary
-  # for MFBASES and MPMEMS.
+  # for MFBASES.
   $ENV{'TEXFORMATS'} ||= "";
   $ENV{'TEXFORMATS'} = "$tmpdir$sep$ENV{TEXFORMATS}";
+  #
+  # ensure that LC_ALL is set to C to guarantee luatex generating formats
+  $ENV{'LC_ALL'} = "C";
 
-  # switch to temporary directory for format generation
-  chdir($tmpdir) || die "Cannot change to directory $tmpdir: $!";
+  # switch to temporary directory for format generation; on the other hand,
+  # for -n, the tmpdir won't exist, but we don't want to find a spurious
+  # tex.fmt in the cwd. Probably won't be such things in /.
+  chdir($opts{"dry-run"} ? "/" : $tmpdir)
+  || die "Cannot change to directory $tmpdir: $!";
   
   # we rebuild formats in two rounds:
   # round 1: only formats with the same name as engine (pdftex/pdftex)
@@ -407,32 +472,36 @@ sub callback_build_formats {
   my $nobuild = 0;
   my $notavail = 0;
   my $total = 0;
-  for my $fmt (keys %{$alldata->{'merged'}}) {
-    for my $eng (keys %{$alldata->{'merged'}{$fmt}}) {
-      next if ($fmt ne $eng);
-      $total++;
-      my $val = select_and_rebuild_format($fmt, $eng, $what, $whatarg);
-      if ($val == $FMT_DISABLED)    { $disabled++; }
-      elsif ($val == $FMT_NOTSELECTED) { $nobuild++; }
-      elsif ($val == $FMT_FAILURE)  { $err++; push (@err, "$eng/$fmt"); }
-      elsif ($val == $FMT_SUCCESS)  { $suc++; }
-      elsif ($val == $FMT_NOTAVAIL) { $notavail++; }
-      else { print_error("callback_build_format (round 1): unknown return "
-             . "from select_and_rebuild.\n"); }
-    }
-  }
-  for my $fmt (keys %{$alldata->{'merged'}}) {
-    for my $eng (keys %{$alldata->{'merged'}{$fmt}}) {
-      next if ($fmt eq $eng);
-      $total++;
-      my $val = select_and_rebuild_format($fmt, $eng, $what, $whatarg);
-      if ($val == $FMT_DISABLED)    { $disabled++; }
-      elsif ($val == $FMT_NOTSELECTED) { $nobuild++; }
-      elsif ($val == $FMT_FAILURE)  { $err++; push (@err, "$eng/$fmt"); }
-      elsif ($val == $FMT_SUCCESS)  { $suc++; }
-      elsif ($val == $FMT_NOTAVAIL) { $notavail++; }
-      else { print_error("callback_build_format (round 2): unknown return "
-             . "from select_and_rebuild.\n"); }
+  for my $swi (qw/format=engine format!=engine/) {
+    for my $fmt (keys %{$alldata->{'merged'}}) {
+      for my $eng (keys %{$alldata->{'merged'}{$fmt}}) {
+        next if ($swi eq "format=engine" && $fmt ne $eng);
+        next if ($swi eq "format!=engine" && $fmt eq $eng);
+        $total++;
+        my $val = select_and_rebuild_format($fmt, $eng, $what, $whatarg);
+        if ($val == $FMT_DISABLED)    {
+          log_to_status("DISABLED", $fmt, $eng, $what, $whatarg);
+          $disabled++;
+        } elsif ($val == $FMT_NOTSELECTED) {
+          log_to_status("NOTSELECTED", $fmt, $eng, $what, $whatarg);
+          $nobuild++;
+        } elsif ($val == $FMT_FAILURE)  {
+          log_to_status("FAILURE", $fmt, $eng, $what, $whatarg);
+          $err++;
+          push (@err, "$eng/$fmt");
+        } elsif ($val == $FMT_SUCCESS)  {
+          log_to_status("SUCCESS", $fmt, $eng, $what, $whatarg);
+          $suc++;
+        } elsif ($val == $FMT_NOTAVAIL) {
+          log_to_status("NOTAVAIL", $fmt, $eng, $what, $whatarg);
+          $notavail++; 
+        }
+        else {
+          log_to_status("UNKNOWN", $fmt, $eng, $what, $whatarg);
+          print_error("callback_build_format (round 1): unknown return "
+           . "from select_and_rebuild.\n");
+        }
+      }
     }
   }
 
@@ -440,7 +509,11 @@ sub callback_build_formats {
   # unless we tried to rebuild only missing formats.
   if ($what ne "missing") {
     if ($err + $suc == 0) {
-      print_info("did not find entry for $what=$whatarg, skipped\n");
+      if ($what eq "all") {
+        print_warning("You seem to have no formats defined in your fmtutil.cnf files!\n");
+      } else {
+        print_info("Did not find entry for $what=" . ($whatarg?$whatarg:"") . " skipped\n");
+      }
     }
   }
   my $stdo = ($mktexfmtMode ? \*STDERR : \*STDOUT);
@@ -454,11 +527,42 @@ sub callback_build_formats {
   print_info("failed to build: $err (@err)\n")       if ($err);
   print_info("total formats: $total\n");
   chdir($thisdir) || warn "chdir($thisdir) failed: $!";
-  if (win32()) {
+  if (wndws()) {
     # try to remove the tmpdir with all files
     TeXLive::TLUtils::rmtree($tmpdir);
   }
-   # return 
+  #
+  # In case of user mode and formats rebuilt, warn that these formats
+  # will shadow future updates. Can be suppressed with --quiet which
+  # does not show print_info output
+  if ($opts{'user'} && $suc && $first_time_creation_in_usermode
+      && $first_time_usermode_warning) {
+    print_info("
+*************************************************************
+*                                                           *
+* WARNING: you are switching to fmtutil's per-user formats. *
+*         Please read the following warnings!               *
+*                                                           *
+*************************************************************
+
+You have run fmtutil-user (as opposed to fmtutil-sys) for the first time;
+this has created format files which are local to your personal account.
+
+From now on, any changes in system formats will *not* be automatically
+reflected in your files; furthermore, running fmtutil-sys will no longer
+have any effect for you.
+
+As a consequence, you yourself have to rerun fmtutil-user after any
+change in the system directories. For example, when one of the LaTeX or
+other format source files changes, which happens frequently.
+See https://tug.org/texlive/scripts-sys-user.html for details.
+
+If you want to undo this, remove the files mentioned above.
+
+Run $prg --help for full documentation of fmtutil.
+");
+  }
+  # return 
   return $opts{"strict"} ? $err : 0;
 }
 
@@ -481,6 +585,12 @@ sub select_and_rebuild_format {
   $doit = 1 if ($what eq 'missing' && ! -r "$destdir/$fmtfile");
   $doit = 1 if ($what eq 'byengine' && $eng eq $whatarg);
   $doit = 1 if ($what eq 'byfmt' && $fmt eq $whatarg);
+  #
+  # Deal with the --refresh option
+  # 2021 changed behavior that --refresh can be used with all other format
+  # selection cmd line args.
+  $doit = 0 if ($opts{'refresh'} && ! -r "$destdir/$fmtfile");
+  #
   # TODO
   # original fmtutil.sh was stricter about existence of the hyphen file
   # not sure how we proceed here; let's implicitly ignore.
@@ -516,11 +626,27 @@ sub select_and_rebuild_format {
     }
   }
   if ($doit) {
+    check_and_warn_on_user_format($fmt,$eng);
     return rebuild_one_format($fmt,$eng,$kpsefmt,$destdir,$fmtfile,$logfile);
   } else {
     return $FMT_NOTSELECTED;
   }
 }
+
+sub check_and_warn_on_user_format {
+  my ($fmt, $eng) = @_;
+  # do nothing if we are updating files in $TEXMFVAR
+  return if ($opts{'fmtdir'} eq "$TEXMFVAR/web2c");
+  my $saved_fmtdir = $opts{'fmtdir'};
+  $opts{'fmtdir'} = "$TEXMFVAR/web2c";
+  my ($kpsefmt, $destdir, $fmtfile, $logfile) = compute_format_destination($fmt, $eng);
+  if (-r "$destdir/$fmtfile") {
+    print_deferred_warning("you have a shadowing format dump in TEXMFVAR for $fmt/$eng!!!\n");
+  }
+  $opts{'fmtdir'} = $saved_fmtdir;
+}
+  
+
 
 #  compute_format_destination
 # takes fmt/eng and returns the locations where format and log files
@@ -591,6 +717,15 @@ sub rebuild_one_format {
   # get rid of leading * in inifiles
   $inifile =~ s/^\*//;
 
+  # Add -kanji-internal option for create (e-)p(La)TeX format
+  # with (e-)upTeX's pTeX compatible mode.
+  if ($eng =~ /^e?uptex$/
+      && $fmt =~ /^e?p/
+      && $addargs !~ /-kanji-internal=/) {
+    my $kanji = wndws() ? "sjis" : "euc";
+    $addargs = "-kanji-internal=$kanji " . $addargs;
+  }
+
   if ($fmt eq "metafun")       { $prgswitch .= "mpost"; }
   elsif ($fmt eq "mptopdf")    { $prgswitch .= "context"; }
   elsif ($fmt =~ m/^cont-..$/) { $prgswitch .= "context"; }
@@ -630,7 +765,7 @@ sub rebuild_one_format {
     if ($poolfile && -f $poolfile) {
       print_verbose("attempting to create localized format "
                     . "using pool=$pool and tcx=$tcx.\n");
-      File::Copy::copy($poolfile, "$eng.pool");
+      TeXLive::TLUtils::copy("-f", $poolfile, "$eng.pool");
       $tcxflag = "-translate-file=$tcx" if ($tcx);
       $localpool = 1;
     }
@@ -667,62 +802,79 @@ sub rebuild_one_format {
                   . "$prgswitch $texargs";
   print_verbose("running \`$cmdline' ...\n");
 
-  {
-    my $texpool = $ENV{'TEXPOOL'};
-    if ($localpool) {
-      $ENV{'TEXPOOL'} = cwd() . $sep . ($texpool ? $texpool : "");
-    }
+  my $texpool = $ENV{'TEXPOOL'};
+  if ($localpool) {
+    $ENV{'TEXPOOL'} = cwd() . $sep . ($texpool ? $texpool : "");
+  }
 
-    # in mktexfmtMode we must redirect *all* output to stderr
-    $cmdline .= " >&2" if $mktexfmtMode;
-    $cmdline .= " <$nul";
-    my $retval = system($cmdline);
-    
-    # report error if it failed.
-    if ($retval != 0) {
-      $retval /= 256 if ($retval > 0);
-      print_deferred_error("running \`$cmdline' return status: $retval\n");
-    }
+  # in mktexfmtMode we must redirect *all* output to stderr
+  $cmdline .= " >&2" if $mktexfmtMode;
+  $cmdline .= " <$nul";
+  my $retval = system("$DRYRUN$cmdline");
 
-    # Copy the log file after the program is run, so that the log file
-    # is available to inspect even on failure. So we need the dest dir tree.
-    TeXLive::TLUtils::mkdirhier($destdir);
-    #
+  # report error if it failed.
+  if ($retval != 0) {
+    $retval /= 256 if ($retval > 0);
+    print_deferred_error("running \`$cmdline' return status: $retval\n");
+  }
+
+  # Copy the log file after the program is run, so that the log file
+  # is available to inspect even on failure. So we need the dest dir tree.
+  TeXLive::TLUtils::mkdirhier($destdir) if ! $opts{"dry-run"};
+  #
+  if ($opts{"dry-run"}) {
+    print_info("would copy log file to: $destdir/$logfile\n");
+  } else {
+    # Add the actual invocation to the end of the log file
+    if (open(my $fd, ">>", $logfile)) {
+      print $fd "# actual command line used during this run\n# $cmdline\n";
+      close($fd);
+    } else {
+      print_deferred_error("cannot append cmdline to log file");
+    }
     # Here and in the following we use copy instead of move
     # to make sure that in SElinux enabled cases the rules of
     # the destination directory are applied.
     # See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=900580
-    if (File::Copy::copy($logfile, "$destdir/$logfile")) {
+    # 
+    if (TeXLive::TLUtils::copy("-f", $logfile, "$destdir/$logfile")) {
       print_info("log file copied to: $destdir/$logfile\n");
     } else {
-      print_deferred_error("cannot copy log $logfile to: $destdir\n");
-    }
-
-    # original shell script did *not* check the return value
-    # we keep this behavior, but add an option --strict that
-    # errors out on all failures.
-    if ($retval != 0 && $opts{'strict'}) {
-      print_deferred_error("returning error due to option --strict\n");
-      return $FMT_FAILURE;
-    }
-
-    if ($localpool) {
-      if ($texpool) {
-        $ENV{'TEXPOOL'} = $texpool;
-      } else {
-        delete $ENV{'TEXPOOL'};
-      }
+      print_deferred_error("failed to copy log $logfile to: $destdir\n");
     }
   }
 
+  # original shell script did *not* check the return value
+  # we keep this behavior, but add an option --strict that
+  # errors out on all failures.
+  if ($retval != 0 && $opts{'strict'}) {
+    print_deferred_error("returning error due to option --strict\n");
+    return $FMT_FAILURE;
+  }
+
+  if ($localpool) {
+    if ($texpool) {
+      $ENV{'TEXPOOL'} = $texpool;
+    } else {
+      delete $ENV{'TEXPOOL'};
+    }
+  }
+
+  # if this was a dry run, we don't expect anything to have been
+  # created, so there's nothing to inspect or copy. Call it good.
+  if ($opts{"dry-run"}) {
+    print_info("dry run, so returning success: $fmtfile\n");
+    return $FMT_SUCCESS;
+  }
+
   # check and install of fmt and log files
-  if (! -f $fmtfile) {
-    print_deferred_error("\`$cmdline' failed (no $fmtfile)\n");
+  if (! -s $fmtfile) {
+    print_deferred_error("no (or empty) $fmtfile made by: $cmdline\n");
     return $FMT_FAILURE;
   }
 
   if (! -f $logfile) {
-    print_deferred_error("no log file generated for $fmt/$eng, strange\n");
+    print_deferred_error("no log file generated for: $fmt/$eng\n");
     return $FMT_FAILURE;
   }
 
@@ -739,44 +891,48 @@ sub rebuild_one_format {
     # package dependencies for each format.  Unfortunately omega-based
     # engines gratuitiously changed the extension from .fls to .ofl.
     my $recfile = $fmt . ($fmt =~ m/^(aleph|lamed)$/ ? ".ofl" : ".fls");
-    if (!File::Copy::copy($recfile, "$destdir/$recfile")) {
+    if (! TeXLive::TLUtils::copy("-f", $recfile, "$destdir/$recfile")) {
       print_deferred_error("cannot copy recorder $recfile to: $destdir\n");
     }
   }
 
   my $destfile = "$destdir/$fmtfile";
-  if (File::Copy::copy($fmtfile, $destfile )) {
+  # set flag to warn that new user format was installed
+  # we check whether the next command **would** create a new file,
+  # and if it succeeded, we set the actual flag.
+  my $possibly_warn = ($opts{'user'} && ! -r $destfile);
+  if (TeXLive::TLUtils::copy("-f", $fmtfile, $destfile)) {
     print_info("$destfile installed.\n");
+    $first_time_creation_in_usermode = $possibly_warn;
     #
     # original fmtutil.sh did some magic trick for mplib-luatex.mem
-    #
     # nowadays no mplib mem is created and all files loaded
     # so we comment and do not convert this
     #
-    # As a special special case, we create mplib-luatex.mem for use by
-    # the mplib embedded in luatex if it doesn't already exist.  (We
-    # never update it if it does exist.)
-    #
-    # This is used by the luamplib package.  This way, an expert user
-    # who wants to try a new version of luatex (hence with a new
-    # version of mplib) can manually update mplib-luatex.mem without
-    # having to tamper with mpost itself.
-    #
-    #  if test "x$format" = xmpost && test "x$engine" = xmpost; then
-    #    mplib_mem_name=mplib-luatex.mem
-    #    mplib_mem_file=$fulldestdir/$mplib_mem_name
-    #    if test \! -f $mplib_mem_file; then
-    #      verboseMsg "$progname: copying $destfile to $mplib_mem_file"
-    #      if cp "$destfile" "$mplib_mem_file" </dev/null; then
-    #        mktexupd "$fulldestdir" "$mplib_mem_name"
-    #      else
-    #        # failure to copy merits failure handling: e.g., full file system.
-    #        log_failure "cp $destfile $mplib_mem_file failed."
-    #      fi
-    #    else
-    #      verboseMsg "$progname: $mplib_mem_file already exists, not updating."
-    #    fi
-    #  fi
+    ## As a special special case, we create mplib-luatex.mem for use by
+    ## the mplib embedded in luatex if it doesn't already exist.  (We
+    ## never update it if it does exist.)
+    ##
+    ## This is used by the luamplib package.  This way, an expert user
+    ## who wants to try a new version of luatex (hence with a new
+    ## version of mplib) can manually update mplib-luatex.mem without
+    ## having to tamper with mpost itself.
+    ##
+    ##  if test "x$format" = xmpost && test "x$engine" = xmpost; then
+    ##    mplib_mem_name=mplib-luatex.mem
+    ##    mplib_mem_file=$fulldestdir/$mplib_mem_name
+    ##    if test \! -f $mplib_mem_file; then
+    ##      verboseMsg "$progname: copying $destfile to $mplib_mem_file"
+    ##      if cp "$destfile" "$mplib_mem_file" </dev/null; then
+    ##        mktexupd "$fulldestdir" "$mplib_mem_name"
+    ##      else
+    ##        ## failure to copy merits failure handling: e.g., full file system.
+    ##        log_failure "cp $destfile $mplib_mem_file failed."
+    ##      fi
+    ##    else
+    ##      verboseMsg "$progname: $mplib_mem_file already exists, not updating."
+    ##    fi
+    ##  fi
 
     if ($mktexfmtMode && $mktexfmtFirst) {
       print "$destfile\n";
@@ -1053,7 +1209,7 @@ sub determine_config_files {
           die "$prg: Config file \"$f\" not found";
         }
       }
-      push @tmp, (win32() ? lc($f) : $f);
+      push @tmp, (wndws() ? lc($f) : $f);
     }
     @{$opts{'cnffile'}} = @tmp;
     # in case that config files are given on the command line, the first
@@ -1064,12 +1220,12 @@ sub determine_config_files {
     chomp(@all_files);
     my @used_files;
     for my $f (@all_files) {
-      push @used_files, (win32() ? lc($f) : $f);
+      push @used_files, (wndws() ? lc($f) : $f);
     }
     #
     my $TEXMFLOCALVAR;
     my @TEXMFLOCAL;
-    if (win32()) {
+    if (wndws()) {
       chomp($TEXMFLOCALVAR =`kpsewhich --expand-path=\$TEXMFLOCAL`);
       @TEXMFLOCAL = map { lc } split(/;/ , $TEXMFLOCALVAR);
     } else {
@@ -1087,30 +1243,14 @@ sub determine_config_files {
       }
     }
     #
-    # user mode (no -sys):
-    # ====================
-    # TEXMFCONFIG    $HOME/.texliveYYYY/texmf-config/web2c/$fn
-    # TEXMFVAR       $HOME/.texliveYYYY/texmf-var/web2c/$fn
-    # TEXMFHOME      $HOME/texmf/web2c/$fn
-    # TEXMFSYSCONFIG $TEXLIVE/YYYY/texmf-config/web2c/$fn
-    # TEXMFSYSVAR    $TEXLIVE/YYYY/texmf-var/web2c/$fn
-    # TEXMFLOCAL     $TEXLIVE/texmf-local/web2c/$fn
-    # TEXMFDIST      $TEXLIVE/YYYY/texmf-dist/web2c/$fn
-    # 
-    # root mode (--sys):
-    # ==================
-    # TEXMFSYSCONFIG $TEXLIVE/YYYY/texmf-config/web2c/$fn
-    # TEXMFSYSVAR    $TEXLIVE/YYYY/texmf-var/web2c/$fn
-    # TEXMFLOCAL     $TEXLIVE/texmf-local/web2c/$fn
-    # TEXMFDIST      $TEXLIVE/YYYY/texmf-dist/web2c/$fn
-    #
-    @{$opts{'cnffile'}}  = @used_files;
+    # See help message for list of locations.
+    @{$opts{'cnffile'}} = @used_files;
     #
     # determine the config file that we will use for changes
     # if in the list of used files contains either one from
-    # TEXMFHOME or TEXMFCONFIG (which is TEXMFSYSCONFIG in the -sys case)
+    # TEXMFHOME or TEXMFCONFIG (TEXMFSYSCONFIG in the -sys case)
     # then use the *top* file (which will be either one of the two),
-    # if none of the two exists, create a file in TEXMFCONFIG and use it
+    # if neither of the two exists, create a file in TEXMFCONFIG and use it.
     my $use_top = 0;
     for my $f (@used_files) {
       if ($f =~ m!(\Q$TEXMFHOME\E|\Q$texmfconfig\E)/web2c/$fn!) {
@@ -1149,7 +1289,7 @@ sub determine_config_files {
 # returns 1 if actually saved due to changes
 sub save_fmtutil {
   my $fn = shift;
-  return if $opts{'dry-run'};
+  return 0 if $opts{'dry-run'};
   my %fmtf = %{$alldata->{'fmtutil'}{$fn}};
   if ($fmtf{'changed'}) {
     TeXLive::TLUtils::mkdirhier(dirname($fn));
@@ -1221,7 +1361,7 @@ sub save_fmtutil {
 #   and reset it to the real home dir of root.
 
 sub reset_root_home {
-  if (!win32() && ($> == 0)) {  # $> is effective uid
+  if (!wndws() && ($> == 0)) {  # $> is effective uid
     my $envhome = $ENV{'HOME'};
     # if $HOME isn't an existing directory, we don't care.
     if (defined($envhome) && (-d $envhome)) {
@@ -1290,16 +1430,6 @@ sub print_deferred_error {
 }
 
 
-# copied from TeXLive::TLUtils to reduce dependencies
-sub win32 {
-  if ($^O =~ /^MSWin/i) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
-
 
 # version, help.
 
@@ -1313,20 +1443,21 @@ sub help {
 Usage: $prg      [-user|-sys] [OPTION] ... [COMMAND]
    or: $prg-sys  [OPTION] ... [COMMAND]
    or: $prg-user [OPTION] ... [COMMAND]
-   or: mktexfmt  FORMAT.fmt|BASE.base|FMTNAME.EXT
+   or: mktexfmt  FORMAT.fmt|BASE.base|FMTNAME
 
 Rebuild and manage TeX fmts and Metafont bases, collectively called
 "formats" here. (MetaPost no longer uses the past-equivalent "mems".)
+
+If not operating in mktexfmt mode, exactly one command must be given,
+filename suffixes should generally not be specified, no non-option
+arguments are allowed, and multiple formats can be generated.
 
 If the command name ends in mktexfmt, only one format can be created.
 The only options supported are --help and --version, and the command
 line must be either a format name, with extension, or a plain name that
 is passed as the argument to --byfmt (see below).  The full name of the
-generated file (if any) is written to stdout, and nothing else.
-
-If not operating in mktexfmt mode, exactly one command must be given,
-extensions should generally not be specified, no non-option arguments
-are allowed, and multiple formats can be generated, as follows.
+generated file (if any) is written to stdout, and nothing else.  The
+system directories are used if they are writable, else the user directories.
 
 By default, the return status is zero if all formats requested are
 successfully built, else nonzero.
@@ -1337,30 +1468,32 @@ Options:
   --cnffile FILE          read FILE instead of fmtutil.cnf
                            (can be given multiple times, in which case
                            all the files are used)
+  --dry-run, -n           don't actually build formts
   --fmtdir DIR            write formats under DIR instead of TEXMF[SYS]VAR
   --no-engine-subdir      don't use engine-specific subdir of the fmtdir
-  --no-error-if-no-format exit successfully if no format is selected
+  --no-error-if-no-format  exit successfully if no format is selected
   --no-error-if-no-engine=ENGINE1,ENGINE2,...
-                          exit successfully even if a required engine
+                          exit successfully even if a required ENGINE
                            is missing, if it is included in the list.
   --no-strict             exit successfully even if a format fails to build
   --nohash                don't update ls-R files
   --recorder              pass the -recorder option and save .fls files
+  --refresh               recreate only existing format files
+  --status-file FILE      append status information about built formats to FILE
   --quiet                 be silent
   --catcfg                (does nothing, exists for compatibility)
   --dolinks               (does nothing, exists for compatibility)
   --force                 (does nothing, exists for compatibility)
   --test                  (does nothing, exists for compatibility)
 
-Commands:
+Commands (exactly one must be specified):
   --all                   recreate all format files
   --missing               create all missing format files
-  --refresh               recreate only existing format files
   --byengine ENGINE       (re)create formats built with ENGINE
   --byfmt FORMAT          (re)create format FORMAT
   --byhyphen HYPHENFILE   (re)create formats that depend on HYPHENFILE
-  --enablefmt  FORMAT[/ENGINE] enable FORMAT, as built with ENGINE
-  --disablefmt FORMAT[/ENGINE] disable FORMAT, as built with ENGINE
+  --enablefmt  FORMAT[/ENGINE]  enable FORMAT, as built with ENGINE
+  --disablefmt FORMAT[/ENGINE]  disable FORMAT, as built with ENGINE
                           If multiple formats have the same name and
                            different engines, /ENGINE specifier is required.
   --listcfg               list (enabled and disabled) configurations,
@@ -1373,8 +1506,8 @@ Explanation of trees and files normally used:
 
   If --cnffile is specified on the command line (possibly multiple
   times), its value(s) are used.  Otherwise, fmtutil reads all the
-  fmtutil.cnf files found by running \`kpsewhich -all fmtutil.cnf', in the
-  order returned by kpsewhich. Files passed in via --cnffile are
+  fmtutil.cnf files found by running "kpsewhich -all fmtutil.cnf", in the
+  order returned by kpsewhich.  Files specified via --cnffile are
   first tried to be loaded directly, and if not found and the file names
   don't contain directory parts, are searched via kpsewhich.
 
@@ -1402,32 +1535,35 @@ Explanation of trees and files normally used:
   
   (where YYYY is the TeX Live release version).
   
-  According to the actions, fmtutil might write to one of the given files
-  or create a new fmtutil.cnf, described further below.
+  According to the actions, fmtutil might update one of the existing cnf
+  files or create a new fmtutil.cnf, as described below.
 
-Where formats are written:
-  
-  By default, format files are (re)written in TEXMFSYSVAR/ENGINE by
-  fmtutil-sys, and TEXMFVAR/ENGINE by fmtutil, where /ENGINE is a
-  subdirectory named for the engine used, such as "pdftex".
+Where format files are written:
+
+  By default, format files are (re)written in \$TEXMFSYSVAR/ENGINE by
+  fmtutil-sys, and \$TEXMFVAR/ENGINE by fmtutil-user, where /ENGINE is
+  a subdirectory named for the engine used, such as "pdftex".
+
+  For mktexfmt, TEXMFSYSVAR is used if it is writable, else TEXMFVAR.
   
   If the --fmtdir=DIR option is specified, DIR is used instead of
   TEXMF[SYS]VAR, but the /ENGINE subdir is still used by default.
   
-  In any case, if the --no-engine-subdir option is specified, the
+  In all cases, if the --no-engine-subdir option is specified, the
   /ENGINE subdir is omitted.
   
 Where configuration changes are saved: 
 
   If config files are given on the command line, then the first one 
   given will be used to save any changes from --enable or --disable.  
+  
   If the config files are taken from kpsewhich output, then the 
-  algorithm is more complex:
+  algorithm is more complicated:
 
-    1) If \$TEXMFCONFIG/web2c/fmtutil.cnf or \$TEXMFHOME/web2c/fmtutil.cnf
-    appears in the list of used files, then the one listed first by
-    kpsewhich --all (equivalently, the one returned by kpsewhich
-    fmtutil.cnf), is used.
+    1) If \$TEXMFCONFIG/web2c/fmtutil.cnf or
+    \$TEXMFHOME/web2c/fmtutil.cnf appears in the list of used files,
+    then the one listed first by kpsewhich --all (equivalently, the one
+    returned by "kpsewhich fmtutil.cnf"), is used.
       
     2) If neither of the above two are present and changes are made, a
     new config file is created in \$TEXMFCONFIG/web2c/fmtutil.cnf.
@@ -1435,7 +1571,7 @@ Where configuration changes are saved:
   In general, the idea is that if a given config file is not writable, a
   higher-level one can be used.  That way, the distribution's settings
   can be overridden system-wide using TEXMFLOCAL, and system settings
-  can be overridden again in a particular user's TEXMFHOME.
+  can be overridden again in a particular user's TEXMFHOME or TEXMFCONF.
 
 Resolving multiple definitions of a format:
 
@@ -1446,40 +1582,46 @@ Disabling formats:
 
   fmtutil.cnf files with higher priority (listed earlier) can disable
   formats in lower priority (listed later) fmtutil.cnf files by
-  writing a line like
+  writing a line like this in the higher-priority fmtutil.cnf file:
     \#! <fmtname> <enginename> <hyphen> <args>
-  in the higher-priority fmtutil.cnf file.   The \#! must be at the
-  beginning of the line, with at least one space or tab afterward, and
-  there must be whitespace between each word on the list.
+  The \#! must be at the beginning of the line, with at least one space
+  or tab afterward, and there must be whitespace between each word on
+  the list.
 
   For example, you can disable the luajitlatex format by creating
   the file \$TEXMFCONFIG/web2c/fmtutil.cnf with the line
     #! luajitlatex luajittex language.dat,language.dat.lua lualatex.ini
   (As it happens, the luajittex-related formats are precisely why the
   --no-error-if-no-engine option exists, since luajittex cannot be
-  compiled on all platforms.)
+  compiled on all platforms. So this is not needed.)
 
 fmtutil-user (fmtutil -user) vs. fmtutil-sys (fmtutil -sys):
 
-  When fmtutil-sys is run or the command line option -sys is used, 
-  TEXMFSYSCONFIG and TEXMFSYSVAR are used instead of TEXMFCONFIG and 
-  TEXMFVAR, respectively.  This is the primary difference between 
+  When fmtutil-sys is run or the command line option -sys is used,
+  TEXMFSYSCONFIG and TEXMFSYSVAR are used instead of TEXMFCONFIG and
+  TEXMFVAR, respectively. This is the primary difference between
   fmtutil-sys and fmtutil-user.
 
-  See http://tug.org/texlive/scripts-sys-user.html for details.
+  See https://tug.org/texlive/scripts-sys-user.html for details.
 
   Other locations may be used if you give them on the command line, or
   these trees don't exist, or you are not using the original TeX Live.
 
-Supporting development binaries
+Supporting development binaries:
 
   If an engine name ends with "-dev", formats are created in
   the respective directory with the -dev stripped.  This allows for
   easily running development binaries in parallel with the released
   binaries.
 
+Environment:
+
+  This script runs TeX and Metafont to generate the fmt/base file, and
+  thus all normal environment variables and search path rules for TeX/MF
+  apply.
+
 Report bugs to: tex-live\@tug.org
-TeX Live home page: <http://tug.org/texlive/>
+TeX Live home page: <https://tug.org/texlive/>
 EOF
 ;
   print &version();

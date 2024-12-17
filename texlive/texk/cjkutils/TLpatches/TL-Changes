@@ -1,5 +1,5 @@
-Changes applied to the cjk-4.8.4/utils tree as obtained from:
-	http://cjk.ffii.org/cjk-4.8.4.tar.gz
+Changes applied to the cjk-4.8.5/utils tree as obtained from:
+	https://download.savannah.nongnu.org/releases/cjk/cjk-4.8.5.tar.gz
 
 Moved from top level to here:
 	ChangeLog
@@ -18,4 +18,15 @@ Removed:
 	pyhyphen/
 	subfonts/
 	thaifont/
+
+Pre-generated files
+	Bg5conv/bg5conv.c
+	CEFconv/cef5conv.c
+	CEFconv/cefconv.c
+	CEFconv/cefsconv.c
+	SJISconv/sjisconv.c
+	extconv/extconv.c
+	hbf2gf/hbf2gf.c
+are also removed, as we regenerate them using ctangle
+in the top directory.
 

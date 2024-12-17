@@ -1,3 +1,541 @@
+2024-08-04  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftoepdf.cc (write_epdf): reversed sep and pdfkeyprefix.
+
+2024-07-26  Andreas Scherer  <https://ascherer.github.io>
+
+	* pdftex.ch: Prepare for compilation with gcc-14.
+
+2024-05-24  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.web (pdf_ptex_use_underscore_code),
+	(pdf_ptex_use_underscore): new \pdfptexuseunderscore parameter.
+	(Put each ...): define it.
+	(print_param): print it.
+	(get_ptex_use_underscore): new fn to implement it.
+	(pdf_print_info): adjust Fullbanner prefix character.
+	* pdftoepdf.cc (getptexuseunderscore): declare fn.
+	(write_epdf): use it for FileName, PageNumber, InfoDict.
+
+2024-04-18  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.web (pdf_begin_string): increase tolerance for finding
+	interword spaces by 1pt, since overfull lines can have smaller
+	spaces than space-space_shrink. Report from Ulrike,
+	https://tug.org/pipermail/pdftex/2024-April/009388.html
+
+2024-03-10  Karl Berry  <karl@tug.org>
+
+	* TL'24 release.
+
+2024-02-04  Karl Berry  <karl@tug.org>
+
+        * NEWS,
+        * pdftex_version.h,
+        * pdftex.web (pdftex_revision, pdftex_version_string):
+        version [1.40.]26 for TL24.
+
+2024-01-14  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftoepdf.cc (write_epdf): call writeRefs at the end, to write
+	all indirect objects after writing everything else.
+	From pdftex r916 (and test in r915). Original report:
+	https://bugs.ghostscript.com/show_bug.cgi?id=706940
+
+2023-12-24  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* wcfname.test:
+	Avoid errors on parallel test processing.
+
+2023-11-25  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* wcfname.test: Add tests for --recorder and *.fls.
+
+2023-11-24  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* wcfname.test: Add test for file names with over-BMP
+	(4byte UTF-8).
+	https://tug.org/pipermail/tex-live/2023-November/049685.html
+
+2023-10-27  Thanh Han The  <hanthethanh@gmail.com>
+
+	* tounicode.c (deftounicode): sscanf %lX into unsigned long to
+	avoid failure in text extraction on BigEndian systems. Report
+	from hille42,
+	https://tug.org/pipermail/pdftex/2023-October/009342.html.
+
+2023-09-01  Karl Berry  <karl@freefriends.org>
+
+	* ptexmac.h (cmp_return): a few words of documentation about
+	the seemingly strange lack of handling the a==b case.
+	Suggested by Jim Diamond.
+
+2023-08-28  Karl Berry  <karl@freefriends.org>
+
+	* tounicode.c (undump_to_unicode): check that gu->name
+	(and gu->unicode_seq) did not get undumped as NULL.
+	Report from Gregory DUCK,
+	https://tug.org/pipermail/tex-live/2023-August/049406.html.
+
+2023-08-27  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* tests/{cnfline,partoken}.test:
+	Make easier to test on Windows.
+
+2023-08-26  Karl Berry  <karl@freefriends.org>
+
+	* writet1.c (t1_builtin_enc): guard somewhat against corrupt pfbs,
+	in the dup and dup dup checking. Report from Gregory DUCK,
+	https://tug.org/pipermail/tex-live/2023-August/049400.html.
+
+2023-08-20  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* {expanded,pdfimage,pdftex,pdftosrc,ttf2afm,wcfname,
+	wprob}.test:
+	Make easier to test on Windows.
+
+2023-08-18  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* pdftex.web: minor cleanup (sync with etex.ch r24155)
+
+2023-03-29  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* wcfname.test:
+	Sync with update of fn-generate.perl.
+
+2023-03-09  Karl Berry  <karl@tug.org>
+
+	* TL'23 release.
+
+2023-02-21  Phelype Oleinik  <phelype.oleinik@latex-project.org>
+
+	* pdftex.web: reduce memory usage for \special shipout,
+	a la HH/luatex.
+
+2023-02-14  Thanh Han The  <hanthethanh@gmail.com>
+
+	* writet1.c (cs_mark) <CS_SEAC>: look for the composite(d) glyphs too,
+	to include in /CharSet. Original report from John Lienhard
+	for Lucida: https://tug.org/pipermail/lucida/2023-February/000922.html
+	Also happens with DejaVuSerif: tests/31-CharSet-miss-composite-char.
+	(pdftex r902)
+
+2023-02-14  Thanh Han The  <hanthethanh@gmail.com>
+
+	* tounicode.c (set_glyph_unicode): take new glyph_unicode_entry arg.
+	(is_last_byte_valid): new fn.
+	(write_tounicode): stop writing range when last byte of a
+	beginbfrange is no longer valid, that is, >255.
+	Report from Ben JW:
+	  https://tug.org/pipermail/tex-live/2023-February/048845.html
+	and corresponding veraPDF issue:
+	  https://github.com/veraPDF/veraPDF-library/issues/1253#issuecomment-1420125850
+
+2023-02-14  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* wcfname.test:
+	Avoid errors on parallel test processing.
+	Report from Ken Brown.
+
+2023-02-12  Phelype Oleinik <phe.h.o1@gmail.com>
+        and Karl Berry  <karl@freefriends.org>
+
+	* pdftex.web (Implement \.{\\special}): add comments explaining
+	that write_stream(tail):=null is an overflow assignment with the
+	current memory_word structure, and is overwritten in enctex2.ch.
+
+2023-02-11  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.ch (pdf_font_has_space_char): xmalloc and maintain new array.
+	* pdftex.web (pdf_init_font): update pdf_font_has_space_char array.
+	(pdf_read_dummy_font): use pdf_space_font_name instead of
+	hardwired "dummy-space".
+	(pdf_begin_string): use real space char if pdf_font_has_space_char,
+	else call pdf_insert_interword_space.
+	(pdf_space_font_code): new \pdfspacefont primitive.
+	(Put each ...): define it.
+	(Cases of |print_cmd_chr|...): print it.
+	(Declare act...): switch on it.
+	(Implement \.{\\pdfspacefont}): implement it.
+	(Glob...): declare pdf_space_font_name.
+	(Set init...): initialize it.
+	* pdftex.defines,
+	* ptexlib.h,
+	* mapfile.c (hasspacechar, pdfmaplinesp): new fns.
+	* NEWS: mention new behavior.
+
+2023-02-17  Karl Berry  <karl@tug.org>
+
+        * NEWS,
+        * pdftex_version.h,
+        * pdftex.web (pdftex_revision, pdftex_version_string):
+        version [1.40.]25 for TL23.
+
+2023-12-28  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.web: use real space char for \pdfinterwordspaceon,
+	but only works for fonts containing the real space char.
+
+2023-01-20  Phelype Oleinik  <phe.h.o1@gmail.com>
+
+	* pdftex.web: implement shipout keyword for delayed expansion
+	with \pdfliteral and \special, like non-\immediate \write.
+	(pdf_out_literal): check for pdf_lateliteral_node.
+	(pdf_special): check for latespecial_node.
+	(latespecial_node): new @d (4)
+	(pdf_lateliteral_node): new @d (pdftex_first_extension_code + 1).
+	(Implement \.{\\special}),
+	(Implement \.{\\pdfliteral}): look for `shipout' keyword.
+	(scan_pdf_ext_late_toks): new procedure.
+	(Display the whatsit) <latespecial_node, <pdf_lateliteral_node>:
+	new cases.
+
+2022-12-28  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.web (Display the whatsit...) <pdf_dest_node>: indicate
+	if a pdfdest is a struct (pdftex r888). Report from Ulrike Fischer,
+	https://tug.org/pipermail/pdftex/2022-December/009315.html
+
+2022-12-28  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* wcfname.test, am/pdftex.am:
+	Add tests for file names with UTF-8 characters.
+
+2022-12-21  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.web (pdf_omit_info_procset_code),
+	(pdf_omit_procset): new parameter \pdfomitprocset.
+	(Put each...): add it.
+	(Generate ProcSet if desired): rename from <Generate ProcSet>;
+	output /ProcSet if the parameter is negative,
+	or if the parameter is zero and we are generating PDF 1.x (not 2.x).
+	Request by Ross,
+	https://tug.org/pipermail/pdftex/2022-December/009310.html
+
+2022-11-30  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.web (Finish the PDF file): omit call to pdf_print_info
+	if pdf_omit_info_dict = 0. Report from Ulrike,
+	https://tug.org/pipermail/pdftex/2022-November/009308.html
+	(from pdftex r885)
+
+2022-05-23  Thanh Han The  <hanthethanh@gmail.com>
+
+	* writettf.c (ttf_write_OS2): don't complain about v4 of OS/2
+	table, present in GentiumPlus-Regular.ttf, v6.101,
+	released recently. Also, make the complaint about future versions
+	a warning instead of a failure.
+
+2022-04-17  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.web (pdf_omit_info_dict_code),
+	(pdf_omit_info_dict): new parameter \pdfomitinfodict.
+	(Put each...): add it.
+	(Output the cross-reference stream dictionary),
+	(Output the trailer): omit /Info if parameter is nonzero.
+	Request by Ulrike for the pdf A-4 standard.
+	https://tug.org/pipermail/pdftex/2022-April/009282.html
+
+2022-04-12  Marcel Kr\"uger  <tex@2krueger.de>
+
+	* pdftex.web (Write out resource list): Write forms last,
+	to avoid recursive xforms clobbering |pdfpagegroupval|.
+	https://tug.org/pipermail/pdftex/2022-April/009276.html
+	https://tug.org/pipermail/pdftex/2022-April/009280.html
+
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2022-01-10  Karl Berry  <karl@freefriends.org>
+
+	* am/pdftex.am: do not silence tangle-sh.
+
+2021-11-07  Andreas Scherer  <https://ascherer.github.io>
+
+	* pdftex.web: Use WEB meta-comment for stale code.
+
+2021-11-05  Karl Berry  <karl@freefriends.org>
+
+        * pdftex_version.h,
+        * pdftex.web (pdftex_revision, pdftex_version_string):
+        version [1.40.]24 for TL'22, in advance, for structured dest test.
+
+2021-11-04  Marcel Kr\"uger  <tex@2krueger.de>
+
+	* pdftex.web: Implement support for PDF 2.0 structure destinations.
+
+2021-09-25  Karl Berry  <karl@freefriends.org>
+
+	* pdftex.web: always call pdf_warning with prepend_nl true,
+	to avoid warnings showing up in the midst of the output, e.g., from:
+        '\pdfoutput=1 \noindent \pdfstartlink goto num 99\pdfendlink'
+
+	This might cause a blank line, but doing the test as in print_nl
+	to check if we are already at the beginning of the terminal line
+	seems too intrusive at this late date, affecting other messages.
+
+2021-09-03  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.web (prev_tail): new global.
+	(tail_append): maintain it.
+	(insert_before_tail): new macro.
+	(If |tmp_k1| is not null...): insert auto-kern before a
+	null discretionary inserted by |wrapup| (i.e., explicit hyphen)
+	if appropriate. Report (2) from Robert Schlicht.
+	https://mailman.ntg.nl/pipermail/ntg-pdftex/2021-August/004338.html
+	
+2021-09-03  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.web (append_discretionary): insert autokern
+	(\pdfprependkern/pdfappendkern) after
+	hyphen char inserted by hyphenation. Report (3) from Robert Schlicht.
+	https://mailman.ntg.nl/pipermail/ntg-pdftex/2021-August/004338.html
+
+2021-08-21  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.web (cp_skipable): make autokerns "skipable", so character
+	protrusion works with chars having autokern
+	(\pdfprependkern/\pdfappendkern). Report (1) and patch from
+	Robert Schlicht,
+	https://mailman.ntg.nl/pipermail/ntg-pdftex/2021-August/004338.html
+
+2021-07-13  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* regex/regexec.c: Avoid MSVC compiler error.
+	-> error C2059: syntax error: ':'
+	MSVC does not allow empty expression for ternary
+	conditional operator (?:) which is a GNU C extension.
+	https://gcc.gnu.org/onlinedocs/gcc/Conditionals.html
+	https://stackoverflow.com/questions/3319075/
+
+2021-02-17  Karl Berry  <karl@tug.org>
+
+        * NEWS,
+        * pdftex_version.h,
+        * pdftex.web (pdftex_revision, pdftex_version_string):
+        version [1.40.]23 for post-TL21 fmt fix.
+	
+2021-01-04  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.web (letter_space_font): use explicit \fontdimen6 (quad)
+	if specified:
+	https://mailman.ntg.nl/pipermail/ntg-pdftex/2021-June/004335.html
+
+	And avoid problem when single-character command
+	is used with \letterspacefont:
+	https://mailman.ntg.nl/pipermail/ntg-pdftex/2021-June/004336.html
+	
+	Both reports from Robert Schlict.
+	(pdftex r853, r854)	
+
+2021-06-15  Marcel Fabian Krueger  <tex@2krueger.de>
+
+	* ptexlib.h (glyph_unicode_entry): use integer, not long,
+	to allow dumping without making .fmt platform dependent.
+	See surrounding thread at:
+	https://tug.org/pipermail/tex-live/2021-June/047132.html
+
+2021-03-23  Karl Berry  <karl@tug.org>
+
+	* TL'21.
+
+2021-03-16  Karl Berry  <karl@freefriends.org>
+
+	* writefont.c (write_fontdictionary): pdftex_fail with message
+	instead of assertion. From Martin Budaj, Mar 16, 2021 at 8:47 AM.
+
+2021-02-22  Phelype Oleinik  <phe.h.o1@gmail.com>
+
+	* pdftex.web: avoid "expansion depth" overflow with \numexpr.
+
+2021-02-17  Karl Berry  <karl@tug.org>
+
+        * NEWS,
+        * pdftex_version.h,
+        * pdftex.web (pdftex_revision, pdftex_version_string):
+        version [1.40.]22 for TL21.
+
+	* char-warning-pdftex.ch: doc tweak.
+	
+2021-02-13  Karl Berry  <karl@freefriends.org>
+
+	* am/pdftex.am (pdftex_ch_srcs): adjust for split enctex changes.
+
+2021-02-06  Akira Kakuto  <kakuto@w32tex.org>
+
+	* pdftex.web: sync \tracingparagraphs fix from tex.web.
+
+2021-01-28  Marcel Fabian Krueger  <tex@2krueger.de>
+
+	* tounicode.c ((un)dumptounicode): use integer, not size_t,
+	so .fmt files work across platforms.
+
+2021-01-20  Karl Berry  <karl@freefriends.org>
+
+	* NEWS: update.
+	* ptexmac.h (undumpcharptr): use xmalloc, not malloc.
+
+2021-01-20  Marcel Fabian Krueger  <tex@2krueger.de>
+
+	(Un)dump \pdfglyphtounicode assignments in the .fmt.
+	* pdftex.web (Dump/Undump pdftex data): call (un)dumptounicode.
+	* ptexlib.h ((un)dumptounicode): declare.
+	* tounicode.c ((un)dumptounicode): define.
+	* ptexmac.h ((un)dumpcharptr): #define here, from writeimg.c
+	(using generic_dump).
+	* writeimg.c: #defines moved.
+	ntg-pdftex mail, 17 Jan 2021 21:47:33.
+
+2021-01-04  Thanh Han The  <hanthethanh@gmail.com>
+
+	* ttf2afm.c (make_name): yet another attempt at filtering
+	control characters, since the test font, SourceCodePro (as well
+	as many other Mac fonts), actually contains control characters
+	(24 and 25), due to UTF-16BE.
+
+2021-01-11  Karl Berry  <karl@freefriends.org>
+
+	* ttf2afm.c (make_name): better to use unsigned char.
+
+2021-01-10  Karl Berry  <karl@freefriends.org>
+
+	* ttf2afm.c (make_name): go back to copying all characters
+	to try to placate NetBSD. No harm in it?
+	https://tug.org/pipermail/tlbuild/2021q1/004780.html
+
+2021-01-06  Karl Berry  <karl@freefriends.org>
+
+	* ttf2afm.c (make_name): let's exclude iscntrl() per Thanh,
+	but accept crlf and tab.
+
+2021-01-05  Karl Berry  <karl@freefriends.org>
+
+	* ttf2afm.c (make_name): copy all characters, not just isprint().
+	From Akira/Mojca.
+
+2021-01-04  Thanh Han The  <hanthethanh@gmail.com>
+
+	* ttf2afm.c (make_name): new fn.
+	(read_font): output FontName etc. in afm.
+	Request from Doug McAllaster, mail to Thanh of 4 Jan 2021 14:17:40.
+
+2020-10-31  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.web (pdf_begin_string): don't output fake space
+	unless pdf_doing_string. pdftex r838-839.
+	Report from Ulrike Fischer, 18oct20.
+
+2020-08-31  Marcel Fabian Krueger  <tex@2krueger.de>
+
+	* pdftex.web (Scan the argument for command |c|) <expanded_code>:
+	free_avail(def_ref) to avoid memory exhaustion with many \expanded.
+
+2020-08-04  Andreas Scherer  <https://ascherer.github.io>
+
+	* pdftex.web: Pick a few obvious nits.
+
+2020-08-03  Andreas Scherer  <https://ascherer.github.io>
+
+	* pdftex.ch: Move pdfTeX variants of MLTeX code next to originals.
+
+2020-07-22  Akira Kakuto  <kakuto@w32tex.org>
+
+	* pdftex.web, writeimg.c: Show unfound file names in
+	fatal error messages.
+	https://tug.org/pipermail/pdftex/2020-July/009203.html
+
+2020-07-20  Andreas Scherer  <https://ascherer.github.io>
+
+	* pdftex.ch: Avoid overful hboxes in table-of-contents.
+
+2020-07-19  Karl Berry  <karl@freefriends.org>
+
+	* char-warning-pdftex.ch: new file to implement new feature;
+	if \tracinglostchars>=3, missing characters cause an error and not
+	just a diagnostic message. Also, always report the hex code of the
+	missing character. From David Jones, tex-implements 30jun2020.
+	* am/pdftex.am (pdftex_ch_srcs): add it.
+	* change-files.txt: update.
+
+2020-07-17  Andreas Scherer  <https://ascherer.github.io>
+
+	* am/pdftex.am: Avoid changefile ambiguity.
+
+2020-06-11  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.web (Create link annotations...): check for gen_running_link.
+	(pdf_running_link_{off,on}_node): new @d for new primitives.
+	(Put each ...): define them.
+	(Cases of |print_cmd_chr|...): print them.
+	(Declare act...): switch on them.
+	(Implement \.{\\pdfrunninglinkoff}, ...on): new modules to
+	implement them.
+	(Display the whatsit...),
+	(Mark a partial copy...),
+	(Wipe out the whatsit...): handle them as whatsits.
+	(gen_running_link): new global, define and initialize.
+	(Output the whatsit...): set gen_running_link according
+	to the new primitives.
+	pdftex r835. Following suggestion from Ulrike Fischer,
+	https://tug.org/pipermail/tex-live/2018-November/042759.html.
+
+2020-06-10  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.web (end_link): warn instead of fatal for
+	"\pdfendlink ended up in different nesting level than \pdfstartlink".
+	pdftex r832. Suggestion from Ulrike Fischer,
+	https://tug.org/pipermail/tex-live/2018-November/042759.html.
+
+2020-06-03  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.web: Initialize save_tail to avoid a value of 0 given at
+	compile time. Remove unnecessary codes. (from Hironobu
+	Yamashita). pdftex r829.
+	https://mailman.ntg.nl/pipermail/ntg-pdftex/2020-May/004330.html
+
+2020-06-02  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.web (auto_kern): @d=3, rather than "explicit".
+	(Display kern |p|): report auto_kern message; avoid link(r)
+	when r=null. pdftex r828. Report from Robert Schlict,
+	https://mailman.ntg.nl/pipermail/ntg-pdftex/2020-May/004317.html
+
+2020-05-31  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* writepng.c: Suppress a compiler warning: '&&' within '||'
+
+2020-05-15  Akira Kakuto  <kakuto@w32tex.org>
+
+	* pdftoepdf.cc, pdftosrc.cc, NEWS: remove support of poppler.
+
+2020-05-14  Karl Berry  <karl@freefriends.org>
+
+	* pdftoepdf-poppler0.68.0.cc,
+	* pdftoepdf-poppler0.69.0.cc,
+	* pdftoepdf-poppler0.70.0.cc,
+	* pdftoepdf-poppler0.71.0.cc,
+	* pdftoepdf-poppler0.72.0.cc,
+	* pdftoepdf-poppler0.75.0.cc,
+	* pdftoepdf-poppler0.76.0.cc,
+	* pdftoepdf-poppler0.83.0.cc,
+	* pdftoepdf-poppler0.86.0.cc,
+	* pdftosrc-newpoppler.cc,
+	* pdftosrc-poppler0.71.0.cc,
+	* pdftosrc-poppler0.72.0.cc,
+	* pdftosrc-poppler0.76.0.cc,
+	* pdftosrc-poppler0.83.0.cc: remove these interim stabs at poppler
+	support; now poppler is not supported in TL.
+	See source/m4/kpse-xpdf-flags.m4 for some discussion.
+
+2020-03-28  Thanh Han The  <hanthethanh@gmail.com>
+
+	* pdftex.web (load_expand_font, vf_def_font): do not call
+	copy_expand_params on null_font. pdftex r823.
+	Original report from Robert Schlicht,
+	https://tug.org/pipermail/tex-live/2020-March/045099.html
+	https://mailman.ntg.nl/pipermail/ntg-pdftex/2020-March/004307.html
+
 2020-03-27  Karl Berry  <karl@tug.org>
 
 	* TeX Live 2020, pdftex 1.40.21.
@@ -1293,7 +1831,7 @@
 
 	* pdftex.ch (do_extension): Recover variables unused by TeX.
 
-2009-09-16  Han The Thanh <hanthethanh@gmail.com>
+2009-09-16  Thanh Han The <hanthethanh@gmail.com>
 
 	* writettf.c: patch for TTC from Liu Yubao <yubao.liu@gmail.com>
 
@@ -1331,14 +1869,14 @@
 	* pdftex.web (sup_dest_names_size): increase to 500000;
 	test document from Peter Abbott to Karl, 12 Aug 2009 12:24:43.
 
-2009-07-13  Han The Thanh <hanthethanh@gmail.com>
+2009-07-13  Thanh Han The <hanthethanh@gmail.com>
 
 	* mapfile.c: treat TTC fonts as TTF
 	* writejpg.c: fix bitmap resolution
 	* writettf.c: fix segfault for certain TTF fonts
 	* pdftex.web: enable pk generation by default
 
-2009-06-26  Han The Thanh <hanthethanh@gmail.com>
+2009-06-26  Thanh Han The <hanthethanh@gmail.com>
 
 	* pdftex.web: bugfix from Hartmut: fix \pdfobj file {foo} for files
 	          foo that don't end with '\n'

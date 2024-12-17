@@ -1,3 +1,72 @@
+2024-08-13  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import freetype-2.13.3 source tree from:
+	  http://download.savannah.gnu.org/releases/freetype.
+
+2023-08-26  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import freetype-2.13.2 source tree from:
+	  http://download.savannah.gnu.org/releases/freetype.
+
+2023-06-25  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import freetype-2.13.1 source tree from:
+	  http://download.savannah.gnu.org/releases/freetype.
+	* patch-02-grep: remove.
+	* patch-05-windows-static: remove.
+
+2023-02-11  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import freetype-2.13.0 source tree from:
+	  http://download.savannah.gnu.org/releases/freetype.
+	* patch-01-do-not-export-internal-zlib: remove.
+	* patch-04-void-main: remove.
+	* patch-05-windows-static: add.
+
+2022-11-06  Karl Berry  <karl@freefriends.org>
+
+	* patch-01-do-not-export-internal-zlib: add.
+	* patch-04-void-main: add (see ../ChangeLog).
+
+2022-05-07  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import freetype-2.12.1 source tree from:
+	  http://download.savannah.gnu.org/releases/freetype.
+	Add do-not-export-internal-zlib.
+
+2021-12-03  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Import freetype-2.11.1 source tree from:
+	  http://download.savannah.gnu.org/releases/freetype.
+	Remove patch-01-support-old-compilers.
+	Remove patch-02-try-Nelson-flag.
+
+2021-09-07  Mojca Miklavec  <mojca.miklavec.lists@gmail.com>
+
+	Simplified patches for Solaris (fixed upstream).
+
+2021-09-01  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	Imported freetype-2.11.0 source tree from:
+	  http://download.savannah.gnu.org/releases/freetype.
+	Add patch-01-support-old-compilers.
+	Add patch-02-try-Nelson-flag.
+
+2020-10-21  Akira Kakuto  <kakuto@w32tex.org>
+
+	Imported freetype-2.10.4 source tree from:
+	  http://savannah.nongnu.org/download/freetype/
+
+2020-10-11  Akira Kakuto  <kakuto@w32tex.org>
+
+	Imported freetype-2.10.3 source tree from:
+	  http://savannah.nongnu.org/download/freetype/
+
+2020-05-10  Akira Kakuto  <kakuto@w32tex.org>
+
+	Imported freetype-2.10.2 source tree from:
+	  http://savannah.nongnu.org/download/freetype/
+
 2019-07-02  Akira Kakuto  <kakuto@w32tex.org>
 
 	Imported freetype-2.10.1 source tree from:

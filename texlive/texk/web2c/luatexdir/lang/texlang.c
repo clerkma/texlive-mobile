@@ -287,6 +287,7 @@ void load_hyphenation(struct tex_language *lang, const unsigned char *buff)
     int id ;
     if (lang == NULL)
         return;
+    lua_checkstack(Luas, 3);
     if (lang->exceptions == 0) {
         lua_newtable(Luas);
         lang->exceptions = luaL_ref(Luas, LUA_REGISTRYINDEX);
@@ -314,6 +315,7 @@ void load_hyphenation(struct tex_language *lang, const unsigned char *buff)
             }
         }
     }
+    lua_pop(Luas, 1);
 }
 
 void clear_hyphenation(struct tex_language *lang)
@@ -358,7 +360,9 @@ static halfword insert_discretionary(halfword t, halfword pre, halfword post, ha
         f = get_cur_font();
     }
     for (g = pre; g != null; g = vlink(g)) {
-        font(g) = f;
+        if (! font(g)) {
+            font(g) = f;
+        }
         if (attr != null) {
             delete_attribute_ref(node_attr(g));
             node_attr(g) = attr;
@@ -366,7 +370,9 @@ static halfword insert_discretionary(halfword t, halfword pre, halfword post, ha
         }
     }
     for (g = post; g != null; g = vlink(g)) {
-        font(g) = f;
+        if (! font(g)) {
+            font(g) = f;
+        }
         if (attr != null) {
             delete_attribute_ref(node_attr(g));
             node_attr(g) = attr;
@@ -466,12 +472,7 @@ static halfword compound_word_break(halfword t, int clang)
 void set_disc_field(halfword f, halfword t)
 {
     if (t != null) {
-        /*tex
-            No |couple_nodes(f, t);| as we can better not expose |f| as |prev|
-            pointer.
-        */
-        vlink(f) = t ;
-        alink(t) = null ;
+        couple_nodes(f, t);
         tlink(f) = tail_of_list(t);
     } else {
         vlink(f) = null;
@@ -531,9 +532,14 @@ char *exception_strings(struct tex_language *lang)
     The sequence from |wordstart| to |r| can contain only normal characters it
     could be faster to modify a halfword pointer and return an integer
 
+    We now take the font from the wordstart (as in \LUAMETATEX) but leave the
+    rest as it is, because we don't want to break compatibility (end June 2022).
+    We make a copy now of the parent and hope for the best. Backporting would be
+    too intrusive so this has to do. It went unnoticed for ages anyway.
+
 */
 
-static halfword find_exception_part(unsigned int *j, unsigned int *uword, int len)
+static halfword find_exception_part(unsigned int *j, unsigned int *uword, int len, halfword parent)
 {
     halfword g = null, gg = null;
     register unsigned i = *j;
@@ -541,13 +547,16 @@ static halfword find_exception_part(unsigned int *j, unsigned int *uword, int le
     i++;
     while (i < (unsigned) len && uword[i + 1] != '}') {
         if (g == null) {
-            gg = new_char(0, (int) uword[i + 1]);
+         /* gg = new_char(font(parent), (int) uword[i + 1]); */
+            gg = copy_node(parent);
             g = gg;
         } else {
-            halfword s = new_char(0, (int) uword[i + 1]);
+         /* halfword s = new_char(font(parent), (int) uword[i + 1]); */
+            halfword s = copy_node(parent);
             couple_nodes(g, s);
-            g = vlink(g);
+            g = s;
         }
+        character(g) = (int) uword[i + 1];
         i++;
     }
     *j = ++i;
@@ -614,12 +623,12 @@ static void do_exception(halfword wordstart, halfword r, char *replacement)
             halfword gg, hh, replace = null;
             int repl;
             /*tex |pre| */
-            gg = find_exception_part(&i, uword, (int) len);
+            gg = find_exception_part(&i, uword, (int) len, wordstart);
             if (i == len || uword[i + 1] != '{') {
                 tex_error("broken pattern 1", PAT_ERROR);
             }
             /*tex |post| */
-            hh = find_exception_part(&i, uword, (int) len);
+            hh = find_exception_part(&i, uword, (int) len, wordstart);
             if (i == len || uword[i + 1] != '{') {
                 tex_error("broken pattern 2", PAT_ERROR);
             }
@@ -674,10 +683,10 @@ static void do_exception(halfword wordstart, halfword r, char *replacement)
             /*tex Let's check if we have a penalty spec. */
             if (((i+3) < len) && uword[i+1] == '[' && uword[i+2] >= '0' && uword[i+2] <= '9' && uword[i+3] == ']') {
                 if (exception_penalty_par > 0) {
-                    if (exception_penalty_par > 100000) {
-                        pen = (uword[i+2] - '0') * exception_penalty_par ;
-                    } else {
+                    if (exception_penalty_par > 10000) {
                         pen = exception_penalty_par;
+                    } else {
+                        pen = (uword[i+2] - '0') * exception_penalty_par ;
                     }
                 } else {
                     pen = hyphen_penalty_par;
@@ -693,6 +702,7 @@ static void do_exception(halfword wordstart, halfword r, char *replacement)
             /*tex check if we have two exceptions in a row */
             if (uword[i + 1] == '{') {
                 i--;
+t = alink(t);
             }
         } else {
             t = vlink(t);
@@ -933,7 +943,7 @@ void hnj_hyphenation(halfword head, halfword tail)
     int lchar, i;
     struct tex_language *lang;
     lang_variables langdata;
-    char utf8word[(4 * MAX_WORD_LEN) + 1] = { 0 };
+    char utf8word[(4 * MAX_WORD_LEN) + 1];
     int wordlen = 0;
     char *hy = utf8word;
     char *replacement = NULL;
@@ -983,7 +993,18 @@ void hnj_hyphenation(halfword head, halfword tail)
         halfword hyf_font;
         halfword end_word = r;
         wordstart = r;
-        assert(is_simple_character(wordstart));
+        /*assert(is_simple_character(wordstart));*/
+        if (!(is_simple_character(wordstart))){
+         if (!(is_character(wordstart))) {
+          tex_error("the word doesn't start with a character", NULL);
+         } else if (is_ligature(wordstart)) {
+           tex_error("the word starts with a ligature", NULL);
+         } else if (is_ghost(wordstart)) {
+           tex_error("the word starts with a ghost glyph", NULL);
+         } else {
+           tex_error("the word doesn't start with a simple character", NULL);
+         }
+        }
         hyf_font = font(wordstart);
         if (hyphen_char(hyf_font) < 0) {
             /*tex For backward compatibility we set: */
@@ -1012,6 +1033,12 @@ void hnj_hyphenation(halfword head, halfword tail)
                 break;
             }
             wordlen++;
+            if (wordlen >= MAX_WORD_LEN) {
+             while (r && type(r) == glyph_node) {
+               r = vlink(r);
+             }
+             goto PICKUP;
+            }
             if (lchar <= 32) {
                 if (lchar == 32) {
                     lchar = 0 ;
@@ -1038,7 +1065,7 @@ void hnj_hyphenation(halfword head, halfword tail)
         if (explicit_hyphen == true) {
             /*tex we are not at the start, so we only need to look ahead */
             halfword t = vlink(r) ;
-            if ((automatic_hyphen_mode_par == 0 || automatic_hyphen_mode_par == 1) && (t != null) && ((type(t) == glyph_node) && (character(t) != ex_hyphen_char_par))) {
+            if ((automatic_hyphen_mode_par == 0 || automatic_hyphen_mode_par == 1) && (t != null) && ((type(t) == glyph_node) && is_simple_character(t) && (character(t) != ex_hyphen_char_par))) {
                 /*tex we have a word already but the next character may not be a hyphen too */
                 r = compound_word_break(r, char_lang(r));
                 if (compound_hyphen) {
@@ -1052,7 +1079,7 @@ void hnj_hyphenation(halfword head, halfword tail)
                 }
             } else {
                 /*tex we jump over the sequence of hyphens */
-               while ((t != null) && (type(t) == glyph_node) && (character(t) == ex_hyphen_char_par)) {
+               while ((t != null) && (type(t) == glyph_node) && is_simple_character(t) && (character(t) == ex_hyphen_char_par)) {
                     r = t ;
                     t = vlink(r) ;
                 }
@@ -1129,6 +1156,7 @@ void hnj_hyphenation(halfword head, halfword tail)
                 }
             }
         }
+PICKUP:
         expstart = null ;
         explicit_hyphen = false;
         wordlen = 0;

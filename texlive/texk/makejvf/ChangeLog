@@ -1,8 +1,65 @@
+2023-09-18  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* version.h, configure.ac: Bump version to 20230917.
+
+2023-09-17  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* tfmread.c: Support more than 256 different glue/kern.
+	* makejvf.test: Add new tests.
+	* gk256[gk].tfm, gk256.vf: New tests.
+
+2023-09-16  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* uniblock.c: Update references Unicode blocks Blocks-15.1.0.txt
+	and CMap Adobe-GB1-6.
+	* version.h, configure.ac: Bump version to 20230916.
+
+2023-08-11  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* makejvf.test:
+	Make easier to test on Windows.
+
+2023-02-01  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* uniblock.c: Tweak Unicode blocks.
+	* COPYRIGHT: Update copyright year.
+
+2022-08-30  Karl Berry  <karl@freefriends.org>
+
+	* makejvf.1: typo fixes from Hilmar Preu\ss{}e,
+	https://tug.org/pipermail/tex-live/2022-June/048227.html
+
+2022-07-23  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* uniblock.c, main.c: Update references Unicode blocks Blocks-15.0.0.txt.
+	* version.h, configure.ac: Bump version to 20220723.
+
+2022-05-10  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* write.c: The DESIGNSIZE of output VF should be consistent with
+	that of input JFM.
+	https://github.com/texjporg/tex-jp-build/issues/140
+
+2022-01-21  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* uniblock.c, main.c: Update references Unicode blocks Blocks-14.0.0.txt.
+	* COPYRIGHT: Update copyright year.
+	* version.h, configure.ac: Bump version to 20220121.
+
+2021-07-13  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* makejvf.1: Document -O option added in version 20200412.
+
+2021-01-12  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* main.c: Add size check to avoid segmentation fault.
+	https://tug.org/pipermail/tlbuild/2021q1/004796.html
+
 2020-04-12  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
 
 	* main.c, write.c, makejvf.h:
 	Add -O option: Omit entries in VF for characters with default metric.
-	* version.h, configure{,.ac}: Bump version.
+	* version.h, configure.ac: Bump version.
 	* tests/skipjfmp_omit.vf: New test files.
 	* Makefile.am, makejvf.test: Add new tests.
 	Thanks to @aminophen for help.

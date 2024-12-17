@@ -1,6 +1,6 @@
 /* This is dvipdfmx, an eXtended version of dvipdfm by Mark A. Wicks.
 
-    Copyright (C) 2002-2018 by Jin-Hwan Cho and Shunsaku Hirata,
+    Copyright (C) 2002-2020 by Jin-Hwan Cho and Shunsaku Hirata,
     the dvipdfmx project team.
     
     Copyright (C) 1998, 1999 by Mark A. Wicks <mwicks@kettering.edu>
@@ -45,6 +45,7 @@ extern int  spc_util_read_blahblah  (struct spc_env *spe,
                                      transform_info         *dimtrns,
                                      int                    *page_no,
                                      enum pdf_page_boundary *bbox_type,
+                                     char                  **page_name,
                                      struct spc_arg *args);
 
 

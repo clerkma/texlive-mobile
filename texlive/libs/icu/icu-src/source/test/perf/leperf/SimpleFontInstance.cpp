@@ -2,7 +2,7 @@
  *******************************************************************************
  *
  *   © 2016 and later: Unicode, Inc. and others.
- *   License & terms of use: http://www.unicode.org/copyright.html#License
+ *   License & terms of use: http://www.unicode.org/copyright.html
  *
  *******************************************************************************
  *******************************************************************************
@@ -33,10 +33,8 @@ SimpleFontInstance::SimpleFontInstance(float pointSize, LEErrorCode &status)
         return;
     }
 
-    fAscent  = (le_int32) yUnitsToPoints(2000.0);
-    fDescent = (le_int32) yUnitsToPoints(600.0);
-
-    return;
+    fAscent = static_cast<le_int32>(yUnitsToPoints(2000.0));
+    fDescent = static_cast<le_int32>(yUnitsToPoints(600.0));
 }
 
 SimpleFontInstance::~SimpleFontInstance()
@@ -54,7 +52,7 @@ const void *SimpleFontInstance::getFontTable(LETag tableTag) const
         return CanonShaping::glyphDefinitionTable;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 void SimpleFontInstance::getGlyphAdvance(LEGlyphID glyph, LEPoint &advance) const
@@ -108,7 +106,7 @@ LEGlyphID SimpleFontInstance::mapCharToGlyph(LEUnicode32 ch, const LECharMapper 
 
 LEGlyphID SimpleFontInstance::mapCharToGlyph(LEUnicode32 ch) const
 {
-    return (LEGlyphID) ch;
+    return static_cast<LEGlyphID>(ch);
 }
 
 float SimpleFontInstance::getXPixelsPerEm() const
@@ -133,6 +131,6 @@ float SimpleFontInstance::getScaleFactorY() const
 
 le_bool SimpleFontInstance::getGlyphPoint(LEGlyphID /*glyph*/, le_int32 /*pointNumber*/, LEPoint &/*point*/) const
 {
-    return FALSE;
+    return false;
 }
 

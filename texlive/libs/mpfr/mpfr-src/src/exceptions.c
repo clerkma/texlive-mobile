@@ -1,6 +1,6 @@
 /* Exception flags and utilities. Constructors and destructors (debug).
 
-Copyright 2001-2019 Free Software Foundation, Inc.
+Copyright 2001-2023 Free Software Foundation, Inc.
 Contributed by the AriC and Caramba projects, INRIA.
 
 This file is part of the GNU MPFR Library.
@@ -252,6 +252,9 @@ mpfr_set_erangeflag (void)
 /* Note: It is possible that for pure FP numbers, EXP(x) < MPFR_EMIN_MIN,
    but the caller must make sure that the difference remains small enough
    to avoid reaching the special exponent values. */
+/* This function does not have logging messages. As it is also partly
+   implemented as a macro, if messages are added in the future, the macro
+   may need to be disabled when logging is enabled. */
 int
 mpfr_check_range (mpfr_ptr x, int t, mpfr_rnd_t rnd_mode)
 {
@@ -381,7 +384,7 @@ mpfr_underflow (mpfr_ptr x, mpfr_rnd_t rnd_mode, int sign)
 
   MPFR_LOG_FUNC
     (("rnd=%d sign=%d", rnd_mode, sign),
-     ("x[%Pu]=%.*Rg", mpfr_get_prec (x), mpfr_log_prec, x));
+     ("x[%Pd]=%.*Rg", mpfr_get_prec (x), mpfr_log_prec, x));
 
   MPFR_ASSERT_SIGN (sign);
 
@@ -409,7 +412,7 @@ mpfr_overflow (mpfr_ptr x, mpfr_rnd_t rnd_mode, int sign)
 
   MPFR_LOG_FUNC
     (("rnd=%d sign=%d", rnd_mode, sign),
-     ("x[%Pu]=%.*Rg", mpfr_get_prec (x), mpfr_log_prec, x));
+     ("x[%Pd]=%.*Rg", mpfr_get_prec (x), mpfr_log_prec, x));
 
   MPFR_ASSERT_SIGN (sign);
 
@@ -442,7 +445,7 @@ mpfr_overflow (mpfr_ptr x, mpfr_rnd_t rnd_mode, int sign)
  *
  * Code to debug branch prediction, based on Ulrich Drepper's paper
  * "What Every Programmer Should Know About Memory":
- *   http://people.freebsd.org/~lstewart/articles/cpumemory.pdf
+ *   https://people.freebsd.org/~lstewart/articles/cpumemory.pdf
  */
 
 extern long int __start_predict_data;
@@ -467,6 +470,32 @@ predprint (void)
       ++sf;
       s += 2;
     }
+}
+
+#endif
+
+#if MPFR_WANT_ASSERT >= 2
+
+/* Similar to flags_out in tests/tests.c */
+
+void
+flags_fout (FILE *stream, mpfr_flags_t flags)
+{
+  int none = 1;
+
+  if (flags & MPFR_FLAGS_UNDERFLOW)
+    none = 0, fprintf (stream, " underflow");
+  if (flags & MPFR_FLAGS_OVERFLOW)
+    none = 0, fprintf (stream, " overflow");
+  if (flags & MPFR_FLAGS_NAN)
+    none = 0, fprintf (stream, " nan");
+  if (flags & MPFR_FLAGS_INEXACT)
+    none = 0, fprintf (stream, " inexact");
+  if (flags & MPFR_FLAGS_ERANGE)
+    none = 0, fprintf (stream, " erange");
+  if (none)
+    fprintf (stream, " none");
+  fprintf (stream, " (%u)\n", flags);
 }
 
 #endif

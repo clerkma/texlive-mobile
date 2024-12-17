@@ -1,3 +1,255 @@
+2024-08-12  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man: CWEB 4.12 release.
+
+2024-04-14  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* Makefile.am: Remove eptex.
+
+2024-03-13  Andreas Scherer  <https://ascherer.github.io>
+
+	* weave.man,
+	* twill.man: .I, \e updates according to README.
+
+2024-03-18  Bjarni Ingi Gislason  <bjarniig@simnet.is>
+
+	* bibtex.man: \e, etc., updates.
+	https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1039975
+
+2024-03-13  Andreas Scherer  <https://ascherer.github.io>
+
+	* cweb.man: Post-release fix of typo in date string.
+
+2024-03-10  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man,
+	* cweb.man: Add new option '-F' for CWEAVE/CTWILL.
+
+2024-03-02  Bjarni Ingi Gislason  <bjarniig@simnet.is>
+
+	* pdftex.man: whitespace, \-, etc. updates.
+	https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1065094
+
+2024-02-21  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man,
+	* cweb.man,
+	* twill.man: Unmask hyphen in manpages.
+
+2024-02-16  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man,
+	* twill.man: Mask hyphen in manpage.
+
+2024-02-14  Andreas Scherer  <https://ascherer.github.io>
+
+	* Makefile.am,
+	* Makefile.in,
+	* ctwill.man: Link CTWILL manpage for ctwill-proofsort.
+
+2024-02-12  Andreas Scherer  <https://ascherer.github.io>
+
+	* Makefile.am,
+	* Makefile.in: Link TWILL manpage for twill-refsort.
+
+2024-01-24  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man,
+	* cweb.man: Regenerate with Pandoc 3.1.11.1.
+
+2023-12-02  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man: CWEB 4.11 release.
+
+2023-10-30  Andreas Scherer  <https://ascherer.github.io>
+
+	* twill.man: Mention 'twill-refsort'.
+
+2023-10-29  Andreas Scherer  <https://ascherer.github.io>
+
+	* cweb.man: Regenerate with Pandoc 3.1.9.
+	* ctwill.man: Make 'proofsort' like 'refsort'.
+
+2023-10-13  Andreas Scherer  <https://ascherer.github.io>
+
+	* weave.man: Add option '-p' to '\input pwebmac'.
+
+2023-09-22  Andreas Scherer  <https://ascherer.github.io>
+
+	* cweb.man,
+	* ctwill.man: Regenerate with Pandoc 3.1.7.
+
+2023-08-24  vaitkus  <antanas.vaitkus90@gmail.com>
+
+	* aleph.man,
+	* bibtex.man,
+	* etex.man,
+	* mf.man,
+	* pdftex.man: fix man page typos. Submitted at:
+	https://github.com/TeX-Live/texlive-source/pull/61
+
+2023-08-19  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man: CWEB 4.10 release.
+
+2023-06-16  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man: Add information on 'ctwill-proofsort'.
+
+2023-05-15  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man: CWEB 4.9 release.
+
+2023-03-09  Karl Berry  <karl@tug.org>
+
+	* TL'23 release.
+
+2022-09-01  Andreas Scherer  <https://ascherer.github.io>
+
+	* tie.man: Fix the recent fix.
+
+2022-08-30  Karl Berry  <karl@freefriends.org>
+
+	* ptftopl.man,
+	* tie.man: typo fixes from Hilmar Preu\ss{}e,
+	https://tug.org/pipermail/tex-live/2022-June/048227.html
+
+2022-08-21  Andreas Scherer  <https://ascherer.github.io>
+
+	* cweb.man: New option '+u' for CTANGLE.
+
+2022-06-05  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man: CWEB 4.8 release.
+
+2022-03-27  Andreas Scherer  <https://ascherer.github.io>
+
+	* tangle.man,
+	* weave.man: Improved SYNOPSIS formatting.
+
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2022-03-08  Karl Berry  <karl@freefriends.org>
+
+	* ofm2opl.man,
+	* opl2ofm.man,
+	* ovf2ovp.man,
+	* ovp2ovf.man,
+	* ttf2afm.man: update contact info.
+	Report from G\"unter Essers,
+	https://tug.org/pipermail/tex-k/2022-March/003776.html
+
+2022-03-03  Andreas Scherer  <https://ascherer.github.io>
+
+	* tangle.man: Clarify the creation of the pool file name.
+
+2022-03-02  Andreas Scherer  <https://ascherer.github.io>
+
+	* tangle.man,
+	* weave.man: Describe the third file name on the commandline.
+
+2022-02-26  Karl Berry  <karl@tug.org>
+
+	* Makefile.am (web_man_sources): add twill.man.
+
+2022-02-02  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man: CWEB 4.7 release.
+
+2022-02-02  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man,
+	* cweb.man: Pandoc (2.17.1) added some code.
+
+2022-01-10  Karl Berry  <karl@freefriends.org>
+
+	* Makefile.am: copyright 2022.
+
+2022-01-09  Andreas Scherer  <https://ascherer.github.io>
+
+	* twill.man,
+	* weave.man:New manpage for TWILL.
+
+2021-12-26  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man: CWEB 4.6 release.
+
+2021-11-13  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man,
+	* cweb.man: Use 'generic' Pandoc.
+
+2021-09-16  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man,
+	* cweb.man: CWEB 4.6 pre-release.
+
+2021-08-08  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* ptex.man: mention ptex-manual.
+
+2021-07-24  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* pbibtex.man: new.
+	* Makefile.am: add pbibtex, also link as upbibtex.
+
+2021-07-14  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* Makefile.am: lamed (aleph-based latex) is gone.
+
+2021-07-14  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man: CWEB 4.5 release.
+
+2021-06-06  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man,
+	* cweb.man: CWEB 4.4 release.
+
+2021-04-13  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man,
+	* cweb.man: CWEB 4.3 release.
+
+2021-03-07  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man: Document 'ctwill-twinx' a bit more.
+
+2021-03-04  Karl Berry  <karl@freefriends.org>
+
+	* gftodvi.man: font and spacing fixes from Debian.
+	Add tex-k as bug reporting address.
+
+2021-02-25  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man: CWEB 4.2 release.
+
+2021-02-20  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man: CWEB 4.1 release.
+
+2020-09-23  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man,
+	* cweb.man: Make manpages compatible with 'whatis'.
+
+2020-06-14  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctwill.man: Mention new macros 'pdfctwimac.tex'.
+
+2020-06-08  Andreas Scherer  <https://ascherer.github.io>
+
+	* ctie.man,
+	* ctwill.man,
+	* cweb.man,
+	* tie.man: Detail special environments for individual programs.
+
+2020-06-06  Andreas Scherer  <https://ascherer.github.io>
+
+	* tex.man: Complete sentence about TEXINPUTS environment.
+
 2020-03-30  Andreas Scherer  <https://ascherer.github.io>
 
 	* cweb.man,

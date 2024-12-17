@@ -1,13 +1,14 @@
-## $Id: web.am 53153 2019-12-17 19:05:32Z karl $
+## $Id: web.am 72600 2024-10-20 06:53:25Z takuji $
 ## texk/web2c/am/web.am: Makefile fragment for the standard web programs --
 ## except tangle.
 ##
-## Copyright 2018-2019 Karl Berry <tex-live@tug.org>
+## Copyright 2018-2022 Karl Berry <tex-live@tug.org>
 ## Copyright 2009-2015 Peter Breitenlohner <tex-live@tug.org>
 ## You may freely use, modify and/or distribute this file.
 
 web_programs = bibtex dvicopy dvitype gftodvi gftopk gftype mft \
-	patgen pktogf pktype pltotf pooltype tftopl vftovp vptovf weave
+	patgen pktogf pktype pltotf pooltype tftopl vftovp vptovf \
+	weave twill
 
 ## Basic tests, one for each program.
 ##
@@ -174,6 +175,17 @@ weave.p: tangle$(EXEEXT) weave.web weave.ch
 	$(tangle) weave weave
 weave.log: weave$(EXEEXT)
 
+nodist_twill_SOURCES = twill.c twill.h
+twill.c twill.h: twill-web2c
+	@$(web2c) twill
+twill-web2c: twill.p $(web2c_depend)
+	@$(web2c) twill
+twill.p: tangle$(EXEEXT) twill.web
+	$(tangle) twill
+twill.web: tie$(EXEEXT) weave.web weave.ch weav-twill.ch
+	$(tie_m) weave.web weave.ch weav-twill.ch
+twill.log: twill$(EXEEXT)
+
 ## Tests.
 ##
 if WEB
@@ -182,6 +194,7 @@ endif WEB
 EXTRA_DIST += $(web_tests)
 
 ## bibtex.test
+EXTRA_DIST += tests/exampl.bbl
 DISTCLEANFILES += tests/xexampl.aux tests/xexampl.bbl tests/xexampl.blg
 ## tests/bibtex-longline-test.pl
 DISTCLEANFILES += longline.aux longline.bbl longline.bib longline.blg
@@ -224,6 +237,12 @@ DISTCLEANFILES += badvf.* tests/xptmr*.vpl
 DISTCLEANFILES += badvpl.* tests/yptmr*.*
 ## weave.test
 DISTCLEANFILES += pooltype.tex
+## {pdftexdir,xetexdir,ptexdir,uptexdir}/wcfname.test
+EXTRA_DIST += tests/fn-generate.perl
+EXTRA_DIST += tests/fn-utf8.txt tests/fn-euc.txt tests/fn-sjis.txt
+## uptexdir/uptex-ofm.test, euptexdir/euptex-ofm.test
+EXTRA_DIST += tests/uctt10x.opl tests/uctt10x.ofm
+EXTRA_DIST += tests/uctt10x.ovp tests/uctt10x.ovf
 
 ## Test data
 ##

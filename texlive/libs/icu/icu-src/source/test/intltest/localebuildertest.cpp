@@ -25,6 +25,7 @@ void LocaleBuilderTest::runIndexedTest( int32_t index, UBool exec, const char* &
     TESTCASE_AUTO(TestAddUnicodeLocaleAttributeIllFormed);
     TESTCASE_AUTO(TestLocaleBuilder);
     TESTCASE_AUTO(TestLocaleBuilderBasic);
+    TESTCASE_AUTO(TestLocaleBuilderBasicWithExtensionsOnDefaultLocale);
     TESTCASE_AUTO(TestPosixCases);
     TESTCASE_AUTO(TestSetExtensionOthers);
     TESTCASE_AUTO(TestSetExtensionPU);
@@ -61,7 +62,7 @@ void LocaleBuilderTest::Verify(LocaleBuilder& bld, const char* expected, const c
         errln(msg, u_errorName(copyStatus));
     }
     if (!bld.copyErrorTo(errorStatus) || errorStatus != U_ILLEGAL_ARGUMENT_ERROR) {
-        errln("Should always get the previous error and return FALSE");
+        errln("Should always get the previous error and return false");
     }
     Locale loc = bld.build(status);
     if (U_FAILURE(status)) {
@@ -82,7 +83,7 @@ void LocaleBuilderTest::Verify(LocaleBuilder& bld, const char* expected, const c
 
 void LocaleBuilderTest::TestLocaleBuilder() {
     // The following test data are copy from
-    // icu4j/main/tests/core/src/com/ibm/icu/dev/test/util/LocaleBuilderTest.java
+    // icu4j/main/core/src/test/java/com/ibm/icu/dev/test/util/LocaleBuilderTest.java
     // "L": +1 = language
     // "S": +1 = script
     // "R": +1 = region
@@ -136,7 +137,7 @@ void LocaleBuilderTest::TestLocaleBuilder() {
         {"U", "ja_JP@calendar=japanese;currency=JPY", "E", "u",
           "attr1-ca-gregory", "T", "ja-JP-u-attr1-ca-gregory",
           "ja_JP@attribute=attr1;calendar=gregorian"},
-        {"U", "en@colnumeric=yes", "K", "kn", "true", "T", "en-u-kn-true",
+        {"U", "en@colnumeric=yes", "K", "kn", "true", "T", "en-u-kn",
           "en@colnumeric=yes"},
         {"L", "th", "R", "th", "K", "nu", "thai", "T", "th-TH-u-nu-thai",
           "th_TH@numbers=thai"},
@@ -152,7 +153,7 @@ void LocaleBuilderTest::TestLocaleBuilder() {
         // However, once the legacy keyword is translated back to BCP 47 u extension, key "0a" is unknown,
         // so "yes" is preserved - not mapped to "true". We could change the code to automatically transform
         // key = alphanum alpha
-        {"L", "en", "E", "u", "bbb-aaa-0a", "T", "en-u-aaa-bbb-0a-yes",
+        {"L", "en", "E", "u", "bbb-aaa-0a", "T", "en-u-aaa-bbb-0a",
          "en@0a=yes;attribute=aaa-bbb"},
         {"L", "fr", "R", "FR", "P", "Yoshito-ICU", "T", "fr-FR-x-yoshito-icu",
           "fr_FR@x=yoshito-icu"},
@@ -166,13 +167,13 @@ void LocaleBuilderTest::TestLocaleBuilder() {
         {"L", "en", "K", "tz", "usnyc", "R", "US", "T", "en-US-u-tz-usnyc",
           "en_US@timezone=America/New_York"},
         {"L", "de", "K", "co", "phonebk", "K", "ks", "level1", "K", "kk",
-          "true", "T", "de-u-co-phonebk-kk-true-ks-level1",
+          "true", "T", "de-u-co-phonebk-kk-ks-level1",
           "de@collation=phonebook;colnormalization=yes;colstrength=primary"},
         {"L", "en", "R", "US", "K", "ca", "gregory", "T", "en-US-u-ca-gregory",
           "en_US@calendar=gregorian"},
         {"L", "en", "R", "US", "K", "cal", "gregory", "X"},
         {"L", "en", "R", "US", "K", "ca", "gregorian", "X"},
-        {"L", "en", "R", "US", "K", "kn", "true", "T", "en-US-u-kn-true",
+        {"L", "en", "R", "US", "K", "kn", "true", "T", "en-US-u-kn",
           "en_US@colnumeric=yes"},
         {"B", "de-DE-u-co-phonebk", "C", "L", "pt", "T", "pt", "pt"},
         {"B", "ja-jp-u-ca-japanese", "N", "T", "ja-JP", "ja_JP"},
@@ -286,7 +287,7 @@ void LocaleBuilderTest::TestLocaleBuilder() {
                 }
                 break;
             } else {
-                // Unknow test method
+                // Unknown test method
                 errln("Unknown test case method: There is an error in the test case data.");
                 break;
             }
@@ -363,6 +364,25 @@ void LocaleBuilderTest::TestLocaleBuilderBasic() {
            "setRegion('') got Error: %s\n");
 }
 
+void LocaleBuilderTest::TestLocaleBuilderBasicWithExtensionsOnDefaultLocale() {
+    // Change the default locale to one with extension tags.
+    UErrorCode status = U_ZERO_ERROR;
+    Locale originalDefault;
+    Locale::setDefault(Locale::createFromName("en-US-u-hc-h12"), status);
+    if (U_FAILURE(status)) {
+        errln("ERROR: Could not change the default locale");
+        return;
+    }
+
+    // Invoke the basic test now that the default locale has been changed.
+    TestLocaleBuilderBasic();
+
+    Locale::setDefault(originalDefault, status);
+    if (U_FAILURE(status)) {
+        errln("ERROR: Could not restore the default locale");
+    }
+}
+
 void LocaleBuilderTest::TestSetLanguageWellFormed() {
     // http://www.unicode.org/reports/tr35/tr35.html#unicode_language_subtag
     // unicode_language_subtag = alpha{2,3} | alpha{5,8};
@@ -425,7 +445,7 @@ void LocaleBuilderTest::TestSetLanguageIllFormed() {
         "F",
         "2",
         "0",
-        "9"
+        "9",
         "{",
         ".",
         "[",
@@ -520,7 +540,7 @@ void LocaleBuilderTest::TestSetScriptIllFormed() {
         "F",
         "2",
         "0",
-        "9"
+        "9",
         "{",
         ".",
         "[",
@@ -619,7 +639,7 @@ void LocaleBuilderTest::TestSetRegionIllFormed() {
         "F",
         "2",
         "0",
-        "9"
+        "9",
         "{",
         ".",
         "[",
@@ -763,7 +783,7 @@ void LocaleBuilderTest::TestSetVariantIllFormed() {
         "F",
         "2",
         "0",
-        "9"
+        "9",
         "{",
         ".",
         "[",
@@ -1375,7 +1395,7 @@ void LocaleBuilderTest::TestSetExtensionValidateTIllFormed() {
         "9-",
         "-9",
         "-z",
-        // "Latn", // Per 2019-01-23 ICUTC, still accept 4alpha. See ICU-20321
+        "Latn",
         "Latn-",
         "en-",
         "nob-",
@@ -1400,6 +1420,8 @@ void LocaleBuilderTest::TestSetExtensionValidateTIllFormed() {
         "gab-Thai-TH-0bde-z9-abcde123-a1-",
         "gab-Thai-TH-0bde-z9-abcde123-a1-a",
         "gab-Thai-TH-0bde-z9-abcde123-a1-ab",
+        // ICU-21408
+        "root",
     };
     for (const char* ill : illFormed) {
         UErrorCode status = U_ZERO_ERROR;

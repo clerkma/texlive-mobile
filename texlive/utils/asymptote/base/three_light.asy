@@ -1,7 +1,7 @@
 struct material {
   pen[] p; // diffusepen,emissivepen,specularpen
   real opacity;
-  real shininess;  
+  real shininess;
   real metallic;
   real fresnel0; // Reflectance rate at a perfect normal angle.
 
@@ -34,7 +34,7 @@ struct material {
   void specular(pen q) {p[2]=q;}
 }
 
-material operator init() 
+material operator init()
 {
   return material();
 }
@@ -57,7 +57,7 @@ void write(string s="", material x, suffix suffix=endl)
 {
   write(stdout,s,x,suffix);
 }
-  
+
 bool operator == (material m, material n)
 {
   return all(m.p == n.p) && m.opacity == n.opacity &&
@@ -125,7 +125,7 @@ light White=light(new pen[] {rgb(0.38,0.38,0.45),rgb(0.6,0.6,0.67),
                              rgb(0.5,0.5,0.57)},specularfactor=3,
   new triple[] {(-2,-1.5,-0.5),(2,1.1,-2.5),(-0.5,0,2)});
 
-light Headlamp=light(gray(0.8),specular=gray(0.7),
+light Headlamp=light(white,specular=gray(0.7),
                      specularfactor=3,dir(42,48));
 
 currentlight=Headlamp;

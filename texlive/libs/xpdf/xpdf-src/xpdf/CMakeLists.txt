@@ -23,6 +23,11 @@ if (HAVE_LCMS)
 else ()
   set(COLOR_MANAGER_SOURCE "")
 endif ()
+if (WIN32)
+  set(MANIFEST "winLongPath.exe.manifest")
+else ()
+  set(MANIFEST "")
+endif ()
 
 add_library(xpdf_objs OBJECT
   AcroForm.cc
@@ -38,7 +43,6 @@ add_library(xpdf_objs OBJECT
   Dict.cc
   Error.cc
   FontEncodingTables.cc
-  Form.cc
   Function.cc
   Gfx.cc
   GfxFont.cc
@@ -67,14 +71,16 @@ add_library(xpdf_objs OBJECT
   UnicodeRemapping.cc
   UnicodeTypeTable.cc
   UTF8.cc
-  XFAForm.cc
+  XFAScanner.cc
   XRef.cc
   Zoox.cc
 )
+set_property(TARGET xpdf_objs
+             PROPERTY POSITION_INDEPENDENT_CODE True)
 
 #--- object files needed by XpdfWidget
 
-if ((QT4_FOUND OR Qt5Widgets_FOUND)
+if ((QT4_FOUND OR Qt5Widgets_FOUND OR Qt6Widgets_FOUND)
     AND HAVE_SPLASH AND MULTITHREADED AND USE_EXCEPTIONS)
 
   if (HIGHLIGHTED_REGIONS)
@@ -88,6 +94,7 @@ if ((QT4_FOUND OR Qt5Widgets_FOUND)
     PDFCore.cc
     PreScanOutputDev.cc
     PSOutputDev.cc
+    ShadingImage.cc
     SplashOutputDev.cc
     TextOutputDev.cc
     TileCache.cc
@@ -95,6 +102,8 @@ if ((QT4_FOUND OR Qt5Widgets_FOUND)
     TileMap.cc
     ${HIGHLIGHT_SRC}
   )
+  set_property(TARGET xpdf_widget_objs
+               PROPERTY POSITION_INDEPENDENT_CODE True)
 endif ()
 
 #--- pdftops
@@ -104,8 +113,10 @@ if (HAVE_SPLASH)
     $<TARGET_OBJECTS:xpdf_objs>
     PreScanOutputDev.cc
     PSOutputDev.cc
+    ShadingImage.cc
     SplashOutputDev.cc
     pdftops.cc
+    ${MANIFEST}
   )
   target_link_libraries(pdftops goo fofi splash
                         ${PAPER_LIBRARY}
@@ -120,6 +131,7 @@ else ()
     PreScanOutputDev.cc
     PSOutputDev.cc
     pdftops.cc
+    ${MANIFEST}
   )
   target_link_libraries(pdftops goo fofi
                         ${PAPER_LIBRARY}
@@ -136,6 +148,7 @@ add_executable(pdftotext
   $<TARGET_OBJECTS:xpdf_objs>
   TextOutputDev.cc
   pdftotext.cc
+  ${MANIFEST}
 )
 target_link_libraries(pdftotext goo fofi
                       ${PAPER_LIBRARY}
@@ -151,10 +164,12 @@ if (HAVE_SPLASH AND PNG_FOUND)
   add_executable(pdftohtml
     $<TARGET_OBJECTS:xpdf_objs>
     HTMLGen.cc
+    ShadingImage.cc
     SplashOutputDev.cc
     TextOutputDev.cc
     WebFont.cc
     pdftohtml.cc
+    ${MANIFEST}
   )
   target_link_libraries(pdftohtml goo fofi splash
                         ${PAPER_LIBRARY}
@@ -173,6 +188,7 @@ endif ()
 add_executable(pdfinfo
   $<TARGET_OBJECTS:xpdf_objs>
   pdfinfo.cc
+  ${MANIFEST}
 )
 target_link_libraries(pdfinfo goo fofi
                       ${PAPER_LIBRARY}
@@ -187,6 +203,7 @@ install(FILES ${PROJECT_SOURCE_DIR}/doc/pdfinfo.1 DESTINATION ${CMAKE_INSTALL_MA
 add_executable(pdffonts
   $<TARGET_OBJECTS:xpdf_objs>
   pdffonts.cc
+  ${MANIFEST}
 )
 target_link_libraries(pdffonts goo fofi
                       ${PAPER_LIBRARY}
@@ -201,6 +218,7 @@ install(FILES ${PROJECT_SOURCE_DIR}/doc/pdffonts.1 DESTINATION ${CMAKE_INSTALL_M
 add_executable(pdfdetach
   $<TARGET_OBJECTS:xpdf_objs>
   pdfdetach.cc
+  ${MANIFEST}
 )
 target_link_libraries(pdfdetach goo fofi
                       ${PAPER_LIBRARY}
@@ -215,8 +233,10 @@ install(FILES ${PROJECT_SOURCE_DIR}/doc/pdfdetach.1 DESTINATION ${CMAKE_INSTALL_
 if (HAVE_SPLASH)
   add_executable(pdftoppm
     $<TARGET_OBJECTS:xpdf_objs>
+    ShadingImage.cc
     SplashOutputDev.cc
     pdftoppm.cc
+    ${MANIFEST}
   )
   target_link_libraries(pdftoppm goo fofi splash
                         ${PAPER_LIBRARY}
@@ -234,8 +254,10 @@ endif ()
 if (HAVE_SPLASH AND PNG_FOUND)
   add_executable(pdftopng
     $<TARGET_OBJECTS:xpdf_objs>
+    ShadingImage.cc
     SplashOutputDev.cc
     pdftopng.cc
+    ${MANIFEST}
   )
   target_link_libraries(pdftopng goo fofi splash
                         ${PAPER_LIBRARY}
@@ -255,6 +277,7 @@ add_executable(pdfimages
   $<TARGET_OBJECTS:xpdf_objs>
   ImageOutputDev.cc
   pdfimages.cc
+  ${MANIFEST}
 )
 target_link_libraries(pdfimages goo fofi
                       ${PAPER_LIBRARY}

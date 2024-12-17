@@ -2,7 +2,7 @@
 ** BoundingBoxTest.cpp                                                  **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -182,7 +182,7 @@ TEST(BoundingBoxTest, transform) {
 TEST(BoundingBoxTest, svgViewBox) {
 	BoundingBox bbox(4, 5, 6, 7);
 	ostringstream oss;
-	oss << bbox.toSVGViewBox();
+	oss << bbox.svgViewBoxString();
 	EXPECT_EQ(oss.str(), "4 5 2 2");
 }
 

@@ -36,37 +36,44 @@
 % 11/30/89 (KB)  Version 4.
 % (more recent changes in the ChangeLog)
 
-@x [0] Print only changes.
+@x [0.0] l.34 - Replace program title.
+\def\title{TANGLE}
+@y
+\def\title{TANGLE changes for C}
+@z
+
+@x [0.0] l.43 - Print only changes.
 \pageno=\contentspagenumber \advance\pageno by 1
 @y
 \pageno=\contentspagenumber \advance\pageno by 1
 \let\maybe=\iffalse
-\def\title{TANGLE changes for C}
 @z
 
-@x [1] Define my_name
-@d banner=='This is TANGLE, Version 4.5'
+@x [1.1] l.70 - Define my_name
+@d banner=='This is TANGLE, Version 4.6'
 @y
 @d my_name=='tangle'
-@d banner=='This is TANGLE, Version 4.5'
+@d banner=='This is TANGLE, Version 4.6'
 @z
 
-@x [2] Eliminate the |end_of_TANGLE| label.
+@x [1.2] l.79 - Eliminate the |end_of_TANGLE| label.
+calls the `|jump_out|' procedure, which goes to the label |end_of_TANGLE|.
+
 @d end_of_TANGLE = 9999 {go here to wrap it up}
-
 @y
+calls the `|jump_out|' procedure.
 @z
-@x
+@x [1.2] l.85
 label end_of_TANGLE; {go here to finish}
 @y
 @z
 
-@x [2] Define and call parse_arguments.
+@x [1.2] l.90 - Define and call parse_arguments.
 procedure initialize;
   var @<Local variables for initialization@>@/
   begin @<Set initial values@>@/
 @y
-@<Define |parse_arguments|@>
+@<Define \(|parse_arguments|@>
 procedure initialize;
   var @<Local variables for initialization@>@/
   begin
@@ -75,30 +82,29 @@ procedure initialize;
     @<Set initial values@>@/
 @z
 
-@x [8] Constants: increase id lengths, for TeX--XeT and tex2pdf.
+@x [1.8] l.183 - Constants: increase id lengths, for TeX--XeT and tex2pdf.
 @!buf_size=100; {maximum length of input line}
-@y
-@!buf_size=3000; {maximum length of input line}
-@z
-@x
 @!max_bytes=45000; {|1/ww| times the number of bytes in identifiers,
   strings, and module names; must be less than 65536}
-@!max_toks=50000; {|1/zz| times the number of bytes in compressed \PASCAL\ code;
+@!max_toks=65000; {|1/zz| times the number of bytes in compressed \PASCAL\ code;
   must be less than 65536}
 @!max_names=4000; {number of identifiers, strings, module names;
   must be less than 10240}
 @!max_texts=2000; {number of replacement texts, must be less than 10240}
+@!hash_size=353; {should be prime}
 @y
+@!buf_size=1000; {maximum length of input line}
 @!max_bytes=65535; {|1/ww| times the number of bytes in identifiers,
   strings, and module names; must be less than 65536}
 @!max_toks=65535; {|1/zz| times the number of bytes in compressed \PASCAL\ code;
   must be less than 65536}
-@!max_names=10000; {number of identifiers, strings, module names;
+@!max_names=10239; {number of identifiers, strings, module names;
   must be less than 10240}
-@!max_texts=10000; {number of replacement texts, must be less than 10240}
+@!max_texts=10239; {number of replacement texts, must be less than 10240}
+@!hash_size=8501; {should be prime}
 @z
 
-@x
+@x [1.8] l.195
 @!stack_size=50; {number of simultaneous levels of macro expansion}
 @!max_id_length=12; {long identifiers are chopped to this length, which must
   not exceed |line_length|}
@@ -115,13 +121,13 @@ procedure initialize;
 % default type `char' may produce signed integers, which are bad array
 % indices in C.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-@x
+@x [2.12] l.302
 @d text_char == char {the data type of characters in text files}
 @y
 @d text_char == ASCII_code {the data type of characters in text files}
 @z
 
-@x [17] enable maximum character set
+@x [2.17] l.483 - enable maximum character set
 for i:=1 to @'37 do xchr[i]:=' ';
 for i:=@'200 to @'377 do xchr[i]:=' ';
 @y
@@ -129,20 +135,20 @@ for i:=1 to @'37 do xchr[i]:=chr(i);
 for i:=@'200 to @'377 do xchr[i]:=chr(i);
 @z
 
-@x [20] terminal output: use standard i/o
+@x [3.20] l.509 - terminal output: use standard i/o
 @d print(#)==write(term_out,#) {`|print|' means write on the terminal}
 @y
 @d term_out==stdout
 @d print(#)==write(term_out,#) {`|print|' means write on the terminal}
 @z
 
-@x
+@x [3.20] l.516
 @<Globals...@>=
 @!term_out:text_file; {the terminal as an output file}
 @y
 @z
 
-@x [21] init terminal
+@x [3.21] l.519 - init terminal
 @ Different systems have different ways of specifying that the output on a
 certain file will appear on the user's terminal. Here is one way to do this
 on the \PASCAL\ system that was used in \.{TANGLE}'s initial development:
@@ -159,26 +165,32 @@ certain file will appear on the user's terminal.
  {Nothing need be done for C.}
 @z
 
-@x [22] flush terminal buffer
+@x [3.22] l.532 - flush terminal buffer
 @d update_terminal == break(term_out) {empty the terminal output buffer}
 @y
 @d update_terminal == fflush(term_out) {empty the terminal output buffer}
 @z
 
-@x [24] open input files
+@x [3.24] l.548 - open input files
 begin reset(web_file); reset(change_file);
 @y
 begin web_file := kpse_open_file(web_name, kpse_web_format);
 if chg_name then change_file := kpse_open_file(chg_name, kpse_web_format);
 @z
 
-@x [26] Open output files (except for the pool file).
+@x [3.26] l.558 - Open output files (except for the pool file).
+@ The following code opens |Pascal_file| and |pool|.
+@y
+@ The following code opens |Pascal_file|. Opening |pool| will be deferred
+until section~\&{64}.
+@z
+@x [3.26] l.565
 rewrite(Pascal_file); rewrite(pool);
 @y
 rewrite (Pascal_file, pascal_name);
 @z
 
-@x [28] Fix f^.
+@x [3.28] l.591 - Fix f^.
     begin buffer[limit]:=xord[f^]; get(f);
     incr(limit);
     if buffer[limit-1]<>" " then final_limit:=limit;
@@ -192,7 +204,23 @@ rewrite (Pascal_file, pascal_name);
       begin while not eoln(f) do vgetc(f);
 @z
 
-@x [34] Fix `jump_out'.
+@x [4.31] l.640 - Fix typo as in weave.web.
+procedure error; {prints '\..' and location of error message}
+@y
+procedure error; {prints `\..' and location of error message}
+@z
+
+@x [4.34] l.681 - Fix `jump_out'.
+and jumps out of the program. This is the only non-local |goto| statement
+in \.{TANGLE}. It is used when no recovery from a particular error has
+been provided.
+
+Some \PASCAL\ compilers do not implement non-local |goto| statements.
+@^system dependencies@>
+In such cases the code that appears at label |end_of_TANGLE| should be
+copied into the |jump_out| procedure, followed by a call to a system procedure
+that terminates the program.
+
 @d fatal_error(#)==begin new_line; print(#); error; mark_fatal; jump_out;
   end
 
@@ -201,13 +229,15 @@ procedure jump_out;
 begin goto end_of_TANGLE;
 end;
 @y
+and jumps out of the program.
+
 @d jump_out==uexit(1)
 @d fatal_error(#)==begin new_line; write(stderr, #);
-     error; mark_fatal; uexit(1);
+     error; mark_fatal; jump_out;
   end
 @z
 
-@x [38] Provide for a larger `byte_mem' and `tok_mem'. Extra capacity:
+@x [5.38] l.742 - Provide for a larger `byte_mem' and `tok_mem'. Extra capacity:
 @d ww=2 {we multiply the byte capacity by approximately this amount}
 @d zz=3 {we multiply the token capacity by approximately this amount}
 @y
@@ -215,19 +245,19 @@ end;
 @d zz=5 {we multiply the token capacity by approximately this amount}
 @z
 
-@x [38] Provide for larger than 16bit numeric macros.
+@x [5.38] l.753 - Provide for larger than 16bit numeric macros.
 @!equiv: array [0..max_names] of sixteen_bits; {info corresponding to names}
 @y
 @!equiv: array [0..max_names] of integer; {info corresponding to names}
 @z
 
-@x [47] Provide for larger than 16bit numeric macros.
+@x [5.47] l.862 - Provide for larger than 16bit numeric macros.
 their |equiv| value contains the corresponding numeric value plus $2^{15}$.
 @y
 their |equiv| value contains the corresponding numeric value plus $2^{30}$.
 @z
 
-@x [47] Add parametric2 macros (macros that use [] to delimit arguments).
+@x [5.47] l.868 - Add parametric2 macros (macros that use [] to delimit arguments).
 \yskip\hang |parametric| identifiers have been defined to be parametric macros;
 like simple identifiers, their |equiv| value points to the replacement text.
 @y
@@ -235,32 +265,32 @@ like simple identifiers, their |equiv| value points to the replacement text.
 be parametric macros; like simple identifiers, their |equiv| value points to
 the replacement text.
 @z
-@x
+@x [5.47] l.874
 @d parametric=3 {parametric macros have |parametric| ilk}
 @y
 @d parametric=3 {parametric macros have |parametric| ilk}
 @d parametric2=4 {second type of parametric macros have this |ilk|}
 @z
 
-@x [50] unambig_length is a variabe now
+@x [6.50] l.945 - unambig_length is a variable now
 @!chopped_id:array [0..unambig_length] of ASCII_code; {chopped identifier}
 @y
 @!chopped_id:array [0..max_id_length] of ASCII_code; {chopped identifier}
 @z
 
-@x [53] Add parametric2 macros (macros that use [] to delimit arguments).
+@x [6.53] l.960 - Add parametric2 macros (macros that use [] to delimit arguments).
 |numeric|, |simple|, or |parametric|.
 @y
 |numeric|, |simple|, |parametric|, or |parametric2|.
 @z
 
-@x [53] unambig_length is a variable.
+@x [6.53] l.971 - unambig_length is a variable.
 @!s:0..unambig_length; {index into |chopped_id|}
 @y
 @!s:0..max_id_length; {index into |chopped_id|}
 @z
 
-@x [58] Case smashing options/strict checking.
+@x [6.58] l.1030 - Case smashing options/strict checking.
   begin if buffer[i]<>"_" then
     begin if buffer[i]>="a" then chopped_id[s]:=buffer[i]-@'40
 @y
@@ -272,7 +302,13 @@ the replacement text.
       chopped_id[s]:=buffer[i]+@'40
 @z
 
-@x [63] Case smashing options/strict checking.
+@x [6.61] l.1086
+else @<Define and output a new string of the pool@>;
+@y
+else @<Define \(and output a new string of the pool@>;
+@z
+
+@x [6.63] l.1102 - Case smashing options/strict checking.
   if c<>"_" then
     begin if c>="a" then c:=c-@'40; {merge lowercase with uppercase}
 @y
@@ -283,7 +319,7 @@ the replacement text.
       c:=c+@'40;
 @z
 
-@x [64] Delayed pool file opening / larger numerics.
+@x [6.64] l.1123 - Delayed pool file opening / larger numerics.
 @<Define and output a new string...@>=
 begin ilk[p]:=numeric; {strings are like numeric macros}
 if l-double_chars=2 then {this string is for a single character}
@@ -291,52 +327,48 @@ if l-double_chars=2 then {this string is for a single character}
 else  begin equiv[p]:=string_ptr+@'100000;
   l:=l-double_chars-1;
 @y
-@<Define and output a new string...@>=
+@<Define \(and output a new string...@>=
 begin ilk[p]:=numeric; {strings are like numeric macros}
 if l-double_chars=2 then {this string is for a single character}
   equiv[p]:=buffer[id_first+1]+@'10000000000
 else  begin
   {Avoid creating empty pool files.}
-  if string_ptr = 256 then begin
-    {Change |".web"| to |".pool"| and use the current directory.}
-    pool_name := basename_change_suffix (web_name, '.web', '.pool');
-    rewritebin (pool, pool_name);
-  end;
+  if string_ptr = 256 then rewritebin (pool, pool_name);
   equiv[p]:=string_ptr+@'10000000000;
   l:=l-double_chars-1;
 @z
 
-@x [85] Add parametric2 macros (macros that use [] to delimit arguments).
+@x [9.85] l.1502 - Add parametric2 macros (macros that use [] to delimit arguments).
   begin if ilk[cur_name]=parametric then
 @y
   begin if (ilk[cur_name]=parametric) or (ilk[cur_name]=parametric2) then
 @z
 
-@x [89] Larger numerics.
+@x [9.89] l.1586 - Larger numerics.
 numeric: begin cur_val:=equiv[a]-@'100000; a:=number;
 @y
 numeric: begin cur_val:=equiv[a]-@'10000000000; a:=number;
 @z
 
-@x [89] Add parametric2 macros (macros that use [] to delimit arguments).
+@x [9.89] l.1590 - Add parametric2 macros (macros that use [] to delimit arguments).
 parametric: begin @<Put a parameter on the parameter stack,
 @y
 parametric,parametric2: begin @<Put a parameter on the parameter stack,
 @z
 
-@x [90] Add parametric2 macros (macros that use [] to delimit arguments).
+@x [9.90] l.1607 - Add parametric2 macros (macros that use [] to delimit arguments).
 if (stack_ptr=0)or(tok_mem[zo,cur_byte]<>"(") then
 @y
 if (stack_ptr=0)or((ilk[a]=parametric)and(tok_mem[zo,cur_byte]<>"("))
     or((ilk[a]=parametric2)and(tok_mem[zo,cur_byte]<>"[")) then
 @z
 
-@x [93] Add parametric2 macros (macros that use [] to delimit arguments).
+@x [9.93] l.1654 - Add parametric2 macros (macros that use [] to delimit arguments).
 bal:=1; incr(cur_byte); {skip the opening `\.('}
 @y
 bal:=1; incr(cur_byte); {skip the opening `\.(' or `['}
 @z
-@x
+@x [9.93] l.1662
       "(": incr(bal);
       ")":  begin decr(bal);
 @y
@@ -348,7 +380,7 @@ bal:=1; incr(cur_byte); {skip the opening `\.(' or `['}
       "]": if ilk[a]=parametric2 then begin decr(bal);
 @z
 
-@x [105] Accept DIV, div, MOD, and mod
+@x [10.105] l.1937 - Accept DIV, div, MOD, and mod
  (((out_contrib[1]="D")and(out_contrib[2]="I")and(out_contrib[3]="V")) or@|
  ((out_contrib[1]="M")and(out_contrib[2]="O")and(out_contrib[3]="D")) ))or@|
 @^uppercase@>
@@ -359,7 +391,7 @@ bal:=1; incr(cur_byte); {skip the opening `\.(' or `['}
   ((out_contrib[1]="m")and(out_contrib[2]="o")and(out_contrib[3]="d")) ))or@|
 @z
 
-@x [110] lowercase ids
+@x [10.110] l.2005 - lowercase ids
 @^uppercase@>
   if ((out_buf[out_ptr-3]="D")and(out_buf[out_ptr-2]="I")and
     (out_buf[out_ptr-1]="V"))or @/
@@ -376,7 +408,7 @@ bal:=1; incr(cur_byte); {skip the opening `\.(' or `['}
     (out_buf[out_ptr-1]="d")) then@/ goto bad_case
 @z
 
-@x [114] lowercase operators (`and', `or', etc.)
+@x [11.114] l.2077 - lowercase operators (`and', `or', etc.)
 and_sign: begin out_contrib[1]:="A"; out_contrib[2]:="N"; out_contrib[3]:="D";
 @^uppercase@>
   send_out(ident,3);
@@ -401,7 +433,7 @@ set_element_sign: begin out_contrib[1]:="i"; out_contrib[2]:="n";
 or_sign: begin out_contrib[1]:="o"; out_contrib[2]:="r"; send_out(ident,2);
 @z
 
-@x [116] Case smashing options.
+@x [11.116] l.2120 - Case smashing options.
 @ Single-character identifiers represent themselves, while longer ones
 appear in |byte_mem|. All must be converted to uppercase,
 with underlines removed. Extremely long identifiers must be chopped.
@@ -460,36 +492,36 @@ identifier: begin k:=0; j:=byte_start[cur_val]; w:=cur_val mod ww;
   end;
 @z
 
-@x [119] Stretch limits of constants to match what we set for expressions.
+@x [11.119] l.2199 - Stretch limits of constants to match what we set for expressions.
   if n>=@'2000000000 then err_print('! Constant too big')
 @y
   if n>=@'10000000000 then err_print('! Constant too big')
 @z
-@x
+@x [11.119] l.2208
   if n>=@"8000000 then err_print('! Constant too big')
 @y
   if n>=@"40000000 then err_print('! Constant too big')
 @z
 
-@x [157] Larger numerics.
+@x [14.157] l.2862 - Larger numerics.
 if abs(accumulator)>=@'100000 then
 @y
 if abs(accumulator)>=@'10000000000 then
 @z
 
-@x [157] Larger numerics.
+@x [14.157] l.2866 - Larger numerics.
 equiv[p]:=accumulator+@'100000; {name |p| now is defined to equal |accumulator|}
 @y
 equiv[p]:=accumulator+@'10000000000; {name |p| now is defined to equal |accumulator|}
 @z
 
-@x [158] Larger numerics.
+@x [14.158] l.2889 - Larger numerics.
     add_in(equiv[q]-@'100000);
 @y
     add_in(equiv[q]-@'10000000000);
 @z
 
-@x [165] Add parametric2 macros (macros that use [] to delimit arguments).
+@x [15.165] l.2964 - Add parametric2 macros (macros that use [] to delimit arguments).
   "(": incr(bal);
   ")": if bal=0 then err_print('! Extra )')
 @.Extra )@>
@@ -509,7 +541,7 @@ equiv[p]:=accumulator+@'10000000000; {name |p| now is defined to equal |accumula
   "#": if (t=parametric)or(t=parametric2) then a:=param;
 @z
 
-@x [166] Add parametric2 macros (macros that use [] to delimit arguments).
+@x [15.166] l.2988 - Add parametric2 macros (macros that use [] to delimit arguments).
   begin if bal=1 then err_print('! Missing )')
   else err_print('! Missing ',bal:1,' )''s');
 @.Missing n )@>
@@ -536,16 +568,16 @@ equiv[p]:=accumulator+@'10000000000; {name |p| now is defined to equal |accumula
     end
 @z
 
-@x [173] Add parametric2 macros (macros that use [] to delimit arguments).
-  else @<If the next text is `|(#)==|', call |define_macro|
+@x [16.173] l.3107 - Add parametric2 macros (macros that use [] to delimit arguments).
+  else @<If the next text is `\.{(\#)==}', call |define_macro|
     and |goto continue|@>;
 @y
-  else @<If the next text is `|(#)==|' or |[#]==|, call |define_macro|
+  else @<If the next text is `\.{(\#)==}' or `\.{[\#]==}', call |define_macro|
     and |goto continue|@>;
 @z
 
-@x [174] Add parametric2 macros (macros that use [] to delimit arguments).
-@ @<If the next text is `|(#)==|'...@>=
+@x [16.174] l.3114 - Add parametric2 macros (macros that use [] to delimit arguments).
+@ @<If the next text is `\.{(\#)==}'...@>=
 if next_control="(" then
   begin next_control:=get_next;
   if next_control="#" then
@@ -564,7 +596,7 @@ if next_control="(" then
     end;
   end;
 @y
-@ @<If the next text is `|(#)==|'...@>=
+@ @<If the next text is `\.{(\#)==}'...@>=
 if next_control="(" then
   begin next_control:=get_next;
   if next_control="#" then
@@ -601,7 +633,7 @@ else if next_control="[" then
   end
 @z
 
-@x [179] make term_in = input
+@x [17.179] l.3190 - make term_in = input
 any error stop will set |debug_cycle| to zero.
 @y
 any error stop will set |debug_cycle| to zero.
@@ -609,29 +641,29 @@ any error stop will set |debug_cycle| to zero.
 @d term_in==stdin
 @z
 
-@x
+@x [17.179] l.3198
 @!term_in:text_file; {the user's terminal as an input file}
 @y
 @z
 
-@x [180] remove term_in reset
+@x [17.180] l.3206 - remove term_in reset
 reset(term_in,'TTY:','/I'); {open |term_in| as the terminal, don't do a |get|}
 @y
 @z
 
-@x [182] write newline just before exit; use value of |history|
+@x [18.182] l.3248 - write newline just before exit; use value of |history|
 print_ln(banner); {print a ``banner line''}
 @y
 print (banner); {print a ``banner line''}
 print_ln (version_string);
 @z
 
-@x Eliminate the |end_of_TANGLE| label.
+@x [18.182] l.3252 - Eliminate the |end_of_TANGLE| label.
 end_of_TANGLE:
 @y
 @z
 
-@x
+@x [18.182] l.3256
 @<Print the job |history|@>;
 @y
 @<Print the job |history|@>;
@@ -641,7 +673,7 @@ then uexit (1)
 else uexit (0);
 @z
 
-@x [188] System-dependent changes.
+@x [19.188] l.3308 - System-dependent changes.
 This module should be replaced, if necessary, by changes to the program
 that are necessary to make \.{TANGLE} work at a particular installation.
 It is usually best to design your change file so that all changes to
@@ -655,9 +687,9 @@ Parse a Unix-style command line.
 
 @d argument_is (#) == (strcmp (long_options[option_index].name, #) = 0)
 
-@<Define |parse_arguments|@> =
+@<Define \(|parse_arguments|@> =
 procedure parse_arguments;
-const n_options = 10; {Pascal won't count array lengths for us.}
+const n_options = 9; {Pascal won't count array lengths for us.}
 var @!long_options: array[0..n_options] of getopt_struct;
     @!getopt_return_val: integer;
     @!option_index: c_int_type;
@@ -670,7 +702,7 @@ begin
     getopt_return_val := getopt_long_only (argc, argv, '', long_options,
                                            address_of (option_index));
     if getopt_return_val = -1 then begin
-      {End of arguments; we exit the loop below.} ;
+      do_nothing; {End of arguments; we exit the loop below.}
 
     end else if getopt_return_val = "?" then begin
       usage (my_name);
@@ -710,20 +742,34 @@ begin
     end; {Else it was a flag; |getopt| has already done the assignment.}
   until getopt_return_val = -1;
 
-  {Now |optind| is the index of first non-option on the command line.}
-  if (optind + 1 <> argc) and (optind + 2 <> argc) then begin
-    write_ln (stderr, my_name, ': Need one or two file arguments.');
-    usage (my_name);
-  end;
+  @<Handle file name arguments@>@;
+end;
 
-  {Supply |".web"| and |".ch"| extensions if necessary.}
-  web_name := extend_filename (cmdline (optind), 'web');
-  if optind + 2 = argc then begin
+@ Now |optind| is the index of first non-option on the command line.
+
+@<Handle file name...@>=
+if (optind + 1 > argc) or (optind + 3 < argc) then begin
+  write_ln (stderr, my_name, ': Need one to three file arguments.');
+  usage (my_name);
+end;
+
+{Supply |".web"| and |".ch"| extensions if necessary.}
+web_name := extend_filename (cmdline (optind), 'web');
+if optind + 2 <= argc then begin
+  {|'-'| is shortcut for an empty changefile.}
+  if strcmp(char_to_string('-'), cmdline (optind + 1)) <> 0 then
     chg_name := extend_filename (cmdline (optind + 1), 'ch');
-  end;
+end;
 
-  {Change |".web"| to |".p"| and use the current directory.}
+if optind + 3 = argc then begin
+  {User has provided an explicit Pascal output file, possibly with path.}
+  pascal_name := extend_filename (cmdline (optind + 2), char_to_string('p'));
+  pool_name := extend_filename (remove_suffix (pascal_name), 'pool');
+end
+else begin
+  {Change |".web"| to |".p"| and |".pool"| and use the current directory.}
   pascal_name := basename_change_suffix (web_name, '.web', '.p');
+  pool_name := basename_change_suffix (web_name, '.web', '.pool');
 end;
 
 @ Here are the options we allow.  The first is one of the standard GNU options.
@@ -787,7 +833,7 @@ long_options[current_option].flag := 0;
 long_options[current_option].val := 0;
 incr (current_option);
 
-@ Strict comparisions.
+@ Strict comparisons.
 @.-strict@>
 
 @<Define the option...@> =
@@ -797,7 +843,7 @@ long_options[current_option].flag := 0;
 long_options[current_option].val := 0;
 incr (current_option);
 
-@ Loose comparisions.
+@ Loose comparisons.
 @.-loose@>
 
 @<Define the option...@> =
@@ -807,7 +853,7 @@ long_options[current_option].flag := 0;
 long_options[current_option].val := 0;
 incr (current_option);
 
-@ Loose comparisions.
+@ Loose comparisons.
 @.-length@>
 
 @<Define the option...@> =

@@ -1,30 +1,29 @@
 # This file is part of dvisvgm
-# Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>
+# Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>
 #
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ(2.59)
-AC_INIT([dvisvgm],[2.9.1],[martin.gieseking@uos.de])
-DATE="March 2020"
+AC_PREREQ([2.69])
+AC_INIT([dvisvgm],[3.2.2],[martin.gieseking@uos.de])
+DATE="March 2024"
 AC_CONFIG_SRCDIR(src)
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_HOST
-AC_CANONICAL_TARGET
-AM_INIT_AUTOMAKE([subdir-objects])
+AM_INIT_AUTOMAKE([subdir-objects dist-xz])
 
-AH_TEMPLATE([TARGET_SYSTEM], [The machine triplet of the target system])
-AC_DEFINE_UNQUOTED([TARGET_SYSTEM], ["$target"])
+AM_CONDITIONAL([TEXLIVE_BUILD], [test "x$enable_texlive_build" = xyes])
+
+AH_TEMPLATE([HOST_SYSTEM], [The machine triplet of the host system])
+AC_DEFINE_UNQUOTED([HOST_SYSTEM], ["$host"])
 
 # Checks for programs.
 AC_PROG_CC
-AC_PROG_CC_C99
 AC_PROG_CXX
 AX_CXX_COMPILE_STDCXX([11])
 AM_PROG_AR
 LT_INIT
 
-AC_PROG_RANLIB
 AC_LANG(C)
 
 AX_CHECK_COMPILE_FLAG([-Wmismatched-tags -Wno-mismatched-tags], [CXXFLAGS="$CXXFLAGS -Wno-mismatched-tags"])
@@ -55,6 +54,7 @@ AC_CHECK_LIB([kpathsea], [kpse_find_file],,
 
 AC_MSG_CHECKING([kpathsea version])
 AC_RUN_IFELSE([AC_LANG_SOURCE([#include <stdio.h>
+	#include <stdlib.h>
 	#include <kpathsea/kpathsea.h>
 	int main() {
 		FILE *f;
@@ -119,6 +119,9 @@ AM_CONDITIONAL(HAVE_BROTLI, [test "x$have_brotli" = "xyes"])
 AM_CONDITIONAL(HAVE_WOFF2, [test "x$have_woff2" = "xyes"])
 AM_CONDITIONAL(HAVE_XXHASH, [test "x$have_xxhash" = "xyes"])
 
+# Dummy required for TL build sections in automake files
+AM_CONDITIONAL(WIN32, false)
+
 AS_IF([test "x$enable_woff" != "xyes"],
 	[AC_DEFINE([DISABLE_WOFF], 1, [Define if WOFF support is disabled])],
 	[AS_IF([test "x$with_ttfautohint" != "xno"],
@@ -138,15 +141,11 @@ AS_IF([test "x$enable_woff" != "xyes"],
 				[AC_MSG_WARN([disabled ttfautohint support])])])]
 		[AC_SUBST(TTFAUTOHINT_CFLAGS) AC_SUBST(TTFAUTOHINT_LIBS)])])
 
-AC_CHECK_HEADERS([openssl/md5.h])
-PKG_CHECK_MODULES([LIBCRYPTO], [libcrypto], [HAVE_LIBCRYPTO=1], [HAVE_LIBCRYPTO=0])
-AM_CONDITIONAL([USE_BUNDLED_MD5], [test "$HAVE_LIBCRYPTO" -eq 0])
-
 AC_CHECK_LIB(z, gzopen)
 
 # Check for header files.
 AC_HEADER_DIRENT
-AC_HEADER_STDC
+
 AC_CHECK_HEADERS_ONCE([libintl.h stdlib.h string.h strings.h unistd.h])
 
 # Check for typedefs, structures, and compiler characteristics.
@@ -157,6 +156,7 @@ AC_STRUCT_TM
 # Check for library functions.
 AC_FUNC_STAT
 AC_CHECK_FUNCS_ONCE([ftime gettimeofday sigaction umask uselocale])
+AX_GCC_BUILTIN(__builtin_clz)
 
 # add options for selection of "optional" library locations
 # currently these libraries are mandatory; the --with-foo options
@@ -204,6 +204,7 @@ AS_IF([test "x$enable_manpage" != "xyes"],
 AM_CONDITIONAL([BUILD_MANPAGE], [test "x$enable_manpage" = "xyes"])
 
 AX_CODE_COVERAGE
+
 AS_IF([ test "$enable_code_coverage" = "yes" ], [
 	# disable optimization
 	changequote({,})
@@ -219,18 +220,19 @@ AC_SUBST(AM_LDFLAGS)
 AC_CONFIG_FILES([
 	Makefile
 	libs/Makefile
+	libs/boost/Makefile
 	libs/brotli/Makefile
 	libs/clipper/Makefile
-	libs/ff-woff/Makefile
 	libs/md5/Makefile
 	libs/potrace/Makefile
 	libs/variant/Makefile
 	libs/woff2/Makefile
 	libs/xxHash/Makefile
-	m4/Makefile
 	src/Makefile
 	src/version.hpp
+	src/fonts/Makefile
 	src/optimizer/Makefile
+	src/ttf/Makefile
 	tests/Makefile
 	tests/data/Makefile
 	doc/Makefile])

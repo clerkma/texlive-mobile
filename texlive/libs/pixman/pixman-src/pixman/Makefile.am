@@ -12,6 +12,7 @@ noinst_LTLIBRARIES =
 
 EXTRA_DIST =				\
 	Makefile.win32			\
+	dither/make-blue-noise.c	\
 	pixman-region.c			\
 	solaris-hwcap.mapfile		\
 	meson.build			\
@@ -91,6 +92,21 @@ libpixman_arm_neon_la_SOURCES = \
         pixman-arm-asm.h	\
         pixman-arm-neon-asm.h
 libpixman_1_la_LIBADD += libpixman-arm-neon.la
+
+ASM_CFLAGS_arm_neon=
+endif
+
+# arm a64 neon code
+if USE_ARM_A64_NEON
+noinst_LTLIBRARIES += libpixman-arma64-neon.la
+libpixman_arma64_neon_la_SOURCES = \
+        pixman-arm-neon.c        \
+        pixman-arm-common.h      \
+        pixman-arma64-neon-asm.S \
+        pixman-arma64-neon-asm-bilinear.S \
+        pixman-arm-asm.h         \
+        pixman-arma64-neon-asm.h
+libpixman_1_la_LIBADD += libpixman-arma64-neon.la
 
 ASM_CFLAGS_arm_neon=
 endif

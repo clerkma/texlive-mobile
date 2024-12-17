@@ -2,8 +2,8 @@
 @setfilename dvips.info
 @settitle Dvips: A DVI-to-PostScript translator
 
-@set version 2020.1
-@set month-year January 2020
+@set version 2024.1
+@set month-year February 2024
 
 @copying
 This manual documents Dvips version @value{version}
@@ -25,7 +25,7 @@ PostScript.  You may freely use, modify and/or distribute this file.
 
 @dircategory TeX
 @direntry
-* DVI-to-Postscript: (dvips).        Translating TeX DVI files to PostScript.
+* DVI-to-PostScript: (dvips).        Translating TeX DVI files to PostScript.
 * afm2tfm: (dvips)Invoking afm2tfm.  Making Type 1 fonts available to TeX.
 * dvips: (dvips)Invoking Dvips.      DVI-to-PostScript translator.
 @end direntry
@@ -35,7 +35,7 @@ PostScript.  You may freely use, modify and/or distribute this file.
 @subtitle for version @value{version}
 @subtitle @value{month-year}
 @author Tomas Rokicki
-@author @url{http://tug.org/dvips}
+@author @url{https://tug.org/dvips}
 
 @page
 @insertcopying
@@ -105,21 +105,14 @@ font at a different size can be used instead, although Dvips will
 complain loudly about the poor aesthetics of the resulting output.
 
 One of the most important features is the support of virtual fonts,
-which add an entirely new level of flexibility to @TeX{}.  Virtual fonts
-are used to give Dvips its excellent PostScript font support, handling
-all the font remapping in a natural, portable, elegant, and extensible
-way.  Dvips even comes with its own Afm2tfm program that creates
-the necessary virtual fonts and @TeX{} font metric files automatically
-from the Adobe font metric files.
+which add an entirely new level of flexibility to @TeX{}.  Dvips even
+comes with its own Afm2tfm program that can create the virtual fonts
+and @TeX{} font metric files automatically from Adobe font metric
+files.
 
 Source is provided and freely distributable, so adding a site-specific feature
 is possible.  Adding such features is made easier by the highly modular
 structure of the program.
-
-There is really no reason to use another driver, and the more people use
-Dvips, the less time will be spent fighting with PostScript and the
-more time will be available to create beautiful documents.
-So if you don't use Dvips on your system, get it today.
 
 @cindex Rokicki, Tomas
 Tom Rokicki wrote and maintains the original Dvips program.
@@ -143,8 +136,7 @@ program.  Therefore, for the basic steps involved,
 For solutions to common installation problems and information on how to
 report a bug, see the file @file{kpathsea/BUGS} (@pxref{Bugs,,,
 kpathsea, Kpathsea}).  For solutions to Dvips-specific problems,
-@pxref{Debug options}.  Also see the Dvips home page at
-@url{http://www.radicaleye.com/dvips}.
+@pxref{Debug options}.
 
 Dvips does require some additional installation, detailed in the
 sections below.  Also, to configure color devices, @pxref{Color device
@@ -233,7 +225,7 @@ originally written by Peter Deutsch.  It can read the PostScript
 produced by Dvips and render it on your monitor, or for another device
 (e.g., an Epson printer) that does not support PostScript, or in PDF
 format.  The latest version is available via
-@url{http://ghostscript.com}.
+@url{https://ghostscript.com}.
 
 @cindex Theisen, Tim
 @pindex ghostview
@@ -244,9 +236,9 @@ format.  The latest version is available via
 The program Ghostview, originally written by Johannes Plass and Tim
 Theisen, provides typical previewing capabilities (next page/previous
 page, magnification, etc.).  It requires Ghostscript to run, and files
-in structured Postscript, specifically with @samp{%%Page} comments (no
+in structured PostScript, specifically with @samp{%%Page} comments (no
 @samp{N} in @file{config.ps}).  The current version is known as GV,
-and is available from @url{http://www.gnu.org/software/gv}.
+and is available from @url{https://www.gnu.org/software/gv}.
 
 
 @node Diagnosing problems
@@ -506,7 +498,7 @@ same fonts over and over again, it hasn't been installed properly.
 @xref{Unable to generate fonts,,, kpathsea, Kpathsea}.)
 
 Many options are available (see the next section).  For a brief summary
-of available options, just type
+of available options, run
 
 @example
 dvips --help
@@ -715,8 +707,10 @@ reader.  It's more likely to cause problems nowadays.
 @cindex header file, downloading
 @cindex userdict@r{, used for header files}
 Prepend @var{name} as an additional header file, or, if @var{name} is
-@samp{-}, suppress all header files.  Any definitions in the header file
-get added to the PostScript @samp{userdict}.
+@samp{-}, suppress inclusion of default header files.  If @code{-h} is
+given multiple times, the headers are included in the order given.
+Any definitions in the header file get added to the PostScript
+@samp{userdict}.
 
 @item -i*
 @opindex -i
@@ -769,25 +763,46 @@ cause other graphics to fail, however, since the PostScript header
 macros from some software packages read portion the input stream line by
 line, searching for a particular comment.
 
-@item -l [=]@var{num}
-@opindex -l [=]@var{num}
+@item -l [=]@var{num}[.@var{pageseq}]
+@opindex -l [=]@var{num}[.@var{pageseq}]
 @cindex last page printed
 @cindex page, last printed
+@cindex page numbers, multiple repetitions of
 @cindex physical page number, and @samp{-l}
 @cindex absolute page number, and @samp{-l}
-The last page printed will be the first one numbered @var{num}. Default
-is the last page in the document.  If @var{num} is prefixed by an equals
-sign, then it (and the argument to the @samp{-p} option, if specified)
-is treated as a physical (absolute) page number, rather than a value to
-compare with the @TeX{} @samp{\count0} values stored in the DVI file.
-Thus, using @samp{-l =9} will end with the ninth page of the document,
-no matter what the pages are actually numbered.
+The last page printed will be the first one numbered @var{num}; the
+default is the last page in the document. 
+
+By default, @var{num} is compared to @TeX{}'s idea of the page number
+(more precisely, the @code{\count0} value written in the DVI file).
+But if @var{num} is prefixed by an equals sign, then it (and the
+argument to the @samp{-p} option, if specified) is treated as a
+physical (absolute) page number, Thus, using @samp{-l =9} will end the
+output with the ninth page of the document, no matter what the pages
+are actually numbered.
+
+On the other hand, if @var{pageseq} is specified, the @var{pageseq}th
+occurrence of the given @TeX{} page number is used.  For example,
+@samp{-l 99.2} says to end with the second page numbered 99 in the
+document.  The @samp{=} and @var{lastseq} features aren't useful
+together.
 
 @item -L*
 @opindex -L
 @cindex @samp{papersize} special, first vs.@: last
 By default or with @code{-L1}, the last @samp{papersize} special wins;
 with @code{-L0}, the first special wins.  @xref{@samp{papersize} special}.
+
+@item -landscaperotate*
+@opindex -landscaperotate
+@cindex landscaperotate
+When looking for matching paper sizes, permit rotation of page content
+on the page to match the given size; the default, as of Dvips 2022.1,
+is not to do this.  It should not be needed in modern systems with
+normal print spoolers, and can be harmful when converting to PDF
+(@pxref{Config file paper sizes}).  This option accepts an optional
+suffix of 0 (to explicitly disable) or 1 (to explicitly enable); if
+the option is specified without a suffix, it enables the behavior.
 
 @item -m*
 @opindex -m
@@ -796,7 +811,6 @@ Specify manual feed, if supported by the output device.
 
 @item -mode @var{mode}
 @opindex -mode @var{mode}
-@opindex -mode
 @cindex mode name, specifying
 @cindex Metafont mode, specifying
 Use @var{mode} as the Metafont device name for path searching and font
@@ -921,19 +935,14 @@ If your printer offsets every other page consistently, instead of every
 page, your best recourse is to use @samp{bop-hook} (@pxref{PostScript
 hooks}).
 
-@item -p [=]@var{num}
-@opindex -p [=]@var{num}
+@item -p [=]@var{num}[.@var{pageseq}]
+@opindex -p [=]@var{num}[.@var{pageseq}]
 @cindex first page printed
 @cindex page, first printed
 @cindex physical page number, and @samp{-p}
 @cindex absolute page number, and @samp{-p}
-The first page printed will be the first one numbered @var{num}. Default
-is the first page in the document.  If @var{num} is prefixed by an
-equals sign, then it (and the argument to the @samp{-l} option, if
-specified) is treated as a physical (absolute) page number, rather than
-a value to compare with the @TeX{} @samp{\count0} values stored in the
-DVI file.  Thus, using @samp{-p =3} will start with the third page of
-the document, no matter what the pages are actually numbered.
+Exactly analogous to @code{-l} (q.v.), but specifying the first page
+number to be printed (processed).
 
 @item -pp @var{first}-@var{last}
 @opindex -pp @var{first}-@var{last}
@@ -1038,6 +1047,17 @@ processing; use @samp{-t@tie{}nopaper} to omit any paper size
 information in the output.  (If you just have a single page document,
 you can use @samp{-E} to get pure EPSF output.)
 @end itemize
+
+@item -title @var{string}
+@opindex -title @var{str}
+@cindex title, specifying
+@cindex output title, specifying
+@cindex document title, specifying
+@findex %%Title
+Use @var{string} as the title in the generated PostScript
+(@code{%%Title}). If not specified, the default is the basename of the
+input file; for example, running @code{dvips /foo/bar.dvi} will have a
+@code{%%Title} of @samp{bar.dvi}.
 
 @item -T @var{hsize},@var{vsize}
 @opindex -T @var{hsize},@var{vsize}
@@ -1387,7 +1407,9 @@ Shift low-numbered characters; obsolete.  Same as @samp{-G},
 
 @item h @var{header}
 @opindex h @r{config command (download additional header)}
-Prepend @var{header} to output.  Same as @samp{h-}, @pxref{Option details}.
+Prepend @var{header} to output.  Same as @samp{h-}; that is, the
+config file @code{h} directive suppresses any inclusion of standard
+headers (@pxref{Option details}).
 
 @item H @var{path}
 @opindex H @r{config command (PostScript header path)}
@@ -1414,6 +1436,11 @@ Remove comments from included PostScript files.  Same as @samp{-K},
 @opindex L @r{config command (last paper size wins)}
 If zero, the first paper size specified is effective, else the last.
 Same as @samp{-L}, @pxref{Option details}.
+
+@item landscaperotate
+@opindex landscaperotate @r{config command}
+Permit rotation of page content to match page size.
+Same as @samp{-landscaperotate}, @pxref{Option details}.
 
 @item m @var{num}
 @opindex m @r{config command (available memory)}
@@ -1456,7 +1483,7 @@ Metafont mode.  Same as @samp{-mode}, @pxref{Option details}.
 @item N*
 @opindex N @r{ config command (disable EPS)}
 Disable structured comments.  Beware: This also turns off displaying
-page numbers or changing to specific pagenumbers in PostScript viewers.
+page numbers or changing to specific page numbers in PostScript viewers.
 Same as @samp{-N}, @pxref{Option details}.
 
 @item o @var{name}
@@ -1671,7 +1698,7 @@ An alternate specification of @code{landscape}:
 
 @noindent
 This is supported for backward compatibility, but it is hoped that
-reventually the @samp{papersize} comment will dominate.
+eventually the @samp{papersize} comment will dominate.
 
 Of course, such a @code{\special} only informs Dvips of the desired
 paper size; you must also adjust @code{\hsize} and @code{\vsize} in your
@@ -1760,8 +1787,26 @@ zero dimensions is used; this should be the @code{unknown} paper size
 definition mentioned below, resulting in the actual dimensions being
 used.
 
-Landscape mode for all paper sizes is automatically supported.
+@cindex landscaperotate configuration file command
+@cindex landscaperotate command line option
+In versions of Dvips prior to 2022.1, if the paper size specified did
+not match one of the defined paper sizes, Dvips considered rotated
+page content and rotated paper sizes for a match.  This provided some
+automatic support for landscape mode on raw printers, but today it can
+be harmful when generating PDF.  (Specifically, the @samp{/MediaBox}
+then ends up with rotated values, which is not expected by PDF
+viewers, e.g., when a document intentionally has a single page
+rotated.)
 
+Further, on all recent computer systems, this facility is typically
+provided instead by a print spooler that considers the bounding box of
+the document and inserts appropriate media selection commands as part
+of the print job. So, this automatic rotation is no longer done by
+default by Dvips.  If you want to enable it, the
+@samp{-landscaperotate} command line option or @samp{landscaperotate}
+configuration file option can be used.  @xref{Option details}.
+
+@cindex zero dimensions and setting paper size
 If your printer has a command to set a special paper size, then give
 dimensions of @samp{0in 0in}; the PostScript code that sets the paper
 size can refer to the dimensions the user requested as @samp{hsize}
@@ -1992,7 +2037,7 @@ the file.
 
 Once the figure file has a bounding box comment (see the previous
 section) you are ready to import the graphic into a La@TeX{}
-document. For @LaTeX{} 2e, you can use the epsf, graphics or graphicx
+document. For @LaTeX{}2e, you can use the epsf, graphics or graphicx
 packages, but the last is recommended---it has the most flexible
 syntax, and is briefly described here.  Further information can be
 found in @file{grfguide} or @file{epslatex}, which should be included
@@ -2058,7 +2103,7 @@ account.
 @cindex EPSF macros
 @cindex macros for epsf inclusion
 
-If you are using @LaTeX{} 2e, use the @samp{graphics} or @samp{graphicx}
+If you are using @LaTeX{}2e, use the @samp{graphics} or @samp{graphicx}
 package.  @xref{\includegraphics}.
 
 If you are using plain @TeX{} or La@TeX{} 2.09, you need @file{epsf.tex}
@@ -2886,22 +2931,17 @@ interpreters as well.)  Various versions of both PC and Unix distillers
 are supported; Ghostscript includes limited distiller support
 (@pxref{Ghostscript installation}).
 
-Macros you can use in your @TeX{} document to insert the specials in the
-first place are available from @file{@var{CTAN:}/support/hypertex}.  For
-CTAN info, @pxref{unixtex.ftp,,, kpathsea, Kpathsea}.
+By far the most common @LaTeX{} package used to create hyperlinked
+output is @code{hyperref} (@url{https://ctan.org/pkg/hyperref}).  For
+plain @TeX{}, the Eplain package has some hyperlink support
+(@url{https://tug.org/eplain}).
 
-@flindex @code{http://www.win.tue.nl/~dickie/idvi}
-@flindex @code{http://xxx.lanl.gov/hypertex}
 @cindex Doyle, Mark
 @cindex Bhattacharya, Tanmoy
-@cindex Java DVI reader
-@pindex idvi @r{Java DVI reader}
 @pindex dvihps@r{, hyperdvi to PostScript}
 This hypertext support (and original form of the documentation) was
 written by Mark Doyle and Tanmoy Bhattacharya as the @samp{dvihps}
-program. You can retrieve their software and additional documentation
-via the CTAN reference above.
-
+program.
 
 @menu
 * Hypertext caveats::       Font quality, missing character psi.
@@ -2958,9 +2998,9 @@ concepts}).  For example, the @file{cmr10} file might be in
 distribution may make those fonts available in a separate optional
 package (e.g., @code{tetex-extra} in Debian).  Failing that,
 commercial versions of the Computer Modern fonts are available from
-Blue Sky; public domain versions - in particular, the lm fonts, and
-the cm-super fonts, are available from CTAN sites (for CTAN info,
-@pxref{unixtex.ftp,,, kpathsea, Kpathsea}).
+Blue Sky; public domain versions, in particular, the lm 
+and cm-super font families, are available from CTAN and in @TeX{}
+distributions.
 
 You can convert a PostScript file to PDF using @code{distill}, which
 comes with Adobe Acrobat, or @code{ps2pdf}, which comes with
@@ -2998,11 +3038,6 @@ more, but copies are available elsewhere:
 @url{http://www.math.hawaii.edu/~ralph/MathOnWeb/TeXPDF.html}
 @url{http://www.utdallas.edu/~cantrell/online/543e.html}
 @end display
-
-You may also want to check ``Notes on converting (La)@TeX{} documents
-to robust PDF using Rokicki's dvips and Acrobat Distiller'' by Timothy
-P. Van Zandt:@*
-@url{http://www.emrg.com/texpdf.htmlhttp://zandtwerk.insead.fr/tex2pdf.html}.
 
 
 @node Hypertext specials
@@ -3175,7 +3210,7 @@ Different typesetting systems use different metric file formats:
 @item
 @cindex afm files
 @flindex .afm @r{Adobe metric files}
-Each Postscript font has an @dfn{Adobe font metrics} (@samp{.afm})
+Each PostScript font has an @dfn{Adobe font metrics} (@samp{.afm})
 file. These files are plain text, so you can inspect them easily.  You
 can get AFM files for Adobe's fonts from
 @url{ftp://ftp.adobe.com/pub/adobe/Fonts/AFMs}.
@@ -3253,7 +3288,7 @@ appearance of the font at small sizes or low resolutions.
 @flindex .pfb @r{printer font binary files}
 Although various kinds of PostScript outline fonts exist, by far the
 most common, and the only one we will consider, is called @dfn{Type 1}.
-The glyph files for Postscript Type 1 fonts typically have names ending
+The glyph files for PostScript Type 1 fonts typically have names ending
 in @samp{.pfa} (``printer font ASCII'') or @samp{.pfb} (``printer font
 binary'').
 
@@ -3288,16 +3323,16 @@ format is a historical artifact.)
 
 @cindex virtual fonts
 
-A @dfn{virtual font} is constructed by extracting characters from one or
-more existing fonts and rearranging them, or synthesizing new characters
-in various ways.  The explanation in this manual is intended to suffice
-for understanding enough about virtual fonts to use them with Dvips. It
-isn't a reference manual on virtual fonts.  For more information: The
-primary document on virtual fonts is Donald E. Knuth, @cite{TUGboat}
-11(1), Apr.@: 1990, pp.@: 13--23, ``Virtual Fonts: More Fun for Grand
-Wizards'' (@file{@var{CTAN:}/info/virtual-fonts.knuth}; for CTAN info,
-@pxref{unixtex.ftp,,, kpathsea, Kpathsea}).  (Don't be intimidated by
-the subtitle.)
+A @dfn{virtual font} is constructed by extracting characters from one
+or more existing fonts and rearranging them, or synthesizing new
+characters in various ways.  The explanation in this manual is
+intended to suffice for understanding enough about virtual fonts to
+use them with Dvips. It isn't a reference manual on virtual fonts.
+For more information: The primary document on virtual fonts is
+Donald@tie{}E. Knuth, @cite{TUGboat} 11(1), Apr.@: 1990, pp.@: 13--23,
+``Virtual Fonts: More Fun for Grand Wizards''
+(@url{mirror.ctan.org/info/virtual-fonts.knuth}).  (Don't be
+intimidated by the subtitle.)
 
 @cindex vf files
 @cindex vpl files
@@ -3325,7 +3360,18 @@ created when you run @code{vptovf}.
 @cindex virtual font expansion
 You can @dfn{expand} virtual fonts into their base fonts with DVIcopy
 (@pxref{dvicopy invocation,,, web2c, Web2c}).  This is useful if you are
-using a DVI translator that doesn't understand vf's itself.
+using a DVI translator that doesn't itself understand vf's.
+
+@pindex ptex @r{JFM}
+@pindex uptex @r{JFM}
+@cindex Japanese font metric file
+@cindex JFM file, and virtual font fallback
+If a virtual font has no entry at a given codepoint and the first
+@code{MAPFONT} designates an (u)pTeX JFM, we designate the glyph of
+the same codepoint in the TFM(JFM) with the smallest font ID.  This
+feature helps to reduce the size of Japanese virtual fonts.  For more
+information about the extensive support of Japanese in TeX, see
+@url{https://github.com/texjporg}.
 
 
 @node Encodings
@@ -3396,7 +3442,7 @@ To dvips, bitmapped fonts do not have any notion of linguistics; they
 are simply a vector of glyphs.  By comparison, PostScript fonts are
 required to contain an encoding vector that at least provides
 glyph names; these names can permit PostScript and PDF viewers to
-extract legible text from Postscript and PDF output.
+extract legible text from PostScript and PDF output.
 
 Unlike previous versions, dvips versions 2020 and later add glyph
 naming information to Type 3 bitmapped fonts (if they can locate such
@@ -3595,7 +3641,7 @@ afm2tfm Times-Roman -v ptmr rptmr
 
 @noindent
 This reads the file @file{Times-Roman.afm}, and produces two files as
-output, namely the virtual property list'file @file{ptmr.vpl}, and the
+output, namely the virtual property list file @file{ptmr.vpl}, and the
 ``raw'' font metric file @file{rptmr.tfm}. To use the font in @TeX{},
 you first run
 
@@ -3694,9 +3740,9 @@ can also obtain special effects such as an oblique font.
 @cindex virtual fonts, creating
 @cindex Jeffrey, Alan
 Alternatives to Afm2tfm for creating virtual fonts include
-@code{fontinst} @url{http://ctan.org/pkg/fontinst},
+@code{fontinst} @url{https://ctan.org/pkg/fontinst},
 @code{lcdf-typetools}, particularly @code{otftotfm}
-(@url{http://ctan.org/pkg/lcdf-typetools}), and @code{afm2p}
+(@url{https://ctan.org/pkg/lcdf-typetools}), and @code{afm2pl}
 (@url{http://tex.aanhet.net/afm2pl/}), among others.
 
 @menu
@@ -4399,10 +4445,10 @@ For (the obsolete) @LaTeX{} 2.09, add the @samp{colordvi} style option as in:
 \documentstyle[12pt,colordvi]@{article@}
 @end example
 @noindent
-For @LaTeX{} 2e, these examples are not applicable.  Instead, please see
-the documentation for the graphics package, available from
-@file{@var{CTAN}:doc/latex/graphics/}.  See also
-@file{@var{CTAN}:doc/epslatex.ps}.
+For @LaTeX{}2e, these examples are not applicable.  Instead, please see
+the documentation for the graphics package
+(@url{https://ctan.org/pkg/graphics}), and the epslatex document
+(@url{https://ctan.org/pkg/epslatex}).
 
 @cindex Crayola crayon box
 @cindex Pantone colors

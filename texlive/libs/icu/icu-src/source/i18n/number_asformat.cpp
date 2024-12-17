@@ -32,8 +32,8 @@ LocalizedNumberFormatterAsFormat::LocalizedNumberFormatterAsFormat(
 
 LocalizedNumberFormatterAsFormat::~LocalizedNumberFormatterAsFormat() = default;
 
-UBool LocalizedNumberFormatterAsFormat::operator==(const Format& other) const {
-    auto* _other = dynamic_cast<const LocalizedNumberFormatterAsFormat*>(&other);
+bool LocalizedNumberFormatterAsFormat::operator==(const Format& other) const {
+    const auto* _other = dynamic_cast<const LocalizedNumberFormatterAsFormat*>(&other);
     if (_other == nullptr) {
         return false;
     }
@@ -100,6 +100,18 @@ void LocalizedNumberFormatterAsFormat::parseObject(const UnicodeString&, Formatt
 
 const LocalizedNumberFormatter& LocalizedNumberFormatterAsFormat::getNumberFormatter() const {
     return fFormatter;
+}
+
+
+// Definitions of public API methods (put here for dependency disentanglement)
+
+Format* LocalizedNumberFormatter::toFormat(UErrorCode& status) const {
+    if (U_FAILURE(status)) {
+        return nullptr;
+    }
+    LocalPointer<LocalizedNumberFormatterAsFormat> retval(
+            new LocalizedNumberFormatterAsFormat(*this, fMacros.locale), status);
+    return retval.orphan();
 }
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

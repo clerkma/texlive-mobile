@@ -76,7 +76,9 @@
 
 /* we try to round all seeks to the pagesize - since we do not use
  * the sys/mmap interface we have to guess a good value here: */
-#define PAGESIZE 8192
+#ifndef PAGESIZE
+# define PAGESIZE 8192
+#endif
 
 #ifdef DEBUG
 #define debug1(msg) do { fprintf(stderr, "DEBUG: %s : " msg "\n", __func__); } while(0)
@@ -377,6 +379,16 @@ zzip_entry_findfirst(FILE * disk)
                      * central directory was written directly before : */
                     root = mapoffs - rootsize;
                 }
+                if (buffer + sizeof(struct zzip_disk64_locator) <= p) {
+                    p -= sizeof(struct zzip_disk64_locator);
+                }
+                if (zzip_disk64_locator_check_magic(p))
+                {
+                    struct zzip_disk64_locator *locator =
+                        (struct zzip_disk64_locator *) p;
+                    debug1("found zip64 disk locator (not supported)");
+                    /* seek = zzip_disk64_locator_rootseek(locator); */
+                }
             } else if (zzip_disk64_trailer_check_magic(p))
             {
                 struct zzip_disk64_trailer *trailer =
@@ -387,7 +399,7 @@ zzip_entry_findfirst(FILE * disk)
                     errno = EFBIG;
                     goto error2;
                 }
-                if ((void*)(trailer + 1) > (buffer + mapsize))
+                if ((p + sizeof(*trailer)) > (buffer + mapsize))
                 {
                     debug1("disk64 trailer is not complete");
                     errno = EBADMSG;
@@ -418,6 +430,7 @@ zzip_entry_findfirst(FILE * disk)
             if (zzip_disk_entry_check_magic(entry))
             {
                 free(buffer);
+                buffer = NULL;
                 entry->headseek = root;
                 entry->diskfile = disk;
                 entry->disksize = disksize;
@@ -448,7 +461,8 @@ zzip_entry_findfirst(FILE * disk)
     }
     errno = ENOENT; /* not found */
   error2:
-    free(buffer);
+    if (buffer != NULL)
+       free(buffer);
   error1:
     free(entry);
     ____;
@@ -712,7 +726,7 @@ zzip_entry_fopen(ZZIP_ENTRY * entry, int takeover)
     file->zlib.zalloc = Z_NULL;
     file->zlib.zfree = Z_NULL;
 
-    ___ zzip_off_t size = file->avail;
+    ___ zzip_size_t size = file->avail;
     if (size > sizeof(file->buffer))
         size = sizeof(file->buffer);
     if (fseeko(file->entry->diskfile, file->data + file->dataoff, SEEK_SET) == -1)

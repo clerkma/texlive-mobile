@@ -4,9 +4,7 @@
 **
 **  MODULE
 **
-**      $RCSfile: bibtex.c,v $
-**      $Revision: 3.71 $
-**      $Date: 1996/08/18 20:37:06 $
+**      file: bibtex.c
 **
 **  DESCRIPTION
 **
@@ -100,11 +98,6 @@
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
-#ifdef KPATHSEA
-#include <kpathsea/config.h>
-#include <kpathsea/progname.h>
 #endif
 
 #include "sysdep.h"
@@ -259,13 +252,6 @@ BEGIN
       goto Close_Up_Shop_Label;
     END
 
-    number_of_command_line_args = argc;
-    command_line_arg_strings = (char **) argv;
-
-#ifdef KPATHSEA
-    kpse_set_program_name(argv[0], PROGNAME);
-#endif
-
     history = SPOTLESS;
     parse_cmd_line (argc, argv);
 
@@ -275,16 +261,26 @@ BEGIN
     initialize ();
 
     if (log_file != NULL) {
-        FPRINTF (log_file, "%s\n", BANNER);
+        FPRINTF (log_file, "%s-x%s (%s)\n", BANNER, EXT_VERSION, TL_VERSION);
         FPRINTF (log_file, "Implementation:  %s\n", IMPLEMENTATION);
         FPRINTF (log_file, "Release version: %s\n", VERSION);
 #ifdef UTF_8
         {
             UVersionInfo icuVersion;
             char icu_version[U_MAX_VERSION_STRING_LENGTH] = "";
+            UErrorCode err1 = U_ZERO_ERROR;
             u_getVersion(icuVersion);
             u_versionToString(icuVersion, icu_version);
             FPRINTF (log_file, "Compiled with:   ICU version %s\n", icu_version);
+
+            if (Flag_location)
+                u_coll = ucol_open(Str_location, &err1);
+            else
+                u_coll = ucol_open(NULL, &err1);
+            if (!U_SUCCESS(err1)) {
+                FPRINTF (log_file, "Error in opening ICU collator.\n");
+                exit(FATAL_EXIT_STATUS);
+            }
         }
 #endif
         FPRINTF (log_file, "\n");
@@ -379,6 +375,9 @@ Aux_Done_Label:
       END
       get_bst_command_and_process ();
     END
+#ifdef UTF_8
+    ucol_close(u_coll);
+#endif
 Bst_Done_Label:
     a_close (bst_file);
 No_Bst_File_Label:

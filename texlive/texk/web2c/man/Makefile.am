@@ -1,6 +1,7 @@
-## $Id: Makefile.am 52830 2019-11-17 17:05:39Z karl $
+## $Id: Makefile.am 70943 2024-04-14 05:29:13Z takuji $
 ## Makefile.am for the TeX Live subdirectory texk/web2c/man/
-## Copyright 2015-2019 Karl Berry <tex-live@tug.org>
+##
+## Copyright 2015-2022 Karl Berry <tex-live@tug.org>
 ## Copyright 2009-2015 Peter Breitenlohner <tex-live@tug.org>
 ## You may freely use, modify and/or distribute this file.
 ##
@@ -10,15 +11,17 @@ bootstrap_man_sources = ctie.man cweb.man ctwill.man tangle.man tie.man
 
 # Symlinks within $(man1dir): FILE:LINK indicates LINK.1->FILE.1
 man1_links = cweb:ctangle cweb:cweave
-man1_links += ctwill:ctwill-refsort ctwill:ctwill-twinx
+man1_links += ctwill:ctwill-proofsort ctwill:ctwill-refsort ctwill:ctwill-twinx
 
 if WEB
 man_sources += $(web_man_sources)
+man1_links += twill:twill-refsort
 endif WEB
 EXTRA_DIST += $(web_man_sources)
 web_man_sources = bibtex.man dvicopy.man dvitomp.man dvitype.man gftodvi.man \
 	gftopk.man gftype.man mft.man patgen.man pktogf.man pktype.man \
-	pltotf.man pooltype.man tftopl.man vftovp.man vptovf.man weave.man
+	pltotf.man pooltype.man tftopl.man twill.man \
+	vftovp.man vptovf.man weave.man
 
 if TEX
 man_sources += tex.man
@@ -52,13 +55,15 @@ endif PDFTEX
 pdftex_man_sources = pdftex.man pdftosrc.man ttf2afm.man
 EXTRA_DIST += $(pdftex_man_sources)
 
-if PTEX
+if EUPTEX
 man_sources += ptex.man
 man1_links += ptex:eptex ptex:euptex ptex:uptex
 man_sources += ppltotf.man ptftopl.man
 man1_links += ppltotf:uppltotf ptftopl:uptftopl
-endif PTEX
-EXTRA_DIST += ptex.man ppltotf.man ptftopl.man
+man_sources += pbibtex.man
+man1_links += pbibtex:upbibtex
+endif EUPTEX
+EXTRA_DIST += ptex.man ppltotf.man ptftopl.man pbibtex.man
 
 if LUATEX
 man_sources += luatex.man
@@ -82,7 +87,6 @@ otangle_man_sources = ofm2opl.man opl2ofm.man ovf2ovp.man ovp2ovf.man
 
 if ALEPH
 man_sources += aleph.man
-man1_links += aleph:lamed
 endif ALEPH
 EXTRA_DIST += aleph.man
 

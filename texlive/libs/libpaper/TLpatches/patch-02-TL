@@ -1,6 +1,6 @@
-diff -ur libpaper-1.1.24+nmu2.orig/lib/paper.c libpaper-1.1.24+nmu2/lib/paper.c
---- libpaper-1.1.24+nmu2.orig/lib/paper.c	2010-04-24 14:12:11.000000000 +0200
-+++ libpaper-1.1.24+nmu2/lib/paper.c	2013-10-24 15:45:37.955710461 +0200
+diff -ur libpaper-1.1.29/lib/paper.c libpaper-src/lib/paper.c
+--- libpaper-1.1.29/lib/paper.c	2018-12-03 06:15:41.000000000 +0900
++++ libpaper-src/lib/paper.c	2024-01-07 11:32:25.000000000 +0900
 @@ -87,24 +87,11 @@
  }
  
@@ -56,7 +56,7 @@ diff -ur libpaper-1.1.24+nmu2.orig/lib/paper.c libpaper-1.1.24+nmu2/lib/paper.c
      }
  
      if (paperenv) {
-@@ -145,61 +120,6 @@
+@@ -145,64 +120,6 @@
  	    return strcpy(paperstr, paperenv);
      }
  
@@ -102,7 +102,10 @@ diff -ur libpaper-1.1.24+nmu2.orig/lib/paper.c libpaper-1.1.24+nmu2/lib/paper.c
 -		fclose(ps);
 -
 -		paperstr = malloc((strlen(papername) + 1) * sizeof(char));
--		if (! paperstr) return 0;
+-		if (! paperstr) {
+-		    free(papername);
+-		    return 0;
+-		}
 -
 -		strcpy(paperstr, papername);
 -		free(papername);
@@ -118,9 +121,9 @@ diff -ur libpaper-1.1.24+nmu2.orig/lib/paper.c libpaper-1.1.24+nmu2/lib/paper.c
      paperdef = defaultpapername();
      paperstr = malloc((strlen(paperdef) + 1) * sizeof(char));
      
-diff -ur libpaper-1.1.24+nmu2.orig/man/paperconf.1.in libpaper-1.1.24+nmu2/man/paperconf.1.in
---- libpaper-1.1.24+nmu2.orig/man/paperconf.1.in	2012-05-03 21:05:12.000000000 +0200
-+++ libpaper-1.1.24+nmu2/man/paperconf.1.in	2013-10-25 08:27:54.783329615 +0200
+diff -ur libpaper-1.1.29/man/paperconf.1.in libpaper-src/man/paperconf.1.in
+--- libpaper-1.1.29/man/paperconf.1.in	2023-03-17 22:35:38.000000000 +0900
++++ libpaper-src/man/paperconf.1.in	2024-01-07 11:36:12.000000000 +0900
 @@ -1,4 +1,4 @@
 -.TH PAPERCONF 1 "24 April 2001"
 +.TH PAPERCONF 1 "25 October 2013"
@@ -146,13 +149,13 @@ diff -ur libpaper-1.1.24+nmu2.orig/man/paperconf.1.in libpaper-1.1.24+nmu2/man/p
  .TP
 @@ -98,21 +95,9 @@
  .SH ENVIRONMENT
- .TP 20            
+ .TP 20
  .B @PAPERSIZEVAR@
 -Paper size to use regardless of what the papersize file contains.
 -.TP 20
 -.B @PAPERCONFVAR@
 -Full path to a file containing the paper size to use.
--.SH FILES         
+-.SH FILES
 -.TP 20
 -.B @PAPERCONF@
 -Contains the name of the system-wide default paper size to be used

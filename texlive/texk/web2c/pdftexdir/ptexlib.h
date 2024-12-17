@@ -1,5 +1,5 @@
 /* ptexlib.h: macros for pdfTeX library code.
-Copyright 1996-2018 Han The Thanh, <thanh@pdftex.org>
+Copyright 1996-2023 Han The Thanh, <thanh@pdftex.org>
 
 This file is part of pdfTeX.
 
@@ -77,7 +77,7 @@ typedef struct {
 
 typedef struct {
     char *name;                 /* glyph name */
-    long code;                  /* -1 = undefined; -2 = multiple codes, stored
+    integer code;               /* -1 = undefined; -2 = multiple codes, stored
                                    as string in unicode_seq; otherwise unicode value */
     char *unicode_seq;          /* multiple unicode sequence */
 } glyph_unicode_entry;
@@ -180,11 +180,13 @@ extern const char *ptexbanner;
 /* mapfile.c */
 extern boolean hasfmentry(internalfontnumber);
 extern boolean isscalable(internalfontnumber);
+extern boolean hasspacechar(internalfontnumber);
 extern void fm_free(void);
 extern void fm_read_info(void);
 extern ff_entry *check_ff_exist(char *, boolean);
 extern void pdfmapfile(integer);
 extern void pdfmapline(integer);
+extern void pdfmaplinesp(void);
 extern void pdfinitmapfile(const_string map_name);
 extern fm_entry *new_fm_entry(void);
 extern void delete_fm_entry(fm_entry *);
@@ -206,6 +208,8 @@ extern boolean handle_subfont_fm(fm_entry *, int);
 extern void glyph_unicode_free(void);
 extern void deftounicode(strnumber, strnumber);
 extern integer write_tounicode(char **, const char *, const char *);
+extern void dumptounicode(void);
+extern void undumptounicode(void);
 
 /* utils.c */
 extern boolean str_eq_cstr(strnumber, char *);

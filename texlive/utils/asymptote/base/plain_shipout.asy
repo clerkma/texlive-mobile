@@ -7,11 +7,11 @@ if(settings.xasy)
 
 string[] file3;
 
-string outprefix(string prefix=defaultfilename) {
-  return stripextension(prefix != "" ? prefix : outname());
+string outprefix(string prefix=stripextension(defaultfilename)) {
+  return prefix != "" ? prefix : outname();
 }
 
-string outformat(string format="") 
+string outformat(string format="")
 {
   if(format == "") format=settings.outformat;
   if(format == "") format=nativeformat();
@@ -32,6 +32,10 @@ object embed3(string, frame, string, string, string, light, projection);
 string Embed(string name, string text="", string options="", real width=0,
              real height=0);
 
+bool primitive() { // Encode primitive objects
+  return settings.outformat == "html" || settings.outformat=="v3d" || settings.v3d;
+}
+
 bool prconly(string format="")
 {
   return outformat(format) == "prc";
@@ -39,7 +43,7 @@ bool prconly(string format="")
 
 bool prc0(string format="")
 {
-  return settings.prc && (outformat(format) == "pdf" || prconly() || settings.inlineimage );
+  return settings.outformat == "prc" || (settings.prc && (outformat(format) == "pdf" || prconly() || settings.inlineimage ));
 }
 
 bool prc(string format="") {
@@ -62,6 +66,14 @@ frame enclose(string prefix=defaultfilename, object F, string format="")
 
 void deconstruct(picture pic=currentpicture)
 {
+  if(currentpicture.nodes3.length > 0) {
+    if(currentpicture.xsize3 == 0 &&
+       currentpicture.ysize3 == 0 &&
+       currentpicture.zsize3 == 0)
+      currentpicture.size3(hypot(currentpicture.xsize,currentpicture.ysize));
+    currentpicture.size(0);
+  }
+
   frame f;
   transform t=pic.calculateTransform();
   if(currentpicture.fitter == null)
@@ -86,20 +98,16 @@ void shipout(string prefix=defaultfilename, frame f,
     }
   }
 
-  if(outformat(format) == "html") {
-    warning("htmltosvg",
-            "html output requested for 2D picture; generating svg image instead...");
-    format="svg";
-  }
-  
-  if(settings.xasy || (!implicitshipout && prefix == defaultfilename)) {
-    if(prefix == defaultfilename) {
+  bool defaultprefix=prefix==defaultfilename;
+
+  if(settings.xasy || (!implicitshipout && defaultprefix)) {
+    if(defaultprefix) {
       currentpicture.clear();
       add(f,group=false);
     }
     return;
   }
-  
+
   // Applications like LaTeX cannot handle large PostScript coordinates.
   pair m=min(f);
   int limit=2000;
@@ -117,7 +125,7 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
   pic.uptodate=true;
   if(!uptodate()) {
     bool inlinetex=settings.inlinetex;
-    bool prc=prc(format);
+    bool prc=prc(format) || settings.v3d;
     bool empty3=pic.empty3();
     if(prc && !empty3) {
         if(settings.render == 0) {
@@ -132,8 +140,15 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
     }
     frame f;
     transform t=pic.calculateTransform();
-    if(currentpicture.fitter == null)
-      f=pic.fit(t);
+    if(currentpicture.fitter == null) {
+      pen background=currentlight.background;
+      if(settings.outformat == "html" && background == nullpen)
+        background=white;
+      if(background != nullpen)
+        f=bbox(pic,nullpen,Fill(background));
+      else
+        f=pic.fit(t);
+    }
     else
       f=pic.fit(prefix,format,view=view,options,script,light,P);
 

@@ -1,3 +1,122 @@
+2024-10-13  <user202729@protonmail.com>
+
+	* synctex_record_node_kern: pass "kern" instead of "glue"
+	as SYNCTEX_TAG_MODEL and SYNCTEX_LINE_MODEL.
+	https://tug.org/pipermail/luatex/2024-September/008006.html
+
+	Forwarded by Luigi, confirmed by Jerome, committed by Karl.
+	Jerome adds:
+           This bug only affects engines for which kern node and glue
+           nodes do not have the same size, aka none.
+           The kern problem is well known for luatex since a long time but
+           it does not affect other engines. While this patch is necessary
+           to make the synctex code cleaner, it does not change anything
+           for the engines concerned by the code.
+
+2024-04-14  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* am/synctex.am: Remove eptex.
+
+2024-03-10  Karl Berry  <karl@tug.org>
+
+	* TL'24 release.
+
+2023-08-27  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* synctex.test: Make easier to test on Windows.
+
+2023-03-09  Karl Berry  <karl@tug.org>
+
+	* TL'23 release.
+
+2023-02-23  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	Sync with GH 2020 branch.
+
+	  * Changed files (on https://github.com/jlaurens/synctex):
+	    synctex_parser.c
+	    synctex_parser_utils.c
+	    synctex_parser_utils.h
+
+	  - Fix compilation on MSVC.
+	    https://github.com/jlaurens/synctex/pull/59
+	  - Fix some GCC warnings.
+	    https://github.com/jlaurens/synctex/pull/57
+
+2023-01-19  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	Comparing TL r55094 (by JL) and GH 2020 branch.
+
+	  * Changed files (on https://github.com/jlaurens/synctex):
+	    synctex_main.c
+	    synctex_parser.c
+	    synctex_parser_readme.md
+	    synctex_parser_utils.c
+
+	  - Fix compilation with clang with -Wformat-nonliteral.
+	    https://github.com/jlaurens/synctex/pull/38
+	  - Fix build when compiling with -Werror=implicit-function-declaration.
+	    https://github.com/jlaurens/synctex/pull/39
+	  - More explanations.
+	  - Remove recursion form _synctex_free_handle_old.
+	  - Fix a Bug in post scriptum parser y_offset.
+	    https://github.com/jlaurens/synctex/issues/50
+	  - Fix a Memory leak when opening files.
+	    https://github.com/jlaurens/synctex/issues/49
+	  - Fix memleaks when a file cannot be parsed.
+	    https://github.com/jlaurens/synctex/issues/48
+	  - Fix memleaks when freeing iterators
+	    https://github.com/jlaurens/synctex/issues/55
+
+2023-01-15  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* am/synctex.am: Remove ptex and uptex.
+
+2022-08-30  Karl Berry  <karl@freefriends.org>
+
+	* man1/synctex.1,
+	* man5/synctex.5: typo fixes from Hilmar Preu\ss{}e,
+	https://tug.org/pipermail/tex-live/2022-June/048227.html
+
+2022-05-31  Karl Berry  <karl@freefriends.org>
+
+	* synctex.c (synctexterminate): insert missing \n
+	before ``SyncTeX written on "..." ...'' (quoted case).
+	Report from jerome.lelong, tex-k 31 May 2022 16:34:44.
+
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2022-01-22  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* synctex.c: Reencode nameoffile to utf8 for pTeX.
+
+2021-12-16  Luigi Scarso  <luigi.scarso@gmail.com>
+
+	* synctex_main.c [WIN32]: #include <kpathsea/progname.h>
+	* am/synctex.am (synctex_CPPFLAGS, synctex_LDADD) [MINGW32]:
+	include KPATHSEA_* variables.
+	https://tug.org/pipermail/tlbuild/2021q4/004983.html
+
+2021-07-24  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* synctex_main.c (synctex_test_file):
+	Output not "compress mode" but "io mode".
+	* synctex_main.c:
+	Apply patch of W32TeX by Kakuto-san. (Windows only).
+
+2021-03-23  Karl Berry  <karl@tug.org>
+
+	* TL'21.
+
+2021-03-04  Karl Berry  <karl@freefriends.org>
+
+	* synctex_scanner_new_with_output_file: don't warn to terminal
+	with _synctex_error when a file is missing.
+	code from https://gitlab.gnome.org/GNOME/evince/commit/678410e81d0c889f4db4e995ca451ed62b8a2eee
+	Debian bug #908964
+
 2019-10-10  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
 
 	* synctex-p-rec.ch0, synctex-ep-rec.ch0: Fix \meaning\synctex
@@ -6,7 +125,7 @@
 
 2019-08-07  Akira Kakuto  <kakuto@w32tex.org>
 
-	* synctex.c: Improve support of non-ascii path names
+	* synctex.c: Improve support of non-ASCII path names
 	(Windows only).
 
 2018-10-25  Akira Kakuto  <kakuto@fuk.kindai.ac.jp>

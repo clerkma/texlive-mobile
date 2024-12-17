@@ -50,10 +50,10 @@ namespace interact {
 
 bool interactive=false;
 bool uptodate=true;
-int lines=0;  
+int lines=0;
 bool query=false;
 
-bool tty=isatty(STDIN_FILENO);  
+bool tty=isatty(STDIN_FILENO);
 completer *currentCompleter=0;
 
 void setCompleter(completer *c) {
@@ -77,15 +77,15 @@ void init_completion() {
   static char break_characters[128];
   Int j=0;
   for (unsigned char c=9; c < 128; ++c)
-    if (!isalnum(c) && c != '_') {
-      break_characters[j]=c;
-      ++j;
-    }
+  if (!isalnum(c) && c != '_') {
+  break_characters[j]=c;
+  ++j;
+  }
   break_characters[j]='\0';
   rl_completer_word_break_characters=break_characters;
   */
 }
-#endif  
+#endif
 
 char *(*Readline)(const char *prompt);
 
@@ -97,7 +97,7 @@ char *readverbatimline(const char *prompt)
   getline(cin,s);
   return StrdupMalloc(s);
 }
-  
+
 FILE *fin=NULL;
 
 char *readpipeline(const char *prompt)
@@ -117,12 +117,16 @@ char *readpipeline(const char *prompt)
   return StrdupMalloc(s.str());
 #endif
 }
-  
+
 void pre_readline()
 {
   int fd=intcast(settings::getSetting<Int>("inpipe"));
   if(fd >= 0) {
     if(!fin) fin=fdopen(fd,"r");
+    if(!fin) {
+      cerr << "Cannot open inpipe " << fd << endl;
+      exit(-1);
+    }
     Readline=readpipeline;
   } else {
 #if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
@@ -144,7 +148,7 @@ void init_readline(bool tabcompletion)
 void init_interactive()
 {
   if(getSetting<bool>("xasy")) tty=false;
-#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   if(tty) {
     init_completion();
     interact::init_readline(getSetting<bool>("tabcompletion"));
@@ -152,11 +156,11 @@ void init_interactive()
   }
 #endif
 }
-  
+
 string simpleline(string prompt) {
   // Rebind tab key, as the setting tabcompletion may be changed at runtime.
   pre_readline();
-  
+
   Signal(SIGINT,SIG_IGN);
   // Get a line from the user.
   char *line=Readline(prompt.c_str());
@@ -165,7 +169,7 @@ string simpleline(string prompt) {
   // Reset scroll count.
   interact::lines=0;
   interact::query=tty;
-  
+
   // Ignore keyboard interrupts while taking input.
   errorstream::interrupt=false;
 
@@ -174,20 +178,24 @@ string simpleline(string prompt) {
     free(line);
     return s;
   } else {
-    cout << endl;
+#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
     if(!tty || getSetting<bool>("exitonEOF"))
-      throw eof();
-    return "\n";
+#endif
+      {
+        cout << endl;
+        throw eof();
+      }
+    return "";
   }
 }
 
 void addToHistory(string line) {
-#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   // Only add it if it has something other than newlines.
   if(tty && line.find_first_not_of('\n') != string::npos) {
     add_history(line.c_str());
   }
-#endif    
+#endif
 }
 
 string getLastHistoryLine() {
@@ -198,7 +206,7 @@ string getLastHistoryLine() {
       em.compiler();
       em << "cannot access last history line";
       return "";
-    } else 
+    } else
       return entry->line;
   } else
 #endif
@@ -206,7 +214,7 @@ string getLastHistoryLine() {
 }
 
 void setLastHistoryLine(string line) {
-#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   if(tty) {
     if (history_length > 0) {
       HIST_ENTRY *entry=remove_history(history_length-1);
@@ -225,7 +233,7 @@ void setLastHistoryLine(string line) {
 }
 
 void deleteLastLine() {
-#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   if(tty) {
     HIST_ENTRY *entry=remove_history(history_length-1);
     if(!entry) {
@@ -240,7 +248,7 @@ void deleteLastLine() {
 }
 
 void cleanup_interactive() {
-#if defined(HAVE_READLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   // Write the history file.
   if(tty) {
     stifle_history(intcast(getSetting<Int>("historylines")));

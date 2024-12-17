@@ -1,3 +1,24 @@
+2024-01-07  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* Import libpaper-1.1.29 from debian.
+	version.ac: Adapted.
+
+2022-09-10  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* Import libpaper-1.1.28 from debian.
+	version.ac: Adapted.
+
+2021-07-25  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* src/paperconf.c: Apply patch of W32TeX for Windows
+	Visual C by Kakuto-san.
+
+2021-06-27  Karl Berry  <karl@freefriends.org>
+
+	* configure.ac (AC_USE_SYSTEM_EXTENSIONS): use before KPSE_BASIC,
+	to avoid Autoconf 2.70 (or later) warning:
+	AC_LINK_IFELSE was called before AC_USE_SYSTEM_EXTENSIONS
+
 2016-02-18  Akira Kakuto  <kakuto@fuk.kindai.ac.jp>
 
 	* Makefile.am, configure.ac: New convention.

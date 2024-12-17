@@ -2,7 +2,7 @@
 ** FontManager.hpp                                                      **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -27,6 +27,7 @@
 #include <string>
 #include <stack>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include "Color.hpp"
 #include "FontStyle.hpp"
@@ -41,31 +42,41 @@ class VirtualFont;
  *  we need a single list with unique IDs of all physical fonts. Characters of
  *  virtual fonts are completely replaced by their DVI description so they don't
  *  appear anywhere in the output. */
-class FontManager
-{
-	using Num2IdMap = std::unordered_map<uint32_t,int>;
-	using Name2IdMap = std::unordered_map<std::string,int>;
-	using VfNum2IdMap = std::unordered_map<const VirtualFont*,Num2IdMap>;
-	using VfFirstFontMap = std::unordered_map<const VirtualFont*,uint32_t>;
+class FontManager {
+	using CharMap = std::unordered_map<const Font*, std::set<int>>;
+	using FontSet = std::unordered_set<const Font*>;
+	using Num2IdMap = std::unordered_map<uint32_t, int>;
+	using Name2IdMap = std::unordered_map<std::string, int>;
+	using VfNum2IdMap = std::unordered_map<const VirtualFont*, Num2IdMap>;
+	using VfFirstFontNumMap = std::unordered_map<const VirtualFont*, uint32_t>;
+	using VfFirstFontMap = std::unordered_map<const VirtualFont*, Font*>;
 	using VfStack = std::stack<VirtualFont*>;
 
 	public:
 		static FontManager& instance ();
 		int registerFont (uint32_t fontnum, const std::string &fontname, uint32_t checksum, double dsize, double scale);
 		int registerFont (uint32_t fontnum, const std::string &fname, double ptsize, const FontStyle &style, Color color);
-		int registerFont (uint32_t fontnum, std::string fname, int fontIndex, double ptsize, const FontStyle &style, Color color);
+		int registerFont (uint32_t fontnum, const std::string &fname, int fontIndex, double ptsize, const FontStyle &style, Color color);
+		int registerFont (const std::string &fname, std::string fontname, double ptsize);
 		Font* getFont (int n) const;
 		Font* getFont (const std::string &name) const;
+		Font* getFont (const std::string &name, double ptsize);
 		Font* getFontById (int id) const;
 		const VirtualFont* getVF () const;
 		int fontID (int n) const;
 		int fontID (const Font *font) const;
 		int fontID (const std::string &name) const;
+		int fontID (std::string name, double ptsize) const;
 		int fontnum (int id) const;
 		int vfFirstFontNum (const VirtualFont *vf) const;
+		Font* vfFirstFont (const VirtualFont *vf) const;
 		void enterVF (VirtualFont *vf);
 		void leaveVF ();
-		void assignVFChar (int c, std::vector<uint8_t> &&dvi);
+		void assignVFChar (int c, std::vector<char> &&dvi);
+		void addUsedChar (const Font &font, int c);
+		void resetUsedChars ();
+		CharMap& getUsedChars ()  {return _usedChars;}
+		FontSet& getUsedFonts ()  {return _usedFonts;}
 		std::ostream& write (std::ostream &os, Font *font=nullptr, int level=0);
 
 	protected:
@@ -77,7 +88,10 @@ class FontManager
 		Name2IdMap     _name2id;   ///< fontname -> fontID
 		VfNum2IdMap    _vfnum2id;
 		VfStack        _vfStack;   ///< stack of currently processed virtual fonts
-		VfFirstFontMap _vfFirstFontMap; ///< VF -> local font number of first font defined in VF
+		VfFirstFontNumMap _vfFirstFontNumMap; ///< VF -> local font number of first font defined in VF
+		VfFirstFontMap _vfFirstFontMap;       ///< VF -> first font defined
+		CharMap _usedChars;
+		FontSet _usedFonts;
 };
 
 #endif

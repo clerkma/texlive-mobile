@@ -138,7 +138,7 @@ pkopen(register fontdesctype *fd)
      pkfile = pksearch(this_name, READBIN, fd->dpi, &name_ret, &dpi_ret);
 
      if (!pkfile || !FILESTRCASEEQ (this_name, name_ret)) {
-       char *msg = concatn ("Font ", fd->area, n, " not found; ", NULL);
+       char *msg = concatn ("PK font ", fd->area, n, " not found; ", NULL);
        /* wasting some memory */
        if (!pkfile)
          msg = concat (msg, "characters will be left blank.");
@@ -349,12 +349,12 @@ loadfont(register fontdesctype *curfnt)
          fprintf(stderr, "\n");
          prettycolumn = 0;
       }
-      fprintf(stderr, "<%s>", realnameoffile);
+      fprintf_str(stderr, "<%s>", realnameoffile);
       prettycolumn += strlen(realnameoffile) + 2;
    }
 #ifdef DEBUG
    if (dd(D_FONTS))
-      fprintf(stderr,"Loading pk font %s at %.1fpt\n",
+      fprintf_str(stderr,"Loading pk font %s at %.1fpt\n",
          curfnt->name, (real)scaledsize/(alpha*0x100000));
 #endif /* DEBUG */
    if (pkbyte()!=247)

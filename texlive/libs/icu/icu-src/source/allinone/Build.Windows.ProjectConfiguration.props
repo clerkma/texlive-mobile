@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (C) 2016 and later: Unicode, Inc. and others. License & terms of use: http://www.unicode.org/copyright.html -->
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- This file is used to set default configuration options for all non-UWP Visual Studio projects. -->
+  <!-- The following import will set the ICU Major Version number. -->
+  <Import Project="Build.Windows.IcuVersion.props" />
   <!-- These are the default project configurations for building. -->
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -56,22 +58,16 @@
     <IcuBinOutputDir>binARM64</IcuBinOutputDir>
     <IcuLibOutputDir>libARM64</IcuLibOutputDir>
   </PropertyGroup>
-  <!-- This is the default SDK target. -->
-  <PropertyGroup>
-    <!-- Note that the Windows 8.1 SDK is backwards compatible down-level to Windows 7, so
-         setting this to 8.1 does not actually imply targeting Windows 8.1. -->
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <!-- Desktop ARM/ARM64 support requires a newer version of the Windows SDK than 8.1 -->
+  <!-- Desktop ARM/ARM64 support requires a different version of the Windows SDK -->
   <!--
       Note: This version must match the version below in the ARM64 section for AdditionalLibraryDirectories
   -->
   <PropertyGroup Condition="'$(Platform)'=='ARM'">
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
     <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Platform)'=='ARM64'">
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
     <WindowsSDKDesktopARM64Support>true</WindowsSDKDesktopARM64Support>
   </PropertyGroup>
   <PropertyGroup>
@@ -100,6 +96,9 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <!-- Enable parallel compilation for faster builds. -->
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <!-- Set the C/C++ versions supported. -->
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc11</LanguageStandard_C>
     </ClCompile>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -184,7 +183,7 @@
       <!-- The ARM64 Desktop SDK doesn't include this by default -->
       <AdditionalDependencies>kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <!-- Note: This needs to match the same version as WindowsTargetPlatformVersion for ARM -->
-      <AdditionalLibraryDirectories>C:\Program Files (x86)\Windows Kits\10\Lib\10.0.16299.0\um\arm</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\um\arm</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <!-- Options that are common to all ARM 64-bit configurations for *all* projects. -->
@@ -200,7 +199,7 @@
       <!-- The ARM64 Desktop SDK doesn't include this by default -->
       <AdditionalDependencies>kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <!-- Note: This needs to match the same version as WindowsTargetPlatformVersion for ARM64 -->
-      <AdditionalLibraryDirectories>C:\Program Files (x86)\Windows Kits\10\Lib\10.0.16299.0\um\arm64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\um\arm64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
 </Project>

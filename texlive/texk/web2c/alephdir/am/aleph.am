@@ -1,6 +1,8 @@
+## $Id: aleph.am 72601 2024-10-20 06:53:33Z takuji $
 ## texk/web2c/alephdir/am/aleph.am: Makefile fragment for Aleph.
 ##
-## Copyright (C) 2009-2015 Peter Breitenlohner <tex-live@tug.org>
+## Copyright 2015-2023 Karl Berry <tex-live@tug.org>
+## Copyright 2009-2015 Peter Breitenlohner <tex-live@tug.org>
 ## You may freely use, modify and/or distribute this file.
 
 ## Aleph
@@ -39,9 +41,9 @@ aleph-pool.c: aleph.pool alephd.h $(makecpool_stamp)
 
 # Tangling Aleph
 aleph.p aleph.pool: aleph-tangle
-	@$(al_tangle) aleph aleph
+	$(al_tangle) aleph aleph
 aleph-tangle: otangle$(EXEEXT) aleph.web aleph.ch tangle-sh
-	@$(al_tangle) aleph aleph
+	$(al_tangle) aleph aleph
 
 # Generate aleph.web
 aleph_web_srcs = \
@@ -67,7 +69,8 @@ aleph_web_srcs = \
 	alephdir/eonewdir.ch \
 	alephdir/eover.ch \
 	alephdir/eopage.ch \
-	alephdir/eochar.ch
+	alephdir/eochar.ch \
+	alephdir/latespecial.ch
 aleph.web: tie$(EXEEXT) $(aleph_web_srcs)
 	$(tie_m) $(aleph_web_srcs)
 
@@ -101,12 +104,23 @@ EXTRA_DIST += \
 
 # Aleph Tests
 #
-aleph_tests = alephdir/aleph.test
-alephdir/aleph.log: aleph$(EXEEXT)
+aleph_tests = alephdir/aleph.test \
+	alephdir/aleph-ofm.test alephdir/aleph-lmr.test
+alephdir/aleph.log \
+	alephdir/aleph-ofm.log alephdir/aleph-lmr.log \
+	: aleph$(EXEEXT)
 
 EXTRA_DIST += $(aleph_tests)
+
+## alephdir/aleph-ofm.test
+EXTRA_DIST += alephdir/tests/al-ofm.tex alephdir/tests/al-ofm.log
+DISTCLEANFILES += al-ofm.*
+## alephdir/aleph-lmr.test
+EXTRA_DIST += alephdir/tests/lmr1.tex alephdir/tests/al-lmr1.log
+DISTCLEANFILES += al-lmr*.*
 
 if ALEPH
 TESTS += $(aleph_tests)
 endif ALEPH
 
+# (end of aleph.am)

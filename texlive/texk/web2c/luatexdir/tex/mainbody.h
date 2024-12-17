@@ -68,6 +68,11 @@ in production versions of \TeX.
 #  define inf_expand_depth   100
 #  define sup_expand_depth   10000000
 
+#  define inf_level_max     0
+#  define sup_level_max   500
+
+#  define inf_level_chr     1
+#  define sup_level_chr   126
 
 #  include <stdio.h>
 
@@ -112,8 +117,9 @@ names in this program because they are used with a special meaning.
 #  define carriage_return '\r'  /* ASCII code used at end of line */
 
 /* Global variables */
-extern boolean luainit;         /* are we using lua for initializations  */
-extern boolean tracefilenames;  /* print file open-close  info? */
+extern boolean luainit;            /* are we using lua for initializations  */
+extern boolean tracefilenames;     /* print file open-close  info? */
+extern boolean traceextranewline;  /* extra line in tracingmacros? */
 
 
 extern boolean ini_version;     /* are we \.{INITEX}? */
@@ -125,6 +131,8 @@ extern int error_line;
 extern int half_error_line;
 extern int max_print_line;
 extern int max_strings;
+extern int level_max;
+extern int level_chr;
 extern int strings_free;
 extern int font_k;
 extern int buf_size;
@@ -134,12 +142,14 @@ extern int param_size;
 extern int nest_size;
 extern int save_size;
 extern int expand_depth;
-extern int parsefirstlinep;
+/*extern int parsefirstlinep;*/
 extern int filelineerrorstylep;
 extern int haltonerrorp;
+extern boolean haltingonerrorp;
 extern boolean quoted_filename;
 
 extern int total_pages;
+extern int check_dvi_total_pages;
 extern int dead_cycles;
 
 /*

@@ -1,4 +1,4 @@
-% Copyright 1996-2020 Han Th\^e\llap{\raise 0.5ex\hbox{\'{}}} Th\`anh,
+% Copyright 1996-2024 Han Th\^e\llap{\raise 0.5ex\hbox{\'{}}} Th\`anh,
 % <thanh@@pdftex.org>
 
 % This file is part of pdfTeX.
@@ -70,6 +70,7 @@
 % Version 3.141592 fixed \xleaders, glueset, weird alignments (December 2002).
 % Version 3.1415926 was a general cleanup with minor fixes (February 2008).
 % Version 3.14159265 was similar (January 2014).
+% Version 3.141592653 was similar but more extensive (January 2021).
 
 % A preliminary version of TeX--XeT was released in April 1992.
 % TeX--XeT version 1.0 was released in June 1992,
@@ -302,17 +303,17 @@ known as `\eTeX'.
 @d eTeX_revision==".6" { \.{\\eTeXrevision} }
 @d eTeX_version_string=='-2.6' {current \eTeX\ version}
 @#
-@d eTeX_banner=='This is e-TeX, Version 3.14159265',eTeX_version_string
+@d eTeX_banner=='This is e-TeX, Version 3.141592653',eTeX_version_string
   {printed when \eTeX\ starts}
 @#
 @d pdftex_version==140 { \.{\\pdftexversion} }
-@d pdftex_revision=="21" { \.{\\pdftexrevision} }
-@d pdftex_version_string=='-1.40.21' {current \pdfTeX\ version}
+@d pdftex_revision=="26" { \.{\\pdftexrevision} }
+@d pdftex_version_string=='-1.40.26' {current \pdfTeX\ version}
 @#
-@d pdfTeX_banner=='This is pdfTeX, Version 3.14159265',eTeX_version_string,pdftex_version_string
+@d pdfTeX_banner=='This is pdfTeX, Version 3.141592653',eTeX_version_string,pdftex_version_string
    {printed when \pdfTeX\ starts}
 @#
-@d TeX_banner=='This is TeX, Version 3.14159265' {printed when \TeX\ starts}
+@d TeX_banner=='This is TeX, Version 3.141592653' {printed when \TeX\ starts}
 @#
 @d banner==pdfTeX_banner
 @#
@@ -331,7 +332,7 @@ reader see how to make an appropriate interface for other systems
 if necessary. (\ph\ is Charles Hedrick's modification of a compiler
 @^Hedrick, Charles Locke@>
 for the DECsystem-10 that was originally developed at the University of
-Hamburg; cf.\ {\sl SOFTWARE---Practice \AM\ Experience \bf6} (1976),
+Hamburg; cf.\ {\sl Software---Practice and Experience \bf6} (1976),
 29--42. The \TeX\ program below is intended to be adaptable, without
 extensive changes, to most other versions of \PASCAL, so it does not fully
 use the admirable features of \ph. Indeed, a conscious effort has been
@@ -428,8 +429,8 @@ to people who wish to preserve the purity of English.
 Similarly, there is some conditional code delimited by
 `$|stat|\ldots|tats|$' that is intended for use when statistics are to be
 kept about \TeX's memory usage.  The |stat| $\ldots$ |tats| code also
-implements diagnostic information for \.{\\tracingparagraphs} and
-\.{\\tracingpages}.
+implements diagnostic information for \.{\\tracingparagraphs},
+\.{\\tracingpages}, and \.{\\tracingrestores}.
 @^debugging@>
 
 @d debug==@{ {change this to `$\\{debug}\equiv\null$' when debugging}
@@ -1440,7 +1441,7 @@ example, be `|k in [0,@'10..@'12,@'14,@'15,@'33,@'177..@'377]|'.
 If character |k| cannot be printed, and |k<@'200|, then character |k+@'100| or
 |k-@'100| must be printable; moreover, ASCII codes |[@'41..@'46,
 @'60..@'71, @'136, @'141..@'146, @'160..@'171]| must be printable.
-Thus, at least 81 printable characters are needed.
+Thus, at least 80 printable characters are needed.
 @:TeXbook}{\sl The \TeX book@>
 @^character set dependencies@>
 @^system dependencies@>
@@ -1701,9 +1702,9 @@ end;
 
 @ Here is the very first thing that \TeX\ prints: a headline that identifies
 the version number and format package. The |term_offset| variable is temporarily
-incorrect, but the discrepancy is not serious since we assume that the banner
-and format identifier together will occupy at most |max_print_line|
-character positions.
+incorrect, but the discrepancy is not serious since we assume that this
+part of the program is system dependent.
+@^system dependencies@>
 
 @<Initialize the output...@>=
 wterm(banner);
@@ -1753,7 +1754,7 @@ by all \PASCAL\ compilers.
 
 @<Basic print...@>=
 procedure print_int(@!n:longinteger); {prints an integer in decimal form}
-var k:0..23; {index to current digit; we assume that $|n|<10^{23}$}
+var k:0..23; {index to current digit; we assume that $\vert n\vert<10^{23}$}
 @!m:longinteger; {used to negate |n| in possibly dangerous cases}
 begin k:=0;
 if n<0 then
@@ -2017,7 +2018,8 @@ var c:ASCII_code; {what the user types}
   {used to save global variables when deleting tokens}
 begin if history<error_message_issued then history:=error_message_issued;
 print_char("."); show_context;
-if interaction=error_stop_mode then @<Get user's advice and |return|@>;
+if interaction=error_stop_mode then
+  @<Get user's advice and |return|@>;
 incr(error_count);
 if error_count=100 then
   begin print_nl("(That makes 100 errors; please try again.)");
@@ -2028,7 +2030,8 @@ if error_count=100 then
 exit:end;
 
 @ @<Get user's advice...@>=
-loop@+begin continue: clear_for_error_prompt; prompt_input("? ");
+loop@+begin continue: if interaction<>error_stop_mode then return;
+  clear_for_error_prompt; prompt_input("? ");
 @.?\relax@>
   if last=first then return;
   c:=buffer[first];
@@ -2053,7 +2056,7 @@ case c of
 "0","1","2","3","4","5","6","7","8","9": if deletions_allowed then
   @<Delete \(c)|c-"0"| tokens and |goto continue|@>;
 @t\4\4@>@;@+@!debug "D": begin debug_help; goto continue;@+end;@+gubed@/
-"E": if base_ptr>0 then
+"E": if base_ptr>0 then if input_stack[base_ptr].name_field>=256 then
   begin print_nl("You want to edit file ");
 @.You want to edit file x@>
   slow_print(input_stack[base_ptr].name_field);
@@ -2074,7 +2077,8 @@ begin print("Type <return> to proceed, S to scroll future error messages,");@/
 @.Type <return> to proceed...@>
 print_nl("R to run without stopping, Q to run quietly,");@/
 print_nl("I to insert something, ");
-if base_ptr>0 then print("E to edit your file,");
+if base_ptr>0 then if input_stack[base_ptr].name_field>=256 then
+  print("E to edit your file,");
 if deletions_allowed then
   print_nl("1 or ... or 9 to ignore the next 1 to 9 tokens of input,");
 print_nl("H for help, X to quit.");
@@ -2266,7 +2270,7 @@ begin if OK_to_interrupt then
   print_err("Interruption");
 @.Interruption@>
   help3("You rang?")@/
-  ("Try to insert some instructions for me (e.g.,`I\showlists'),")@/
+  ("Try to insert an instruction for me (e.g., `I\showlists'),")@/
   ("unless you just want to quit by typing `X'.");
   deletions_allowed:=false; error; deletions_allowed:=true;
   interrupt:=0;
@@ -2505,23 +2509,23 @@ routines cited there must be modified to allow negative glue ratios.)
 @!glue_ratio=real; {one-word representation of a glue expansion factor}
 
 @* \[7b] Random numbers.
-
+%
 \font\tenlogo=logo10 % font used for the METAFONT logo
 \def\MP{{\tenlogo META}\-{\tenlogo POST}}
-
-This section is (almost) straight from MetaPost. I had to change
+%
+This section is (almost) straight from \MP. I had to change
 the types (use |integer| instead of |fraction|), but that should
 not have any influence on the actual calculations (the original
 comments refer to quantities like |fraction_four| ($2^{30}$), and
 that is the same as the numeric representation of |maxdimen|).
 
 I've copied the low-level variables and routines that are needed, but
-only those (e.g. |m_log|), not the accompanying ones like |m_exp|. Most
+only those (e.g.~|m_log|), not the accompanying ones like |m_exp|. Most
 of the following low-level numeric routines are only needed within the
 calculation of |norm_rand|. I've been forced to rename |make_fraction|
 to |make_frac| because TeX already has a routine by that name with
 a wholly different function (it creates a |fraction_noad| for math
-typesetting) -- Taco
+typesetting) -- Taco.
 
 And now let's complete our collection of numeric utility routines
 by considering random number generation.
@@ -2540,7 +2544,7 @@ been consumed.
 @!j_random:0..54; {the number of unused |randoms|}
 @!random_seed:scaled; {the default random seed}
 
-@ A small bit of metafont is needed.
+@ A small bit of \MF\ is needed.
 
 @d fraction_half==@'1000000000 {$2^{27}$, represents 0.50000000}
 @d fraction_one==@'2000000000 {$2^{28}$, represents 1.00000000}
@@ -3415,8 +3419,8 @@ In \eTeX\ the |subtype| field records the box direction mode |box_lr|.
 
 @ The |new_null_box| function returns a pointer to an |hlist_node| in
 which all subfields have the values corresponding to `\.{\\hbox\{\}}'.
-The |subtype| field is set to |min_quarterword|, since that's the desired
-|span_count| value if this |hlist_node| is changed to an |unset_node|.
+(The |subtype| field is set to |min_quarterword|, for historic reasons
+that are no longer relevant.)
 
 @p function new_null_box:pointer; {creates a new box node}
 var p:pointer; {the new node}
@@ -3753,6 +3757,7 @@ inserted from \.{\\mkern} specifications in math formulas).
 @d kern_node=11 {|type| of a kern node}
 @d explicit=1 {|subtype| of kern nodes from \.{\\kern} and \.{\\/}}
 @d acc_kern=2 {|subtype| of kern nodes from accents}
+@d auto_kern=3 {|subtype| of kern nodes created by |get_auto_kern|}
 
 @# {memory structure for marginal kerns}
 @d margin_kern_node = 40
@@ -3776,7 +3781,6 @@ inserted from \.{\\mkern} specifications in math formulas).
 @d kn_bc_code_base == 10
 @d kn_ac_code_base == 11
 
-@d auto_kern == explicit
 
 @d no_lig_code == 6
 
@@ -4409,6 +4413,7 @@ if subtype(p)<>mu_glue then
   print_scaled(width(p));
   if subtype(p)=acc_kern then print(" (for accent)");
 @.for accent@>
+  if subtype(p)=auto_kern then print(" (for \pdfprependkern/\pdfappendkern)");
   end
 else  begin print_esc("mkern"); print_scaled(width(p)); print("mu");
   end
@@ -4715,7 +4720,7 @@ expanded by `\.{\\the}'.
 @d hskip=26 {horizontal glue ( \.{\\hskip}, \.{\\hfil}, etc.~)}
 @d vskip=27 {vertical glue ( \.{\\vskip}, \.{\\vfil}, etc.~)}
 @d mskip=28 {math glue ( \.{\\mskip} )}
-@d kern=29 {fixed space ( \.{\\kern})}
+@d kern=29 {fixed space ( \.{\\kern} )}
 @d mkern=30 {math kern ( \.{\\mkern} )}
 @d leader_ship=31 {use a box ( \.{\\shipout}, \.{\\leaders}, etc.~)}
 @d halign=32 {horizontal table alignment ( \.{\\halign} )}
@@ -4864,7 +4869,7 @@ At each level of processing we are in one of six modes:
 \hang|-mmode| stands for math formula mode (not displayed).
 
 \yskip\noindent The mode is temporarily set to zero while processing \.{\\write}
-texts in the |ship_out| routine.
+texts.
 
 Numeric values are assigned to |vmode|, |hmode|, and |mmode| so that
 \TeX's ``big semantic switch'' can select the appropriate thing to
@@ -4978,11 +4983,17 @@ be pushed onto |nest| if necessary.
 @!shown_mode:-mmode..mmode; {most recent mode shown by \.{\\tracingcommands}}
 @!save_tail: pointer; {save |tail| so we can examine whether we have an auto
                        kern before a glue}
+@!prev_tail: pointer; {value of |tail| before the last call to |tail_append|}
 
 @ Here is a common way to make the current list grow:
 
-@d tail_append(#)==begin link(tail):=#; tail:=link(tail);
+@d tail_append(#)==begin prev_tail:=tail; link(tail):=#; tail:=link(tail);
   end
+@d insert_before_tail(#) == begin
+    link(prev_tail) := #;
+    link(#) := tail;
+    prev_tail := #;
+end
 
 @ We will see later that the vertical list at the bottom semantic level is split
 into two parts; the ``current page'' runs from |page_head| to |page_tail|,
@@ -4995,7 +5006,7 @@ any more details about the page-building process.
 @<Set init...@>=
 nest_ptr:=0; max_nest_stack:=0;
 mode:=vmode; head:=contrib_head; tail:=contrib_head;
-eTeX_aux:=null;
+eTeX_aux:=null; save_tail:=null;
 prev_depth:=ignore_depth; mode_line:=0;
 prev_graf:=0; shown_mode:=0;
 @<Start a new current page@>;
@@ -5073,7 +5084,7 @@ case abs(m) div (max_command+1) of
     end;
   end;
 2: if a.int<>null then
-  begin print("this will be denominator of:"); show_box(a.int);@+
+  begin print("this will begin denominator of:"); show_box(a.int);@+
   end;
 end {there are no other cases}
 
@@ -5644,7 +5655,7 @@ that will be defined later.
 @d output_penalty_code=39 {penalty found at current page break}
 @d max_dead_cycles_code=40 {bound on consecutive dead cycles of output}
 @d hang_after_code=41 {hanging indentation changes after this many lines}
-@d floating_penalty_code=42 {penalty for insertions heldover after a split}
+@d floating_penalty_code=42 {penalty for insertions held over after a split}
 @d global_defs_code=43 {override \.{\\global} specifications}
 @d cur_fam_code=44 {current family}
 @d escape_char_code=45 {escape character for token output}
@@ -5693,8 +5704,11 @@ that will be defined later.
 @d pdf_suppress_warning_page_group_code  = pdftex_first_integer_code + 30 {suppress warning about multiple pdfs with page group}
 @d pdf_info_omit_date_code  = pdftex_first_integer_code + 31 {omit generating CreationDate and ModDate}
 @d pdf_suppress_ptex_info_code = pdftex_first_integer_code + 32 {suppress /PTEX.* entries in PDF dictionaries}
-@d pdf_omit_charset_code = pdftex_first_integer_code + 33 {suppress /PTEX.* entries in PDF dictionaries}
-@d pdf_int_pars=pdftex_first_integer_code + 34 {total number of \pdfTeX's integer parameters}
+@d pdf_omit_charset_code = pdftex_first_integer_code + 33 {omit CharSet in Font dict}
+@d pdf_omit_info_dict_code = pdftex_first_integer_code + 34 {omit Info dict}
+@d pdf_omit_procset_code = pdftex_first_integer_code + 35 {omit ProcSet in resources dict}
+@d pdf_ptex_use_underscore_code = pdftex_first_integer_code + 36 {use underscore for PTEX prefix}
+@d pdf_int_pars=pdftex_first_integer_code + 37 {total number of \pdfTeX's integer parameters}
 @#
 @d etex_int_base=pdf_int_pars {base for \eTeX's integer parameters}
 @d tracing_assigns_code=etex_int_base {show assignments}
@@ -5807,6 +5821,9 @@ that will be defined later.
 @d pdf_info_omit_date == int_par(pdf_info_omit_date_code)
 @d pdf_suppress_ptex_info == int_par(pdf_suppress_ptex_info_code)
 @d pdf_omit_charset == int_par(pdf_omit_charset_code)
+@d pdf_omit_info_dict == int_par(pdf_omit_info_dict_code)
+@d pdf_omit_procset == int_par(pdf_omit_procset_code)
+@d pdf_ptex_use_underscore == int_par(pdf_ptex_use_underscore_code)
 @#
 @d tracing_assigns==int_par(tracing_assigns_code)
 @d tracing_groups==int_par(tracing_groups_code)
@@ -5916,6 +5933,9 @@ pdf_suppress_warning_page_group_code:print_esc("pdfsuppresswarningpagegroup");
 pdf_info_omit_date_code:print_esc("pdfinfoomitdate");
 pdf_suppress_ptex_info_code: print_esc("pdfsuppressptexinfo");
 pdf_omit_charset_code: print_esc("pdfomitcharset");
+pdf_omit_info_dict_code: print_esc("pdfomitinfodict");
+pdf_omit_procset_code: print_esc("pdfomitprocset");
+pdf_ptex_use_underscore_code: print_esc("pdfptexuseunderscore");
 @/@<Cases for |print_param|@>@/
 othercases print("[unknown integer parameter!]")
 endcases;
@@ -6114,6 +6134,15 @@ primitive("pdfsuppressptexinfo",assign_int,int_base+pdf_suppress_ptex_info_code)
 primitive("pdfomitcharset",assign_int,int_base+pdf_omit_charset_code);@/
 @!@:pdf_omit_charset}{\.{\\pdfomitcharset} primitive@>
 
+primitive("pdfomitinfodict",assign_int,int_base+pdf_omit_info_dict_code);@/
+@!@:pdf_omit_info_dict}{\.{\\pdfomitinfodict} primitive@>
+
+primitive("pdfomitprocset",assign_int,int_base+pdf_omit_procset_code);@/
+@!@:pdf_omit_procset}{\.{\\pdfomitprocset} primitive@>
+
+primitive("pdfptexuseunderscore",assign_int,int_base+pdf_ptex_use_underscore_code);@/
+@!@:pdf_ptex_use_underscore}{\.{\\pdfptexuseunderscore} primitive@>
+
 @ @<Cases of |print_cmd_chr|...@>=
 assign_int: if chr_code<count_base then print_param(chr_code-int_base)
   else  begin print_esc("count"); print_int(chr_code-count_base);
@@ -6135,14 +6164,18 @@ del_code("."):=0; {this null delimiter is used in error recovery}
 input and output, establishes the initial values of the date and time.
 @^system dependencies@>
 Since standard \PASCAL\ cannot provide such information, something special
-is needed. The program here simply specifies July 4, 1776, at noon; but
-users probably want a better approximation to the truth.
+is needed. The program here simply assumes that suitable values appear in
+the global variables \\{sys\_time}, \\{sys\_day}, \\{sys\_month}, and
+\\{sys\_year} (which are initialized to noon on 4 July 1776,
+in case the implementor is careless).
 
 @p procedure fix_date_and_time;
-begin time:=12*60; {minutes since midnight}
-day:=4; {fourth day of the month}
-month:=7; {seventh month of the year}
-year:=1776; {Anno Domini}
+begin sys_time:=12*60;
+sys_day:=4; sys_month:=7; sys_year:=1776;  {self-evident truths}
+time:=sys_time; {minutes since midnight}
+day:=sys_day; {day of the month}
+month:=sys_month; {month of the year}
+year:=sys_year; {Anno Domini}
 end;
 
 @ @<Show equivalent |n|, in region 5@>=
@@ -6178,11 +6211,13 @@ if blank_line then print_ln;
 selector:=old_setting;
 end;
 
-@ Of course we had better declare another global variable, if the previous
+@ Of course we had better declare a few more global variables, if the previous
 routines are going to work.
 
 @<Glob...@>=
 @!old_setting:0..max_selector;
+@!sys_time,@!sys_day,@!sys_month,@!sys_year:integer;
+    {date and time supplied by external system}
 
 @ The final region of |eqtb| contains the dimension parameters defined
 here, and the 256 \.{\\dimen} registers.
@@ -6502,11 +6537,11 @@ cs_count:=0;
 eq_type(frozen_dont_expand):=dont_expand;
 text(frozen_dont_expand):="notexpanded:";
 @.notexpanded:@>
-
 eq_type(frozen_primitive):=ignore_spaces;
 equiv(frozen_primitive):=1;
 eq_level(frozen_primitive):=level_one;
 text(frozen_primitive):="pdfprimitive";
+
 @ Here is the subroutine that searches the hash table for an identifier
 that matches a given string of length |l>1| appearing in |buffer[j..
 (j+l-1)]|. If the identifier is found, the corresponding hash table address
@@ -6567,7 +6602,7 @@ for k:=j+1 to j+l-1 do
   while h>=hash_prime do h:=h-hash_prime;
   end
 
-@ Here is the subroutine that searches the primitive table for an identifier
+@ Here is the subroutine that searches the primitive table for an identifier:
 
 @p function prim_lookup(@!s:str_number):pointer; {search the primitives table}
 label found; {go here if you found it}
@@ -6624,7 +6659,6 @@ for k:=j+1 to j+l-1 do
   begin h:=h+h+str_pool[k];
   while h>=prim_prime do h:=h-prim_prime;
   end
-
 
 @ Single-character control sequences do not need to be looked up in a hash
 table, since we can use the character code itself as a direct address.
@@ -6700,7 +6734,7 @@ Hironori's explanation of the previous behavior and fix continues (off-list):
 \textindent{*} When \TeX\ gets input from a token list (at module
 $\langle\,$Input from token list, |goto restart| \dots$\,\rangle$),
 \TeX\ looks at the saved |cur_tok| value $t$, and recover the command
-code (|cur_cmd|) and its fmodifier (|cur_chr|) from it:
+code (|cur_cmd|) and its modifier (|cur_chr|) from it:
 
 {\advance\leftskip by 1.5em
 \textindent{--} If |t>=cs_token_flag|, $t$ points to an |eqtb| location
@@ -6957,7 +6991,7 @@ should replace the corresponding entry in |xeq_level|.
 \yskip\hangg 2) If |save_type(p)=restore_zero|, then |save_index(p)|
 is a location in |eqtb| whose current value should be destroyed at the end
 of the current group, when it should be
-replaced by the current value of |eqtb[undefined_control_sequence]|.
+replaced by the value of |eqtb[undefined_control_sequence]|.
 
 \yskip\hangg 3) If |save_type(p)=insert_token|, then |save_index(p)|
 is a token that should be inserted into \TeX's input when the current
@@ -7371,8 +7405,8 @@ when |m=out_param|, it means that \TeX\ should insert parameter
 number |c| into the text at this point.
 
 The enclosing \.{\char'173} and \.{\char'175} characters of a macro
-definition are omitted, but the final right brace of an output routine
-is included at the end of its token list.
+definition are omitted, but an output routine
+will be enclosed in braces.
 
 Here is an example macro definition that illustrates these conventions.
 After \TeX\ processes the text
@@ -7858,7 +7892,7 @@ template is being scanned;
 template is being scanned;
 
 \hang|backed_up|, if the token list being scanned has been inserted as
-`to be read again'.
+`to be read again';
 
 \hang|inserted|, if the token list being scanned has been inserted as
 the text expansion of a \.{\\count} or similar variable;
@@ -8019,10 +8053,9 @@ if name<=17 then
 @.*\relax@>
     print_char(">");
     end
-else if index<>in_open then {input from a pseudo file}
-  begin print_nl("l."); print_int(line_stack[index+1]);
-  end
-else  begin print_nl("l."); print_int(line);
+else  begin print_nl("l.");
+  if index=in_open then print_int(line)
+  else print_int(line_stack[index+1]); {input from a pseudo file}
   end;
 print_char(" ")
 
@@ -8419,7 +8452,8 @@ end
 
 @ The recovery procedure can't be fully understood without knowing more
 about the \TeX\ routines that should be aborted, but we can sketch the
-ideas here:  For a runaway definition we will insert a right brace; for a
+ideas here:  For a runaway definition or a runaway balanced text
+we will insert a right brace; for a
 runaway preamble, we will insert a special \.{\\cr} token and a right
 brace; and for a runaway argument, we will set |long_state| to
 |outer_call| and insert \.{\\par}.
@@ -8971,7 +9005,7 @@ end
 
 @ The \.{\\pdfprimitive} handling. If the primitive meaning of the next
 token is an expandable command, it suffices to replace the current
-token with the primitive one and restart |expand|/
+token with the primitive one and restart |expand|.
 
 Otherwise, the token we just read has to be pushed back, as well
 as a token matching the internal form of \.{\\pdfprimitive}, that is
@@ -9159,7 +9193,7 @@ done: if cur_cs=0 then cur_tok:=(cur_cmd*@'400)+cur_chr
 else cur_tok:=cs_token_flag+cur_cs;
 end;
 
-@ The |get_x_token| procedure is equivalent to two consecutive
+@ The |get_x_token| procedure is essentially equivalent to two consecutive
 procedure calls: |get_next; x_token|.
 
 @p procedure x_token; {|get_x_token| without the initial |get_next|}
@@ -9488,7 +9522,7 @@ end
 strip off the enclosing braces. That's why |rbrace_ptr| was introduced.
 
 @<Tidy up the parameter just scanned, and tuck it away@>=
-begin if (m=1)and(info(p)<right_brace_limit)and(p<>temp_head) then
+begin if (m=1)and(info(p)<right_brace_limit) then
   begin link(rbrace_ptr):=null; free_avail(p);
   p:=link(temp_head); pstack[n]:=link(p); free_avail(p);
   end
@@ -9761,9 +9795,9 @@ The |set_page_int| command has modifier 0 or 1, for `\.{\\deadcycles}' and
 modified by either |width_offset|, |height_offset|, or |depth_offset|.
 And the |last_item| command is modified by either |int_val|, |dimen_val|,
 |glue_val|, |input_line_no_code|, or |badness_code|.
-\pdfTeX\ adds the codes for its extensions: |pdftex_version_code|, \dots\ .
+\pdfTeX\ adds the codes for its extensions: |pdftex_version_code|, \dots.
 \eTeX\ inserts |last_node_type_code| after |glue_val| and adds
-the codes for its extensions: |eTeX_version_code|, \dots\ .
+the codes for its extensions: |eTeX_version_code|, \dots.
 
 @d last_node_type_code=glue_val+1 {code for \.{\\lastnodetype}}
 @d input_line_no_code=glue_val+2 {code for \.{\\inputlineno}}
@@ -10679,7 +10713,7 @@ at the value |p| that is returned. (If |p=temp_head|, the list is empty.)
 
 @p @t\4@>@<Declare \eTeX\ procedures for token lists@>@;@/
 function str_toks(@!b:pool_pointer):pointer;
-  {changes the string |str_pool[b..pool_ptr]| to a token list}
+  {converts |str_pool[b..pool_ptr-1]| to a token list}
 var p:pointer; {tail of the token list}
 @!q:pointer; {new node being added to the token list via |store_new_token|}
 @!t:halfword; {token being appended}
@@ -10749,9 +10783,9 @@ end;
 
 \eTeX\ adds \.{\\eTeXrevision} such that |job_name_code| remains last.
 
-\pdfTeX\ adds \.{\\eTeXrevision}, \.{\\pdftexrevision}, \.{\\pdftexbanner},
-\.{\\pdffontname}, \.{\\pdffontobjnum}, \.{\\pdffontsize}, and \.{\\pdfpageref}
-such that |job_name_code| remains last.
+\pdfTeX\ adds \.{\\pdftexrevision}, \.{\\pdftexbanner}, \.{\\pdffontname},
+\.{\\pdffontobjnum}, \.{\\pdffontsize}, and \.{\\pdfpageref} such that
+|job_name_code| remains last.
 
 @d number_code=0 {command code for \.{\\number}}
 @d roman_numeral_code=1 {command code for \.{\\romannumeral}}
@@ -10954,6 +10988,7 @@ expanded_code:
     warning_index := save_warning_index;
     scanner_status := save_scanner_status;
     ins_list(link(def_ref));
+    free_avail(def_ref);
     def_ref := save_def_ref;
     restore_cur_string;
     return;
@@ -11405,7 +11440,7 @@ address of the control sequence to display in ``runaway'' error
 messages.
 
 @p function scan_toks(@!macro_def,@!xpand:boolean):pointer;
-label found,done,done1,done2;
+label found,continue,done,done1,done2;
 var t:halfword; {token representing the highest parameter number}
 @!s:halfword; {saved token}
 @!p:pointer; {tail of the token list being built}
@@ -11425,7 +11460,7 @@ scan_toks:=p;
 end;
 
 @ @<Scan and build the parameter part...@>=
-begin loop begin get_token; {set |cur_cmd|, |cur_chr|, |cur_tok|}
+begin loop begin continue: get_token; {set |cur_cmd|, |cur_chr|, |cur_tok|}
   if cur_tok<right_brace_limit then goto done1;
   if cur_cmd=mac_param then
     @<If the next character is a parameter number, make |cur_tok|
@@ -11447,7 +11482,7 @@ end
 
 @ @<If the next character is a parameter number...@>=
 begin s:=match_token+cur_chr; get_token;
-if cur_cmd=left_brace then
+if cur_tok<left_brace_limit then
   begin hash_brace:=cur_tok;
   store_new_token(cur_tok); store_new_token(end_match_token);
   goto done;
@@ -11455,7 +11490,8 @@ if cur_cmd=left_brace then
 if t=zero_token+9 then
   begin print_err("You already have nine parameters");
 @.You already have nine...@>
-  help1("I'm going to ignore the # sign you just used."); error;
+  help2("I'm going to ignore the # sign you just used,")@/
+    ("as well as the token that followed it."); error; goto continue;
   end
 else  begin incr(t);
   if cur_tok<>t then
@@ -11610,7 +11646,7 @@ begin if not input_ln(read_file[m],true) then
     print_err("File ended within "); print_esc("read");
 @.File ended within \\read@>
     help1("This \read has unbalanced braces.");
-    align_state:=1000000; error;
+    align_state:=1000000; limit:=0; error;
     end;
   end;
 end
@@ -11755,7 +11791,7 @@ where skipping began, for use in error messages.
 @!skip_line:integer; {skipping began here}
 
 @ Here is a procedure that ignores text until coming to an \.{\\or},
-\.{\\else}, or \.{\\fi} at level zero of $\.{\\if}\ldots\.{\\fi}$
+\.{\\else}, or \.{\\fi} at the current level of $\.{\\if}\ldots\.{\\fi}$
 nesting. After it has acted, |cur_chr| will indicate the token that
 was found, but |cur_tok| will not be set (because this makes the
 procedure run faster).
@@ -12484,11 +12520,11 @@ end
 @ @<Print the banner...@>=
 begin wlog(banner);
 slow_print(format_ident); print("  ");
-print_int(day); print_char(" ");
+print_int(sys_day); print_char(" ");
 months:='JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC';
-for k:=3*month-2 to 3*month do wlog(months[k]);
-print_char(" "); print_int(year); print_char(" ");
-print_two(time div 60); print_char(":"); print_two(time mod 60);
+for k:=3*sys_month-2 to 3*sys_month do wlog(months[k]);
+print_char(" "); print_int(sys_year); print_char(" ");
+print_two(sys_time div 60); print_char(":"); print_two(sys_time mod 60);
 if eTeX_ex then
   begin; wlog_cr; wlog('entering extended mode');
   end;
@@ -12496,6 +12532,9 @@ end
 
 @ Let's turn now to the procedure that is used to initiate file reading
 when an `\.{\\input}' command is being processed.
+Beware: For historic reasons, this code foolishly conserves a tiny bit
+of string pool space; but that can confuse the interactive `\.E' option.
+@^system dependencies@>
 
 @p procedure start_input; {\TeX\ will \.{\\input} something}
 label done;
@@ -12520,7 +12559,7 @@ if term_offset+length(name)>max_print_line-2 then print_ln
 else if (term_offset>0)or(file_offset>0) then print_char(" ");
 print_char("("); incr(open_parens); slow_print(name); update_terminal;
 state:=new_line;
-if name=str_ptr-1 then {we can conserve string pool space now}
+if name=str_ptr-1 then {conserve string pool space (but see note above)}
   begin flush_string; name:=cur_name;
   end;
 @<Read the first line of the new file@>;
@@ -12734,11 +12773,11 @@ deleted if $c=0$; then we pass over $a$~characters to reach the next
 current character (which may have a ligature/kerning program of its own).
 
 If the very first instruction of the |lig_kern| array has |skip_byte=255|,
-the |next_char| byte is the so-called right boundary character of this font;
+the |next_char| byte is the so-called boundary character of this font;
 the value of |next_char| need not lie between |bc| and~|ec|.
 If the very last instruction of the |lig_kern| array has |skip_byte=255|,
-there is a special ligature/kerning program for a left boundary character,
-beginning at location |256*op_byte+remainder|.
+there is a special ligature/kerning program for a boundary character at the
+left, beginning at location |256*op_byte+remainder|.
 The interpretation is that \TeX\ puts implicit boundary characters
 before and after each consecutive string of characters from the same font.
 These implicit characters do not appear in the output, but they can affect
@@ -12870,7 +12909,7 @@ the font.
   {start of |lig_kern| program for left boundary character,
   |non_address| if there is none}
 @!font_bchar:array[internal_font_number] of min_quarterword..non_char;
-  {right boundary character, |non_char| if there is none}
+  {boundary character, |non_char| if there is none}
 @!font_false_bchar:array[internal_font_number] of min_quarterword..non_char;
   {|font_bchar| if it doesn't exist in the font, otherwise |non_char|}
 
@@ -13049,7 +13088,7 @@ var k:font_index; {index into |font_info|}
 @!a,@!b,@!c,@!d:eight_bits; {byte variables}
 @!qw:four_quarters;@!sw:scaled; {accumulators}
 @!bch_label:integer; {left boundary start location, or infinity}
-@!bchar:0..256; {right boundary character, or 256}
+@!bchar:0..256; {boundary character, or 256}
 @!z:scaled; {the design size or the ``at'' size}
 @!alpha:integer;@!beta:1..16;
   {auxiliary quantities used in fixed-point multiplication}
@@ -13682,13 +13721,13 @@ stack were empty at the time of a |pop| command.
 The parameter is a signed number in two's complement notation, |-128<=b<128|;
 if |b<0|, the reference point moves left.
 
-\yskip\hang|right2| 144 |b[2]|. Same as |right1|, except that |b| is a
+\yskip\hang|@!right2| 144 |b[2]|. Same as |right1|, except that |b| is a
 two-byte quantity in the range |-32768<=b<32768|.
 
-\yskip\hang|right3| 145 |b[3]|. Same as |right1|, except that |b| is a
+\yskip\hang|@!right3| 145 |b[3]|. Same as |right1|, except that |b| is a
 three-byte quantity in the range |@t$-2^{23}$@><=b<@t$2^{23}$@>|.
 
-\yskip\hang|right4| 146 |b[4]|. Same as |right1|, except that |b| is a
+\yskip\hang|@!right4| 146 |b[4]|. Same as |right1|, except that |b| is a
 four-byte quantity in the range |@t$-2^{31}$@><=b<@t$2^{31}$@>|.
 
 \yskip\hang|w0| 147. Set |h:=h+w|; i.e., move right |w| units. With luck,
@@ -15069,10 +15108,8 @@ while font_ptr>font_base do
   end
 
 
-@* \[32a] \pdfTeX\ basic.
-
-Initialize \pdfTeX's parameters to some useful default value.
-Helpful in case one forgets to set them during initex run.
+@* \[32a] \pdfTeX\ basic.  Initialize \pdfTeX's parameters to some useful
+default value.  Helpful in case one forgets to set them during \.{INITEX} run.
 
 @<Initialize table entries...@>=
 pdf_h_origin := (one_hundred_inch + 50) div 100;
@@ -15121,6 +15158,12 @@ end;
 function get_pdf_omit_charset: integer;
 begin
     get_pdf_omit_charset := pdf_omit_charset;
+end;
+
+function get_ptex_use_underscore: boolean;
+begin
+    get_ptex_use_underscore
+      := (pdf_ptex_use_underscore > 0) or (pdf_major_version >= 2)
 end;
 
 function get_nullfont: internal_font_number;
@@ -15192,12 +15235,7 @@ begin
     get_slant := slant(f);
 end;
 
-function new_dummy_font: internal_font_number;
-begin
-    new_dummy_font := read_font_info(null_cs, "dummy", "", -1000);
-end;
-
-@ Helper for debugging purposes
+@ Helper for debugging purposes:
 
 @p procedure short_display_n(@!p, m:integer); {prints highlights of list |p|}
 var n:integer; {for replacement counts}
@@ -15250,7 +15288,7 @@ while p>mem_min do
   update_terminal;
 end;
 
-@ Sometimes it is neccesary to allocate memory for PDF output that cannot
+@ Sometimes it is necessary to allocate memory for PDF output that cannot
 be deallocated then, so we use |pdf_mem| for this purpose.
 
 @<Constants...@>=
@@ -15267,7 +15305,7 @@ pdf_mem_ptr := 1; {the first word is not used so we can use zero as a value for 
 whether a pointer to |pdf_mem| is valid}
 pdf_mem_size := inf_pdf_mem_size; {allocated size of |pdf_mem| array}
 
-@ We use |pdf_get_mem| to allocate memory in |pdf_mem|
+@ We use |pdf_get_mem| to allocate memory in |pdf_mem|.
 
 @p function pdf_get_mem(s: integer): integer; {allocate |s| words in |pdf_mem|}
 var a: integer;
@@ -15289,7 +15327,7 @@ begin
 end;
 
 @* \[32b] \pdfTeX\ output low-level subroutines.
-We use the similiar subroutines to handle the output buffer for
+We use the similar subroutines to handle the output buffer for
 PDF output. When compress is used, the state of writing to buffer
 is held in |zip_write_state|. We must write the header of PDF
 output file in initialization to ensure that it will be the first
@@ -15301,7 +15339,7 @@ written bytes.
 @!sup_pdf_os_buf_size = 5000000; {arbitrary upper hard limit of |pdf_os_buf_size|}
 @!pdf_os_max_objs = 100; {maximum number of objects in object stream}
 
-@ The following macros are similar as for \.{DVI} buffer handling
+@ The following macros are similar as for \.{DVI} buffer handling:
 
 @d pdf_offset == (pdf_gone + pdf_ptr) {the file offset of last byte in PDF
 buffer that |pdf_ptr| points to}
@@ -15486,7 +15524,7 @@ end;
 
 @ The PDF buffer is flushed by calling |pdf_flush|, which checks the
 variable |zip_write_state| and will compress the buffer before flushing if
-neccesary. We call |pdf_begin_stream| to begin a stream  and |pdf_end_stream|
+necessary. We call |pdf_begin_stream| to begin a stream  and |pdf_end_stream|
 to finish it. The stream contents will be compressed if compression is turn on.
 
 @p procedure pdf_flush; {flush out the |pdf_buf|}
@@ -15549,7 +15587,7 @@ begin
     pdf_end_obj;
 end;
 
-@ Basic printing procedures for PDF output are very similiar to \TeX\ basic
+@ Basic printing procedures for PDF output are very similar to \TeX\ basic
 printing ones but the output is going to PDF buffer. Subroutines with
 suffix |_ln| append a new-line character to the PDF output.
 
@@ -15737,7 +15775,7 @@ end;
 
 
 @ To print |scaled| value to PDF output we need some subroutines to ensure
-accurary.
+accuracy.
 
 @d max_integer == @"7FFFFFFF {$2^{31}-1$}
 @d call_func(#) == begin if # <> 0 then do_nothing end
@@ -15750,6 +15788,8 @@ accurary.
 @!scaled_out: integer; {amount of |scaled| that was taken out in
 |divide_scaled|}
 @!init_pdf_output: boolean;
+@!adv_char_width_s: integer; {to save result of calculation done in |adv_char_width| }
+@!adv_char_width_s_out: scaled;
 
 @ @<Set init...@>=
 one_bp := 65782; {65781.76}
@@ -15815,7 +15855,7 @@ else
     round_xn_over_d := -u;
 end;
 
-@ Next subroutines are needed for controling spacing in PDF page description.
+@ Next subroutines are needed for controlling spacing in PDF page description.
 For a given character |c| from a font |f|,
 the procedure |adv_char_width| advances |pdf_h|
 by {\it about\/} the amount |w|, which is the character width.
@@ -15836,27 +15876,30 @@ For PK fonts things are more complicated,
 as we have to deal with scaling bitmaps as well.
 
 @p
-procedure adv_char_width(f: internal_font_number; c: eight_bits); {update |pdf_h|
-by character width |w| from font |f|}
+procedure adv_char_width(f: internal_font_number; c: eight_bits; dd: eight_bits);
+{update |pdf_delta_h| by character width |w| from font |f|}
 var w, s_out: scaled;
     s: integer;
 begin
     w := char_width(f)(char_info(f)(c));
     if isscalable(f) then begin
         if pdf_cur_Tm_a = 0 then begin
-            call_func(divide_scaled(w, pdf_font_size[f], 4));
-            pdf_delta_h := pdf_delta_h + scaled_out;
+            s := divide_scaled(w, pdf_font_size[f], dd);
+            s_out := scaled_out;
+            pdf_delta_h := pdf_delta_h + s_out;
         end
         else begin
             s := divide_scaled(round_xn_over_d(w, 1000, 1000 + pdf_cur_Tm_a),
                                pdf_font_size[f],
-                               4);
+                               dd);
             s_out := round_xn_over_d(round_xn_over_d(pdf_font_size[f], abs(s), 10000),
                                      1000 + pdf_cur_Tm_a, 1000);
             if s < 0 then
                 s_out := -s_out;
             pdf_delta_h := pdf_delta_h + s_out;
         end;
+        adv_char_width_s := s;
+        adv_char_width_s_out := s_out;
     end else
         pdf_delta_h := pdf_delta_h + get_pk_char_width(f, w);
 end;
@@ -15929,12 +15972,11 @@ DVI}
 @!pdf_output_value: integer;
 @!pdf_draftmode_option: integer;
 @!pdf_draftmode_value: integer;
-@!pdf_cur_Tm_a: integer; {|a| value of the current text matrix, ie the current
+@!pdf_cur_Tm_a: integer; {|a| value of the current text matrix, i.e., the current
                           horizontal scaling factor}
 @!pdf_last_f: internal_font_number; {last font in PDF output page}
 @!pdf_last_fs: internal_font_number; {last font size in PDF output page}
 @!pdf_dummy_font: internal_font_number; {font used to insert artificial interword spaces}
-
 
 @ Following procedures implement low-level subroutines to convert \TeX{}
 internal structures to PDF page description.
@@ -16037,7 +16079,7 @@ end;
 can load the same font several times for various sizes. For such fonts we
 define only one font resource. The array |pdf_font_num| holds the object
 number of font resource. A negative value of an entry of |pdf_font_num|
-indicates that the corresponding font shares the font resource with the font
+indicates that the corresponding font shares the font resource with the font.
 
 @d pdf_print_resname_prefix ==
 if pdf_resname_prefix <> 0 then
@@ -16062,7 +16104,7 @@ begin
 
     {check whether |f| can share the font object with some |k|: we have 2 cases
     here: 1) |f| and |k| have the same tfm name (so they have been loaded at
-    different sizes, eg 'cmr10' and 'cmr10 at 11pt'); 2) |f| has been auto
+    different sizes, e.g., 'cmr10' and 'cmr10 at 11pt'); 2) |f| has been auto
     expanded from |k|}
     if isscalable(f) then begin
         i := head_tab[obj_type_font];
@@ -16088,6 +16130,7 @@ begin
 
     {create a new font object for |f|}
     pdf_create_obj(obj_type_font, f);
+    pdf_font_has_space_char[f] := hasspacechar(f);
     pdf_use_font(f, obj_ptr);
 end;
 
@@ -16144,7 +16187,8 @@ end;
 procedure pdf_read_dummy_font;
 begin
     if pdf_dummy_font = null_font then begin
-        pdf_dummy_font := read_font_info(null_cs, "dummy-space", "", one_bp);
+        pdf_dummy_font := read_font_info(null_cs, pdf_space_font_name, "", -1000);
+        pdfmaplinesp;
         pdf_mark_char(pdf_dummy_font, 32);
     end;
 end;
@@ -16159,6 +16203,7 @@ end;
 
 procedure pdf_begin_string(f: internal_font_number); {begin to draw a string}
 var s_out, v, v_out: scaled;
+    save_pdf_delta_h: scaled;
     s: integer;
     must_end_string: boolean;  {must we end the current string?}
     must_insert_space: boolean;  {must we insert an interword space?}
@@ -16200,28 +16245,37 @@ begin
     must_insert_space := false;
     must_end_string := false;
 
-@{    print_nl("s_out = "); print_scaled(s_out); @}
-@{    print_nl("space(f) = "); print_scaled(space(f)); @}
-@{    print_nl("space_shrink(f) = "); print_scaled(space_shrink(f)); @}
-@{    print_nl("x_height(f) = "); print_scaled(x_height(f)); @}
-@{    print_nl("v = "); print_scaled(v); @}
-@{    print_nl("v_out = "); print_scaled(v_out); @}
+    if (f <> pdf_f) or (v <> 0) or (abs(s) >= @'100000) then begin
+        must_end_string := true;
+    end;
 
-    if gen_faked_interword_space and
-        ((abs(v_out) > 2*x_height(f)) or
-         (s_out > space(f) - space_shrink(f)) or
-         ((f <> pdf_f) and (v = 0))) then
-    begin
+    if gen_faked_interword_space
+        and pdf_doing_string
+        and (not must_end_string)
+        and (s_out > space(f) - space_shrink(f) - 65536)
+        and (v = 0)
+    then begin
         must_insert_space := true;
     end;
 
-    if (f <> pdf_f) or (v <> 0) or (abs(s) >= @'100000) or must_insert_space then begin
-        must_end_string := true;
+    if (must_insert_space) then begin
+        {insert a real space char from the font when possible}
+        if pdf_font_has_space_char[f]  then begin
+            pdf_out(" ");
+            save_pdf_delta_h := pdf_delta_h;
+            adv_char_width(f, 32, 3); { to get |adv_char_width_s| and |adv_char_width_s_out|}
+            s := s - adv_char_width_s;
+            s_out := s_out - adv_char_width_s_out;
+            pdf_mark_char(f, 32);
+        end
+        else
+            must_end_string := true;
     end;
 
     if must_end_string then begin
         pdf_end_string;
-        if must_insert_space then begin
+        {insert a space char from the dummy font if needed}
+        if (must_insert_space) and (not pdf_font_has_space_char[f]) then begin
             pdf_insert_interword_space; {this will change |pdf_f|}
             pdf_set_font(f);
         end;
@@ -16365,13 +16419,11 @@ begin
     pdf_print_nl;
 end;
 
-@* \[32d] The cross-reference table.
-
-The cross-reference table |obj_tab| is an array of |obj_tab_size| of
-|obj_entry|. Each entry contains five integer fields and represents an object
-in PDF file whose object number is the index of this entry in |obj_tab|.
-Objects in |obj_tab| maybe linked into list; objects in such a linked list have
-the same type.
+@* \[32d] The cross-reference table.  The cross-reference table |obj_tab| is an
+array of |obj_tab_size| of |obj_entry|. Each entry contains five integer fields
+and represents an object in PDF file whose object number is the index of this
+entry in |obj_tab|.  Objects in |obj_tab| maybe linked into list; objects in
+such a linked list have the same type.
 
 @<Types...@>=
 @!obj_entry = record@;@/
@@ -16381,7 +16433,7 @@ the same type.
 end;
 
 @ The first field contains information representing identifier of this object.
-It is usally a number for most of object types, but it may be a string number
+It is usually a number for most of object types, but it may be a string number
 for named destination or named thread.
 
 The second field of |obj_entry| contains link to the next
@@ -16417,10 +16469,11 @@ well.
 @d obj_type_font                == 3 {index of linked list of Fonts objects}
 @d obj_type_outline             == 4 {index of linked list of outline objects}
 @d obj_type_dest                == 5 {index of linked list of destination objects}
-@d obj_type_obj                 == 6 {index of linked list of raw objects}
-@d obj_type_xform               == 7 {index of linked list of XObject forms}
-@d obj_type_ximage              == 8 {index of linked list of XObject image}
-@d obj_type_thread              == 9 {index of linked list of num article threads}
+@d obj_type_struct_dest         == 6 {index of linked list of structure destination objects}
+@d obj_type_obj                 == 7 {index of linked list of raw objects}
+@d obj_type_xform               == 8 {index of linked list of XObject forms}
+@d obj_type_ximage              == 9 {index of linked list of XObject image}
+@d obj_type_thread              == 10 {index of linked list of num article threads}
 @d head_tab_max                 == obj_type_thread {max index of |head_tab|}
 
 @# {max number of kids for balanced trees}
@@ -16538,7 +16591,7 @@ destination |pdf_left| and |pdf_top| are used for some types of destinations}
 @d pdf_action_user         == 3 {user-defined action}
 
 @# {data structure of actions}
-@d pdf_action_size         == 3 {size of action structure in |mem|}
+@d pdf_action_size         == 4 {size of action structure in |mem|}
 @d pdf_action_type         == type {action type}
 @d pdf_action_named_id     == subtype {identifier is type of name}
 @d pdf_action_id           == link {destination/thread name identifier}
@@ -16547,6 +16600,7 @@ destination |pdf_left| and |pdf_top| are used for some types of destinations}
 @d pdf_action_page_tokens(#) == info(# + 2) {specification of GoTo page action}
 @d pdf_action_user_tokens(#) == info(# + 2) {user-defined action string}
 @d pdf_action_refcount(#)  == link(# + 2) {counter of references to this action}
+@d pdf_action_struct_id(#) == link(# + 3) {structure destination identifier}
 
 @# {data structure of outlines; it's not able to write out outline entries
 before all outline entries are defined, so memory allocated for outline
@@ -16577,7 +16631,7 @@ action}
 @d pdf_dest_fitbv           == 6
 @d pdf_dest_fitr            == 7
 
-@# {data structure of destinations}
+@# {data structure of structure and regular destinations}
 @d obj_dest_ptr             == obj_aux {pointer to |pdf_dest_node|}
 @d pdf_dest_node_size       == 7 {size of whatsit node for destination;
 words |1..4| hold dest dimensions, word |6| identifier type, subtype
@@ -16949,7 +17003,7 @@ end;
 @!pdf_image_procset: integer; {collection of image types used in current page/form}
 @!pdf_text_procset: boolean; {mask of used ProcSet's in the current page/form}
 
-@ Subroutines to print out various PDF objects
+@ Subroutines to print out various PDF objects:
 
 @d is_hex_char(#) == (((# >= '0') and (# <= '9')) or
                       ((# >= 'A') and (# <= 'F')) or
@@ -17079,11 +17133,9 @@ begin
     pdf_print_nl;
 end;
 
-@* \[32e] Font processing.
-
-As \pdfTeX{} should also act as a back-end driver, it needs to support virtual
-fonts too. Information about virtual fonts can be found in the source of some
-\.{DVI}-related programs.
+@* \[32e] Font processing.  As \pdfTeX{} should also act as a back-end driver,
+it needs to support virtual fonts too. Information about virtual fonts can be
+found in the source of some \.{DVI}-related programs.
 
 Whenever we want to write out a character in a font to PDF output, we
 should check whether the used font is a new (has not been used yet),
@@ -17229,7 +17281,7 @@ var kn, st, sh: scaled;
     f: internal_font_number;
 begin
     if not (not is_char_node(g) and type(g) = glue_node) then begin
-        pdf_warning("adjust_interword_glue", "g is not a glue", false, false);
+        pdf_warning("adjust_interword_glue", "g is not a glue", true, true);
         return;
     end;
 
@@ -17434,7 +17486,8 @@ begin
         else
             k := read_font_info(null_cs, s, "", font_size[f]);
     end;
-    copy_expand_params(k, f, e);
+    if k <> null_font then
+        copy_expand_params(k, f, e);
     load_expand_font := k;
 end;
 
@@ -17591,8 +17644,7 @@ begin
     end
     else begin
         if (pdf_font_type[f] <> new_font_type) and (pdf_font_type[f] <> virtual_font_type) then
-            pdf_warning("font expansion", "font should be expanded before its first use",
-                        true, true);
+            pdf_warning("font expansion", "font should be expanded before its first use", true, true);
         set_expand_params(f, auto_expand, stretch_limit, shrink_limit, font_step, 0);
         if pdf_font_type[f] = virtual_font_type then
             vf_expand_local_fonts(f);
@@ -17628,12 +17680,17 @@ begin
     if scan_keyword("nolig") then
         set_no_ligatures(k); {disable ligatures for letter-spaced fonts}
     nw := height_base[k] - width_base[k];
+
+    if (quad(k) = 0) and (quad(f) > 0) then
+        quad(k) := quad(f);
+    if quad(k) = 0 then
+        pdf_warning("\letterspacefont", "font has zero em size (\fontdimen6)", true, true);
+
     for i := 0 to nw - 1 do
         font_info[width_base[k] + i].sc :=
             font_info[width_base[k] + i].sc + round_xn_over_d(quad(k), e, 1000);
 
-    {append eg '+100ls' to font name}
-    flush_str(font_name[k]);
+    {append, e.g., '+100ls' to font name}
     str_room(length(font_name[k]) + 7); {|abs(e) <= 1000|}
     old_setting := selector;
     selector := new_string;
@@ -17945,7 +18002,7 @@ begin
 end;
 
 procedure vf_local_font_warning(f, k: internal_font_number; s: str_number);
-{print a warning message if an error ocurrs during processing local fonts in
+{print a warning message if an error occurs during processing local fonts in
 \.{VF} file}
 begin
     print_nl(s);
@@ -17990,12 +18047,12 @@ begin
             vf_local_font_warning(f, k, "checksum mismatch");
         if ds <> font_dsize[k] then
             vf_local_font_warning(f, k, "design size mismatch");
+        if (pdf_font_step[f] <> 0) then
+            set_expand_params(k, pdf_font_auto_expand[f],
+                              pdf_font_expand_ratio[pdf_font_stretch[f]],
+                              -pdf_font_expand_ratio[pdf_font_shrink[f]],
+                              pdf_font_step[f], pdf_font_expand_ratio[f]);
     end;
-    if (pdf_font_step[f] <> 0) then
-        set_expand_params(k, pdf_font_auto_expand[f],
-                          pdf_font_expand_ratio[pdf_font_stretch[f]],
-                          -pdf_font_expand_ratio[pdf_font_shrink[f]],
-                          pdf_font_step[f], pdf_font_expand_ratio[f]);
     vf_def_font := k;
 end;
 
@@ -18336,7 +18393,7 @@ end;
     else begin
         pdf_begin_string(f);
         pdf_print_char(f, #);
-        adv_char_width(f, #);
+        adv_char_width(f, #, 4);
     end;
 end
 
@@ -18464,13 +18521,25 @@ need to declare some procedures needed in |pdf_hlist_out| and |pdf_vlist_out|.
 procedure pdf_out_literal(p:pointer);
 var old_setting:0..max_selector; {holds print |selector|}
     s: str_number;
+    h: halfword;
+    @!q,@!r:pointer; {temporary variables for list manipulation}
+    @!old_mode:integer; {saved |mode|}
 begin
-    old_setting:=selector; selector:=new_string;
-    show_token_list(link(pdf_literal_data(p)),null,pool_size-pool_ptr);
+    old_setting:=selector;
+    if subtype(p)=pdf_lateliteral_node then
+      begin @<Expand macros in the token list
+        and make |link(def_ref)| point to the result@>;
+      h:=def_ref;
+      end
+    else h:=pdf_literal_data(p);
+    selector:=new_string;
+    show_token_list(link(h),null,pool_size-pool_ptr);
     selector:=old_setting;
     s := make_string;
     literal(s, pdf_literal_mode(p), false);
     flush_str(s);
+    if subtype(p)=pdf_lateliteral_node then
+      flush_list(def_ref);
 end;
 
 procedure pdf_out_colorstack(p:pointer);
@@ -18581,13 +18650,26 @@ end;
 procedure pdf_special(p: pointer);
 var old_setting:0..max_selector; {holds print |selector|}
     s: str_number;
+    h: halfword;
+    @!q,@!r:pointer; {temporary variables for list manipulation}
+    @!old_mode:integer; {saved |mode|}
 begin
-    old_setting:=selector; selector:=new_string;
-    show_token_list(link(write_tokens(p)),null,pool_size-pool_ptr);
+    old_setting:=selector;
+    selector:=selector;
+    if subtype(p)=latespecial_node then
+      begin @<Expand macros in the token list
+        and make |link(def_ref)| point to the result@>;
+        h:=def_ref;
+      end
+    else h:=write_tokens(p);
+    selector:=new_string;
+    show_token_list(link(h),null,pool_size-pool_ptr);
     selector:=old_setting;
     s := make_string;
     literal(s, scan_special, true);
     flush_str(s);
+    if subtype(p)=latespecial_node then
+      flush_list(def_ref);
 end;
 
 procedure pdf_print_toks(p: pointer); {print tokens list |p|}
@@ -18609,11 +18691,11 @@ begin
     flush_str(s);
 end;
 
-@ Similiar to |vlist_out|, |pdf_vlist_out| needs to be declared forward
+@ Similar to |vlist_out|, |pdf_vlist_out| needs to be declared forward.
 
 @p procedure@?pdf_vlist_out; forward;
 
-@ The implementation of procedure |pdf_hlist_out| is similiar to |hlist_out|
+@ The implementation of procedure |pdf_hlist_out| is similar to |hlist_out|.
 
 @p @t\4@>@<Declare procedures needed in |pdf_hlist_out|, |pdf_vlist_out|@>@t@>@/
 
@@ -18655,7 +18737,7 @@ end;
 @ @<Create link annotations for the current hbox if needed@>=
 for i := 1 to pdf_link_stack_ptr do begin
     pdfassert(is_running(pdf_width(pdf_link_stack[i].link_node)));
-    if (pdf_link_stack[i].nesting_level = cur_s) then
+    if (pdf_link_stack[i].nesting_level = cur_s) and gen_running_link then
         append_link(this_box, left_edge, base_line, i);
 end
 
@@ -18925,7 +19007,7 @@ begin
 end;
 
 @ |fix_pdf_draftmode| freezes |pdfdraftmode| when something has been written to
-the output and also switches somes things off when draftmode is on.
+the output and also switches some things off when draftmode is on.
 @p procedure fix_pdf_draftmode;
 begin
     if not fixed_pdf_draftmode_set then begin
@@ -19141,17 +19223,21 @@ pdf_end_text;
 pdfshipoutend(shipping_page);
 pdf_end_stream
 
-@ @<Write out resource lists@>=
+@ We need to write forms last, since the recursive call to |ship_out|
+would reset global state such as |pdfpagegroupval|, which is needed
+while writing images.
+
+@<Write out resource lists@>=
 @<Write out pending raw objects@>;
-@<Write out pending forms@>;
-@<Write out pending images@>
+@<Write out pending images@>;
+@<Write out pending forms@>
 
 @ @<Write out resources dictionary@>=
 pdf_begin_dict(pdf_last_resources, 1);
 @<Print additional resources@>;
 @<Generate font resources@>;
 @<Generate XObject resources@>;
-@<Generate ProcSet@>;
+@<Generate ProcSet if desired@>;
 pdf_end_dict
 
 @ @<Print additional resources@>=
@@ -19228,17 +19314,21 @@ if (pdf_xform_list <> null) or (pdf_ximage_list <> null) then begin
     pdf_print_ln(">>");
 end
 
-@ @<Generate ProcSet@>=
-pdf_print("/ProcSet [ /PDF");
-if pdf_text_procset then
-    pdf_print(" /Text");
-if check_image_b(pdf_image_procset) then
-    pdf_print(" /ImageB");
-if check_image_c(pdf_image_procset) then
-    pdf_print(" /ImageC");
-if check_image_i(pdf_image_procset) then
-    pdf_print(" /ImageI");
-pdf_print_ln(" ]")
+@ @<Generate ProcSet if desired@>=
+if (pdf_omit_procset < 0) or
+   ((pdf_omit_procset = 0) and (pdf_major_version < 2)) then
+begin
+    pdf_print("/ProcSet [ /PDF");
+    if pdf_text_procset then
+        pdf_print(" /Text");
+    if check_image_b(pdf_image_procset) then
+        pdf_print(" /ImageB");
+    if check_image_c(pdf_image_procset) then
+        pdf_print(" /ImageC");
+    if check_image_i(pdf_image_procset) then
+        pdf_print(" /ImageI");
+    pdf_print_ln(" ]")
+end
 
 @ @<Write out page object@>=
 pdf_begin_dict(pdf_last_page, 1);
@@ -19325,8 +19415,10 @@ begin
         cur_area := "";
         cur_ext := "";
         pack_cur_name;
-        if not tex_b_openin(f) then
+        if not tex_b_openin(f) then begin
+            print_nl("! "); print(s); print(" not found.");
             pdf_error("ext5", "cannot open file for embedding");
+        end;
         print("<<");
         print(s);
         if not eof(f) then begin {at least one byte available}
@@ -19493,13 +19585,18 @@ if pdf_dest_list <> null then begin
                 "destination has been already written (this shouldn't happen)")
         else begin
             i := obj_dest_ptr(info(k));
-            if pdf_dest_named_id(i) > 0 then begin
+            if (pdf_dest_named_id(i) > 0) and (pdf_dest_objnum(i) = null) then begin
                 pdf_begin_dict(info(k), 1);
                 pdf_print("/D ");
             end
             else
                 pdf_begin_obj(info(k), 1);
-            pdf_out("["); pdf_print_int(pdf_last_page); pdf_print(" 0 R ");
+            pdf_out("[");
+            if pdf_dest_objnum(i) = null then
+              pdf_print_int(pdf_last_page)
+            else
+              pdf_print_int(pdf_dest_objnum(i));
+            pdf_print(" 0 R ");
             case pdf_dest_type(i) of
             pdf_dest_xyz: begin
                 pdf_print("/XYZ ");
@@ -19540,7 +19637,7 @@ if pdf_dest_list <> null then begin
             othercases pdf_error("ext5", "unknown dest type");
             endcases;
             pdf_print_ln("]");
-            if pdf_dest_named_id(i) > 0 then
+            if (pdf_dest_named_id(i) > 0) and (pdf_dest_objnum(i) = null) then
                 pdf_end_dict
             else
                 pdf_end_obj;
@@ -19813,13 +19910,14 @@ else begin
         @<Check for non-existing pages@>;
         @<Reverse the linked list of Page and Pages objects@>;
         @<Check for non-existing destinations@>;
+        @<Check for non-existing structure destinations@>;
         @<Output fonts definition@>;
         @<Output pages tree@>;
         @<Output outlines@>;
         @<Output name tree@>;
         @<Output article threads@>;
         @<Output the catalog object@>;
-        pdf_print_info; {last candidate for object stream}
+        if pdf_omit_info_dict = 0 then pdf_print_info; {last candidate for object stream}
         if pdf_os_enable then begin
             pdf_os_switch(true);
             pdf_os_write_objstream;
@@ -19851,7 +19949,7 @@ PDF browsers, so we need to fix them.
 begin
     if obj_dest_ptr(k) <> null then
         return;
-    pdf_warning("dest", "", false, false);
+    pdf_warning("dest", "", true, false);
     if obj_info(k) < 0 then begin
         print("name{");
         print(-obj_info(k));
@@ -19877,10 +19975,43 @@ while k <> 0 do begin
     k := obj_link(k);
 end
 
+@ The same for structure destinations, except that there is no sensible default
+object to point to.
+
+@p procedure pdf_fix_struct_dest(k: integer);
+begin
+    if obj_dest_ptr(k) <> null then
+        return;
+    pdf_warning("structure dest", "", false, false);
+    if obj_info(k) < 0 then begin
+        print("name{");
+        print(-obj_info(k));
+        print("}");
+    end
+    else begin
+        print("num");
+        print_int(obj_info(k));
+    end;
+    print(" has been referenced but does not exist");
+    print_ln; print_ln;
+    @{pdf_begin_obj(k, 1);
+    pdf_out("[");
+    pdf_print_int(head_tab[obj_type_page]);
+    pdf_print_ln(" 0 R /Fit]");
+    pdf_end_obj;@}
+end;
+
+@ @<Check for non-existing structure destinations@>=
+k := head_tab[obj_type_struct_dest];
+while k <> 0 do begin
+    pdf_fix_struct_dest(k);
+    k := obj_link(k);
+end
+
 @ @<Check for non-existing pages@>=
 k := head_tab[obj_type_page];
 while obj_aux(k) = 0 do begin
-    pdf_warning("dest", "Page ", false, false);
+    pdf_warning("dest", "Page ", true, false);
     print_int(obj_info(k));
     print(" has been referenced but does not exist!");
     print_ln; print_ln;
@@ -19923,7 +20054,7 @@ for k := font_base + 1 to font_ptr do
             pdf_font_attr[k] := pdf_font_attr[i]
         else if (length(pdf_font_attr[i]) <> 0) and (length(pdf_font_attr[k]) <> 0) and
            not str_eq_str(pdf_font_attr[i], pdf_font_attr[k]) then begin
-           pdf_warning("\pdffontattr", "fonts ", false, false);
+           pdf_warning("\pdffontattr", "fonts ", true, false);
            print_font_identifier(i);
            print(" and ");
            print_font_identifier(k);
@@ -20014,7 +20145,7 @@ if is_root and (pdf_pages_attr <> null) then
     pdf_print_toks_ln(pdf_pages_attr);
 pdf_end_dict;
 
-@ The name tree is very similiar to Pages tree so its construction should be
+@ The name tree is very similar to Pages tree so its construction should be
 certain from Pages tree construction. For intermediate node |obj_info| will be
 the first name and |obj_link| will be the last name in \.{\\Limits} array.
 Note that |pdf_dest_names_ptr| will be less than |obj_ptr|, so we test if
@@ -20135,7 +20266,7 @@ if pdf_catalog_openaction <> 0 then
 pdf_end_dict
 
 @ If the same keys in a dictionary are given several times, then it is not
-defined which value is choosen by an application.  Therefore the keys
+defined which value is chosen by an application.  Therefore the keys
 |/Producer| and |/Creator| are only set if the token list
 |pdf_info_toks| converted to a string does not contain these key strings.
 
@@ -20181,7 +20312,10 @@ begin
         pdf_print_ln("/Trapped /False");
     end;
     if pdf_suppress_ptex_info mod 2 = 0 then begin
-        pdf_str_entry_ln("PTEX.Fullbanner", pdftex_banner);
+        if get_ptex_use_underscore then
+            pdf_str_entry_ln("PTEX_Fullbanner", pdftex_banner)
+        else
+            pdf_str_entry_ln("PTEX.Fullbanner", pdftex_banner);
     end;
     pdf_end_dict;
 end;
@@ -20252,7 +20386,7 @@ pdf_print("/W [1 ");
 pdf_print_int(xref_offset_width);
 pdf_print_ln(" 1]");
 pdf_indirect_ln("Root", root);
-pdf_indirect_ln("Info", obj_ptr - 1);
+if pdf_omit_info_dict = 0 then pdf_indirect_ln("Info", obj_ptr - 1);
 if pdf_trailer_toks <> null then begin
     pdf_print_toks_ln(pdf_trailer_toks);
     delete_toks(pdf_trailer_toks);
@@ -20288,7 +20422,7 @@ if not pdf_os_enable then begin
     pdf_print("<< ");
     pdf_int_entry_ln("Size", sys_obj_ptr + 1);
     pdf_indirect_ln("Root", root);
-    pdf_indirect_ln("Info", sys_obj_ptr);
+    if pdf_omit_info_dict = 0 then pdf_indirect_ln("Info", sys_obj_ptr);
     if pdf_trailer_toks <> null then begin
         pdf_print_toks_ln(pdf_trailer_toks);
         delete_toks(pdf_trailer_toks);
@@ -20400,7 +20534,7 @@ also removes all occurrences of |ins_node|, |mark_node|, and |adjust_node|
 items and appends the resulting material onto the list that ends at
 location |adjust_tail|.
 
-@< Glob...@>=
+@<Glob...@>=
 @!adjust_tail:pointer; {tail of adjustment list}
 
 @ @<Set init...@>=adjust_tail:=null; last_badness:=0;
@@ -20408,6 +20542,7 @@ location |adjust_tail|.
 @ @<Glob...@>=
 @!pdf_font_blink: ^internal_font_number; {link to base font (used for expanded fonts only)}
 @!pdf_font_elink: ^internal_font_number; {link to expanded fonts (used for base fonts only)}
+@!pdf_font_has_space_char: ^boolean; {has font a real space char?}
 @!pdf_font_stretch: ^integer; {link to font expanded by stretch limi}
 @!pdf_font_shrink: ^integer; {link to font expanded by shrink limit}
 @!pdf_font_step: ^integer;  {amount of one step of expansion}
@@ -21348,8 +21483,8 @@ programming.
 @d sub_mlist=3 {|math_type| when the attribute is a formula}
 @d math_text_char=4 {|math_type| when italic correction is dubious}
 
-@ Each portion of a formula is classified as Ord, Op, Bin, Rel, Ope,
-Clo, Pun, or Inn, for purposes of spacing and line breaking. An
+@ Each portion of a formula is classified as Ord, Op, Bin, Rel, Open,
+Close, Punct, or Inner, for purposes of spacing and line breaking. An
 |ord_noad|, |op_noad|, |bin_noad|, |rel_noad|, |open_noad|, |close_noad|,
 |punct_noad|, or |inner_noad| is used to represent portions of the various
 types. For example, an `\.=' sign in a formula leads to the creation of a
@@ -21371,10 +21506,10 @@ limits has been overridden for this operator.
 @d op_noad=ord_noad+1 {|type| of a noad classified Op}
 @d bin_noad=ord_noad+2 {|type| of a noad classified Bin}
 @d rel_noad=ord_noad+3 {|type| of a noad classified Rel}
-@d open_noad=ord_noad+4 {|type| of a noad classified Ope}
-@d close_noad=ord_noad+5 {|type| of a noad classified Clo}
-@d punct_noad=ord_noad+6 {|type| of a noad classified Pun}
-@d inner_noad=ord_noad+7 {|type| of a noad classified Inn}
+@d open_noad=ord_noad+4 {|type| of a noad classified Open}
+@d close_noad=ord_noad+5 {|type| of a noad classified Close}
+@d punct_noad=ord_noad+6 {|type| of a noad classified Punct}
+@d inner_noad=ord_noad+7 {|type| of a noad classified Inner}
 @d limits=1 {|subtype| of |op_noad| whose scripts are to be above, below}
 @d no_limits=2 {|subtype| of |op_noad| whose scripts are to be normal}
 
@@ -21597,7 +21732,7 @@ than the alternative of using \PASCAL's strange |forward| declaration for a
 procedure with parameters. The \PASCAL\ convention about dropping parameters
 from a post-|forward| procedure is, frankly, so intolerable to the author
 of \TeX\ that he would rather stoop to communication via a global temporary
-variable. (A similar stoopidity occurred with respect to |hlist_out| and
+variable. (A similar stupidity occurred with respect to |hlist_out| and
 |vlist_out| above, and it will occur with respect to |mlist_to_hlist| below.)
 @^Knuth, Donald Ervin@>
 @:PASCAL}{\PASCAL@>
@@ -22155,7 +22290,7 @@ else  begin if (qo(cur_c)>=font_bc[cur_f])and(qo(cur_c)<=font_ec[cur_f]) then
   else cur_i:=null_character;
   if not(char_exists(cur_i)) then
     begin char_warning(cur_f,qo(cur_c));
-    math_type(a):=empty;
+    math_type(a):=empty; cur_i:=null_character;
     end;
   end;
 end;
@@ -22545,7 +22680,7 @@ else  begin shift_down:=denom2(cur_size);
 
 @ The numerator and denominator must be separated by a certain minimum
 clearance, called |clr| in the following program. The difference between
-|clr| and the actual clearance is |2delta|.
+|clr| and the actual clearance is twice |delta|.
 
 @<Adjust \(s)|shift_up| and |shift_down| for the case of no fraction line@>=
 begin if cur_style<text_style then clr:=7*default_rule_thickness
@@ -22929,8 +23064,7 @@ rel_noad: begin t:=rel_noad; pen:=rel_penalty;
 ord_noad,vcenter_noad,over_noad,under_noad: do_nothing;
 radical_noad: s:=radical_noad_size;
 accent_noad: s:=accent_noad_size;
-fraction_noad: begin t:=inner_noad; s:=fraction_noad_size;
-  end;
+fraction_noad: s:=fraction_noad_size;
 left_noad,right_noad: t:=make_left_right(q,style,max_d,max_h);
 style_node: @<Change the current style and |goto delete_q|@>;
 whatsit_node,penalty_node,rule_node,disc_node,adjust_node,ins_node,mark_node,
@@ -22969,7 +23103,7 @@ begin cur_style:=subtype(q); s:=style_node_size;
 goto delete_q;
 end
 
-@ The inter-element spacing in math formulas depends on a $8\times8$ table that
+@ The inter-element spacing in math formulas depends on an $8\times8$ table that
 \TeX\ preloads as a 64-digit string. The elements of this string have the
 following significance:
 $$\vbox{\halign{#\hfil\cr
@@ -23355,6 +23489,7 @@ text(frozen_cr):="cr"; eqtb[frozen_cr]:=eqtb[cur_val];@/
 primitive("crcr",car_ret,cr_cr_code);
 @!@:cr_cr_}{\.{\\crcr} primitive@>
 text(frozen_end_template):="endtemplate"; text(frozen_endv):="endtemplate";
+@.endtemplate@>
 eq_type(frozen_endv):=endv; equiv(frozen_endv):=null_list;
 eq_level(frozen_endv):=level_one;@/
 eqtb[frozen_end_template]:=eqtb[frozen_endv];
@@ -23587,6 +23722,7 @@ info(p):=end_span; width(p):=null_flag; cur_loop:=link(cur_loop);
 @<Copy the templates from node |cur_loop| into node |p|@>;
 cur_loop:=link(cur_loop);
 link(p):=new_glue(glue_ptr(cur_loop));
+subtype(link(p)):=tab_skip_code+1;
 end
 
 @ @<Copy the templates from node |cur_loop| into node |p|@>=
@@ -23958,8 +24094,8 @@ The method used here is based on an approach devised by Michael F. Plass and
 @^Plass, Michael Frederick@>
 @^Knuth, Donald Ervin@>
 the author in 1977, subsequently generalized and improved by the same two
-people in 1980. A detailed discussion appears in {\sl SOFTWARE---Practice
-\AM\ Experience \bf11} (1981), 1119--1184, where it is shown that the
+people in 1980. A detailed discussion appears in {\sl Software---Practice
+and Experience \bf11} (1981), 1119--1184, where it is shown that the
 line-breaking problem can be regarded as a special case of the problem of
 computing the shortest path in an acyclic network. The cited paper includes
 numerous examples and describes the history of line breaking as it has been
@@ -24271,6 +24407,7 @@ function finite_shrink(@!p:pointer):pointer; {recovers from infinite shrinkage}
 var q:pointer; {new glue specification}
 begin if no_shrink_error_yet then
   begin no_shrink_error_yet:=false;
+  @!stat if tracing_paragraphs>0 then end_diagnostic(true);@+tats@;
   print_err("Infinite glue shrinkage found in a paragraph");
 @.Infinite glue shrinkage...@>
   help5("The paragraph just ended includes some glue that has")@/
@@ -24279,6 +24416,7 @@ begin if no_shrink_error_yet then
   ("of any length to fit on one line. But it's safe to proceed,")@/
   ("since the offensive shrinkability has been made finite.");
   error;
+  @!stat if tracing_paragraphs>0 then begin_diagnostic;@+tats@;
   end;
 q:=new_spec(p); shrink_order(q):=normal;
 delete_glue_ref(p); finite_shrink:=q;
@@ -24366,7 +24504,8 @@ distinguishable by the condition |cur_p=null|.
             (replace_count(#) = 0)) {an empty |disc_node|}
         or ((type(#) = math_node) and (width(#) = 0))
         or ((type(#) = kern_node) and
-            ((width(#) = 0) or (subtype(#) = normal)))
+            ((width(#) = 0) or (subtype(#) = normal)
+             or (subtype(#) = auto_kern)))
         or ((type(#) = glue_node) and (glue_ptr(#) = zero_glue))
         or ((type(#) = hlist_node) and (width(#) = 0) and (height(#) = 0) and
             (depth(#) = 0) and (list_ptr(#) = null))
@@ -25645,7 +25784,7 @@ loop@+  begin q:=link(r);
   if is_char_node(q) then goto done1;
   if non_discardable(q) then goto done1;
   if type(q)=kern_node then if subtype(q)<>explicit then goto done1;
-  r:=q; {now |type(q)=glue_node|, |kern_node|, |math_node| or |penalty_node|}
+  r:=q; {now |type(q)=glue_node|, |kern_node|, |math_node|, or |penalty_node|}
   if type(q)=math_node then if TeXXeT_en then
     @<Adjust \(t)the LR stack for the |post_line_break| routine@>;
   end;
@@ -25959,7 +26098,8 @@ nodes $p_{a-1}$ and~$p_b$ in the description above are placed into variables
 
 @<Glob...@>=
 @!hc:array[0..65] of 0..256; {word to be hyphenated}
-@!hn:small_number; {the number of positions occupied in |hc|}
+@!hn:0..64; {the number of positions occupied in |hc|;
+                                  not always a |small_number|}
 @!ha,@!hb:pointer; {nodes |ha..hb| should be replaced by the hyphenated result}
 @!hf:internal_font_number; {font number of the letters in |hc|}
 @!hu:array[0..63] of 0..256; {like |hc|, before conversion to lowercase}
@@ -26106,7 +26246,7 @@ forgetting what |ha| and |hb|, etc., are all about.
 @ @<Local variables for hyphenation@>=
 @!i,@!j,@!l:0..65; {indices into |hc| or |hu|}
 @!q,@!r,@!s:pointer; {temporary registers for list manipulation}
-@!bchar:halfword; {right boundary character of hyphenated word, or |non_char|}
+@!bchar:halfword; {boundary character of hyphenated word, or |non_char|}
 
 @ \TeX\ will never insert a hyphen that has fewer than
 \.{\\lefthyphenmin} letters before it or fewer than
@@ -26847,7 +26987,7 @@ The hash table is called |trie_op_hash|, and the number of entries it contains
 is |trie_op_ptr|.
 
 @<Glob...@>=
-@!init@! trie_op_hash:array[-trie_op_size..trie_op_size] of 0..trie_op_size;
+@!init @!trie_op_hash:array[-trie_op_size..trie_op_size] of 0..trie_op_size;
   {trie op codes for quadruples}
 @!trie_used:array[ASCII_code] of quarterword;
   {largest opcode used so far for this language}
@@ -27025,7 +27165,7 @@ entries.
 @d trie_back(#)==trie[#].lh {backward links in |trie| holes}
 
 @<Glob...@>=
-@!init@!trie_taken:packed array[1..trie_size] of boolean;
+@!init @!trie_taken:packed array[1..trie_size] of boolean;
   {does a family start here?}
 @t\hskip10pt@>@!trie_min:array[ASCII_code] of trie_pointer;
   {the first possible slot for each character}
@@ -27721,7 +27861,8 @@ all split and floating insertions.
 @!last_penalty:integer; {used to implement \.{\\lastpenalty}}
 @!last_kern:scaled; {used to implement \.{\\lastkern}}
 @!last_node_type:integer; {used to implement \.{\\lastnodetype}}
-@!insert_penalties:integer; {sum of the penalties for held-over insertions}
+@!insert_penalties:integer; {sum of the penalties for insertions
+  that were held over}
 
 @ @<Put each...@>=
 primitive("pagegoal",set_page_dimen,0);
@@ -28610,7 +28751,7 @@ Several additional global variables are needed.
 @!main_k:font_index; {index into |font_info|}
 @!main_p:pointer; {temporary register for list manipulation}
 @!main_s:integer; {space factor value}
-@!bchar:halfword; {right boundary character of current font, or |non_char|}
+@!bchar:halfword; {boundary character of current font, or |non_char|}
 @!false_bchar:halfword; {nonexistent character matching |bchar|, or |non_char|}
 @!cancel_boundary:boolean; {should the left boundary be ignored?}
 @!ins_disc:boolean; {should we insert a discretionary node?}
@@ -28799,9 +28940,20 @@ goto main_lig_loop+1
 
 @ @<If |tmp_k1| is not null then append that kern@>=
 if tmp_k1 <> null then begin
-    wrapup(rt_hit);
+    wrapup(rt_hit); {Note: |wrapup| might insert a null discretionary}
     save_tail := tail;
-    tail_append(tmp_k1);
+    {insert auto-kern before a null discretionary inserted by |wrapup| if appropriate}
+    if (not is_char_node(tail))
+        and (type(tail) = disc_node)
+        and (replace_count(tail) = 0)
+        and (pre_break(tail) = null)
+        and (post_break(tail) = null)
+        and (link(prev_tail) = tail) then
+    begin
+        insert_before_tail(tmp_k1);
+    end
+    else
+        tail_append(tmp_k1);
     goto main_loop_move;
 end
 
@@ -29178,7 +29330,7 @@ end;
 
 @ Many of the actions related to box-making are triggered by the appearance
 of braces in the input. For example, when the user says `\.{\\hbox}
-\.{to} \.{100pt\{$\langle\,\hbox{hlist}\,\rangle$\}}' in vertical mode,
+\.{to} \.{100pt\{$\langle\,\hbox{\rm hlist}\,\rangle$\}}' in vertical mode,
 the information about the box size (100pt, |exactly|) is put onto |save_stack|
 with a level boundary word just above it, and |cur_group:=adjusted_hbox_group|;
 \TeX\ enters restricted horizontal mode to process the hlist. The right
@@ -30019,10 +30171,27 @@ but it starts out as 1000 in the subsidiary lists.
 @<Declare act...@>=
 procedure append_discretionary;
 var c:integer; {hyphen character}
+    app_kern, pre_kern, p, c_node: pointer;
 begin tail_append(new_disc);
 if cur_chr=1 then
   begin c:=hyphen_char[cur_font];
-  if c>=0 then if c<256 then pre_break(tail):=new_character(cur_font,c);
+  if c>=0 then if c<256 then begin
+    pre_kern := get_auto_kern(cur_font, non_char, c);
+    app_kern := get_auto_kern(cur_font, c, non_char);
+    c_node := new_character(cur_font,c);
+    if (app_kern = null) and (pre_kern = null) then {no auto-kern}
+        pre_break(tail) := c_node
+    else begin
+        if pre_kern = null then
+            pre_break(tail) := c_node
+        else begin
+            pre_break(tail) := pre_kern;
+            link(pre_kern) := c_node;
+        end;
+        if app_kern <> null then
+            link(c_node) := app_kern;
+    end;
+  end;
   end
 else  begin incr(save_ptr); saved(-1):=0; new_save_level(disc_group);
   scan_left_brace; push_nest; mode:=-hmode; space_factor:=1000;
@@ -31480,6 +31649,7 @@ end;
 
 @ @<Initialize table entries...@>=
 text(frozen_protection):="inaccessible";
+@.inaccessible@>
 
 @ Here's an example of the way many of the following routines operate.
 (Unfortunately, they aren't all as simple as this.)
@@ -32417,7 +32587,7 @@ any_mode(xray): show_whatever;
 @ @d show_code=0 { \.{\\show} }
 @d show_box_code=1 { \.{\\showbox} }
 @d show_the_code=2 { \.{\\showthe} }
-@d show_lists=3 { \.{\\showlists} }
+@d show_lists_code=3 { \.{\\showlists} }
 
 @<Put each...@>=
 primitive("show",xray,show_code);
@@ -32426,14 +32596,14 @@ primitive("showbox",xray,show_box_code);
 @!@:show_box_}{\.{\\showbox} primitive@>
 primitive("showthe",xray,show_the_code);
 @!@:show_the_}{\.{\\showthe} primitive@>
-primitive("showlists",xray,show_lists);
-@!@:show_lists_}{\.{\\showlists} primitive@>
+primitive("showlists",xray,show_lists_code);
+@!@:show_lists_code_}{\.{\\showlists} primitive@>
 
 @ @<Cases of |print_cmd_chr|...@>=
 xray: case chr_code of
   show_box_code:print_esc("showbox");
   show_the_code:print_esc("showthe");
-  show_lists:print_esc("showlists");
+  show_lists_code:print_esc("showlists");
   @<Cases of |xray| for |print_cmd_chr|@>@;@/
   othercases print_esc("show")
   endcases;
@@ -32447,7 +32617,7 @@ var p:pointer; {tail of a token list to show}
 @!l:integer; {line where that conditional began}
 @!n:integer; {level of \.{\\if...\\fi} nesting}
 begin case cur_chr of
-show_lists: begin begin_diagnostic; show_activities;
+show_lists_code: begin begin_diagnostic; show_activities;
   end;
 show_box_code: @<Show the current contents of a box@>;
 show_code: @<Show the current meaning of a token, then |goto common_ending|@>;
@@ -32530,8 +32700,8 @@ so that the inverse relation between them is clear.
 
 The global variable |format_ident| is a string that is printed right
 after the |banner| line when \TeX\ is ready to start. For \.{INITEX} this
-string says simply `\.{(INITEX)}'; for other versions of \TeX\ it says,
-for example, `\.{(preloaded format=plain 1982.11.19)}', showing the year,
+string says simply `\.{ (INITEX)}'; for other versions of \TeX\ it says,
+for example, `\.{ (preloaded format=plain 1982.11.19)}', showing the year,
 month, and day that the format file was created. We have |format_ident=0|
 before \TeX's tables are loaded.
 
@@ -32625,6 +32795,8 @@ macros to dump words of different types:
 @ The inverse macros are slightly more complicated, since we need to check
 the range of the values we are reading in. We say `|undump(a)(b)(x)|' to
 read an integer value |x| that is supposed to be in the range |a<=x<=b|.
+System error messages should be suppressed when undumping.
+@^system dependencies@>
 
 @d undump_wd(#)==begin get(fmt_file); #:=fmt_file^;@+end
 @d undump_int(#)==begin get(fmt_file); #:=fmt_file^.int;@+end
@@ -33017,6 +33189,7 @@ dump_int(head_tab[obj_type_ximage]);
 dump_int(pdf_last_obj);
 dump_int(pdf_last_xform);
 dump_int(pdf_last_ximage);
+dumptounicode;
 end
 
 @ And restoring the pdftex data structures from the format. The
@@ -33051,6 +33224,7 @@ undump_int(head_tab[obj_type_ximage]);
 undump_int(pdf_last_obj);
 undump_int(pdf_last_xform);
 undump_int(pdf_last_ximage);
+undumptounicode;
 end
 
 @ We have already printed a lot of statistics, so we set |tracing_stats:=0|
@@ -33180,12 +33354,12 @@ cannot produce error messages. For example, it would be a mistake to call
 |str_room| or |make_string| at this time, because a call on |overflow|
 might lead to an infinite loop.
 @^system dependencies@>
-
-Actually there's one way to get error messages, via |prepare_mag|;
-but that can't cause infinite recursion.
+(Actually there's one way to get error messages, via |prepare_mag|;
+but that can't cause infinite recursion.)
 @^recursion@>
 
-This program doesn't bother to close the input files that may still be open.
+If |final_cleanup| is bypassed, this program doesn't bother to close
+the input files that may still be open.
 
 @<Last-minute...@>=
 procedure close_files_and_terminate;
@@ -33195,7 +33369,7 @@ var a, b, c, i, j, k, l: integer; {all-purpose index}
     is_names: boolean; {flag for name tree output: is it Names or Kids?}
     root, outlines, threads, names_tree, dests: integer;
     xref_offset_width, names_head, names_tail: integer;
-begin @<Finish the extensions@>;
+begin @<Finish the extensions@>; new_line_char:=-1;
 @!stat if tracing_stats>0 then @<Output statistics about this job@>;@;@+tats@/
 wake_up_terminal;
 if not fixed_pdfoutput_set then
@@ -33282,7 +33456,7 @@ been scanned and |its_all_over|\kern-2pt.
 procedure final_cleanup;
 label exit;
 var c:small_number; {0 for \.{\\end}, 1 for \.{\\dump}}
-begin c:=cur_chr;
+begin c:=cur_chr; if c<>1 then new_line_char:=-1;
 if job_name=0 then open_log_file;
 while input_ptr>0 do
   if state=token_list then end_token_list@+else end_file_reading;
@@ -33398,14 +33572,15 @@ program below. (If |m=13|, there is an additional argument, |l|.)
 @!debug procedure debug_help; {routine to display various things}
 label breakpoint,exit;
 var k,@!l,@!m,@!n:integer;
-begin loop begin wake_up_terminal;
+begin clear_terminal;
+  loop begin wake_up_terminal;
   print_nl("debug # (-1 to exit):"); update_terminal;
 @.debug \#@>
   read(term_in,m);
   if m<0 then return
   else if m=0 then
-    begin goto breakpoint;@\ {go to every label at least once}
-    breakpoint: m:=0; @{'BREAKPOINT'@}@\
+    begin goto breakpoint;@/ {go to every declared label at least once}
+    breakpoint: m:=0; @{'BREAKPOINT'@}@/
     end
   else  begin read(term_in,n);
     case m of
@@ -33498,7 +33673,8 @@ to hold the string numbers for name, area, and extension.
 @d write_node=1 {|subtype| in whatsits that represent things to \.{\\write}}
 @d close_node=2 {|subtype| in whatsits that represent streams to \.{\\closeout}}
 @d special_node=3 {|subtype| in whatsits that represent \.{\\special} things}
-@d language_node=4 {|subtype| in whatsits that change the current language}
+@d latespecial_node==4 {|subtype| in whatsits that represent \.{\\special} things expanded during output}
+@d language_node=5 {|subtype| in whatsits that change the current language}
 @d what_lang(#)==link(#+1) {language number, in the range |0..255|}
 @d what_lhm(#)==type(#+1) {minimum left fragment, in the range |1..63|}
 @d what_rhm(#)==subtype(#+1) {minimum right fragment, in the range |1..63|}
@@ -33525,50 +33701,54 @@ for k:=0 to 17 do write_open[k]:=false;
 |extension| with a modifier, whenever possible, so that |main_control|
 stays the same.
 
-@d immediate_code=4 {command modifier for \.{\\immediate}}
-@d set_language_code=5 {command modifier for \.{\\setlanguage}}
-@d pdftex_first_extension_code = 6
+@d immediate_code=5 {command modifier for \.{\\immediate}}
+@d set_language_code=6 {command modifier for \.{\\setlanguage}}
+@d pdftex_first_extension_code = 7
 @d pdf_literal_node            == pdftex_first_extension_code + 0
-@d pdf_obj_code                == pdftex_first_extension_code + 1
-@d pdf_refobj_node             == pdftex_first_extension_code + 2
-@d pdf_xform_code              == pdftex_first_extension_code + 3
-@d pdf_refxform_node           == pdftex_first_extension_code + 4
-@d pdf_ximage_code             == pdftex_first_extension_code + 5
-@d pdf_refximage_node          == pdftex_first_extension_code + 6
-@d pdf_annot_node              == pdftex_first_extension_code + 7
-@d pdf_start_link_node         == pdftex_first_extension_code + 8
-@d pdf_end_link_node           == pdftex_first_extension_code + 9
-@d pdf_outline_code            == pdftex_first_extension_code + 10
-@d pdf_dest_node               == pdftex_first_extension_code + 11
-@d pdf_thread_node             == pdftex_first_extension_code + 12
-@d pdf_start_thread_node       == pdftex_first_extension_code + 13
-@d pdf_end_thread_node         == pdftex_first_extension_code + 14
-@d pdf_save_pos_node           == pdftex_first_extension_code + 15
-@d pdf_info_code               == pdftex_first_extension_code + 16
-@d pdf_catalog_code            == pdftex_first_extension_code + 17
-@d pdf_names_code              == pdftex_first_extension_code + 18
-@d pdf_font_attr_code          == pdftex_first_extension_code + 19
-@d pdf_include_chars_code      == pdftex_first_extension_code + 20
-@d pdf_map_file_code           == pdftex_first_extension_code + 21
-@d pdf_map_line_code           == pdftex_first_extension_code + 22
-@d pdf_trailer_code            == pdftex_first_extension_code + 23
-@d pdf_trailer_id_code         == pdftex_first_extension_code + 24
-@d reset_timer_code            == pdftex_first_extension_code + 25
-@d pdf_font_expand_code        == pdftex_first_extension_code + 26
-@d set_random_seed_code        == pdftex_first_extension_code + 27
-@d pdf_snap_ref_point_node     == pdftex_first_extension_code + 28
-@d pdf_snapy_node              == pdftex_first_extension_code + 29
-@d pdf_snapy_comp_node         == pdftex_first_extension_code + 30
-@d pdf_glyph_to_unicode_code   == pdftex_first_extension_code + 31
-@d pdf_colorstack_node         == pdftex_first_extension_code + 32
-@d pdf_setmatrix_node          == pdftex_first_extension_code + 33
-@d pdf_save_node               == pdftex_first_extension_code + 34
-@d pdf_restore_node            == pdftex_first_extension_code + 35
-@d pdf_nobuiltin_tounicode_code== pdftex_first_extension_code + 36
-@d pdf_interword_space_on_node == pdftex_first_extension_code + 37
-@d pdf_interword_space_off_node== pdftex_first_extension_code + 38
-@d pdf_fake_space_node         == pdftex_first_extension_code + 39
-@d pdftex_last_extension_code  == pdftex_first_extension_code + 39
+@d pdf_lateliteral_node        == pdftex_first_extension_code + 1
+@d pdf_obj_code                == pdftex_first_extension_code + 2
+@d pdf_refobj_node             == pdftex_first_extension_code + 3
+@d pdf_xform_code              == pdftex_first_extension_code + 4
+@d pdf_refxform_node           == pdftex_first_extension_code + 5
+@d pdf_ximage_code             == pdftex_first_extension_code + 6
+@d pdf_refximage_node          == pdftex_first_extension_code + 7
+@d pdf_annot_node              == pdftex_first_extension_code + 8
+@d pdf_start_link_node         == pdftex_first_extension_code + 9
+@d pdf_end_link_node           == pdftex_first_extension_code + 10
+@d pdf_outline_code            == pdftex_first_extension_code + 11
+@d pdf_dest_node               == pdftex_first_extension_code + 12
+@d pdf_thread_node             == pdftex_first_extension_code + 13
+@d pdf_start_thread_node       == pdftex_first_extension_code + 14
+@d pdf_end_thread_node         == pdftex_first_extension_code + 15
+@d pdf_save_pos_node           == pdftex_first_extension_code + 16
+@d pdf_info_code               == pdftex_first_extension_code + 17
+@d pdf_catalog_code            == pdftex_first_extension_code + 18
+@d pdf_names_code              == pdftex_first_extension_code + 19
+@d pdf_font_attr_code          == pdftex_first_extension_code + 20
+@d pdf_include_chars_code      == pdftex_first_extension_code + 21
+@d pdf_map_file_code           == pdftex_first_extension_code + 22
+@d pdf_map_line_code           == pdftex_first_extension_code + 23
+@d pdf_trailer_code            == pdftex_first_extension_code + 24
+@d pdf_trailer_id_code         == pdftex_first_extension_code + 25
+@d reset_timer_code            == pdftex_first_extension_code + 26
+@d pdf_font_expand_code        == pdftex_first_extension_code + 27
+@d set_random_seed_code        == pdftex_first_extension_code + 28
+@d pdf_snap_ref_point_node     == pdftex_first_extension_code + 29
+@d pdf_snapy_node              == pdftex_first_extension_code + 30
+@d pdf_snapy_comp_node         == pdftex_first_extension_code + 31
+@d pdf_glyph_to_unicode_code   == pdftex_first_extension_code + 32
+@d pdf_colorstack_node         == pdftex_first_extension_code + 33
+@d pdf_setmatrix_node          == pdftex_first_extension_code + 34
+@d pdf_save_node               == pdftex_first_extension_code + 35
+@d pdf_restore_node            == pdftex_first_extension_code + 36
+@d pdf_nobuiltin_tounicode_code== pdftex_first_extension_code + 37
+@d pdf_interword_space_on_node == pdftex_first_extension_code + 38
+@d pdf_interword_space_off_node== pdftex_first_extension_code + 39
+@d pdf_fake_space_node         == pdftex_first_extension_code + 40
+@d pdf_running_link_off_node   == pdftex_first_extension_code + 41
+@d pdf_running_link_on_node    == pdftex_first_extension_code + 42
+@d pdf_space_font_code         == pdftex_first_extension_code + 43
+@d pdftex_last_extension_code  == pdftex_first_extension_code + 43
 
 @<Put each...@>=
 primitive("openout",extension,open_node);@/
@@ -33663,6 +33843,12 @@ primitive("pdfinterwordspaceoff",extension,pdf_interword_space_off_node);@/
 @!@:pdf_interword_space_off_}{\.{\\pdfinterwordspaceoff} primitive@>
 primitive("pdffakespace",extension,pdf_fake_space_node);@/
 @!@:pdf_fake_space_}{\.{\\pdffakespace} primitive@>
+primitive("pdfrunninglinkoff",extension,pdf_running_link_off_node);@/
+@!@:pdf_running_link_off_}{\.{\\pdfrunninglinkoff} primitive@>
+primitive("pdfrunninglinkon",extension,pdf_running_link_on_node);@/
+@!@:pdf_running_link_on_}{\.{\\pdfrunninglinkon} primitive@>
+primitive("pdfspacefont",extension,pdf_space_font_code);@/
+@!@:pdf_space_font_}{\.{\\pdfspacefont} primitive@>
 
 @ The variable |write_loc| just introduced is used to provide an
 appropriate error message in case of ``runaway'' write texts.
@@ -33718,6 +33904,9 @@ extension: case chr_code of
   pdf_interword_space_on_node: print_esc("pdfinterwordspaceon");
   pdf_interword_space_off_node: print_esc("pdfinterwordspaceoff");
   pdf_fake_space_node: print_esc("pdffakespace");
+  pdf_running_link_off_node: print_esc("pdfrunninglinkoff");
+  pdf_running_link_on_node: print_esc("pdfrunninglinkon");
+  pdf_space_font_code: print_esc("pdfspacefont");
   othercases print("[unknown extension!]")
   endcases;
 
@@ -33779,6 +33968,9 @@ begin case cur_chr of
   pdf_interword_space_on_node: @<Implement \.{\\pdfinterwordspaceon}@>;
   pdf_interword_space_off_node: @<Implement \.{\\pdfinterwordspaceoff}@>;
   pdf_fake_space_node: @<Implement \.{\\pdffakespace}@>;
+  pdf_running_link_off_node: @<Implement \.{\\pdfrunninglinkoff}@>;
+  pdf_running_link_on_node: @<Implement \.{\\pdfrunninglinkon}@>;
+  pdf_space_font_code: @<Implement \.{\\pdfspacefont}@>;
 othercases confusion("ext1")
 @:this can't happen ext1}{\quad ext1@>
 endcases;
@@ -33829,18 +34021,38 @@ begin new_write_whatsit(write_node_size); write_tokens(tail):=null;
 end
 
 @ When `\.{\\special\{...\}}' appears, we expand the macros in the token
-list as in \.{\\xdef} and \.{\\mark}.
+list as in \.{\\xdef} and \.{\\mark}.  When marked with \.{shipout}, we keep
+tokens unexpanded for now.
+
+Unfortunately, the |write_stream(tail):=null| done here is not a valid
+assignment in Web2C, because |null| (a.k.a.\ |min_halfword|) is a large
+negative number ($-268435455 = -@"FFFFFFF$, set in \.{tex.ch}); too
+large to fit in the {\bf short} structure element that's being assigned.
+The warning from gcc~8.5.0 was:
+
+\.{pdftex0.c: In function 'doextension':}
+\.{pdftex0.c:37849:40: warning: overflow in conversion from 'long int' to 'short int'}
+\.{changes value from '-268435455' to '1' [-Woverflow]}\hfil\break
+\.{  mem [curlist .tailfield + 1 ].hh.b0 = -268435455L ;}
+
+The correct thing to do is not immediately evident. However, for Web2C,
+it does not matter, because these lines are changed for enc\TeX, in
+\.{enctex2.ch}, and now zero is assigned, instead of |null|.
 
 @<Implement \.{\\special}@>=
+begin if scan_keyword("shipout") then
+begin new_whatsit(latespecial_node,write_node_size); write_stream(tail):=null;
+p:=scan_toks(false,false); write_tokens(tail):=def_ref;
+end else
 begin new_whatsit(special_node,write_node_size); write_stream(tail):=null;
 p:=scan_toks(false,true); write_tokens(tail):=def_ref;
-end
+end; end
 
 @ @<Implement \.{\\pdffontexpand}@>=
     read_expand_font
 
 @ The following macros are needed for further manipulation with whatsit nodes
-for \pdfTeX{} extensions (copying, destroying etc.)
+for \pdfTeX{} extensions (copying, destroying, etc.).
 
 @d add_action_ref(#) == incr(pdf_action_refcount(#)) {increase count of
 references to this action}
@@ -33856,8 +34068,10 @@ begin
                 delete_token_ref(pdf_action_file(#));
             if pdf_action_type(#) = pdf_action_page then
                 delete_token_ref(pdf_action_page_tokens(#))
-            else if pdf_action_named_id(#) > 0 then
+            else if (pdf_action_named_id(#) and 1) = 1 then
                 delete_token_ref(pdf_action_id(#));
+            if (pdf_action_named_id(#) and 2) = 2 then
+                delete_token_ref(pdf_action_struct_id(#));
         end;
         free_node(#, pdf_action_size);
     end
@@ -33882,6 +34096,11 @@ end;
 procedure scan_pdf_ext_toks;
 begin
     call_func(scan_toks(false, true)); {like \.{\\special}}
+end;
+
+procedure scan_pdf_ext_late_toks;
+begin
+    call_func(scan_toks(false, false)); {like \.{\\special}, but doesn't expand}
 end;
 
 procedure compare_strings; {to implement \.{\\pdfstrcmp}}
@@ -33927,14 +34146,17 @@ end;
 @ @<Implement \.{\\pdfliteral}@>=
 begin
     check_pdfoutput("\pdfliteral", true);
-    new_whatsit(pdf_literal_node, write_node_size);
+    if scan_keyword("shipout") then k:=pdf_lateliteral_node
+    else k:=pdf_literal_node;
+    new_whatsit(k, write_node_size);
     if scan_keyword("direct") then
         pdf_literal_mode(tail) := direct_always
     else if scan_keyword("page") then
         pdf_literal_mode(tail) := direct_page
     else
         pdf_literal_mode(tail) := set_origin;
-    scan_pdf_ext_toks;
+    if k=pdf_literal_node then
+      scan_pdf_ext_toks else scan_pdf_ext_late_toks;
     pdf_literal_data(tail) := def_ref;
 end
 
@@ -33957,7 +34179,7 @@ begin
         print_err("Invalid negative color stack number");
 @.Invalid negative color stack number@>
         help2("I'll use default color stack 0 here.")@/
-        ("Proceed, with fingers corssed.");
+        ("Proceed, with fingers crossed.");
         error;
         cur_val := 0;
     end;
@@ -34116,8 +34338,8 @@ begin
     pdf_obj_objnum(tail) := cur_val;
 end
 
-@ \.{\\pdfxform} and \.{\\pdfrefxform} are similiar to \.{\\pdfobj} and
-  \.{\\pdfrefobj}
+@ \.{\\pdfxform} and \.{\\pdfrefxform} are similar to \.{\\pdfobj} and
+  \.{\\pdfrefobj}.
 
 @<Glob...@>=
 @!pdf_last_xform: integer;
@@ -34165,7 +34387,7 @@ begin
     pdf_depth(tail) := obj_xform_depth(cur_val);
 end
 
-@ \.{\\pdfximage} and \.{\\pdfrefximage} are similiar to \.{\\pdfxform} and
+@ \.{\\pdfximage} and \.{\\pdfrefximage} are similar to \.{\\pdfxform} and
   \.{\\pdfrefxform}. As we have to scan |<rule spec>| quite often, it is better
   have a |rule_node| that holds the most recently scanned |<rule spec>|.
 
@@ -34453,7 +34675,7 @@ begin
         else
             pdf_create_obj(t, i);
         r := obj_ptr;
-        if t = obj_type_dest then
+        if (t = obj_type_dest) or (t = obj_type_struct_dest) then
             obj_dest_ptr(r) := null;
     end;
     if s <> 0 then
@@ -34495,10 +34717,35 @@ begin
         pdf_action_user_tokens(p) := def_ref;
         return;
     end;
+    pdf_action_named_id(p) := 0;
     if scan_keyword("file") then begin
         scan_pdf_ext_toks;
         pdf_action_file(p) := def_ref;
     end;
+    if scan_keyword("struct") then begin
+        if pdf_action_type(p) <> pdf_action_goto then
+            pdf_error("ext1", "only GoTo action can be used with `struct'");
+        if pdf_action_file(p) <> null then begin
+            scan_pdf_ext_toks;
+            pdf_action_named_id(p) := pdf_action_named_id(p) + 2;
+            pdf_action_struct_id(p) := def_ref;
+        end
+        else if scan_keyword("name") then begin
+            scan_pdf_ext_toks;
+            pdf_action_named_id(p) := pdf_action_named_id(p) + 2;
+            pdf_action_struct_id(p) := def_ref;
+        end
+        else if scan_keyword("num") then begin
+            scan_int;
+            if cur_val <= 0 then
+                pdf_error("ext1", "num identifier must be positive");
+            pdf_action_struct_id(p) := cur_val;
+        end
+        else
+            pdf_error("ext1", "identifier type missing");
+    end
+    else
+        pdf_action_struct_id(p) := null;
     if scan_keyword("page") then begin
         if pdf_action_type(p) <> pdf_action_goto then
             pdf_error("ext1", "only GoTo action can be used with `page'");
@@ -34507,13 +34754,12 @@ begin
         if cur_val <= 0 then
             pdf_error("ext1", "page number must be positive");
         pdf_action_id(p) := cur_val;
-        pdf_action_named_id(p) := 0;
         scan_pdf_ext_toks;
         pdf_action_page_tokens(p) := def_ref;
     end
     else if scan_keyword("name") then begin
         scan_pdf_ext_toks;
-        pdf_action_named_id(p) := 1;
+        pdf_action_named_id(p) := pdf_action_named_id(p) + 1;
         pdf_action_id(p) := def_ref;
     end
     else if scan_keyword("num") then begin
@@ -34524,7 +34770,6 @@ begin
         scan_int;
         if cur_val <= 0 then
             pdf_error("ext1", "num identifier must be positive");
-        pdf_action_named_id(p) := 0;
         pdf_action_id(p) := cur_val;
     end
     else
@@ -34597,7 +34842,7 @@ begin
     end
 end
 
-@ pdflastlink needs an extra global variable
+@ \.{\\pdflastlink} needs an extra global variable.
 @<Glob...@>=
 @!pdf_last_link: integer;
 
@@ -34719,7 +34964,7 @@ procedure warn_dest_dup(id: integer; byname: small_number; s1, s2: str_number);
 begin
     if pdf_suppress_warning_dup_dest > 0 then
         return;
-    pdf_warning(s1, "destination with the same identifier (", false, false);
+    pdf_warning(s1, "destination with the same identifier (", true, false);
     if byname > 0 then begin
         print("name");
         print_mark(id);
@@ -34744,6 +34989,16 @@ begin
     check_pdfoutput("\pdfdest", true);
     q := tail;
     new_whatsit(pdf_dest_node, pdf_dest_node_size);
+    if scan_keyword("struct") then begin
+        scan_int;
+        if cur_val <= 0 then
+            pdf_error("ext1", "struct identifier must be positive");
+        pdf_dest_objnum(tail) := cur_val;
+        j := obj_type_struct_dest;
+    end else begin
+        pdf_dest_objnum(tail) := null;
+        j := obj_type_dest;
+    end;
     if scan_keyword("num") then begin
         scan_int;
         if cur_val <= 0 then
@@ -34796,11 +35051,11 @@ begin
     end;
     if pdf_dest_named_id(tail) <> 0 then begin
         i := tokens_to_string(pdf_dest_id(tail));
-        k := find_obj(obj_type_dest, i, true);
+        k := find_obj(j, i, true);
         flush_str(i);
     end
     else
-        k := find_obj(obj_type_dest, pdf_dest_id(tail), false);
+        k := find_obj(j, pdf_dest_id(tail), false);
     if (k <> 0) and (obj_dest_ptr(k) <> null) then begin
         warn_dest_dup(pdf_dest_id(tail), pdf_dest_named_id(tail),
                       "ext4", "has been already used, duplicate ignored");
@@ -34981,7 +35236,7 @@ end
   seconds_and_micros(epochseconds,microseconds);
   init_start_time;
 
-@ Negative random seed values are silently converted to positive ones
+@ Negative random seed values are silently converted to positive ones.
 
 @<Implement \.{\\pdfsetrandomseed}@>=
 begin
@@ -35103,7 +35358,27 @@ begin
     new_whatsit(pdf_fake_space_node, small_node_size);
 end
 
-@ The following function are needed for outputing article thread.
+@ @<Implement \.{\\pdfrunninglinkoff}@>=
+begin
+    check_pdfoutput("\pdfrunninglinkoff", true);
+    new_whatsit(pdf_running_link_off_node, small_node_size);
+end
+
+@ @<Implement \.{\\pdfrunninglinkon}@>=
+begin
+    check_pdfoutput("\pdfrunninglinkon", true);
+    new_whatsit(pdf_running_link_on_node, small_node_size);
+end
+
+@ @<Implement \.{\\pdfspacefont}@>=
+begin
+    check_pdfoutput("\pdfspacefont", true);
+    scan_pdf_ext_toks;
+    pdf_space_font_name := tokens_to_string(def_ref);
+    delete_token_ref(def_ref);
+end
+
+@ The following function are needed for outputting article thread.
 
 @<Declare procedures needed in |do_ext...@>=
 procedure thread_title(thread: integer);
@@ -35119,7 +35394,7 @@ end;
 procedure pdf_fix_thread(thread: integer);
 var a: pointer;
 begin
-    pdf_warning("thread", "destination ", false, false);
+    pdf_warning("thread", "destination ", true, false);
     if obj_info(thread) < 0 then begin
         print("name{");
         print(-obj_info(thread));
@@ -35223,13 +35498,17 @@ close_node:print_write_whatsit("closeout",p);
 special_node:begin print_esc("special");
   print_mark(write_tokens(p));
   end;
+latespecial_node:begin print_esc("special"); print(" shipout");
+  print_mark(write_tokens(p));
+  end;
 language_node:begin print_esc("setlanguage");
   print_int(what_lang(p)); print(" (hyphenmin ");
   print_int(what_lhm(p)); print_char(",");
   print_int(what_rhm(p)); print_char(")");
   end;
-pdf_literal_node: begin
+pdf_literal_node,pdf_lateliteral_node: begin
     print_esc("pdfliteral");
+    if subtype(p)=pdf_lateliteral_node then print(" shipout");
     case pdf_literal_mode(p) of
     set_origin:
         do_nothing;
@@ -35323,7 +35602,7 @@ pdf_start_link_node: begin
         end;
         case pdf_action_type(pdf_link_action(p)) of
         pdf_action_goto: begin
-            if pdf_action_named_id(pdf_link_action(p)) > 0 then begin
+            if (pdf_action_named_id(pdf_link_action(p)) mod 2) = 1 then begin
                 print(" goto name");
                 print_mark(pdf_action_id(pdf_link_action(p)));
             end
@@ -35338,7 +35617,7 @@ pdf_start_link_node: begin
             print_mark(pdf_action_page_tokens(pdf_link_action(p)));
         end;
         pdf_action_thread: begin
-            if pdf_action_named_id(pdf_link_action(p)) > 0 then begin
+            if (pdf_action_named_id(pdf_link_action(p)) mod 2) = 1 then begin
                 print(" thread name");
                 print_mark(pdf_action_id(pdf_link_action(p)));
             end
@@ -35354,6 +35633,10 @@ end;
 pdf_end_link_node: print_esc("pdfendlink");
 pdf_dest_node: begin
     print_esc("pdfdest");
+    if pdf_dest_objnum(p) <> null then begin
+        print(" struct");
+        print_int(pdf_dest_objnum(p));
+    end;
     if pdf_dest_named_id(p) > 0 then begin
         print(" name");
         print_mark(pdf_dest_id(p));
@@ -35424,6 +35707,8 @@ end;
 pdf_interword_space_on_node: print_esc("pdfinterwordspaceon");
 pdf_interword_space_off_node: print_esc("pdfinterwordspaceoff");
 pdf_fake_space_node: print_esc("pdffakespace");
+pdf_running_link_off_node: print_esc("pdfrunninglinkoff");
+pdf_running_link_on_node: print_esc("pdfrunninglinkon");
 othercases print("whatsit?")
 endcases
 
@@ -35431,13 +35716,13 @@ endcases
 case subtype(p) of
 open_node: begin r:=get_node(open_node_size); words:=open_node_size;
   end;
-write_node,special_node: begin r:=get_node(write_node_size);
+write_node,special_node,latespecial_node: begin r:=get_node(write_node_size);
   add_token_ref(write_tokens(p)); words:=write_node_size;
   end;
 close_node,language_node: begin r:=get_node(small_node_size);
   words:=small_node_size;
   end;
-pdf_literal_node: begin
+pdf_literal_node,pdf_lateliteral_node: begin
     r := get_node(write_node_size);
     add_token_ref(pdf_literal_data(p));
     words := write_node_size;
@@ -35531,6 +35816,10 @@ pdf_interword_space_off_node:
     r := get_node(small_node_size);
 pdf_fake_space_node:
     r := get_node(small_node_size);
+pdf_running_link_off_node:
+    r := get_node(small_node_size);
+pdf_running_link_on_node:
+    r := get_node(small_node_size);
 othercases confusion("ext2")
 @:this can't happen ext2}{\quad ext2@>
 endcases
@@ -35538,11 +35827,11 @@ endcases
 @ @<Wipe out the whatsit...@>=
 begin case subtype(p) of
 open_node: free_node(p,open_node_size);
-write_node,special_node: begin delete_token_ref(write_tokens(p));
+write_node,special_node,latespecial_node: begin delete_token_ref(write_tokens(p));
   free_node(p,write_node_size); goto done;
   end;
 close_node,language_node: free_node(p,small_node_size);
-pdf_literal_node: begin
+pdf_literal_node,pdf_lateliteral_node: begin
     delete_token_ref(pdf_literal_data(p));
     free_node(p, write_node_size);
 end;
@@ -35612,6 +35901,10 @@ pdf_interword_space_on_node:
 pdf_interword_space_off_node:
     free_node(p, small_node_size);
 pdf_fake_space_node:
+    free_node(p, small_node_size);
+pdf_running_link_off_node:
+    free_node(p, small_node_size);
+pdf_running_link_on_node:
     free_node(p, small_node_size);
 othercases confusion("ext3")
 @:this can't happen ext3}{\quad ext3@>
@@ -35687,9 +35980,20 @@ that actually send out the requested data. Let's do \.{\\special} first
 procedure special_out(@!p:pointer);
 var old_setting:0..max_selector; {holds print |selector|}
 @!k:pool_pointer; {index into |str_pool|}
+@!h:halfword;
+@!q,@!r:pointer; {temporary variables for list manipulation}
+@!old_mode:integer; {saved |mode|}
 begin synch_h; synch_v;@/
 old_setting:=selector; selector:=new_string;
-show_token_list(link(write_tokens(p)),null,pool_size-pool_ptr);
+selector:=old_setting;
+if subtype(p)=latespecial_node then
+  begin @<Expand macros in the token list
+    and make |link(def_ref)| point to the result@>;
+    h:=def_ref;
+  end
+else h:=write_tokens(p);
+selector:=new_string;
+show_token_list(link(h),null,pool_size-pool_ptr);
 selector:=old_setting;
 str_room(1);
 if cur_length<256 then
@@ -35699,6 +36003,8 @@ else  begin dvi_out(xxx4); dvi_four(cur_length);
   end;
 for k:=str_start[str_ptr] to pool_ptr-1 do dvi_out(so(str_pool[k]));
 pool_ptr:=str_start[str_ptr]; {erase the string}
+if subtype(p)=latespecial_node then
+  flush_list(def_ref);
 end;
 
 @ To write a token list, we must run it through \TeX's scanner, expanding
@@ -35775,7 +36081,7 @@ var j:small_number; {write stream number}
 begin case subtype(p) of
 open_node,write_node,close_node:@<Do some work that has been queued up
   for \.{\\write}@>;
-special_node:special_out(p);
+special_node,latespecial_node:special_out(p);
 language_node:do_nothing;
 pdf_save_pos_node:
   @<Save current position in DVI mode@>;
@@ -35934,6 +36240,8 @@ thread}
 @!pdf_trailer_toks: pointer; {additional keys of Trailer dictionary}
 @!pdf_trailer_id_toks: pointer; {custom Trailer ID}
 @!gen_faked_interword_space: boolean; {flag to turn on/off faked interword spaces}
+@!gen_running_link: boolean; {flag to turn on/off running link}
+@!pdf_space_font_name: str_number; {name of font used for inter-word space in PDF output}
 
 @ @<Set init...@>=
 pdf_first_outline:= 0;
@@ -35950,8 +36258,11 @@ pdf_catalog_openaction := 0;
 pdf_trailer_toks := null;
 pdf_trailer_id_toks := null;
 gen_faked_interword_space := false;
+gen_running_link := true;
+pdf_space_font_name := "pdftexspace";
 
-@ The following procedures are needed for outputing whatsit nodes for
+
+@ The following procedures are needed for outputting whatsit nodes for
 \pdfTeX{}.
 
 @<Declare procedures needed in |pdf_hlist_out|, |pdf_vlist_out|@>=
@@ -36003,11 +36314,11 @@ begin
         if pdf_action_file(p) = null then begin
             pdf_print("/S /GoTo ");
             d := get_obj(obj_type_dest, pdf_action_id(p),
-                         pdf_action_named_id(p));
+                         pdf_action_named_id(p) mod 2);
         end
         else
             pdf_print("/S /GoToR ");
-        if pdf_action_named_id(p) > 0 then begin
+        if (pdf_action_named_id(p) mod 2) = 1 then begin
             pdf_str_entry("D", tokens_to_string(pdf_action_id(p)));
             flush_str(last_tokens_string);
         end
@@ -36020,8 +36331,8 @@ begin
         pdf_print("/S /Thread ");
         if pdf_action_file(p) = null then
             d := get_obj(obj_type_thread, pdf_action_id(p),
-                         pdf_action_named_id(p));
-        if pdf_action_named_id(p) > 0 then begin
+                         pdf_action_named_id(p) mod 2);
+        if (pdf_action_named_id(p) mod 2) = 1 then begin
             pdf_str_entry("D", tokens_to_string(pdf_action_id(p)));
             flush_str(last_tokens_string);
         end
@@ -36031,6 +36342,18 @@ begin
             pdf_int_entry("D", pdf_action_id(p));
     end;
     endcases;
+    if pdf_action_struct_id(p) <> null then begin
+        pdf_out(" ");
+        if pdf_action_file(p) = null then
+            pdf_indirect("SD", get_obj(obj_type_struct_dest,
+                                       pdf_action_struct_id(p),
+                                       (pdf_action_named_id(p) div 2) mod 2))
+        else begin
+            pdf_print("/SD ");
+            pdf_print(tokens_to_string(pdf_action_struct_id(p)));
+            flush_str(last_tokens_string);
+        end;
+    end;
     pdf_print_ln(" >>");
 end;
 
@@ -36145,7 +36468,7 @@ begin
     if pdf_link_stack_ptr < 1 then
         pdf_error("ext4", "pdf_link_stack empty, \pdfendlink used without \pdfstartlink?");
     if pdf_link_stack_top.nesting_level <> cur_s then
-        pdf_error("ext4", "\pdfendlink ended up in different nesting level than \pdfstartlink");
+        pdf_warning(0, "\pdfendlink ended up in different nesting level than \pdfstartlink", true, true);
 
     {N.B.: test for running link must be done on |link_node| and not |ref_link_node|,
      as |ref_link_node| can be set by |do_link| or |append_link| already}
@@ -36311,7 +36634,10 @@ begin
         pdf_error("ext4", "destinations cannot be inside an XForm");
     if doing_leaders then
         return;
-    k := get_obj(obj_type_dest, pdf_dest_id(p), pdf_dest_named_id(p));
+    if pdf_dest_objnum(p) = null then
+        k := get_obj(obj_type_dest, pdf_dest_id(p), pdf_dest_named_id(p))
+    else
+        k := get_obj(obj_type_struct_dest, pdf_dest_id(p), pdf_dest_named_id(p));
     if obj_dest_ptr(k) <> null then begin
         warn_dest_dup(pdf_dest_id(p), pdf_dest_named_id(p),
                       "ext4", "has been already used, duplicate ignored");
@@ -36529,7 +36855,7 @@ begin
 end;
 
 procedure do_snapy_comp(p, b: pointer); {do snapping compensation in vertical
-direction; searchs for the next snap node and do the compensation if found}
+direction; search for the next snap node and do the compensation if found}
 var q: pointer;
     tmp_v, g, g2: scaled;
 begin
@@ -36603,7 +36929,7 @@ end
 
 @ @<Output the whatsit node |p| in |pdf_vlist_out|@>=
 case subtype(p) of
-pdf_literal_node:
+pdf_literal_node,pdf_lateliteral_node:
     pdf_out_literal(p);
 pdf_colorstack_node:
     pdf_out_colorstack(p);
@@ -36634,7 +36960,7 @@ pdf_end_thread_node:
     end_thread;
 pdf_save_pos_node:
     @<Save current position to |pdf_last_x_pos|, |pdf_last_y_pos|@>;
-special_node:
+special_node,latespecial_node:
     pdf_special(p);
 pdf_snap_ref_point_node:
     @<Save current position to |pdf_snapx_refpos|, |pdf_snapy_refpos|@>;
@@ -36648,6 +36974,10 @@ pdf_interword_space_off_node:
     gen_faked_interword_space := false;
 pdf_fake_space_node:
     pdf_insert_fake_space;
+pdf_running_link_off_node:
+    gen_running_link := false;
+pdf_running_link_on_node:
+    gen_running_link := true;
 othercases out_what(p);
 endcases
 
@@ -36685,7 +37015,7 @@ begin cur_v:=cur_v+pdf_height(p); save_v:=cur_v;
 
 @ @<Output the whatsit node |p| in |pdf_hlist_out|@>=
 case subtype(p) of
-pdf_literal_node:
+pdf_literal_node,pdf_lateliteral_node:
     pdf_out_literal(p);
 pdf_colorstack_node:
     pdf_out_colorstack(p);
@@ -36717,7 +37047,7 @@ pdf_end_thread_node:
     pdf_error("ext4", "\pdfendthread ended up in hlist");
 pdf_save_pos_node:
     @<Save current position to |pdf_last_x_pos|, |pdf_last_y_pos|@>;
-special_node:
+special_node,latespecial_node:
     pdf_special(p);
 pdf_snap_ref_point_node:
     @<Save current position to |pdf_snapx_refpos|, |pdf_snapy_refpos|@>;
@@ -36729,6 +37059,10 @@ pdf_interword_space_off_node:
     gen_faked_interword_space := false;
 pdf_fake_space_node:
     pdf_insert_fake_space;
+pdf_running_link_off_node:
+    gen_running_link := false;
+pdf_running_link_on_node:
+    gen_running_link := true;
 othercases out_what(p);
 endcases
 
@@ -37372,7 +37706,7 @@ however, get modified in order to prevent arithmetic overflow during
 |hlist_out| when each of them is multiplied by a large |glue_set| value.
 
 Since this ``glue rounding'' depends on state variables |cur_g| and
-|cur_glue| and \TeXXeT\ is supposed to emulate the behaviour of \TeXeT\
+|cur_glue| and \TeXXeT\ is supposed to emulate the behavior of \TeXeT\
 (plus a suitable postprocessor) as close as possible the glue rounding
 cannot be postponed until (segments of) an hlist has been reversed.
 
@@ -37597,7 +37931,7 @@ begin if eTeX_ex then
   end
 
 @ Breaking a paragraph into lines while \TeXXeT\ is disabled may result
-in lines whith unpaired math nodes.  Such hlists are silently accepted
+in lines with unpaired math nodes.  Such hlists are silently accepted
 in the absence of text direction directives.
 
 @d LR_dir(#)==(subtype(#) div R_code) {text direction of a `math node'}
@@ -38550,7 +38884,10 @@ var a,@!b:boolean; {saved values of |arith_error|}
 @!p:pointer; {top of expression stack}
 @!q:pointer; {for stack manipulations}
 begin l:=cur_val_level; a:=arith_error; b:=false; p:=null;
+incr(expand_depth_count);
+if expand_depth_count>=expand_depth then overflow("expansion depth",expand_depth);
 @<Scan and evaluate an expression |e| of type |l|@>;
+decr(expand_depth_count);
 if b then
   begin print_err("Arithmetic overflow");
 @.Arithmetic overflow@>
@@ -38640,7 +38977,7 @@ end;
 @ Parenthesized subexpressions can be inside expressions, and this
 nesting has a stack.  Seven local variables represent the top of the
 expression stack:  |p| points to pushed-down entries, if any; |l|
-specifies the type of expression currently beeing evaluated; |e| is the
+specifies the type of expression currently being evaluated; |e| is the
 expression so far and |r| is the state of its evaluation; |t| is the
 term so far and |s| is the state of its evaluation; finally |n| is the
 numerator for a combined multiplication and division, if any.
@@ -39181,7 +39518,7 @@ words contain the five types of current marks
 @d word_node_size=3 {size of an element with a word value}
 @d sa_num==sa_ptr {the register number}
 @d sa_int(#)==mem[#+2].int {an integer}
-@d sa_dim(#)==mem[#+2].sc {a dimension (a somewhat esotheric distinction)}
+@d sa_dim(#)==mem[#+2].sc {a dimension (a somewhat esoteric distinction)}
 @#
 @d mark_class_node_size=4 {size of an element for a mark class}
 @#
@@ -39473,7 +39810,7 @@ toks_register,register:
 essentially the same when the register is realized as sparse array
 element or entry in |eqtb|.  The global variable |sa_chain| is the head
 of a linked list of entries saved at the topmost level |sa_level|; the
-lists for lowel levels are kept in special save stack entries.
+lists for lower levels are kept in special save stack entries.
 
 @<Glob...@>=
 @!sa_chain: pointer; {chain of saved sparse array entries}
@@ -39591,7 +39928,7 @@ delete_sa_ref(p);
 end;
 
 @ The |sa_restore| procedure restores the sparse array entries pointed
-at by |sa_chain|
+at by |sa_chain|.
 
 @<Declare \eTeX\ procedures for tr...@>=
 procedure sa_restore;

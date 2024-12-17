@@ -1,3 +1,157 @@
+2024-10-20  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* unicode.c, ptexenc/unicode.h, tex8benc.h:
+	Add new functions of encoding conversion between
+	TeX 8bit encoding and Unicode to support
+	Unicode for Latin characters in upTeX ver2.00.
+	* version.ac: Bump to 1.5.1/dev.
+	https://github.com/texjporg/tex-jp-build/issues/170
+
+2024-05-11  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* unicode.c, ptexenc.c:
+	Enable to treat the new internal encoding of upTeX
+	also with pTeX mode (--kanji-internal={euc,sjis}).
+
+2024-04-27  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* unicode.c, ptexenc/unicode.h:
+	Add new functions UVS_* to support new encoding of upTeX
+	to {,de}compose characters with multiple codepoints.
+	* version.ac: Bump to 1.5.0/dev.
+	https://github.com/texjporg/tex-jp-build/issues/46
+
+2024-03-10  Karl Berry  <karl@tug.org>
+
+	* TL'24 release.
+
+2024-02-11  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* ptexenc.c, ptexenc/ptexenc.h:
+	Add function guessing end-of-line code.
+	* ptekf.c: Better treatment of end-of-line.
+	* tests/ptekf-eol.test: New tests for end-of-line.
+	* Makefile.am: Adjust.
+	* version.ac: Bump to 1.4.6.
+	https://github.com/texjporg/tex-jp-build/issues/142
+
+2024-02-10  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* ptekf.1: Add command line manual.
+	* ptekf.c: Tweak command line help message.
+	* Makefile.am: Adjust.
+
+2023-02-09  Karl Berry  <karl@tug.org>
+
+	* version.ac: remove /dev, for TL24.
+
+2024-02-01  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* ptexenc.c, ptexenc/ptexenc.h, kanjicnv.c, ptexenc/kanjicnv.h:
+	Add to support ISO-8859 in guessing input file encodings.
+	* ptekf.c: Add a new simple encoding conversion utility "ptekf"
+	to analyze file encoding conversion procedure.
+	* tests/ptekf-{smoke,guess,conv}.test,
+	tests/enc-amb0.bib-{euc,euc-utf8,jis,sjis,sjis-utf8,utf8},
+	tests/enc-amb1.bib-{euc,jis,sjis,sjis-utf8,utf8},
+	tests/enc-amb2,bib_{euc,sjis}-utf8,
+	tests/enc-{euc,jis,sjis}.bib-utf8,
+	tests/enc-utf8{,a,b}.bib-{euc,jis,sjis,utf8}:
+	New tests to guess/convert encoding.
+	https://github.com/texjporg/tex-jp-build/issues/142
+	* configure.ac, Makefile.am: Adjust.
+	* version.ac, COPYRIGHT: Update copyright year.
+	* version.ac: Bump to 1.4.5/dev.
+
+2023-09-11  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* unicode.c (UPTEXtoUCS): if >=UCS_MAX not >UCS_MAX.
+
+2023-02-09  Karl Berry  <karl@tug.org>
+
+	* version.ac: remove /dev, for TL23.
+
+2023-01-01  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* ptexenc.c, ptexenc/ptexenc.h:
+	Remove unused function ptenc_get_command_line_args().
+	* version.ac, COPYRIGHT: Update copyright year.
+
+2022-12-22  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* ptexenc.c, ptexenc/ptexenc.h:
+	Add a new function ptenc_conv_first_line()
+	to accept file names with JIS X 0208 characters
+	in `(e)(u)ptex --kanji-internal={euc,sjis}`.
+	https://github.com/texjporg/tex-jp-build/issues/136
+	* version.ac: Bump to 1.4.3/dev.
+
+2022-09-24  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* ptexenc.c: Skip guessing file encoding if input is from pipe.
+	https://github.com/texjporg/tex-jp-build/issues/148
+
+2022-09-01  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* ptexenc.c: Initialize infile_enc_auto only when this variable
+	is first used (input_line2).
+	https://github.com/texjporg/tex-jp-build/pull/144
+
+2022-06-12  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* ptexenc.c, unicode.c, ptexenc/ptexenc.h, ptexenc/unicode.h:
+	Add new functions ptenc_guess_enc() and set_guess_file_enc()
+	to support guessing input file encodings.
+	https://github.com/texjporg/tex-jp-build/issues/142
+	* version.ac: Bump to 1.4.2/dev.
+
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2022-02-05  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* ptexenc.c, ptexenc/ptexenc.h: Add is_terminalUTF8.
+
+2022-01-22  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* ptexenc.c, ptexenc/ptexenc.h, unicode.c, ptexenc/unicode.h:
+	Distinguish 8-bit characters and Japanese characters by using
+	flag 0x100 for Japanese char.
+	* version.ac: Bump to 1.4.0.
+
+2022-01-18  Karl Berry  <karl@tug.org>
+
+	* version.ac: remove /dev, for TL22.
+
+2021-06-29  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* kanjicnv.c, ptexenc/kanjicnv.h: Always return 0 for
+	invalid code conversions between JIS/EUC/SJIS/KUTEN/UCS.
+	* jisx0208.h: Remove unused entry of UnicodeTbl.
+
+2021-06-25  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* unicode-jp.c: changed the returned value of UCS2toJISnative(0)
+	from 0x222F to 0 to indicate that it is invalid.
+
+2021-04-17  Karl Berry  <karl@tug.org>
+
+	* version.ac: now 1.3.11/dev since TL21 is released.
+
+2021-03-23  Karl Berry  <karl@tug.org>
+
+	* TL'21.
+
+2021-02-17  Karl Berry  <karl@tug.org>
+
+	* version.ac: remove /dev for 1.3.9, for TL21.
+
+2020-05-10  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* ptexenc.c: Fix a bug of end of line in input_line2().
+	https://github.com/texjporg/tex-jp-build/issues/100
+
 2020-04-10  Karl Berry  <karl@tug.org>
 
 	* version.ac: now 1.3.9/dev since TL'19 is released.

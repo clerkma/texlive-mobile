@@ -4,7 +4,7 @@
 AC_PREREQ(2.64)
 
 # We extract version numbers from src/versions.h
-define([gv],[perl config/getver.pl ]$1)
+define([gv],[config/getver.sh ]$1)
 
 m4_define([gd_MAJOR],esyscmd(gv(MAJOR)))dnl
 m4_define([gd_MINOR],esyscmd(gv(MINOR)))dnl
@@ -12,7 +12,7 @@ m4_define([gd_REVISION],esyscmd(gv(RELEASE)))dnl
 m4_define([gd_EXTRA],esyscmd(gv(EXTRA)))dnl
 m4_define([gd_PKG_VERSION],[gd_MAJOR.gd_MINOR.gd_REVISION]gd_EXTRA)]dnl
 
-AC_INIT([GD], gd_PKG_VERSION, [https://github.com/libgd/libgd/issues], [libgd], [http://lib.gd])
+AC_INIT([GD], gd_PKG_VERSION, [https://github.com/libgd/libgd/issues], [libgd], [https://lib.gd])
 AC_CONFIG_SRCDIR([src/gd.c])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR([m4])
@@ -32,6 +32,9 @@ GDLIB_LT_AGE=gd_LT_AGE
 AC_SUBST(GDLIB_LT_CURRENT)
 AC_SUBST(GDLIB_LT_REVISION)
 AC_SUBST(GDLIB_LT_AGE)
+
+AC_SUBST(LIBS_PRIVATES)
+AC_SUBST(PKG_REQUIRES_PRIVATES)
 
 AM_INIT_AUTOMAKE([1.11 foreign dist-xz -Wall -Werror subdir-objects])
 AC_CONFIG_HEADERS([src/config.h:src/config.hin])
@@ -103,7 +106,7 @@ AC_MSG_CHECKING([whether to support gd image formats])
 AC_ARG_ENABLE([gd-formats],
   [AS_HELP_STRING([--disable-gd-formats], [Disable support for the legacy/testing gd image formats])],
   [gd_enable_gd_formats=$enableval],
-  [gd_enable_gd_formats=yes])
+  [gd_enable_gd_formats=no])
 AC_MSG_RESULT([$gd_enable_gd_formats])
 if test "$gd_enable_gd_formats" = yes; then
   gd_ac_value=1
@@ -130,6 +133,7 @@ m4_define([GD_LIB_CHECK], [dnl
   AC_MSG_RESULT([$gd_with_lib])
 
   gd_found_lib=no
+  gd_require_pkg_name=""
   if test "$gd_with_lib" != "no"; then
     save_CPPFLAGS=$CPPFLAGS
     save_LDFLAGS=$LDFLAGS
@@ -161,6 +165,11 @@ m4_define([GD_LIB_CHECK], [dnl
       $1][_CFLAGS="$gd_lib_cflags $][$1][_CFLAGS"
       AS_VAR_APPEND([LIBS], [" $][$1][_LIBS"])
       AS_VAR_APPEND([CPPFLAGS], [" $][$1][_CFLAGS"])
+      if test -z "$gd_require_pkg_name"; then
+        AS_VAR_APPEND([LIBS_PRIVATES], [" $][$1][_LIBS"])
+      else
+        AS_VAR_APPEND([PKG_REQUIRES_PRIVATES], ["  $gd_require_pkg_name"])
+      fi
     elif test "$gd_with_lib" = "yes"; then
       AC_MSG_ERROR([$3 requested but not found])
     else
@@ -180,7 +189,7 @@ dnl $4 - pkg-config module to look for
 dnl $5 - fallback test for the feature
 m4_define([GD_LIB_PKG_CHECK], [dnl
   GD_LIB_CHECK([$1], [$2], [$3], [dnl
-    PKG_CHECK_MODULES([$1], [$4], [gd_found_lib=yes], [$5])
+    PKG_CHECK_MODULES([$1], [$4], [gd_found_lib=yes gd_require_pkg_name="$4"], [$5])
   ])
 ])
 
@@ -203,6 +212,7 @@ GD_LIB_PKG_CHECK([LIBPNG], [PNG], [png], [libpng], [
 ])
 
 dnl Check for FreeType support.
+dnl NB: "9.8.3" corresponds to freetype-2.1.10.
 GD_LIB_PKG_CHECK([LIBFREETYPE], [FREETYPE], [freetype], [freetype2 >= 9.8.3], [
   FREETYPE_CONFIG=$gd_with_lib/bin/freetype-config
   if test -e "$FREETYPE_CONFIG"; then
@@ -269,9 +279,24 @@ GD_LIB_PKG_CHECK([LIBTIFF], [TIFF], [tiff], [libtiff-4], [
 ])
 
 dnl Check for webp support.
-GD_LIB_CHECK([LIBWEBP], [WEBP], [webp], [
+GD_LIB_PKG_CHECK([LIBWEBP], [WEBP], [webp], [libwebp >= 0.2.0], [
   AC_CHECK_LIB([webp], [WebPGetInfo], [dnl
     AS_VAR_APPEND([LIBWEBP_LIBS], [" -lwebp"])
+    gd_found_lib=yes
+  ])
+])
+
+dnl Check for heif support.
+GD_LIB_PKG_CHECK([LIBHEIF], [HEIF], [heif], [libheif >= 1.7.0], [
+  AC_CHECK_LIB([heif], [heif_get_version], [dnl
+    AS_VAR_APPEND([LIBHEIF_LIBS], [" -lheif"])
+  ])
+])
+
+dnl Check for avif support.
+GD_LIB_PKG_CHECK([LIBAVIF], [AVIF], [avif], [libavif >= 0.8.2], [
+  AC_CHECK_LIB([avif], [avifVersion], [dnl
+    AS_VAR_APPEND([LIBAVIF_LIBS], [" -lavif"])
     gd_found_lib=yes
   ])
 ])
@@ -305,6 +330,8 @@ AC_MSG_RESULT([
    Support for PNG library:          $gd_with_LIBPNG
    Support for JPEG library:         $gd_with_LIBJPEG
    Support for WebP library:         $gd_with_LIBWEBP
+   Support for HEIF library:         $gd_with_LIBHEIF
+   Support for AVIF library:         $gd_with_LIBAVIF
    Support for TIFF library:         $gd_with_LIBTIFF
    Support for Freetype 2.x library: $gd_with_LIBFREETYPE
    Support for Fontconfig library:   $gd_with_LIBFONTCONFIG

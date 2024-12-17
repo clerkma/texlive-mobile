@@ -76,13 +76,13 @@ struct biased_subrs_t
 
   void fini () {}
 
-  unsigned int get_count () const { return (subrs == nullptr) ? 0 : subrs->count; }
+  unsigned int get_count () const { return subrs ? subrs->count : 0; }
   unsigned int get_bias () const  { return bias; }
 
-  byte_str_t operator [] (unsigned int index) const
+  hb_ubytes_t operator [] (unsigned int index) const
   {
-    if (unlikely ((subrs == nullptr) || index >= subrs->count))
-      return Null(byte_str_t);
+    if (unlikely (!subrs || index >= subrs->count))
+      return hb_ubytes_t ();
     else
       return (*subrs)[index];
   }
@@ -94,12 +94,6 @@ struct biased_subrs_t
 
 struct point_t
 {
-  void init ()
-  {
-    x.init ();
-    y.init ();
-  }
-
   void set_int (int _x, int _y)
   {
     x.set_int (_x);
@@ -118,26 +112,21 @@ struct point_t
 template <typename ARG, typename SUBRS>
 struct cs_interp_env_t : interp_env_t<ARG>
 {
-  void init (const byte_str_t &str, const SUBRS *globalSubrs_, const SUBRS *localSubrs_)
+  cs_interp_env_t (const hb_ubytes_t &str, const SUBRS *globalSubrs_, const SUBRS *localSubrs_) :
+    interp_env_t<ARG> (str)
   {
-    interp_env_t<ARG>::init (str);
-
     context.init (str, CSType_CharString);
     seen_moveto = true;
     seen_hintmask = false;
     hstem_count = 0;
     vstem_count = 0;
     hintmask_size = 0;
-    pt.init ();
-    callStack.init ();
+    pt.set_int (0, 0);
     globalSubrs.init (globalSubrs_);
     localSubrs.init (localSubrs_);
   }
-  void fini ()
+  ~cs_interp_env_t ()
   {
-    interp_env_t<ARG>::fini ();
-
-    callStack.fini ();
     globalSubrs.fini ();
     localSubrs.fini ();
   }
@@ -551,8 +540,13 @@ struct path_procs_t
 
   static void rcurveline (ENV &env, PARAM& param)
   {
+    unsigned int arg_count = env.argStack.get_count ();
+    if (unlikely (arg_count < 8))
+      return;
+
     unsigned int i = 0;
-    for (; i + 6 <= env.argStack.get_count (); i += 6)
+    unsigned int curve_limit = arg_count - 2;
+    for (; i + 6 <= curve_limit; i += 6)
     {
       point_t pt1 = env.get_pt ();
       pt1.move (env.eval_arg (i), env.eval_arg (i+1));
@@ -562,34 +556,34 @@ struct path_procs_t
       pt3.move (env.eval_arg (i+4), env.eval_arg (i+5));
       PATH::curve (env, param, pt1, pt2, pt3);
     }
-    for (; i + 2 <= env.argStack.get_count (); i += 2)
-    {
-      point_t pt1 = env.get_pt ();
-      pt1.move (env.eval_arg (i), env.eval_arg (i+1));
-      PATH::line (env, param, pt1);
-    }
+
+    point_t pt1 = env.get_pt ();
+    pt1.move (env.eval_arg (i), env.eval_arg (i+1));
+    PATH::line (env, param, pt1);
   }
 
   static void rlinecurve (ENV &env, PARAM& param)
   {
+    unsigned int arg_count = env.argStack.get_count ();
+    if (unlikely (arg_count < 8))
+      return;
+
     unsigned int i = 0;
-    unsigned int line_limit = (env.argStack.get_count () % 6);
+    unsigned int line_limit = arg_count - 6;
     for (; i + 2 <= line_limit; i += 2)
     {
       point_t pt1 = env.get_pt ();
       pt1.move (env.eval_arg (i), env.eval_arg (i+1));
       PATH::line (env, param, pt1);
     }
-    for (; i + 6 <= env.argStack.get_count (); i += 6)
-    {
-      point_t pt1 = env.get_pt ();
-      pt1.move (env.eval_arg (i), env.eval_arg (i+1));
-      point_t pt2 = pt1;
-      pt2.move (env.eval_arg (i+2), env.eval_arg (i+3));
-      point_t pt3 = pt2;
-      pt3.move (env.eval_arg (i+4), env.eval_arg (i+5));
-      PATH::curve (env, param, pt1, pt2, pt3);
-    }
+
+    point_t pt1 = env.get_pt ();
+    pt1.move (env.eval_arg (i), env.eval_arg (i+1));
+    point_t pt2 = pt1;
+    pt2.move (env.eval_arg (i+2), env.eval_arg (i+3));
+    point_t pt3 = pt2;
+    pt3.move (env.eval_arg (i+4), env.eval_arg (i+5));
+    PATH::curve (env, param, pt1, pt2, pt3);
   }
 
   static void vvcurveto (ENV &env, PARAM& param)
@@ -836,7 +830,6 @@ struct path_procs_t
     if (likely (env.argStack.get_count () == 11))
     {
       point_t d;
-      d.init ();
       for (unsigned int i = 0; i < 10; i += 2)
 	d.move (env.eval_arg (i), env.eval_arg (i+1));
 
@@ -882,14 +875,20 @@ struct path_procs_t
 template <typename ENV, typename OPSET, typename PARAM>
 struct cs_interpreter_t : interpreter_t<ENV>
 {
+  cs_interpreter_t (ENV& env_) : interpreter_t<ENV> (env_) {}
+
   bool interpret (PARAM& param)
   {
     SUPER::env.set_endchar (false);
 
+    unsigned max_ops = HB_CFF_MAX_OPS;
     for (;;) {
       OPSET::process_op (SUPER::env.fetch_op (), SUPER::env, param);
-      if (unlikely (SUPER::env.in_error ()))
+      if (unlikely (SUPER::env.in_error () || !--max_ops))
+      {
+	SUPER::env.set_error ();
 	return false;
+      }
       if (SUPER::env.is_endchar ())
 	break;
     }

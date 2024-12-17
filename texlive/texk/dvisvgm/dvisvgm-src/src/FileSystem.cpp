@@ -2,7 +2,7 @@
 ** FileSystem.cpp                                                       **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -20,19 +20,19 @@
 
 #include <config.h>
 #include <algorithm>
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include "FileSystem.hpp"
 #include "utility.hpp"
 #include "version.hpp"
+#include "XXHashFunction.hpp"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
-
-using namespace std;
 
 #ifdef _WIN32
 	#include <direct.h>
@@ -50,8 +50,10 @@ using namespace std;
 #endif
 
 
+using namespace std;
+
 string FileSystem::TMPDIR;
-const char *FileSystem::TMPSUBDIR = nullptr;
+FileSystem::TemporaryDirectory FileSystem::_tmpdir;
 
 
 /** Private wrapper function for mkdir: creates a single folder.
@@ -76,13 +78,6 @@ static bool inline s_rmdir (const string &dirname) {
 #else
 	return (::rmdir(dirname.c_str()) == 0);
 #endif
-}
-
-
-FileSystem::~FileSystem () {
-	// remove the subdirectory from the system's temp folder (if empty)
-	if (TMPSUBDIR)
-		s_rmdir(tmpdir());
 }
 
 
@@ -140,14 +135,44 @@ string FileSystem::ensureForwardSlashes (string path) {
 }
 
 
+string FileSystem::ensureSystemSlashes (string path) {
+#ifdef _WIN32
+	std::replace(path.begin(), path.end(), '/', PATHSEP);
+#endif
+	return path;
+}
+
+
+/** Returns the absolute path of the current working directory. */
 string FileSystem::getcwd () {
 	char buf[1024];
 #ifdef _WIN32
-	return ensureForwardSlashes(_getcwd(buf, 1024));
+	GetCurrentDirectoryA(1024, buf);
+	return ensureForwardSlashes(buf);
 #else
 	return ::getcwd(buf, 1024);
 #endif
 }
+
+
+#ifdef _WIN32
+/** Returns the absolute path of the current directory of a given drive.
+ *  Windows keeps a current directory for every drive, i.e. when accessing a drive
+ *  without specifying a path (e.g. with "cd z:"), the current directory of that
+ *  drive is used.
+ *  @param[in] drive letter of drive to get the current directory from
+ *  @return absolute path of the directory */
+string FileSystem::getcwd (char drive) {
+	string cwd = getcwd();
+	if (cwd.length() > 1 && cwd[1] == ':' && tolower(cwd[0]) != tolower(drive)) {
+		chdir(string(1, drive)+":");
+		string cwd2 = cwd;
+		cwd = getcwd();
+		chdir(string(1, cwd2[0])+":");
+	}
+	return cwd;
+}
+#endif
 
 
 /** Changes the work directory.
@@ -190,38 +215,36 @@ const char* FileSystem::userdir () {
 }
 
 
-/** Returns the path of the temporary folder. */
-string FileSystem::tmpdir () {
-	string ret;
-	if (!TMPDIR.empty())
-		ret = TMPDIR;
-	else {
+/** Returns the path of the temporary folder.
+ *  @param[in] inpace if true, don't create a uniquely named subfolder */
+string FileSystem::tmpdir (bool inplace) {
+	if (_tmpdir.path().empty()) {
+		string basedir;
+		if (!TMPDIR.empty())
+			basedir = ensureForwardSlashes(TMPDIR);
+		else {
 #ifdef _WIN32
-		char buf[MAX_PATH];
-		if (GetTempPath(MAX_PATH, buf))
-			ret = ensureForwardSlashes(buf);
-		else
-			ret = ".";
+			char buf[MAX_PATH];
+			if (GetTempPath(MAX_PATH, buf))
+				basedir = ensureForwardSlashes(buf);
+			else
+				basedir = ".";
 #else
-		if (const char *path = getenv("TMPDIR"))
-			ret = path;
-		else
-			ret = "/tmp";
+			if (const char *path = getenv("TMPDIR"))
+				basedir = path;
+			else
+				basedir = "/tmp";
 #endif
-		if (ret.back() == '/')
-			ret.pop_back();
-		static bool initialized=false;
-		if (!initialized && ret != ".") {
-			TMPSUBDIR = PROGRAM_NAME;
-			s_mkdir(ret + "/" + TMPSUBDIR);
-			initialized = true;
 		}
-		if (TMPSUBDIR)
-			ret += string("/") + TMPSUBDIR;
+		if (basedir.length() > 2 && string(basedir.end()-2, basedir.end()) == "//") {
+			inplace = true;
+			basedir.pop_back();
+		}
+		if (basedir.front() != '/' && basedir.back() == '/')
+			basedir.pop_back();
+		_tmpdir = TemporaryDirectory(basedir, PROGRAM_NAME, inplace);
 	}
-	if (!ret.empty() && ret.back() != '/')
-		ret += '/';
-	return ret;
+	return _tmpdir.path();
 }
 
 
@@ -367,4 +390,42 @@ int FileSystem::collect (const std::string &dirname, vector<string> &entries) {
 	}
 #endif
 	return entries.size();
+}
+
+
+/** Creates a temporary directory in a given folder or treats the given folder as temporary directory.
+ *  @param[in] folder folder path in which the directory is to be created
+ *  @param[in] prefix initial string of the directory name
+ *  @param[in] inplace if true, 'folder' is treated as temporary directory and no subfolder is created */
+FileSystem::TemporaryDirectory::TemporaryDirectory (const std::string &folder, string prefix, bool inplace) {
+	if (inplace) {
+		_path = folder;
+		if (!_path.empty() && _path.back() != '/')
+			_path.push_back('/');
+	}
+	else {
+		using namespace std::chrono;
+		auto now = system_clock::now().time_since_epoch();
+		auto now_ms = duration_cast<milliseconds>(now).count();
+		auto hash = XXH64HashFunction(to_string(now_ms)).digestValue();
+		if (!prefix.empty() && prefix.back() != '-')
+			prefix.push_back('-');
+		for (int i = 0; i < 10 && _path.empty(); i++) {
+			hash++;
+			stringstream oss;
+			oss << folder << '/' << prefix << hex << hash;
+			if (exists(oss.str()))
+				continue;
+			if (s_mkdir(oss.str()))
+				_path = oss.str() + "/";
+			else
+				break;
+		}
+	}
+}
+
+
+FileSystem::TemporaryDirectory::~TemporaryDirectory () {
+	if (!_path.empty())
+		s_rmdir(_path);
 }

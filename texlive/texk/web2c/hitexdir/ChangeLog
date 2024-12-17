@@ -1,0 +1,120 @@
+2024-11-11  Martin Ruckert <ruckert@cs.hm.edu>
+
+	* Adding the color extensions
+	* Moving to version 2.1 of hitex and the HINT file format
+	
+2024-03-10  Karl Berry  <karl@tug.org>
+
+	* TL'24 release.
+
+2023-04-18  Karl Berry  <karl@freefriends.org>
+
+	* tex/Makefile (fmt): also depend on hilatex.fmt, for convenience.
+
+	* hintview/: remove, sources now at https://github.com/ruckertm/HINT,
+	since it's not compiled as part of TL.
+
+2023-03-09  Karl Berry  <karl@tug.org>
+
+	* TL'23 release.
+
+2022-10-27  Martin Ruckert <ruckert@cs.hm.edu>
+
+	* documentation and typograhic improvements
+	* changing the keyword prefered to preferred
+	* rewriting the scan_file_name function to comply with TeX Live
+	  Eliminating the special file name buffer and reverting to the
+	  traditional use of the string pool.
+	* initializing hlog early to allow for early HINT format errors
+
+2022-06-04  Martin Ruckert <ruckert@cs.hm.edu>
+
+	* documentation and typograhic improvements
+	* replacing float/unfloat by unfix/fix to eliminate the float macro
+	* replacing continue by resume to eliminate continue macro
+	* fixing use of hpos in HPUTCONTENT after reallocation
+
+2022-04-11  Martin Ruckert <ruckert@cs.hm.edu>
+
+	* eliminating string as a anlias fro char* in hitex.w
+	* adding an optional gtk open file dialog to hintview
+	* replacing texture2D (deprecated) by texture in the FragementShader of hintview
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2022-02-26  Karl Berry  <karl@tug.org>
+
+	* am/hitex.am (man1_MANS): install hi*.man directly from here,
+	not using the man/ subdir as for all others.
+
+2022-02-24  Karl Berry  <karl@tug.org>
+
+	* hiformat.w (DESCRIPTION) x2: consistent quoting.
+	(explain usage): newline before options list.
+
+2022-01-10  Karl Berry  <karl@freefriends.org>
+
+	* am/hitex.am: do not silence tangle-sh.
+	(noinst_PROGRAMS): += himktables, so we get Automake's rules
+	to build it instead of whatever is predefined in make.
+	(EXTRA_PROGRAMS): delete, not needed since all listed in bin_PROGRAMS.
+	(hiformat_c_h_l_y): update.
+	* hilexer.l,
+	* hiparser.y: remove these derived files. We check in the
+	.c and .h files instead.
+
+2021-12-17  Luigi Scarso  <luigi.scarso@gmail.com>
+
+	* am/hitex.am (hitables.c): need $(EXEEXT) to execute himktables.
+	https://tug.org/pipermail/tlbuild/2021q4/004984.html
+
+2021-12-17  Akira Kakuto  <kakuto@jcom.zaq.ne.jp>
+
+	* hitex.w: Typo.
+
+2021-12-11  Karl Berry  <karl@freefriends.org>
+
+	* am/hitex.am (hishrink_OBJECTS, hitex_OBJECTS): depend on
+	$(hiformat_c_h_l_y), so that (hopefully) ctangle is run on
+	hiformat.w to generate, e.g., hibasetypes.h before we try to
+	compile the programs. E.g.,
+	https://tug.org/pipermail/tlbuild/2021q4/004972.html
+
+2021-11-16  Karl Berry  <karl@freefriends.org>
+
+	* am/hitex.am: doc.
+	* tests/hello.test,
+	* tests/rule.test (OUTDIR): use subdir hitexdir/tests/outdir,
+	not hitexdir/tests, to avoid clash of both TeX and Automake
+	creating hitexdir/tests/TEST.log files.
+	Also, avoid GNU diff-specific options.
+
+2021-10-05  Karl Berry  <karl@freefriends.org>
+
+	* am/hitex.am (AM_YFLAGS): comment out since we aren't doing
+	lex/yacc stuff any more.
+
+	(hitex_CPPFLAGS): include -I$(srcdir)/libmd5 for extensions.
+	(hi{tex,stretch,shrink}_DEPENDENCIES): define.
+
+2021-10-01  Karl Berry  <karl@freefriends.org>
+
+	* am/hitex.am (nodist_hishrink_SOURCES): remove references to .[ly]
+	files; instead list the hishrink-{parser,lexer}.c files explicitly.
+	Simpler to eliminate Automake's lex/yacc.
+	* hishrink-lexer.l,
+	* hishrink-parser.y: remove.
+
+2021-09-28  Karl Berry  <karl@freefriends.org>
+
+	* am/hitex.am (hishrink_SOURCES): specify hishrink-lexer.l
+	and hishrink-parser.y as if they were direct sources.
+	(hishrink_OBJECTS): depend on hishrink-parser.h.
+	(hishrink_CPPFLAGS): include -I$(srcdir)/hitexdir so we can
+	find hishrink-parser.h.
+	(hiall): convenience target to build all three programs.
+	* format.w: back to hishrink-parser.h.
+	* hishrink-{parser,lexer}.*: rename from {parser,lexer}.*.
+
+(This file public domain.)

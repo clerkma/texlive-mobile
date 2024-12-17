@@ -13,8 +13,8 @@
 int line_length=0;
 
 static void printpage(struct index *ind, FILE *fp, int num, char *lbuff);
-static int range_check(struct index ind, int count, char *lbuff);
-static void linecheck(char *lbuff, char *tmpbuff);
+static int range_check(struct index ind, int count, char *lbuff, FILE *fp);
+static void linecheck(char *lbuff, char *tmpbuff, FILE *fp, int force);
 static void crcheck(char *lbuff, FILE *fp);
 
 /* All buffers have size BUFFERLEN.  */
@@ -115,17 +115,35 @@ void verb_printf(FILE *fp, const char *format, ...)
     if (fp!=stderr) fputs(print_buff, fp);
 }
 
+static int pnumconv2(struct page *p)
+{
+	int j,k,cc,pclen;
+
+	pclen=strlen(page_compositor);
+	for (j=k=cc=0;j<strlen(p->page);j++) {
+		if (strncmp(p->page+j,page_compositor,pclen)==0) {
+			j+=pclen;
+			k=j;
+			cc++;
+			continue;
+		}
+	}
+	return pnumconv(p->page+k,p->attr[cc]);
+}
+
 
 /*   write ind file   */
 void indwrite(char *filename, struct index *ind, int pagenum)
 {
 	int i,j,hpoint=0;
 	char datama[2048],lbuff[BUFFERLEN];
-	FILE *fp;
+	FILE *fp=NULL;
 	int conv_euc_to_euc;
+	char *init, *init_prev;
 
-	if (filename && kpse_out_name_ok(filename)) fp=fopen(filename,"wb");
-	else {
+	if (filename && kpse_out_name_ok(filename))
+		fp=fopen(filename,"wb");
+	if (fp == NULL) {
 		fp=stdout;
 #ifdef WIN32
 		setmode(fileno(fp), _O_BINARY);
@@ -142,36 +160,40 @@ void indwrite(char *filename, struct index *ind, int pagenum)
 		fprintf(fp,"%s%d%s",setpage_prefix,pagenum,setpage_suffix);
 	}
 
+	if (strlen(symhead)==0) {
+		if (lethead_flag>0) {
+			strcpy(symhead, symhead_positive);
+		}
+		else if (lethead_flag<0) {
+			strcpy(symhead, symhead_negative);
+		}
+	}
+	{
+		if (lethead_flag>0) {
+			strcpy(numhead, numhead_positive);
+		}
+		else if (lethead_flag<0) {
+			strcpy(numhead, numhead_negative);
+		}
+	}
+
 	for (i=line_length=0;i<lines;i++) {
+		init = ind[i].dic[0];
 		if (i==0) {
-			if (!((alphabet(ind[i].dic[0][0]))||(japanese(ind[i].dic[0])))) {
-				if (lethead_flag) {
-					if (symbol_flag && strlen(symbol)) {
-						fprintf(fp,"%s%s%s",lethead_prefix,symbol,lethead_suffix);
-					}
-					else if (lethead_flag>0) {
-						fprintf(fp,"%s%s%s",lethead_prefix,symhead_positive,lethead_suffix);
-					}
-					else if (lethead_flag<0) {
-						fprintf(fp,"%s%s%s",lethead_prefix,symhead_negative,lethead_suffix);
-					}
-				}
-				SPRINTF(lbuff,"%s%s",item_0,ind[i].idx[0]);
-			}
-			else if (alphabet(ind[i].dic[0][0])) {
+			if (alphabet(init)) {
 				if (lethead_flag>0) {
-					fprintf(fp,"%s%c%s",lethead_prefix,ind[i].dic[0][0],lethead_suffix);
+					fprintf(fp,"%s%c%s",lethead_prefix,init[0],lethead_suffix);
 				}
 				else if (lethead_flag<0) {
-					fprintf(fp,"%s%c%s",lethead_prefix,ind[i].dic[0][0]+32,lethead_suffix);
+					fprintf(fp,"%s%c%s",lethead_prefix,init[0]+32,lethead_suffix);
 				}
 				SPRINTF(lbuff,"%s%s",item_0,ind[i].idx[0]);
 			}
-			else if (japanese(ind[i].dic[0])) {
+			else if (japanese(init)) {
 				if (lethead_flag) {
 					fputs(lethead_prefix,fp);
 					for (j=hpoint;j<(strlen(datama)/2);j++) {
-						if ((unsigned char)ind[i].dic[0][1]<(unsigned char)datama[j*2+1]) {
+						if ((unsigned char)init[1]<(unsigned char)datama[j*2+1]) {
 							fprint_euc_char(fp,atama[(j-1)*2],atama[(j-1)*2+1]);
 							hpoint=j;
 							break;
@@ -184,10 +206,19 @@ void indwrite(char *filename, struct index *ind, int pagenum)
 				}
 				SPRINTF(lbuff,"%s%s",item_0,ind[i].idx[0]);
 				for (hpoint=0;hpoint<(strlen(datama)/2);hpoint++) {
-					if ((unsigned char)ind[i].dic[0][1]<(unsigned char)datama[hpoint*2+1]) {
+					if ((unsigned char)init[1]<(unsigned char)datama[hpoint*2+1]) {
 						break;
 					}
 				}
+			}
+			else {
+				if (lethead_flag!=0 && symbol_flag==2 && numeric(init)) {
+					fprintf(fp,"%s%s%s",lethead_prefix,numhead,lethead_suffix);
+				}
+				if (lethead_flag!=0 && (symbol_flag==1 || (symbol_flag==2 && !numeric(init)))) {
+					fprintf(fp,"%s%s%s",lethead_prefix,symhead,lethead_suffix);
+				}
+				SPRINTF(lbuff,"%s%s",item_0,ind[i].idx[0]);
 			}
 			switch (ind[i].words) {
 			case 1:
@@ -214,28 +245,21 @@ void indwrite(char *filename, struct index *ind, int pagenum)
 			printpage(ind,fp,i,lbuff);
 		}
 		else {
-			if (!((alphabet(ind[i].dic[0][0]))||(japanese(ind[i].dic[0])))) {
-				if ((alphabet(ind[i-1].dic[0][0]))||(japanese(ind[i-1].dic[0]))){
-					fputs(group_skip,fp);
-					if (lethead_flag && symbol_flag) {
-						fprintf(fp,"%s%s%s",lethead_prefix,symbol,lethead_suffix);
-					}
-				}
-			}
-			else if (alphabet(ind[i].dic[0][0])) {
-				if (ind[i].dic[0][0]!=ind[i-1].dic[0][0]) {
+			init_prev = ind[i-1].dic[0];
+			if (alphabet(init)) {
+				if (init[0]!=init_prev[0]) {
 					fputs(group_skip,fp);
 					if (lethead_flag>0) {
-						fprintf(fp,"%s%c%s",lethead_prefix,ind[i].dic[0][0],lethead_suffix);
+						fprintf(fp,"%s%c%s",lethead_prefix,init[0],lethead_suffix);
 					}
 					else if (lethead_flag<0) {
-						fprintf(fp,"%s%c%s",lethead_prefix,ind[i].dic[0][0]+32,lethead_suffix);
+						fprintf(fp,"%s%c%s",lethead_prefix,init[0]+32,lethead_suffix);
 					}
 				}
 			}
-			else if (japanese(ind[i].dic[0])) {
+			else if (japanese(init)) {
 				for (j=hpoint;j<(strlen(datama)/2);j++) {
-					if ((unsigned char)(ind[i].dic[0][0]<=(unsigned char)datama[j*2])&&((unsigned char)ind[i].dic[0][1]<(unsigned char)datama[j*2+1])) {
+					if (((unsigned char)init[0]<=(unsigned char)datama[j*2])&&((unsigned char)init[1]<(unsigned char)datama[j*2+1])) {
 						break;
 					}
 				}
@@ -246,6 +270,20 @@ void indwrite(char *filename, struct index *ind, int pagenum)
 						fputs(lethead_prefix,fp);
 						fprint_euc_char(fp,atama[(j-1)*2],atama[(j-1)*2+1]);
 						fputs(lethead_suffix,fp);
+					}
+				}
+			}
+			else {
+				if ( alphabet(init_prev) || japanese(init_prev) ||
+				    (!numeric(init_prev)&&numeric(init)) || (numeric(init_prev)&&!numeric(init)) ) {
+					if (alphabet(init_prev) || japanese(init_prev) || symbol_flag==2)
+						fputs(group_skip,fp);
+					if (lethead_flag!=0 && symbol_flag==2 && numeric(init)) {
+						fprintf(fp,"%s%s%s",lethead_prefix,numhead,lethead_suffix);
+					}
+					if (lethead_flag!=0 && (symbol_flag==1 && (alphabet(init_prev)||japanese(init_prev)) ||
+								symbol_flag==2 && !numeric(init)) ) {
+						fprintf(fp,"%s%s%s",lethead_prefix,symhead,lethead_suffix);
 					}
 				}
 			}
@@ -295,7 +333,8 @@ void indwrite(char *filename, struct index *ind, int pagenum)
 					else                   SAPPENDF(lbuff,"%s",item_x2);
 				}
 				else {
-					SAPPENDF(lbuff,"%s",item_2);
+					if (ind[i-1].words==2) SAPPENDF(lbuff,"%s",item_12);
+					else                   SAPPENDF(lbuff,"%s",item_2);
 				}
 				SAPPENDF(lbuff,"%s",ind[i].idx[2]);
 				SAPPENDF(lbuff,"%s",delim_2);
@@ -309,7 +348,7 @@ void indwrite(char *filename, struct index *ind, int pagenum)
 	}
 	fputs(postamble,fp);
 
-	if (filename) fclose(fp);
+	if (fp!=stdout) fclose(fp);
 }
 
 /*   write page block   */
@@ -324,9 +363,11 @@ static void printpage(struct index *ind, FILE *fp, int num, char *lbuff)
 	line_length=strlen(lbuff);
 
 	for(j=0;j<ind[num].num;j++) {
-		cc=range_check(ind[num],j,lbuff);
+		cc=range_check(ind[num],j,lbuff,fp);
 		if (cc>j) {
-			if (pnumconv(ind[num].p[j].page,ind[num].p[j].attr[0])==pnumconv(ind[num].p[cc].page,ind[num].p[cc].attr[0])) {
+			int epage = pnumconv2(&ind[num].p[cc]);
+			int bpage = pnumconv2(&ind[num].p[j]);
+			if (epage==bpage) {
 				j=cc-1;
 				continue;
 			}
@@ -337,20 +378,18 @@ static void printpage(struct index *ind, FILE *fp, int num, char *lbuff)
 			if (strlen(ind[num].p[j].enc)>0) {
 				SPRINTF(buff,"%s%s%s",encap_prefix,ind[num].p[j].enc,encap_infix);
 			}
-			if (strlen(suffix_3p)>0 && (pnumconv(ind[num].p[cc].page,ind[num].p[cc].attr[0])-pnumconv(ind[num].p[j].page,ind[num].p[j].attr[0]))==2) {
-				SAPPENDF(buff,"%s",ind[num].p[j].page);
+			/* print beginning of range */
+			SAPPENDF(buff,"%s",ind[num].p[j].page);
+			if (strlen(suffix_3p)>0 && epage-bpage==2) {
 				SAPPENDF(buff,"%s",suffix_3p);
 			}
-			else if (strlen(suffix_mp)>0 && (pnumconv(ind[num].p[cc].page,ind[num].p[cc].attr[0])-pnumconv(ind[num].p[j].page,ind[num].p[j].attr[0]))>=2) {
-				SAPPENDF(buff,"%s",ind[num].p[j].page);
+			else if (strlen(suffix_mp)>0 && epage-bpage>=2) {
 				SAPPENDF(buff,"%s",suffix_mp);
 			}
-			else if (strlen(suffix_2p)>0 && (pnumconv(ind[num].p[cc].page,ind[num].p[cc].attr[0])-pnumconv(ind[num].p[j].page,ind[num].p[j].attr[0]))==1) {
-				SAPPENDF(buff,"%s",ind[num].p[j].page);
+			else if (strlen(suffix_2p)>0 && epage-bpage==1) {
 				SAPPENDF(buff,"%s",suffix_2p);
 			}
 			else {
-				SAPPENDF(buff,"%s",ind[num].p[j].page);
 				SAPPENDF(buff,"%s",delim_r);
 				SAPPENDF(buff,"%s",ind[num].p[cc].page);
 			}
@@ -359,14 +398,14 @@ static void printpage(struct index *ind, FILE *fp, int num, char *lbuff)
 			if (strlen(ind[num].p[j].enc)>0) {
 				SAPPENDF(tmpbuff,"%s",encap_suffix);
 			}
-			linecheck(lbuff,tmpbuff);
+			linecheck(lbuff,tmpbuff,fp, FALSE);
 			j=cc;
 			if (j==ind[num].num) {
 				goto PRINT;
 			}
 			else {
 				SAPPENDF(tmpbuff,"%s",delim_n);
-				linecheck(lbuff,tmpbuff);
+				linecheck(lbuff,tmpbuff,fp, TRUE);
 			}
 		}
 		else if (strlen(ind[num].p[j].enc)>0) {
@@ -387,19 +426,19 @@ static void printpage(struct index *ind, FILE *fp, int num, char *lbuff)
 				SAPPENDF(tmpbuff,"%s",ind[num].p[j].page);
 				SAPPENDF(tmpbuff,"%s",encap_suffix);
 				SAPPENDF(tmpbuff,"%s",delim_n);
-				linecheck(lbuff,tmpbuff);
+				linecheck(lbuff,tmpbuff,fp, FALSE);
 			}
 			else {
 				SAPPENDF(tmpbuff,"%s",ind[num].p[j].page);
 				SAPPENDF(tmpbuff,"%s",delim_n);
-				linecheck(lbuff,tmpbuff);
+				linecheck(lbuff,tmpbuff,fp, FALSE);
 			}
 		}
 		else {
 /* no encap */
 			SAPPENDF(tmpbuff,"%s",ind[num].p[j].page);
 			SAPPENDF(tmpbuff,"%s",delim_n);
-			linecheck(lbuff,tmpbuff);
+			linecheck(lbuff,tmpbuff,fp, FALSE);
 		}
 	}
 
@@ -431,7 +470,7 @@ static void printpage(struct index *ind, FILE *fp, int num, char *lbuff)
 	else {
 		SAPPENDF(tmpbuff,"%s",ind[num].p[j].page);
 	}
-	linecheck(lbuff,tmpbuff);
+	linecheck(lbuff,tmpbuff,fp, FALSE);
 
 PRINT:
 	fputs(lbuff,fp);
@@ -439,7 +478,7 @@ PRINT:
 	lbuff[0]='\0';
 }
 
-static int range_check(struct index ind, int count, char *lbuff)
+static int range_check(struct index ind, int count, char *lbuff, FILE *fp)
 {
 	int i,j,k,cc1,cc2,start,force=0;
 	char tmpbuff[BUFFERLEN],errbuff[BUFFERLEN];
@@ -475,7 +514,7 @@ static int range_check(struct index ind, int count, char *lbuff)
 					if (strlen(ind.p[j].enc)>0) {
 						SPRINTF(tmpbuff,"%s%s%s%s%s%s",encap_prefix,ind.p[j].enc,encap_infix
 						                              ,ind.p[j].page,encap_suffix,delim_n);
-						linecheck(lbuff,tmpbuff);
+						linecheck(lbuff,tmpbuff,fp, FALSE);
 					}
 				}
 			}
@@ -504,8 +543,8 @@ static int range_check(struct index ind, int count, char *lbuff)
 			break;
 		}
 	}
-	cc1=pnumconv(ind.p[i-1].page,ind.p[i-1].attr[0]);
-	cc2=pnumconv(ind.p[count].page,ind.p[count].attr[0]);
+	cc1=pnumconv2(&ind.p[i-1]);
+	cc2=pnumconv2(&ind.p[count]);
 	if (cc1>=cc2+2 || (cc1>=cc2+1 && strlen(suffix_2p)) || force) {
 		return i-1;
 	}
@@ -513,10 +552,12 @@ static int range_check(struct index ind, int count, char *lbuff)
 }
 
 /*   check line length   */
-static void linecheck(char *lbuff, char *tmpbuff)
+static void linecheck(char *lbuff, char *tmpbuff, FILE *fp, int force)
 {
-	if (line_length+strlen(tmpbuff)>line_max) {
+	if (line_length+strlen(tmpbuff)>line_max && !force) {
 		SAPPENDF(lbuff,"\n");
+		fputs(lbuff,fp);
+		lbuff[0]='\0';
 		SAPPENDF(lbuff,"%s",indent_space);
 		SAPPENDF(lbuff,"%s",tmpbuff);
 		line_length=indent_length+strlen(tmpbuff);

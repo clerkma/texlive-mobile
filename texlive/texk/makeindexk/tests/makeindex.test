@@ -1,17 +1,31 @@
 #! /bin/sh -vx
-# $Id: makeindex.test 45809 2017-11-15 00:36:56Z karl $
+# $Id: makeindex.test 72804 2024-11-09 10:39:22Z takuji $
+# Copyright 2024 TANAKA Takuji <ttk@t-lab.opal.ne.jp>
 # Copyright 2017 Karl Berry <tex-live@tug.org>
 # Copyright 2012 Peter Breitenlohner <tex-live@tug.org>
 # You may freely use, modify and/or distribute this file.
 
+BinDir=${BinDir:-.}
+ExeExt=${ExeExt:-}
+_makeindex=$BinDir/makeindex$ExeExt
+
 TEXMFCNF=$srcdir/../kpathsea
 export TEXMFCNF
 
-rm -f sample.*
+rm -f sample.* tort*.*
+rc=0
 
-./makeindex $srcdir/tests/sample.idx -o sample.ind1 -t sample.ilg1 \
-	&& diff $srcdir/tests/sample.ind sample.ind1 || exit 1
+$_makeindex $srcdir/tests/sample.idx -o sample.ind1 -t sample.ilg1 \
+	&& diff $srcdir/tests/sample.ind sample.ind1 || rc=1
 
-cat $srcdir/tests/sample.idx | ./makeindex >sample.ind2 2>sample.ilg2 \
-	&& diff $srcdir/tests/sample.ind sample.ind2 || exit 1
+cat $srcdir/tests/sample.idx | $_makeindex >sample.ind2 2>sample.ilg2 \
+	&& diff $srcdir/tests/sample.ind sample.ind2 || rc=2
 
+$_makeindex $srcdir/tests/tort.idx -o tort.ind1 -t tort.ilg1 \
+	&& diff $srcdir/tests/ok-tort.ind tort.ind1 || rc=20
+
+$_makeindex $srcdir/tests/tortW.idx -o tortW.ind1 -t tortW.ilg1 \
+	&& diff $srcdir/tests/ok-tort.ind tortW.ind1 || rc=21
+
+
+exit $rc

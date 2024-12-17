@@ -33,13 +33,10 @@ LuaTeX; if not, see <http://www.gnu.org/licenses/>.
 */
 
 #define MAX_CHAIN_SIZE   13 /* why not a bit larger */
-#define CHECK_NODE_USAGE  1 /* this triggers checking */
 
 memory_word *volatile varmem = NULL;
 
-#ifdef CHECK_NODE_USAGE
-    char *varmem_sizes = NULL;
-#endif
+char *varmem_sizes = NULL;
 
 halfword var_mem_max = 0;
 halfword rover = 0;
@@ -127,7 +124,7 @@ field_info node_fields_whatsit_special[3];
 field_info node_fields_whatsit_user_defined[5];
 field_info node_fields_whatsit_write[4];
 
-field_info node_fields_whatsit_pdf_action[7];
+field_info node_fields_whatsit_pdf_action[8];
 field_info node_fields_whatsit_pdf_annot[7];
 field_info node_fields_whatsit_pdf_colorstack[5];
 field_info node_fields_whatsit_pdf_dest[10];
@@ -136,11 +133,13 @@ field_info node_fields_whatsit_pdf_end_thread[2];
 field_info node_fields_whatsit_pdf_literal[4];
 field_info node_fields_whatsit_pdf_refobj[3];
 field_info node_fields_whatsit_pdf_restore[2];
+field_info node_fields_whatsit_pdf_link_state[3];
 field_info node_fields_whatsit_pdf_save[2];
 field_info node_fields_whatsit_pdf_setmatrix[3];
 field_info node_fields_whatsit_pdf_start_link[8];
 field_info node_fields_whatsit_pdf_start_thread[8];
 field_info node_fields_whatsit_pdf_thread[8];
+
 
 /*tex The values of fields. */
 
@@ -962,12 +961,12 @@ node_info whatsit_node_data[] = {
     { write_node,            write_node_size,          NULL, node_fields_whatsit_write,            NULL, -1, 0 },
     { close_node,            close_node_size,          NULL, node_fields_whatsit_close,            NULL, -1, 0 },
     { special_node,          special_node_size,        NULL, node_fields_whatsit_special,          NULL, -1, 0 },
+    { late_special_node,     special_node_size,        NULL, node_fields_whatsit_special,          NULL, -1, 0 },
     { fake_node,             fake_node_size,           NULL, NULL,                                 NULL, -1, 0 },
     { fake_node,             fake_node_size,           NULL, NULL,                                 NULL, -1, 0 },
     { save_pos_node,         save_pos_node_size,       NULL, node_fields_whatsit_save_pos,         NULL, -1, 0 },
     { late_lua_node,         late_lua_node_size,       NULL, node_fields_whatsit_late_lua,         NULL, -1, 0 },
     { user_defined_node,     user_defined_node_size,   NULL, node_fields_whatsit_user_defined,     NULL, -1, 0 },
-    { fake_node,             fake_node_size,           NULL, NULL,                                 NULL, -1, 0 },
     { fake_node,             fake_node_size,           NULL, NULL,                                 NULL, -1, 0 },
     { fake_node,             fake_node_size,           NULL, NULL,                                 NULL, -1, 0 },
     { fake_node,             fake_node_size,           NULL, NULL,                                 NULL, -1, 0 },
@@ -981,7 +980,8 @@ node_info whatsit_node_data[] = {
 
     /*tex Here starts the \PDF\ backend section, todo: a separate list.  */
 
-    { pdf_literal_node,      write_node_size,          NULL, node_fields_whatsit_pdf_literal,      NULL, -1, 0 },
+    { pdf_literal_node,      literal_node_size,        NULL, node_fields_whatsit_pdf_literal,      NULL, -1, 0 },
+    { pdf_late_literal_node, literal_node_size,        NULL, node_fields_whatsit_pdf_literal,      NULL, -1, 0 },
     { pdf_refobj_node,       pdf_refobj_node_size,     NULL, node_fields_whatsit_pdf_refobj,       NULL, -1, 0 },
     { pdf_annot_node,        pdf_annot_node_size,      NULL, node_fields_whatsit_pdf_annot,        NULL, -1, 0 },
     { pdf_start_link_node,   pdf_annot_node_size,      NULL, node_fields_whatsit_pdf_start_link,   NULL, -1, 0 },
@@ -997,6 +997,7 @@ node_info whatsit_node_data[] = {
     { pdf_setmatrix_node,    pdf_setmatrix_node_size,  NULL, node_fields_whatsit_pdf_setmatrix,    NULL, -1, 0 },
     { pdf_save_node,         pdf_save_node_size,       NULL, node_fields_whatsit_pdf_save,         NULL, -1, 0 },
     { pdf_restore_node,      pdf_restore_node_size,    NULL, node_fields_whatsit_pdf_restore,      NULL, -1, 0 },
+    { pdf_link_state_node,   pdf_link_state_node_size, NULL, node_fields_whatsit_pdf_link_state,   NULL, -1, 0 },
 
     /*tex That's it. */
 
@@ -1009,6 +1010,7 @@ void l_set_whatsit_data(void) {
     init_node_key(whatsit_node_data, write_node,        write)
     init_node_key(whatsit_node_data, close_node,        close)
     init_node_key(whatsit_node_data, special_node,      special)
+    init_node_key(whatsit_node_data, late_special_node, late_special)
     init_node_key(whatsit_node_data, save_pos_node,     save_pos)
     init_node_key(whatsit_node_data, late_lua_node,     late_lua)
     init_node_key(whatsit_node_data, user_defined_node, user_defined)
@@ -1050,6 +1052,7 @@ void l_set_whatsit_data(void) {
     init_field_nop(node_fields_whatsit_write, 3);
 
     init_node_key(whatsit_node_data, pdf_literal_node,     pdf_literal)
+    init_node_key(whatsit_node_data, pdf_late_literal_node,pdf_late_literal)
     init_node_key(whatsit_node_data, pdf_refobj_node,      pdf_refobj)
     init_node_key(whatsit_node_data, pdf_annot_node,       pdf_annot)
     init_node_key(whatsit_node_data, pdf_start_link_node,  pdf_start_link)
@@ -1065,6 +1068,7 @@ void l_set_whatsit_data(void) {
     init_node_key(whatsit_node_data, pdf_setmatrix_node,   pdf_setmatrix)
     init_node_key(whatsit_node_data, pdf_save_node,        pdf_save)
     init_node_key(whatsit_node_data, pdf_restore_node,     pdf_restore)
+    init_node_key(whatsit_node_data, pdf_link_state_node,  pdf_link_state)
 
     init_node_key(node_values_pdf_destination, 0, xyz)
     init_node_key(node_values_pdf_destination, 1, fit)
@@ -1103,7 +1107,8 @@ void l_set_whatsit_data(void) {
     init_field_key(node_fields_whatsit_pdf_action, 3, file);
     init_field_key(node_fields_whatsit_pdf_action, 4, new_window);
     init_field_key(node_fields_whatsit_pdf_action, 5, data);
-    init_field_nop(node_fields_whatsit_pdf_action, 6);
+    init_field_key(node_fields_whatsit_pdf_action, 6, struct_id);
+    init_field_nop(node_fields_whatsit_pdf_action, 7);
 
     init_field_key(node_fields_whatsit_pdf_annot, 0, attr);
     init_field_key(node_fields_whatsit_pdf_annot, 1, width);
@@ -1132,6 +1137,10 @@ void l_set_whatsit_data(void) {
 
     init_field_key(node_fields_whatsit_pdf_end_link, 0, attr);
     init_field_nop(node_fields_whatsit_pdf_end_link, 1);
+
+    init_field_key(node_fields_whatsit_pdf_link_state, 0, attr);
+    init_field_key(node_fields_whatsit_pdf_link_state, 1, value);
+    init_field_nop(node_fields_whatsit_pdf_link_state, 2);
 
     init_field_key(node_fields_whatsit_pdf_end_thread, 0, attr);
     init_field_nop(node_fields_whatsit_pdf_end_thread, 1);
@@ -1194,7 +1203,7 @@ void l_set_whatsit_data(void) {
     the original one as a metatable. After some experiments (that also included
     timing) with these scenarios I decided that a deep copy made no sense, nor
     did nilling. In the end both the shallow copy and the metatable variant were
-    both ok, although the second ons is slower. The most important aspect to keep
+    both ok, although the second one is slower. The most important aspect to keep
     in mind is that references to other nodes in properties no longer can be
     valid for that copy. We could use two tables (one unique and one shared) or
     metatables but that only complicates matters.
@@ -1427,13 +1436,9 @@ int lua_properties_use_metatable = 0 ;
 int valid_node(halfword p)
 {
     if (p > my_prealloc && p < var_mem_max) {
-#ifdef CHECK_NODE_USAGE
         if (varmem_sizes[p] > 0) {
             return 1;
         }
-#else
-        return 1;
-#endif
     }
     return 0;
 }
@@ -1466,8 +1471,6 @@ static int test_count = 1;
         formatted_error("nodes","fuzzy token cleanup in node with type %s",node_data[type(p)].name); \
     } \
 }
-
-#ifdef CHECK_NODE_USAGE
 
 static void check_static_node_mem(void)
 {
@@ -1578,12 +1581,9 @@ static void node_mem_dump(halfword p)
     }
 }
 
-#endif
-
 static int free_error(halfword p)
 {
     if (p > my_prealloc && p < var_mem_max) {
-#ifdef CHECK_NODE_USAGE
         int i;
         if (varmem_sizes[p] == 0) {
             check_static_node_mem();
@@ -1601,7 +1601,6 @@ static int free_error(halfword p)
             node_mem_dump(p);
             return 1;
         }
-#endif
     } else {
         formatted_error("nodes", "attempt to free an impossible node %d", (int) p);
         return 1;
@@ -1612,7 +1611,6 @@ static int free_error(halfword p)
 static int copy_error(halfword p)
 {
     if (p >= 0 && p < var_mem_max) {
-#ifdef CHECK_NODE_USAGE
         if (p > my_prealloc && varmem_sizes[p] == 0) {
             if (type(p) == glyph_node) {
                 formatted_warning("nodes", "attempt to copy free glyph (%c) node %d, ignored", (int) character(p), (int) p);
@@ -1621,7 +1619,6 @@ static int copy_error(halfword p)
             }
             return 1;
         }
-#endif
     } else {
         formatted_error("nodes", "attempt to copy an impossible node %d", (int) p);
         return 1;
@@ -1948,6 +1945,7 @@ static void copy_node_wrapup_core(halfword p, halfword r)
     switch (subtype(p)) {
         case write_node:
         case special_node:
+        case late_special_node:
             add_token_ref(write_tokens(p));
             break;
         case late_lua_node:
@@ -1986,6 +1984,7 @@ void copy_node_wrapup_pdf(halfword p, halfword r)
 {
     switch(subtype(p)) {
         case pdf_literal_node:
+        case pdf_late_literal_node:
             copy_pdf_literal(r, p);
             break;
         case pdf_colorstack_node:
@@ -2202,12 +2201,15 @@ static void flush_node_wrapup_core(halfword p)
 {
     switch (subtype(p)) {
         case open_node:
-        case write_node:
         case close_node:
         case save_pos_node:
             break;
+        case write_node:
+            /* Not similar to elsewhere, already flushed? */
+            break;
         case special_node:
-            delete_token_ref(write_tokens(p));
+        case late_special_node:
+            delete_token_ref(special_tokens(p));
             break;
         case late_lua_node:
             free_late_lua(p);
@@ -2257,11 +2259,13 @@ void flush_node_wrapup_pdf(halfword p)
     switch(subtype(p)) {
         case pdf_save_node:
         case pdf_restore_node:
+        case pdf_link_state_node:
         case pdf_refobj_node:
         case pdf_end_link_node:
         case pdf_end_thread_node:
             break;
         case pdf_literal_node:
+        case pdf_late_literal_node:
             free_pdf_literal(p);
             break;
         case pdf_colorstack_node:
@@ -2293,8 +2297,10 @@ void flush_node_wrapup_pdf(halfword p)
                     delete_token_ref(pdf_action_file(p));
                 if (pdf_action_type(p) == pdf_action_page)
                     delete_token_ref(pdf_action_tokens(p));
-                else if (pdf_action_named_id(p) > 0)
+                else if (pdf_action_named_id(p) & 1)
                     delete_token_ref(pdf_action_id(p));
+                if (pdf_action_named_id(p) & 2)
+                    delete_token_ref(pdf_action_struct_id(p));
             }
             break;
         case pdf_thread_data_node:
@@ -2484,6 +2490,7 @@ static void check_node_wrapup_core(halfword p)
     switch (subtype(p)) {
         /*tex Frontend code. */
         case special_node:
+        case late_special_node:
             check_token_ref(p);
             break;
         case user_defined_node:
@@ -2522,6 +2529,7 @@ void check_node_wrapup_pdf(halfword p)
 {
     switch (subtype(p)) {
         case pdf_literal_node:
+        case pdf_late_literal_node:
             if (pdf_literal_type(p) == normal)
                 check_token_ref(p);
             break;
@@ -2559,6 +2567,7 @@ void check_node_wrapup_pdf(halfword p)
             break;
         case pdf_save_node:
         case pdf_restore_node:
+        case pdf_link_state_node:
         case pdf_refobj_node:
         case pdf_end_link_node:
         case pdf_end_thread_node:
@@ -2714,9 +2723,7 @@ halfword get_node(int s)
         r = free_chain[s];
         if (r != null) {
             free_chain[s] = vlink(r);
-#ifdef CHECK_NODE_USAGE
             varmem_sizes[r] = (char) s;
-#endif
             vlink(r) = null;
             /*tex Maintain usage statistics. */
             var_used += s;
@@ -2736,9 +2743,7 @@ void free_node(halfword p, int s)
         formatted_error("nodes", "node number %d of type %d should not be freed", (int) p, type(p));
         return;
     }
-#ifdef CHECK_NODE_USAGE
     varmem_sizes[p] = 0;
-#endif
     if (s < MAX_CHAIN_SIZE) {
         vlink(p) = free_chain[s];
         free_chain[s] = p;
@@ -2759,16 +2764,12 @@ static void free_node_chain(halfword q, int s)
 {
     register halfword p = q;
     while (vlink(p) != null) {
-#ifdef CHECK_NODE_USAGE
         varmem_sizes[p] = 0;
-#endif
         var_used -= s;
         p = vlink(p);
     }
     var_used -= s;
-#ifdef CHECK_NODE_USAGE
     varmem_sizes[p] = 0;
-#endif
     vlink(p) = free_chain[s];
     free_chain[s] = q;
 }
@@ -2818,13 +2819,11 @@ void init_node_mem(int t)
         overflow("node memory size", (unsigned) var_mem_max);
     }
     memset((void *) (varmem), 0, (unsigned) t * sizeof(memory_word));
-#ifdef CHECK_NODE_USAGE
     varmem_sizes = (char *) realloc(varmem_sizes, sizeof(char) * (unsigned) t);
     if (varmem_sizes == NULL) {
         overflow("node memory size", (unsigned) var_mem_max);
     }
     memset((void *) varmem_sizes, 0, sizeof(char) * (unsigned) t);
-#endif
     var_mem_max = t;
     rover = var_mem_stat_max + 1;
     vlink(rover) = rover;
@@ -2863,9 +2862,7 @@ void dump_node_mem(void)
     dump_int(var_mem_max);
     dump_int(rover);
     dump_things(varmem[0], var_mem_max);
-#ifdef CHECK_NODE_USAGE
     dump_things(varmem_sizes[0], var_mem_max);
-#endif
     dump_things(free_chain[0], MAX_CHAIN_SIZE);
     dump_int(var_used);
     dump_int(my_prealloc);
@@ -2885,11 +2882,9 @@ void undump_node_mem(void)
     var_mem_max = (x < 100000 ? 100000 : x);
     varmem = xmallocarray(memory_word, (unsigned) var_mem_max);
     undump_things(varmem[0], x);
-#ifdef CHECK_NODE_USAGE
     varmem_sizes = xmallocarray(char, (unsigned) var_mem_max);
     memset((void *) varmem_sizes, 0, (unsigned) var_mem_max * sizeof(char));
     undump_things(varmem_sizes[0], x);
-#endif
     undump_things(free_chain[0], MAX_CHAIN_SIZE);
     undump_int(var_used);
     undump_int(my_prealloc);
@@ -2928,9 +2923,7 @@ halfword slow_get_node(int s)
                 vlink(rover) += s;
             }
             if (vlink(rover) < var_mem_max) {
-#ifdef CHECK_NODE_USAGE
                 varmem_sizes[r] = (char) (s > 127 ? 127 : s);
-#endif
                 vlink(r) = null;
                 /*tex Maintain usage statistics. */
                 var_used += s;
@@ -2971,13 +2964,11 @@ halfword slow_get_node(int s)
                 overflow("node memory size", (unsigned) var_mem_max);
             }
             memset((void *) (varmem + var_mem_max), 0, (unsigned) x * sizeof(memory_word));
-#ifdef CHECK_NODE_USAGE
             varmem_sizes = (char *) realloc(varmem_sizes, sizeof(char) * (unsigned) (var_mem_max + x));
             if (varmem_sizes == NULL) {
                 overflow("node memory size", (unsigned) var_mem_max);
             }
             memset((void *) (varmem_sizes + var_mem_max), 0, (unsigned) (x) * sizeof(char));
-#endif
             /*tex Todo: is it perhaps possible to merge the new memory with an existing rover? */
             vlink(var_mem_max) = rover;
             node_size(var_mem_max) = x;
@@ -2998,7 +2989,6 @@ halfword slow_get_node(int s)
 char *sprint_node_mem_usage(void)
 {
     char *s;
-#ifdef CHECK_NODE_USAGE
     char *ss;
     int i;
     int b = 0;
@@ -3030,16 +3020,12 @@ char *sprint_node_mem_usage(void)
             b = 1;
         }
     }
-#else
-    s = strdup("");
-#endif
     return s;
 }
 
 halfword list_node_mem_usage(void)
 {
     halfword q = null;
-#ifdef CHECK_NODE_USAGE
     halfword p = null;
     halfword i, j;
     char *saved_varmem_sizes = xmallocarray(char, (unsigned) var_mem_max);
@@ -3056,7 +3042,6 @@ halfword list_node_mem_usage(void)
         }
     }
     free(saved_varmem_sizes);
-#endif
     return q;
 }
 
@@ -3499,7 +3484,11 @@ static void show_node_wrapup_core(int p)
             break;
         case special_node:
             tprint_esc("special");
-            print_mark(write_tokens(p));
+            print_mark(special_tokens(p));
+            break;
+        case late_special_node:
+            tprint_esc("latespecial");
+            print_mark(late_lua_data(p));
             break;
         case late_lua_node:
             show_late_lua(p);
@@ -3544,27 +3533,28 @@ void show_node_wrapup_pdf(int p)
 {
     switch (subtype(p)) {
         case pdf_literal_node:
+        case pdf_late_literal_node:
             show_pdf_literal(p);
             break;
         case pdf_colorstack_node:
             tprint_esc("pdfcolorstack ");
             print_int(pdf_colorstack_stack(p));
             switch (pdf_colorstack_cmd(p)) {
-            case colorstack_set:
-                tprint(" set ");
-                break;
-            case colorstack_push:
-                tprint(" push ");
-                break;
-            case colorstack_pop:
-                tprint(" pop");
-                break;
-            case colorstack_current:
-                tprint(" current");
-                break;
-            default:
-                confusion("colorstack");
-                break;
+                case colorstack_set:
+                    tprint(" set ");
+                    break;
+                case colorstack_push:
+                    tprint(" push ");
+                    break;
+                case colorstack_pop:
+                    tprint(" pop");
+                    break;
+                case colorstack_current:
+                    tprint(" current");
+                    break;
+                default:
+                    confusion("colorstack");
+                    break;
             }
             if (pdf_colorstack_cmd(p) <= colorstack_data)
                 print_mark(pdf_colorstack_data(p));
@@ -3578,6 +3568,10 @@ void show_node_wrapup_pdf(int p)
             break;
         case pdf_restore_node:
             tprint_esc("pdfrestore");
+            break;
+        case pdf_link_state_node:
+            tprint_esc("pdflinkstate ");
+            print_int(pdf_link_state(p));
             break;
         case pdf_refobj_node:
             tprint_esc("pdfrefobj");
@@ -3622,9 +3616,21 @@ void show_node_wrapup_pdf(int p)
                 tprint(" file");
                 print_mark(pdf_action_file(pdf_link_action(p)));
             }
+            if (pdf_action_struct_id(pdf_link_action(p)) != null) {
+                tprint(" struct");
+                if (pdf_action_file(pdf_link_action(p)) != null) {
+                    print_mark(pdf_action_struct_id(pdf_link_action(p)));
+                } else if (pdf_action_named_id(pdf_link_action(p)) & 2) {
+                    tprint(" name");
+                    print_mark(pdf_action_struct_id(pdf_link_action(p)));
+                } else {
+                    tprint(" num");
+                    print_int(pdf_action_struct_id(pdf_link_action(p)));
+                }
+            }
             switch (pdf_action_type(pdf_link_action(p))) {
             case pdf_action_goto:
-                if (pdf_action_named_id(pdf_link_action(p)) > 0) {
+                if (pdf_action_named_id(pdf_link_action(p)) & 1) {
                     tprint(" goto name");
                     print_mark(pdf_action_id(pdf_link_action(p)));
                 } else {
@@ -3638,7 +3644,7 @@ void show_node_wrapup_pdf(int p)
                 print_mark(pdf_action_tokens(pdf_link_action(p)));
                 break;
             case pdf_action_thread:
-                if (pdf_action_named_id(pdf_link_action(p)) > 0) {
+                if (pdf_action_named_id(pdf_link_action(p)) & 1) {
                     tprint(" thread name");
                     print_mark(pdf_action_id(pdf_link_action(p)));
                 } else {
@@ -4475,7 +4481,16 @@ halfword new_char(int f, int c)
     \.{\\rightghost}, respectively. They are going to be removed by
     |new_ligkern|, at the end of which they are no longer needed.
 
-    Here are a few handy helpers used by the list output routines.
+    Here are a few handy helpers used by the list output routines. The yoffset
+    has some history but we now give some control over its treatment:
+
+    0: what we had before
+    1: compensate height and depth
+    2: compensate height and depth, take max
+    3: we keep height and depth
+
+    The modes are controlled by a variable because we need to retain downward
+    compatibility.
 
 */
 
@@ -4487,20 +4502,24 @@ scaled glyph_width(halfword p)
 
 scaled glyph_height(halfword p)
 {
-    scaled w = char_height(font(p), character(p)) + y_displace(p);
-    if (w < 0)
-        w = 0;
-    return w;
+    scaled h = char_height(font(p), character(p));
+    scaled y = y_displace(p);
+    if ((glyph_dimensions_par == 0) || (glyph_dimensions_par == 1) || (glyph_dimensions_par == 2 && y > 0))
+        h += y;
+    if (h < 0)
+        h = 0;
+    return h;
 }
 
-scaled glyph_depth(halfword p)
+scaled glyph_depth(halfword p) /* not used */
 {
-    scaled w = char_depth(font(p), character(p));
-    if (y_displace(p) > 0)
-        w = w - y_displace(p);
-    if (w < 0)
-        w = 0;
-    return w;
+    scaled d = char_depth(font(p), character(p));
+    scaled y = y_displace(p);
+    if ((glyph_dimensions_par == 0 && y > 0) || (glyph_dimensions_par == 1) || (glyph_dimensions_par == 2 && y < 0))
+        d -= y;
+    if (d < 0)
+        d = 0;
+    return d;
 }
 
 /*tex

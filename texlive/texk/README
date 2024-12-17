@@ -1,5 +1,5 @@
-$Id: README 54456 2020-03-21 22:04:56Z karl $
-Copyright 2006-2020 TeX Users Group.
+$Id: README 72806 2024-11-09 10:39:33Z takuji $
+Copyright 2006-2024 TeX Users Group.
 You may freely use, modify and/or distribute this file.
 
 This TeX Live directory contains the programs that use the kpathsea
@@ -23,24 +23,23 @@ afm2pl - maintained here
   old info: http://tex.aanhet.net/afm2pl/
 
 bibtex-x - maintained here, contains
-  bibtex8
-  bibtexu
-    old info: http://omega.enstb.org/yannis/bibtexu/
+  bibtex8, bibtexu
 
-chktex 1.7.6 - checked 15mar20
-  http://mirror.ctan.org/support/chktex/
-  http://download.savannah.gnu.org/releases/chktex/
+chktex 1.7.9 - checked 12jun24
+  https://mirror.ctan.org/support/chktex/
+  https://download.savannah.gnu.org/releases/chktex/
 
-cjkutils 4.8.4 - checked 18apr15
-  http://cjk.ffii.org/cjk-4.8.4.tar.gz
+cjkutils 4.8.5 - checked 22jan22
+  https://git.savannah.gnu.org/gitweb/?p=cjk.git;a=summary
+  https://www.nongnu.org/cjk/
 
-detex 2.8.6 - checked 15mar20
+detex 2.8.11 - checked 07jan24
   https://github.com/pkubowicz/opendetex/releases
-    old info: http://www.cs.purdue.edu/homes/trinkle/detex/
+  original author: https://www.cs.purdue.edu/homes/trinkle/detex/
 
 dtl - maintained here, by Takuji
 
-dvi2tty 6.0.0 - checked 15mar20
+dvi2tty 6.0.2 - checked 1may22
   https://github.com/t-tk/dvi2tty/releases
 
 dvidvi - maintained here
@@ -52,29 +51,30 @@ dviout-util - by Japanese TeX Development Community (Hironobu, Takuji et al.)
   but also: https://github.com/aminophen/dviout-util
 
 dvipdfm-x - maintained here, by us, contains
-  dvipdfmx
-  xdvipdfmx
-    old info: http://project.ktug.org/dvipdfmx/
+  dvipdfmx and xdvipdfmx.
+    old info: https://project.ktug.org/dvipdfmx/
 
-dvipng 1.17 - checked 06jan20
-  http://mirror.ctan.org/dviware/dvipng/
+dvipng 1.17 - checked 31may22
+  https://mirror.ctan.org/dviware/dvipng/
 
 dvipos - maintained here, by us
 
 dvipsk - maintained here, by us
 
-dvisvgm 2.9.1 - checked 21mar20
+dvisvgm 3.2.2 - checked 7mar24
   https://dvisvgm.de/Downloads/
+  https://github.com/mgieseki/dvisvgm
+  https://ctan.org/pkg/dvisvgm
 
-gregorio 5.2.1 - checked 19dec19
-  CTAN/support/gregoriotex/gregorio-5.2.1.zip
+gregorio 6.0.0 - checked 14mar21
+  https://mirror.ctan.org/support/gregoriotex/gregorio-6.0.0.zip
 
 gsftopk - from Paul Vojta's xdvi.
 
 kpathsea - maintained here, by us
 
-lcdf-typetools 2.108 - checked 15mar20
-  http://www.lcdf.org/type/
+lcdf-typetools 2.110 - checked 01sep23
+  https://www.lcdf.org/type/
 
 makeindexk - maintained here, by us
 
@@ -85,7 +85,7 @@ mendexk - by Japanese TeX Development Community (Takuji, Hironobu et al.)
   https://github.com/texjporg/tex-jp-build
 
 musixtnt 2016-01-30 - checked 15mar20
-  http://mirror.ctan.org/macros/musixtnt/
+  https://mirror.ctan.org/macros/musixtnt/
 
 ps2pk - maintained here, by us
 
@@ -106,8 +106,8 @@ ttf2pk2 - maintained here, by us
 
 ttfdump - maintained here, by us, since Taiwan upstream apparently gone.
 
-upmendex 0.54 - by Takuji Tanaka
-  http://www.ctan.org/pkg/upmendex
+upmendex 1.10 - by Takuji Tanaka
+  https://ctan.org/pkg/upmendex
   https://github.com/t-tk/upmendex-package
 
 web2c - maintained here, by us - core web2c, plain tex, etc.
@@ -116,26 +116,27 @@ web2c - maintained here, by us - core web2c, plain tex, etc.
        aleph - maintained here
         ctie - CTAN
         cweb - https://github.com/ascherer/cwebbin
-               (original Knuth, ftp://ftp.cs.stanford.edu/pub/cweb/)
-       eptex - https://github.com/texjporg/tex-jp-build
-               also: https://osdn.jp/projects/eptex
+               (original Knuth, ftp://ftp.cs.stanford.edu/pub/cweb/
+               and ftp://ftp.cs.stanford.edu/pub/ctwill/)
         etex - maintained here
-      euptex - http://www.t-lab.opal.ne.jp/tex/uptex_en.html
+      euptex - https://github.com/texjporg/tex-jp-build
+               also: https://www.t-lab.opal.ne.jp/tex/uptex_en.html
+               also: https://github.com/h-kitagawa/eptex-wiki
+       hitex - https://hint.userweb.mwn.de/hint/hitex.html
   mflua[jit] - https://serveur-svn.lri.fr/svn/modhel/mflua
-               also: http://www.luatex.org/download.html
-    mplibdir - http://tug.org/metapost/
-               also: http://www.luatex.org/download.html
-      luatex - http://luatex.org/
-      pdftex - http://pdftex.org/
+               also: https://www.luatex.org/download.html
+    mplibdir - https://tug.org/metapost/
+      luatex - https://luatex.org/
+      pdftex - https://pdftex.org/
    [u]pmpost - nothing current, see README for old info
         ptex - https://github.com/texjporg/tex-jp-build
                old info: https://asciidwango.github.io/ptex/
      synctex - maintained here, but also https://github.com/jlaurens/synctex
-       uptex - http://www.t-lab.opal.ne.jp/tex/uptex_en.html
-       xetex - http://tug.org/xetex/
+       uptex - https://www.t-lab.opal.ne.jp/tex/uptex_en.html
+       xetex - https://tug.org/xetex/
    
-xdvik 22.87.04 - checked 15mar20
-  http://sourceforge.net/projects/xdvi/files/xdvik/
+xdvik 22.87.06 - checked 31may22
+  https://sourceforge.net/projects/xdvi/files/xdvik/
   Procedure for updating xdvik from sourceforge release:
 tar xf ...
 diff -crN2 \

@@ -1,6 +1,6 @@
 /* Sum -- efficiently sum a list of floating-point numbers
 
-Copyright 2014-2019 Free Software Foundation, Inc.
+Copyright 2014-2023 Free Software Foundation, Inc.
 Contributed by the AriC and Caramba projects, INRIA.
 
 This file is part of the GNU MPFR Library.
@@ -39,7 +39,7 @@ https://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
  *
  * in the comp.lang.c FAQ:
  *
- *   http://c-faq.com/ansi/constmismatch.html
+ *   https://c-faq.com/ansi/constmismatch.html
  */
 
 /* See the doc/sum.txt file for the algorithm and a part of its proof
@@ -51,7 +51,7 @@ TODO [VL, after a discussion with James Demmel]: Compared to
   volume 37, number 1-4, pages 101--112, 2004.
 sorting is not necessary here. It is not done because in the most common
 cases (where big cancellations are rare), it would take time and be
-useless. However the lack of sorting increases the worst case complexity.
+useless. However, the lack of sorting increases the worst case complexity.
 For instance, consider many inputs that cancel one another (two by two).
 One would need n/2 iterations, where each iteration reads the exponent
 of each input, therefore n*n/2 read operations. Using a worst-case sort
@@ -61,7 +61,8 @@ iteration. But are there practical applications which would be used as
 tests?
 
 Note: see the following paper and its references:
-http://www.eecs.berkeley.edu/~hdnguyen/public/papers/ARITH21_Fast_Sum.pdf
+  http://www.acsel-lab.com/arithmetic/arith21/papers/p54.pdf
+  (J. Demmel and H. D. Nguyen, Fast Reproducible Floating-Point Summation)
 VL: This is very different:
           In MPFR             In the paper & references
     arbitrary precision            fixed precision
@@ -542,7 +543,7 @@ sum_aux (mpfr_ptr sum, const mpfr_ptr *x, unsigned long n, mpfr_rnd_t rnd,
   MPFR_LOG_FUNC
     (("n=%lu rnd=%d maxexp=%" MPFR_EXP_FSPEC "d rn=%lu",
       n, rnd, (mpfr_eexp_t) maxexp, rn),
-     ("sum[%Pu]=%.*Rg", mpfr_get_prec (sum), mpfr_log_prec, sum));
+     ("sum[%Pd]=%.*Rg", mpfr_get_prec (sum), mpfr_log_prec, sum));
 
   MPFR_ASSERTD (rn >= 3 && rn <= n);
 
@@ -968,6 +969,16 @@ sum_aux (mpfr_ptr sum, const mpfr_ptr *x, unsigned long n, mpfr_rnd_t rnd,
                 wi = tq / GMP_NUMB_BITS;
                 td = tq % GMP_NUMB_BITS;
 
+                /* Note: The "else" (td == 0) branch below can be executed
+                   only if tq >= GMP_NUMB_BITS, which is possible only when
+                   logn is large enough. Indeed, if tq > logn + some constant,
+                   this means that the TMD did not occur.
+                   TODO: Find an upper bound on tq, and add a corresponding
+                   MPFR_ASSERTD assertion / hint. On some platforms, this
+                   branch might be dead code, and such information would
+                   allow the compiler to remove it.
+                   It seems that this branch is never tested (r12754). */
+
                 if (td != 0)
                   {
                     wi++;  /* number of words with represented bits */
@@ -1257,7 +1268,7 @@ mpfr_sum (mpfr_ptr sum, const mpfr_ptr *x, unsigned long n, mpfr_rnd_t rnd)
 {
   MPFR_LOG_FUNC
     (("n=%lu rnd=%d", n, rnd),
-     ("sum[%Pu]=%.*Rg", mpfr_get_prec (sum), mpfr_log_prec, sum));
+     ("sum[%Pd]=%.*Rg", mpfr_get_prec (sum), mpfr_log_prec, sum));
 
   if (MPFR_UNLIKELY (n <= 2))
     {

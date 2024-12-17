@@ -124,6 +124,41 @@ lua_token *check_istoken(lua_State * L, int ud)
     return NULL;
 }
 
+/* moved here */
+
+int token_from_lua(lua_State * L)
+{
+    int cmd, chr;
+    int cs = 0;
+    size_t len;
+    lua_token *p;
+    if (lua_type(L, -1) == LUA_TTABLE) {
+        len = lua_rawlen(L, -1);
+        if (len == 3 || len == 2) {
+            lua_rawgeti(L, -1, 1);
+            cmd = (int) lua_tointeger(L, -1);
+            lua_rawgeti(L, -2, 2);
+            chr = (int) lua_tointeger(L, -1);
+            if (len == 3) {
+                lua_rawgeti(L, -3, 3);
+                cs = (int) lua_tointeger(L, -1);
+            }
+            lua_pop(L, (int) len);
+            if (cs == 0) {
+                return token_val(cmd, chr);
+            } else {
+                return cs_token_flag + cs;
+            }
+        }
+    } else { 
+        p = check_istoken(L, -1);
+        if (p) {
+            return token_info(p->token);
+        }
+    }
+    return -1;
+}
+
 /* token library functions */
 
 static void make_new_token(lua_State * L, int cmd, int chr, int cs)
@@ -295,7 +330,7 @@ inline static int run_put_next(lua_State * L)
     if (h == null) {
         /* can't happen */
     } else {
-        begin_token_list(h,0);
+        begin_token_list(h,4);
     }
     lua_settop(L,n);
     return 0;
@@ -614,23 +649,35 @@ static int run_scan_argument(lua_State * L) /* HH */
         get_token();
     } while ((cur_cmd == spacer_cmd) || (cur_cmd == relax_cmd));
     if (cur_cmd == left_brace_cmd) {
+        int exp = 1;
+        if (lua_type(L, 1) == LUA_TBOOLEAN) {
+            exp = lua_toboolean(L, 1);
+        }
         back_input();
         saved_defref = def_ref;
-        (void) scan_toks(false, true);
+        (void) scan_toks(false, exp);
         t = def_ref;
         def_ref = saved_defref;
         tokenlist_to_luastring(L,t);
         flush_list(t);
     } else if (cur_cmd == call_cmd) {
         halfword saved_cur_tok = cur_tok;
+        int exp = 1;
+        if (lua_type(L, 1) == LUA_TBOOLEAN) {
+            exp = lua_toboolean(L, 1);
+        }
         cur_tok = right_brace_token + '}';
         back_input();
-        cur_tok = saved_cur_tok;
-        back_input();
+        if (exp) {
+            cur_tok = saved_cur_tok;
+            back_input();
+        } else {
+            expand();
+        }
         cur_tok = left_brace_token + '{';
         back_input();
         saved_defref = def_ref;
-        (void) scan_toks(false, true);
+        (void) scan_toks(false, exp);
         t = def_ref;
         def_ref = saved_defref;
         tokenlist_to_luastring(L,t);
@@ -740,6 +787,7 @@ static int run_lookup(lua_State * L)
     return 1;
 }
 
+/*
 static int lua_tokenlib_is_defined(lua_State * L)
 {
     const char *s;
@@ -752,6 +800,26 @@ static int lua_tokenlib_is_defined(lua_State * L)
         }
     }
     lua_pushnil(L);
+    return 1;
+}
+*/
+
+static int lua_tokenlib_is_defined(lua_State * L)
+{
+    int b = 0;
+    if (lua_type(L, 1) == LUA_TSTRING) {
+        size_t l;
+        const char *s = lua_tolstring(L, 1, &l);
+        if (l > 0) {
+            int cs = string_lookup(s, l);
+            if (lua_toboolean(L, 2)) {
+                b = cs != undefined_control_sequence;
+            } else {
+                b = eq_type(cs) != undefined_cs_cmd;
+            }
+        }
+    }
+    lua_pushboolean(L, b);
     return 1;
 }
 
@@ -1197,9 +1265,9 @@ static int set_macro(lua_State * L)
         const char *se = str + lstr;
         p = temp_token_head;
         set_token_link(p, null);
-        /* this left brace is used to store the number of arguments */
-        fast_store_new_token(left_brace_token);
-        /* and this ends the not present arguments, and no: we will not support arguments here*/
+	/* reference count */
+        fast_store_new_token(0);
+	/* this ends the not present arguments, and no: we will not support arguments here*/
         fast_store_new_token(end_match_token);
         while (str < se) {
             /* hh: str2uni could return len too (also elsewhere) */
@@ -1266,7 +1334,7 @@ static int set_macro(lua_State * L)
         halfword q; /* new node being added to the token list via |store_new_token| */
         p = temp_token_head;
         set_token_info(p,null);
-        fast_store_new_token(left_brace_token);
+        fast_store_new_token(0);
         fast_store_new_token(end_match_token);
         define(cs, call_cmd + (a % 4), token_link(temp_token_head));
     }

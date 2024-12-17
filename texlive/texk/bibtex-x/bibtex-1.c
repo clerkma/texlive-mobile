@@ -4,9 +4,7 @@
 **
 **  MODULE
 **
-**      $RCSfile: bibtex-1.c,v $
-**      $Revision: 3.71 $
-**      $Date: 1996/08/18 20:47:30 $
+**      file: bibtex-1.c
 **
 **  DESCRIPTION
 **
@@ -278,7 +276,7 @@ BEGIN
   END
   out_buf_length = out_buf_ptr;
   unbreakable_tail = FALSE;
-  while ((out_buf_length > MAX_PRINT_LINE) && ! unbreakable_tail)
+  while ((out_buf_length > Max_Print_Line) && ! unbreakable_tail)
 
 /***************************************************************************
  * WEB section number:	 323
@@ -294,7 +292,7 @@ BEGIN
  ***************************************************************************/
   BEGIN
     end_ptr = out_buf_length;
-    out_buf_ptr = MAX_PRINT_LINE;
+    out_buf_ptr = Max_Print_Line;
     break_pt_found = FALSE;
     while ((lex_class[out_buf[out_buf_ptr]] != WHITE_SPACE)
         && (out_buf_ptr >= MIN_PRINT_LINE))
@@ -315,9 +313,45 @@ BEGIN
  * point, so we don't break the line (yet).
  ***************************************************************************/
     BEGIN
-      out_buf_ptr = MAX_PRINT_LINE + 1;
+      out_buf_ptr = Max_Print_Line + 1;
       while (out_buf_ptr < end_ptr)
       BEGIN
+#ifdef UTF_8
+        if (lex_class[out_buf[out_buf_ptr]] == WHITE_SPACE)
+        BEGIN
+          UChar32 ch;
+          U8_GET_OR_FFFD(out_buf, out_buf_ptr-4, out_buf_ptr-1, -1, ch);
+          switch ( ublock_getCode(ch) )
+          BEGIN
+            case UBLOCK_BASIC_LATIN:
+            case UBLOCK_LATIN_1_SUPPLEMENT:
+            case UBLOCK_LATIN_EXTENDED_A:
+            case UBLOCK_LATIN_EXTENDED_B:
+            case UBLOCK_LATIN_EXTENDED_C:
+            case UBLOCK_LATIN_EXTENDED_D:
+            case UBLOCK_LATIN_EXTENDED_E:
+#if defined(U_ICU_VERSION_MAJOR_NUM) && (U_ICU_VERSION_MAJOR_NUM > 69)
+            case UBLOCK_LATIN_EXTENDED_F:
+            case UBLOCK_LATIN_EXTENDED_G:
+#endif
+            case UBLOCK_LATIN_EXTENDED_ADDITIONAL:
+            case UBLOCK_GREEK:
+            case UBLOCK_GREEK_EXTENDED:
+            case UBLOCK_CYRILLIC:
+            case UBLOCK_CYRILLIC_SUPPLEMENT:
+            case UBLOCK_CYRILLIC_EXTENDED_A:
+            case UBLOCK_CYRILLIC_EXTENDED_B:
+            case UBLOCK_CYRILLIC_EXTENDED_C:
+#if defined(U_ICU_VERSION_MAJOR_NUM) && (U_ICU_VERSION_MAJOR_NUM > 71)
+            case UBLOCK_CYRILLIC_EXTENDED_D:
+#endif
+            case UBLOCK_HANGUL_SYLLABLES:
+              goto Loop1_Exit; /* break line */
+            break;
+          END
+        END
+        INCR (out_buf_ptr); /* do not break line */
+#else
         if (lex_class[out_buf[out_buf_ptr]] != WHITE_SPACE)
         BEGIN
           INCR (out_buf_ptr);
@@ -326,6 +360,7 @@ BEGIN
         BEGIN
           goto Loop1_Exit;
         END
+#endif
       END
 Loop1_Exit:
       if (out_buf_ptr == end_ptr)

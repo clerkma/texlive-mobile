@@ -597,6 +597,7 @@ typedef enum {
     noad_option_no_sub_script   = 0x21 + 0x08,
     noad_option_no_super_script = 0x22 + 0x08,
     noad_option_no_script       = 0x23 + 0x08,
+    noad_option_no_rule         = 0x24 + 0x08,
 } delimiter_options ;
 
 #  define delimiteroptionset(a) ((delimiteroptions(a) & noad_option_set    ) == noad_option_set    )
@@ -657,6 +658,7 @@ typedef enum {
 #  define fractionoptionset(a) ((fractionoptions(a) & noad_option_set    ) == noad_option_set    )
 #  define fractionexact(a)     ((fractionoptions(a) & noad_option_exact  ) == noad_option_exact  )
 #  define fractionnoaxis(a)    ((fractionoptions(a) & noad_option_no_axis) == noad_option_no_axis)
+#  define fractionnorule(a)    ((fractionoptions(a) & noad_option_no_rule) == noad_option_no_rule)
 
 /* radical noads */
 /* this is like a fraction, but it only stores a |left_delimiter| */
@@ -708,6 +710,7 @@ typedef enum {
     write_node,
     close_node,
     special_node,
+    late_special_node,          /* done a la pdftex, more natural is to use special with a flag instead */
     use_box_resource_node,
     use_image_resource_node,
     save_pos_node,
@@ -717,6 +720,7 @@ typedef enum {
     dvi_literal_node = 15,
     /* pdf backend */
     pdf_literal_node = 16,
+    pdf_late_literal_node,   /* done a la pdftex, more natural is to use special with a flag instead */
     pdf_refobj_node,
     pdf_annot_node,
     pdf_start_link_node,
@@ -732,16 +736,22 @@ typedef enum {
     pdf_setmatrix_node,
     pdf_save_node,
     pdf_restore_node,
+    pdf_link_state_node,
 } whatsit_types;
 
-#  define first_common_whatsit      0
+#  define first_common_whatsit      open_node
 #  define last_common_whatsit       user_defined_node
-#  define backend_first_dvi_whatsit 15
-#  define backend_last_dvi_whatsit  15
-#  define backend_first_pdf_whatsit 16
-#  define backend_last_pdf_whatsit  31
+#  define backend_first_dvi_whatsit dvi_literal_node
+#  define backend_last_dvi_whatsit  dvi_literal_node 
+#  define backend_first_pdf_whatsit pdf_literal_node 
+#  define backend_last_pdf_whatsit  pdf_link_state_node  /* Don't forget to adapt this when extending! */
 
-#  define MAX_WHATSIT_TYPE 32
+/* 
+    We add quite some slack for future usage because who knows how we need to be compatible with 
+    other engines. 
+*/
+
+#  define MAX_WHATSIT_TYPE 48
 
 #  define known_whatsit_type(i) ( \
     (i >= first_common_whatsit      && i <= last_common_whatsit) || \
@@ -805,8 +815,6 @@ typedef enum {
 #  define boundary_node_size 3
 #  define boundary_value(a) vinfo((a)+2)
 
-#  define special_node_size 3
-
 typedef enum {
     normal_dir = 0,
     cancel_dir,
@@ -821,9 +829,13 @@ typedef enum {
 #  define dir_cur_v(a)     vlink((a)+4)
 
 #  define write_node_size 3
+#  define literal_node_size 3
+#  define special_node_size 3
 #  define close_node_size 3
 #  define write_tokens(a)  vlink(a+2)
 #  define write_stream(a)  vinfo(a+2)
+
+#  define special_tokens write_tokens
 
 #  define open_node_size 4
 #  define open_name(a)   vlink((a)+2)
@@ -871,9 +883,9 @@ typedef enum {
 
 #  define pdf_obj_objnum(a) vinfo((a) + 2)
 
-#  define pdf_annot_node_size 8
-#  define pdf_dest_node_size 8
-#  define pdf_thread_node_size 8
+#  define pdf_annot_node_size  9 /* all need the same size, rect margin related ! */
+#  define pdf_dest_node_size   9
+#  define pdf_thread_node_size 9
 
 /*
     when a whatsit node representing annotation is created, words |1..3| are
@@ -890,6 +902,7 @@ typedef enum {
 #  define pdf_ann_top(a)            varmem[(a) + 3].cint
 #  define pdf_ann_right(a)          varmem[(a) + 4].cint
 #  define pdf_ann_bottom(a)         varmem[(a) + 5].cint
+#  define pdf_ann_margin(a)         varmem[(a) + 8].cint  /* so all need to have the same size */
 
 #  define pdf_literal_data(a)       vlink((a)+2)
 #  define pdf_literal_mode(a)       type((a)+2)
@@ -918,6 +931,10 @@ typedef enum {
 #  define pdf_save_node_size        3
 #  define pdf_restore_node_size     3
 
+#  define pdf_link_state_node_size  3
+
+#  define pdf_link_state(a) vinfo((a) + 2)
+
 #  define pdf_colorstack_node_size  4
 #  define pdf_colorstack_stack(a)   vlink((a)+2)
 #  define pdf_colorstack_cmd(a)     vinfo((a)+2)
@@ -940,12 +957,13 @@ typedef enum {
 #  define pdf_action_size           6
 
 #  define pdf_action_type(a)        vlink((a)+2) /* enum pdf_action_type */
-#  define pdf_action_named_id(a)    vinfo((a)+2) /* boolean */
+#  define pdf_action_named_id(a)    vinfo((a)+2) /* bitset of two booleans */
 #  define pdf_action_id(a)          vlink((a)+3) /* number or toks */
 #  define pdf_action_file(a)        vinfo((a)+3) /* toks */
 #  define pdf_action_new_window(a)  vlink((a)+4) /* enum pdf_window_type */
 #  define pdf_action_tokens(a)      vinfo((a)+4) /* toks */
 #  define pdf_action_refcount(a)    vlink((a)+5) /* number */
+#  define pdf_action_struct_id(a)   vinfo((a)+5) /* number or toks */
 
 typedef enum {
     colorstack_set = 0,

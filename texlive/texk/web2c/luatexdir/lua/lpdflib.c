@@ -17,7 +17,6 @@
    You should have received a copy of the GNU General Public License along
    with LuaTeX; if not, see <http://www.gnu.org/licenses/>. */
 
-
 #include "ptexlib.h"
 #include "lua/luatex-api.h"
 #include "pdf/pdftables.h"
@@ -814,8 +813,34 @@ static int getpdfomitcharset(lua_State * L)
     return 1 ;
 }
 
+static int getpdfomitinfodict(lua_State * L)
+{
+    lua_pushinteger(L, (pdf_omit_infodict));
+    return 1 ;
+}
+
+static int getpdfomitmediabox(lua_State * L)
+{
+    lua_pushinteger(L, (pdf_omit_mediabox));
+    return 1 ;
+}
+
+static int getpdfomitprocset(lua_State * L)
+{
+    lua_pushinteger(L, (pdf_omit_procset));
+    return 1 ;
+}
+
+static int getpdfptexprefix(lua_State * L)
+{
+    lua_pushinteger(L, (pdf_ptex_prefix));
+    return 1 ;
+}
+
 static int setpdfgentounicode(lua_State * L)
 {
+    /* ensures that glyph_unicode_tree is not null */
+    glyph_unicode_new(); 
     if (lua_type(L, 1) == LUA_TNUMBER) {
         set_pdf_gen_tounicode(lua_tointeger(L, 1));
     }
@@ -834,6 +859,38 @@ static int setpdfomitcharset(lua_State * L)
 {
     if (lua_type(L, 1) == LUA_TNUMBER) {
         set_pdf_omit_charset(lua_tointeger(L, 1));
+    }
+    return 0 ;
+}
+
+static int setpdfomitinfodict(lua_State * L)
+{
+    if (lua_type(L, 1) == LUA_TNUMBER) {
+        set_pdf_omit_infodict(lua_tointeger(L, 1));
+    }
+    return 0 ;
+}
+
+static int setpdfomitmediabox(lua_State * L)
+{
+    if (lua_type(L, 1) == LUA_TNUMBER) {
+        set_pdf_omit_mediabox(lua_tointeger(L, 1));
+    }
+    return 0 ;
+}
+
+static int setpdfomitprocset(lua_State * L)
+{
+    if (lua_type(L, 1) == LUA_TNUMBER) {
+        set_pdf_omit_procset(lua_tointeger(L, 1));
+    }
+    return 0 ;
+}
+
+static int setpdfptexprefix(lua_State * L)
+{
+    if (lua_type(L, 1) == LUA_TNUMBER) {
+        set_pdf_ptex_prefix(lua_tointeger(L, 1));
     }
     return 0 ;
 }
@@ -1020,7 +1077,7 @@ static int setpdforigin(lua_State * L)
     if (lua_type(L, 1) == LUA_TNUMBER) {
         h = (int) lua_roundnumber(L, 1);
         if (lua_type(L, 2) == LUA_TNUMBER) {
-            v = (int) lua_roundnumber(L, 1);
+            v = (int) lua_roundnumber(L, 2);
         } else {
             v = h;
         }
@@ -1350,11 +1407,19 @@ static const struct luaL_Reg pdflib[] = {
     { "getgentounicode", getpdfgentounicode },
     { "getomitcidset", getpdfomitcidset },
     { "getomitcharset", getpdfomitcharset },
+    { "getomitinfo", getpdfomitinfodict },
+    { "getomitmediabox", getpdfomitmediabox },
+    { "getomitprocset", getpdfomitprocset },
+    { "getptexprefix", getpdfptexprefix },
     { "setinclusionerrorlevel", setpdfinclusionerrorlevel },
     { "setignoreunknownimages", setpdfignoreunknownimages },
     { "setgentounicode", setpdfgentounicode },
     { "setomitcidset", setpdfomitcidset },
     { "setomitcharset", setpdfomitcharset },
+    { "setomitinfo", setpdfomitinfodict },
+    { "setomitmediabox", setpdfomitmediabox },
+    { "setomitprocset", setpdfomitprocset },
+    { "setptexprefix", setpdfptexprefix },
     { "setforcefile", setforcefile },
     { "mapfile", l_mapfile },
     { "mapline", l_mapline },

@@ -10,7 +10,7 @@
 .sp
 .fi
 ..
-.TH "DVIPDFMX" "1" "24 December 2018"
+.TH "DVIPDFMX" "1" "1 June 2021"
 .SH NAME
 dvipdfmx, xdvipdfmx, dvipdfm \- produce PDF files directly from DVI files
 .SH SYNOPSIS
@@ -36,7 +36,6 @@ is another incarnation of
 rather than a separate program.  Compatibility is attempted as best as
 possible.  
 
-In addition,
 .B xdvipdfmx
 is another incarnation.  It is used as the back end for
 .BR xetex (1)
@@ -130,8 +129,18 @@ Read the font map file given by
 The default map file in TeX Live is
 .IR pdftex.map ,
 as defined in the configuration file.
+.TP 5
 .B \-\-\^help
 Show a help message and exit successfully.
+.TP 5
+.B \-\^i " cfgfile"
+Read
+.I cfgfile
+as another include file, after reading the default
+.IR dvipdfmx.cfg .
+.TP 5
+.B \-\-\^kpathsea-debug number
+Have Kpathsea output debugging information; `-1' for everything (voluminous).
 .TP 5
 .B \-\^l
 Select landscape mode.  In other words, exchange the 
@@ -154,6 +163,11 @@ file is derived from the input, that is,
 Select the papersize by name (e.g.,
 .BR letter ", " legal ", " ledger ", " tabloid ", " a3 ", " a4 ", or " a5
 )
+.TP 5
+.B \-\-\^pdfm-str-utf8
+Assume PDFMark strings in
+.B \especial
+commands are encoded in UTF-8.
 .TP 5
 .B \-\^q
 Quiet mode.
@@ -227,9 +241,6 @@ Results of the
 option are cumulative (e.g., 
 .B \-\^vv
 increases the verbosity by two increments).  Maximum verbosity is four.
-.TP 5
-.B \-\-\^kpathsea-debug number
-Have Kpathsea output debugging information; `-1' for everything (voluminous).
 .TP 5
 .B \-\^x x_offset
 Set the left margin to 
@@ -317,6 +328,12 @@ configuration.  The location may be determined by using kpsewhich, e.g.,
 .I dvipdfmx.cfg
 Default configuration file
 .TP 5
+.I dvipdfmx-unsafe.cfg
+Configuration file that runs Ghostscript without safety checks; use only
+for trusted source files. It is currently required to use PSTricks with
+XeTeX:
+.B xetex \-output-driver="xdvipdfmx \-i dvipdfmx-unsafe.cfg -q -E" ...
+.TP 5
 .I pdftex.map
 The default font map file (this may be changed in the config file).
 .TP 5
@@ -342,12 +359,14 @@ dvipdft(1), extractbb(1),
 tex(1), luatex(1), xetex(1), dvips(1),
 .br
 groff(1), grodvi(1), pic(1),
-the Kpathsea library Info documentation (http://tug.org/kpathsea),
-and the Dvipdfmx User's Manual (in the distribution).
+the Kpathsea library Info documentation (https://tug.org/kpathsea),
+and the Dvipdfmx User's Manual (in the distribution, and linked from
+https://tug.org/dvipdfmx).
 .SH AUTHOR
 Primarily Mark A. Wicks; dvipdfmx extensions primarily by Jin-Hwan Cho,
-Shunsaku Hirata, and Matthias Franz.  For the version in TeX Live, all
-bugs and other reports should go to the
-.B dvipdfmx
-maintainers at tex-k (at) tug.org.  This man page edited for TeX Live
-by Bob Tennent and others.  This man page is public domain.
+Shunsaku Hirata, and Matthias Franz. For the version in TeX Live, please
+send bugs and other reports to the maintainers at dvipdfmx (at) tug.org
+(https://lists.tug.org/dvipdfmx).
+.PP
+This man page edited for TeX Live by Bob Tennent and others. This man
+page is public domain.

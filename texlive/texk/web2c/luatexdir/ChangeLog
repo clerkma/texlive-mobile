@@ -1,3 +1,497 @@
+2024-11-02  Luigi Scarso <luigi.scarso@gmail.com>
+	* Fixed a memory leak in token.put_next()  (thanks to user202729@protonmail.com)
+	* Fixed a memory leak in token.set_macro() implementation (thanks to user202729@protonmail.com)
+
+
+2024-10-12  Luigi Scarso <luigi.scarso@gmail.com>
+	* Handle token combiners in immediate assignments (H.Hagen)
+	* LuaTeX 1.19.0
+
+
+2024-09-15  Luigi Scarso <luigi.scarso@gmail.com>
+	* Fixed a typo in texfont.c (thanks to Josef Friedrich)
+
+
+2024-09-01  Luigi Scarso <luigi.scarso@gmail.com>
+        * Changed char utf8word[(4 * MAX_WORD_LEN) + 1] = { 0 };
+	in char utf8word[(4 * MAX_WORD_LEN) + 1] ;
+	in function  void hnj_hyphenation(halfword head, halfword tail) (thanks to user202729@protonmail.com)
+
+2024-05-11  Luigi Scarso <luigi.scarso@gmail.com>
+        * allow interactive deletion of \outer token, see https://tug.org/texmfbug/newbug.html#B142outer 
+
+
+2024-05-13  Luigi Scarso <luigi.scarso@gmail.com>
+	* Omitprocset and ptexprefix (force _ instead of . as separator) (H.Hagen)
+	* Bump to version 1.18.2
+
+2024-03-25  Luigi Scarso <luigi.scarso@gmail.com>
+	* Fixed synctex message on a math node with no zero glue
+
+2024-03-20  Luigi Scarso <luigi.scarso@gmail.com>
+	* Fixed wrong initialization of startup_filename (thanks to Wang Weixuan).
+
+
+2024-03-10  Karl Berry  <karl@tug.org>
+
+	* TL'24 release.
+
+2024-02-29  Luigi Scarso <luigi.scarso@gmail.com>
+	* Default output of \tracingmacros as in pdftex; texconfig.trace_extra_newline adds a newline in \tracingmacros as before (H.Hagen).
+
+
+2024-02-20  Luigi Scarso <luigi.scarso@gmail.com>
+	* in kpse mode, --shell-escape enable the standard lfs.* and os.* functions otherwise protected
+        * fixed lfs.mkdirp return value
+
+
+2024-02-19  Luigi Scarso <luigi.scarso@gmail.com>
+        *  new function lfs.mkdirp -- make parent directories as needed.
+
+
+2024-02-04  Luigi Scarso <luigi.scarso@gmail.com>
+	* LuaTeX 1.18.0.
+
+
+2024-02-04  Luigi Scarso <luigi.scarso@gmail.com>
+	* Character index within the  limits in defining a Type 3 font (H.Hagen). Thanks M. Chernoff.
+
+	
+2024-02-03  Luigi Scarso <luigi.scarso@gmail.com>
+	* Ensures that setgentounicode has a glyph_unicode_tree not NULL (thanks M. Chernoff)
+
+	
+2024-01-29  Luigi Scarso <luigi.scarso@gmail.com>
+	*  Integrate interval mode of metapost (as binary, it's not used in luatex)
+
+
+2024-01-28  Luigi Scarso <luigi.scarso@gmail.com>
+	* By default now debug.traceback is not nil.
+
+	
+2024-01-27  Luigi Scarso <luigi.scarso@gmail.com>
+	* lfs.attributes, lfs.dir and lfs.symlinkattributes are now checked
+	  only against kpse.in_name_ok_silent_extended
+	
+
+2024-01-24  Luigi Scarso <luigi.scarso@gmail.com>
+        * New 	kpse.in_name_ok_silent_extended and kpse.in_name_ok_silent_extended
+        * In kpse mode
+	  os.rename,
+          os.remove
+          lfs.attributes,
+	  lfs.chdir,
+	  lfs.lock_dir,
+	  lfs.dir,
+	  lfs.link ,
+	  lfs.mkdir,
+	  lfs.rmdir,
+	  lfs.symlinkattributes,
+	  lfs.touch 
+        are now checked with kpse.in_name_ok_silent_extended  *and* kpse.out_name_ok_silent_extended
+        * TEXMF_OUTPUT_DIRECTORY and output_directory have the same value, output_directory (when not empty)
+          having higher priority than TEXMF_OUTPUT_DIRECTORY.
+
+2024-01-21  Luigi Scarso <luigi.scarso@gmail.com>
+	*  Fixed position of verbatim_written in mpxout.w
+
+
+2024-01-13  Luigi Scarso <luigi.scarso@gmail.com>
+	*  Added missed definition of P_tmpdir for  splinefont.c .
+
+	
+
+2024-01-04  Luigi Scarso <luigi.scarso@gmail.com> 
+        * With --safer now each function in debug is nil as also package.loaded.debug = nil and  debug = nil 
+
+
+2023-12-21  Luigi Scarso <luigi.scarso@gmail.com> 
+        * LuaTeX 1.17.1	
+        * New commandline switch --[no-]check-dvi-total-pages  exit when DVI exceeds 65535 pages (default: check).
+          This breaks backward compatibility.
+
+
+2023-11-20  Karl Berry  <karl@freefriends.org>
+
+        * luazlib/lzlib.c: relax zlib version check to just checking
+        the major version, since (it turns out) zlib 1.3 is compatible
+        with 1.2.
+        https://github.com/TeX-Live/texlive-source/pull/62
+        https://lists.debian.org/debian-tex-maint/2010/06/msg00074.html
+        https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=581818
+
+2023-11-05  Luigi Scarso <luigi.scarso@gmail.com> 
+	* New binding for in_name_ok, out_name_ok from kpathsea. 
+	* When status.kpse_used = 1 io.open checks if the filename is ok
+          with in_name_ok or out_name_ok.
+
+2023-11-02  Luigi Scarso <luigi.scarso@gmail.com> 
+	* Fix for dubious cff fonts (not following the 1000 unit recommendation) (Hans Hagen).
+
+2023-10-04  Karl Berry  <karl@freefriends.org>
+
+	* luaoutputdir.test: new test for Lua-level reading from a given
+	--output-directory.
+	* am/luatex.am (luatex_tests): add it, plus .log dependency.
+
+2023-04-29  Luigi Scarso <luigi.scarso@gmail.com> 
+    * LuaTeX 1.17.0
+
+2023-04-28  Luigi Scarso <luigi.scarso@gmail.com> 
+    * new option --no-socket, same as --nosocket
+
+2023-04-27  Luigi Scarso <luigi.scarso@gmail.com> 
+    * new option --socket to split socket and shell escape;
+    * the mime library is always available  (Max Chernoff);
+    * Fixed ChangeLog
+
+2023-04-25  Luigi Scarso <luigi.scarso@gmail.com> 
+    * socket library by default not enabled; 
+       it is enabled with --shell-escape but not with --shell-restricted.
+       The option ---nosocket remains unchanged.
+       The two new functions os.socketgettime and os.socketsleep are 
+       like socket.gettime and socket.sleep, but they are always available.
+    * Luatex 1.17.0
+
+2023-04-24  Luigi Scarso <luigi.scarso@gmail.com> 
+    * static kpse.check_permissions in os.kpsepopen
+    * Fixed date in ChangeLog
+
+2023-04-23  Luigi Scarso <luigi.scarso@gmail.com> 
+    * new os.kpsepopen -- replace  io.popen if kpse is active.
+    * Luatex 1.16.2
+
+2023-04-18  Luigi Scarso <luigi.scarso@gmail.com> 
+    * lua.setluaname(n, s) and lua.getluaname(n): 
+      fixed mismatch between documentation and implementation (J. Friedrich).
+
+2023-03-30  Luigi Scarso <luigi.scarso@gmail.com> 
+    * bugfix for setpdforigin()  (A. Matthias) 
+
+2023-02-22  Luigi Scarso <luigi.scarso@gmail.com> 
+    * fix latelua data reference (side effect of deferred late additions) (H.Hagen)
+
+2023-02-18  Luigi Scarso <luigi.scarso@gmail.com> 
+    * Fixed the "Invalid unicode ranges in CMap beginbfrange operator bug" as in pdfTeX (Hàn Thế Thành)
+
+2023-02-18  Luigi Scarso <luigi.scarso@gmail.com> 
+    * new "late special" feature by Phelype Oleinik,
+      heavily adapted by H.Hagen.
+
+2023-02-05  Luigi Scarso <luigi.scarso@gmail.com> 
+    *  Fix typos (thanks to J. Friedrich) 
+
+2023-01-24  Luigi Scarso <luigi.scarso@gmail.com> 
+    *  fix for r2l multiline link etc rectangles (H.Hagen)
+
+2023-01-17  Luigi Scarso <luigi.scarso@gmail.com> 
+    * \pdfvariable omitmediabox 1 (H.Hagen)
+    * luatex 1.16.0
+
+2022-12-05  Luigi Scarso <luigi.scarso@gmail.com> 
+    * complementary patch for revision 7551 (lua end compatibility) (H.Hagen)
+
+2022-12-03  Luigi Scarso <luigi.scarso@gmail.com> 
+    * Track last node in ligature handling (M.Krüger)
+
+2022-12-03  Luigi Scarso <luigi.scarso@gmail.com> 
+    * Make disc node prev. pointers more uniform (M.Krüger)
+
+2022-11-20  Luigi Scarso <luigi.scarso@gmail.com> 
+    * set \variablefam = -1 as initial value (H.Hagen).
+
+2022-11-20  Luigi Scarso <luigi.scarso@gmail.com> 
+    * Ensured that load_hyphenation has enough Lua stack, and pops the latest table pushed in (Michal Vlasák).
+
+2022-11-10  Luigi Scarso <luigi.scarso@gmail.com> 
+    * Better error message if setlocale fails
+
+2022-10-28  Luigi Scarso <luigi.scarso@gmail.com> 
+    * \variablefam (backport from luametatex, handy for latex) (H .Hagen)
+
+2022-10-22  Luigi Scarso <luigi.scarso@gmail.com> 
+     * STOP COMMITS TO SVN REPO -- WORK IN PROGRESS
+
+2022-10-22  Luigi Scarso <luigi.scarso@gmail.com> 
+     * porting texlive patch r53155 -- WORK IN PROGRESS
+
+2022-09-29  Luigi Scarso <luigi.scarso@gmail.com> 
+     * Fixed an infinite loop with --halt-on-error option (K.Berry)
+
+2022-08-16  Luigi Scarso <luigi.scarso@gmail.com> 
+     * Accent 0xFFFD but still error on invalid utf (compatible) (H.Hagen)
+     * omitinfodict added: \pdfvariable omitinfodict 1 omit Info dicttionary (H.Hagen)
+
+2022-08-05  Luigi Scarso <luigi.scarso@gmail.com> 
+     * Fixed a missed lua_settop in lua_appendtovlist_callback() (thanks to Hironori KITAGAWA)
+
+2022-07-31  Luigi Scarso <luigi.scarso@gmail.com>
+    * Fixed loading .tex when  --output-directory is enabled
+
+2022-07-30  Luigi Scarso <luigi.scarso@gmail.com>
+    * Backtrack replace pointer when successive disc in exceptions  (H.Hagen)
+
+2022-07-30  Luigi Scarso <luigi.scarso@gmail.com>
+    * Take exception pre/port disc font from wordstart (H.Hagen)
+
+2022-05-23  Luigi Scarso <luigi.scarso@gmail.com>
+    * Fixed mp_begin_iteration (H.Hagen)
+
+2022-05-15  Luigi Scarso <luigi.scarso@gmail.com>
+    * Fixed a memory leak in mplib (H.Hagen)
+
+2022-04-26  Luigi Scarso <luigi.scarso@gmail.com>
+    * \mathitalicsmode=2 (enforce old school fonts italics code path) (H.Hagen)
+
+2022-04-25  Luigi Scarso <luigi.scarso@gmail.com>
+    * kpse find_file and lookup also search in --output-directory
+
+2022-04-21  Luigi Scarso <luigi.scarso@gmail.com>
+    * Wrong array size extended node_fields_whatsit_pdf_action (HH)
+
+2022-04-18 Luigi Scarso <luigi.scarso@gmail.com>
+    * Fix for Bug: Null-byte in csname not handled correctly (thanks to H. Menke)
+
+2022-04-13 Luigi Scarso <luigi.scarso@gmail.com>
+    * Make require return an error for ffi without shell-escape (H. Menke)
+
+2022-04-12  Luigi Scarso <luigi.scarso@gmail.com>
+    * Fix for 'Bug: attempt to double-free kern node'; 
+      restore safeguard math (HH). Thanks to H. Menke
+
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2022-03-10 Luigi Scarso <luigi.scarso@gmail.com>
+    *  -[no-]parse-first-line is now an unrecognized option (thanks to K.Berry)
+
+2022-02-28 Luigi Scarso <luigi.scarso@gmail.com>
+    * pass node to latelua function call (H.Hagen)
+
+2022-02-27 Luigi Scarso <luigi.scarso@gmail.com>
+    * Development id also with --version.
+
+2022-02-26 Luigi Scarso <luigi.scarso@gmail.com>
+    * write xformattributes and xformresources  (thanks to E. Renkema)
+
+2022-02-25 Luigi Scarso <luigi.scarso@gmail.com>
+    * lower max to 10000 and reverse check to max check exception penalty (H.Hagen)
+
+2022-02-05 Luigi Scarso <luigi.scarso@gmail.com>
+    *  intercept prefix for toksapp cum suis (H.Hagen)
+
+2022-01-23 Luigi Scarso <luigi.scarso@gmail.com>
+    * fixing a 15 year old buglet (math atom glue leak).  
+    * New primitive \matheqdirmode for short skip detection in  r2l typesetting (H. Hagen)
+
+2022-01-21 Luigi Scarso <luigi.scarso@gmail.com>
+    * patch for the logging of \scantextokens (H. Hagen)
+
+2022-01-17 Siep Kroonenberg <siepo@bitmuis.nl>
+   * patch for inconsistent definitions inet_ntop/inet_pton
+
+2022-01-12 Luigi Scarso <luigi.scarso@gmail.com>
+   * fixed \showstream (M.Krüger)
+
+2021-12-31 Luigi Scarso <luigi.scarso@gmail.com>
+    * drop (for the moment) \showstream
+
+2021-12-30 Luigi Scarso <luigi.scarso@gmail.com>
+    * struct dest (M.Krüger)
+    * fixed  a 'Conditional jump or move depends on uninitialised value(s)' msg from valgrind
+
+2021-12-29 Luigi Scarso <luigi.scarso@gmail.com>
+    * Correctly print \write for the error message 
+      "Forbidden control sequence found while scanning text of"
+      (thanks to Hironobu Yamashita)
+
+2021-12-27 Luigi Scarso <luigi.scarso@gmail.com>
+    * fixed a typo in a tex comment.
+
+2021-12-24 Luigi Scarso <luigi.scarso@gmail.com>
+    * Metapost: make sure that an already open VF is closed before to read a new one
+
+2021-12-21 Luigi Scarso <luigi.scarso@gmail.com>
+    * fixed os.uname on 64 bit Windows (A. Kakuto, L. Scarso)
+
+2021-12-13 Luigi Scarso <luigi.scarso@gmail.com>
+    * fixed a typo in equivalents.c (user202729 @ https://chat.stackexchange.com/transcript/41/2021/12/12)
+
+2021-12-07 Luigi Scarso <luigi.scarso@gmail.com>
+    * Fixed a typo in maincontrol.c (thanks to Hironobu Yamashita)
+
+2021-11-20 Luigi Scarso <luigi.scarso@gmail.com>
+    * Ignore paragraphs with only a local par node followed by direction synchronization
+    nodes (paragraphs like that are seen as empty paragraphs) (HH)
+
+2021-08-28 Luigi Scarso <luigi.scarso@gmail.com>
+    *more efficient fontdimen allocation (HH)
+
+2021-08-12 Luigi Scarso <luigi.scarso@gmail.com>
+    *mplibdir: Fix _findfirst handle truncation on Windows x86_64. 
+     Thanks to Richard Copley.
+
+2021-08-08 Luigi Scarso <luigi.scarso@gmail.com>
+    *Improvements for glyph_stream_provider with TTF fonts (MK)
+
+2021-08-04 Luigi Scarso <luigi.scarso@gmail.com>
+    *Fix named instance inconsistency in luaharfbuzz (MK)
+
+2021-08-03 Luigi Scarso <luigi.scarso@gmail.com>
+    *luaharfbuzz: Provide interface for variable fonts (M.Krüger)
+
+2021-07-30 Luigi Scarso <luigi.scarso@gmail.com>
+    *patch for luamplib  to process string with "char 0"; fixed also mplib_text 
+
+2021-07-30 Luigi Scarso <luigi.scarso@gmail.com>
+    *patch for luamplib  to process string with "char 0"
+
+2021-07-27 Luigi Scarso <luigi.scarso@gmail.com>
+    *partoken primitives (HH & PO)
+
+2021-07-27 Luigi Scarso <luigi.scarso@gmail.com>
+    *Sync with TeX Live revision 60088.
+
+2021-07-27 Luigi Scarso <luigi.scarso@gmail.com>
+    *automake-1.16.4; initialize limit to avoid printing some garbage.
+
+2021-07-02 Luigi Scarso <luigi.scarso@gmail.com>
+    *ePNG /Smask for  pdf 2.0
+
+2021-07-02 Luigi Scarso <luigi.scarso@gmail.com>
+    *sync with upstream texlive; autoconf-2.71.
+
+2021-05-10 Luigi Scarso <luigi.scarso@gmail.com>
+    *MetaPost: fixed the patch on the stack overflow.
+
+2021-05-09 Luigi Scarso <luigi.scarso@gmail.com>
+    *Impose mp->stack_size < 1001 in @d push_input to avoid 
+     stack overflow due infinite recursion of macro expansion (thanks to A. Kakuto).
+
+2021-04-21 Luigi Scarso <luigi.scarso@gmail.com>
+    *\discretionaryligaturemode: optionally block select disc creation 
+    (see [Dev-luatex] [PATCH] Nested discretionaries M.F. Krüger) (HH)
+
+2021-04-19 Luigi Scarso <luigi.scarso@gmail.com>
+    *\mathdefaultsmode: different radical style defaults 
+     (see [Dev-luatex] Uunderdelimiter & friends and mathstyles by M.F. Krüger) (HH)
+
+2021-04-19 Luigi Scarso <luigi.scarso@gmail.com>
+    * A patch for  linkarea in rtl context
+
+2021-04-10 Luigi Scarso <luigi.scarso@gmail.com>
+    * LuaTeX version 1.13.2  with MetaPost 2.01. 
+      The version change in MetaPost 
+      is due solely to the bug fix in btex .. etex 
+
+2021-04-02 Luigi Scarso <luigi.scarso@gmail.com>
+    * LuaTeX version 1.13.1,  
+      The version change is due solely to the bug fix in btex .. etex 
+
+2021-03-28  Luigi Scarso <luigi.scarso@gmail.com>
+    * also accept par in math after halign 
+      and eqn when in supress mode (HH)
+
+2021-03-23 Karl Berry <karl@tug.org>
+    * TL'21.
+
+2021-03-12 Luigi Scarso <luigi.scarso@gmail.com>
+    * When restricted system commands is enabled  os.setenv has no effect
+    * Patched  Decompress to avoid execution of arbitrary commands
+
+2021-03-07 Luigi Scarso <luigi.scarso@gmail.com>
+    * Fixed inclusion of  PDF images with page /Metadata streams (M.F. Krüger)
+
+2021-02-14 Luigi Scarso <luigi.scarso@gmail.com>
+    * callback for nesting level used in tracingmacros
+
+2021-02-01 Luigi Scarso <luigi.scarso@gmail.com>
+    * two TeX January 2021 DEK buglet fixes (H.Hagen)
+
+2021-01-31 Luigi Scarso <luigi.scarso@gmail.com>
+    * mark math glyphs as protected (in order to prevent processing
+      as text in base mode) (H.Hagen)
+    * removed width/ic compensation for traditional math code path
+      (see [Dev-luatex] Duplicated italic correction in do_delimiter ) (H.Hagen)
+
+2021-01-30 Luigi Scarso <luigi.scarso@gmail.com>
+    * level_max and level_chr determing what gets put in front of
+      macro tracing lines (variant on suggestion by PO on implementors list)(H. Hagen)
+
+2021-01-13 Luigi Scarso <luigi.scarso@gmail.com>
+    * pdftex compatibility hack (H. Hagen)
+
+2020-12-13 Luigi Scarso <luigi.scarso@gmail.com>
+    * fixed Hyphenation issue regarding frozen glyph nodes (M.F. Krüger)
+
+2020-12-12 Luigi Scarso <luigi.scarso@gmail.com>
+    * fixed  luatex segfault with huge romannumeral overfull (H. Hagen)
+    * automake (GNU automake) 1.16.3
+
+2020-11-08 Luigi Scarso <luigi.scarso@gmail.com>
+    * convert assert(is_simple_character(wordstart)) to tex error
+
+2020-10-30 Luigi Scarso <luigi.scarso@gmail.com>
+    * fixed a typo in w32 code in errors.c (A. Kakuto)
+
+2020-10-04 Luigi Scarso <luigi.scarso@gmail.com>
+    * fixed a typo in ChangeLog (thanks to A. Kakuto)
+
+2020-10-04 Luigi Scarso <luigi.scarso@gmail.com>
+    * patch for openin_any = p (A. Kakuto)
+
+2020-10-04 Luigi Scarso <luigi.scarso@gmail.com>
+    * Lua 5.3.6
+
+2020-08-21 Luigi Scarso <luigi.scarso@gmail.com>
+    * fixed a couple of bugs in metapost (see ChangeLog).
+
+2020-07-26 Luigi Scarso <luigi.scarso@gmail.com>
+    * fixed: \tracinglostchars>=3 is an error (no fatal error)
+
+2020-07-26 Luigi Scarso <luigi.scarso@gmail.com>
+    * New value for \tracinglostchars: \tracinglostchars>=3 is a fatal error
+
+2020-07-12 Luigi Scarso <luigi.scarso@gmail.com>
+    * Original reports:
+     https://tex.stackexchange.com/questions/551313/
+     https://tug.org/pipermail/tex-live/2020-June/045876.html
+ 
+    This will probably be fixed by DEK in the 2021 tuneup in a different
+    way (so we'll have to remove or alter this change), but the interaction
+    sequence in the reports above causes a segmentation fault in web2c -
+    writing to the closed \write15 stream because we wrongly decrement
+    selector from 16 to 15 in term_input, due to the lack of this check in
+    recursive error() call (K. Berry)
+
+
+2020-07-04 Luigi Scarso <luigi.scarso@gmail.com>
+    * little endian variants for readers. (HH)
+    * The keyword \type {norule} will hide the rule with the above variants while
+      keeping the rule related spacing.  (HH)
+
+2020-06-21 Luigi Scarso <luigi.scarso@gmail.com>
+    * pending better is_defined check plus an extra option in a scanner; also the \cs case. (HH)
+    * tex.getmark(what,wherefrom)  added (HH)
+
+2020-05-01 Luigi Scarso <luigi.scarso@gmail.com>
+    * added tex.interlinepenalties tex.clubpenalties tex.widowpenalties 
+    tex.displaywidowpenalties to complement tex.parshape (HH)
+
+2020-04-28 Luigi Scarso <luigi.scarso@gmail.com>
+    * less strict lastnode testing (HH) 
+    * some experimental math delimiter code removed (HH)
+
+2020-04-27 Luigi Scarso <luigi.scarso@gmail.com>
+    * similar treatment for shiftdown as shiftup in operators (no
+     checking) (HH)
+
+2020-04-07 Luigi Scarso <luigi.scarso@gmail.com>
+    * Version 1.13.0. 
+      getstring extra argument to pdfe.getstring (triggers unencoded or flag
+      return values) (HH).
+
 2020-03-09 Luigi Scarso <luigi.scarso@gmail.com>
     * texluahb / texluahbjit for luahbtex / luajithbtex
 
@@ -1146,7 +1640,7 @@
 
 2010-05-13  Taco Hoekwater <taco@luatex.org>
 
-	* utils/synctex.c, utils/synctex-luatex.h: update from J�rome
+	* utils/synctex.c, utils/synctex-luatex.h: update from Jérôme 
 	Laurens, bringing luatex in-line with the core synctex distribution
 	* luatex_svnversion.h: updated to reflect the version of 0.60.x branch
 	

@@ -2,12 +2,17 @@
 % Written by kb@cs.umb.edu.
 % This file is in the public domain.
 
+@x [0] l.18
+\def\title{VF\lowercase{to}VP}
+@y
+\def\title{VF$\,$\lowercase{to}$\,$VP changes for C}
+@z
+
 @x [0] WEAVE: print changes only.
 \pageno=\contentspagenumber \advance\pageno by 1
 @y
 \pageno=\contentspagenumber \advance\pageno by 1
 \let\maybe=\iffalse
-\def\title{VF$\,$\lowercase{to}$\,$VP changes for C}
 @z
 
 @x [1] Define my_name
@@ -44,7 +49,7 @@ procedure initialize; {this procedure gets things started properly}
   var @!k:integer; {all-purpose index for initialization}
   begin print_ln(banner);@/
 @y
-@<Define |parse_arguments|@>
+@<Define \(p)|parse_arguments|@>
 procedure initialize; {this procedure gets things started properly}
   var @!k:integer; {all-purpose index for initialization}
   begin
@@ -122,8 +127,7 @@ end else begin
 end;
 @z
 
-% [22] `index' is not a good choice of identifier in C.
-@x
+@x [22] `index' is not a good choice of identifier in C.
 @<Types...@>=
 @!index=0..tfm_size; {address of a byte in |tfm|}
 @y
@@ -142,8 +146,7 @@ end;
 @!tfm_file_array: ^byte; {the input data all goes here}
 @z
 
-% [24] abort() should cause a bad exit code.
-@x
+@x [24] abort() should cause a bad exit code.
 @d abort(#)==begin print_ln(#);
   print_ln('Sorry, but I can''t go on; are you sure this is a TFM?');
   goto final_end;
@@ -162,8 +165,7 @@ if 4*lf-1>tfm_size then abort('The file is bigger than I can handle!');
 tfm_file_array := xrealloc_array (tfm_file_array, byte, 4 * lf + 1000);
 @z
 
-% [31] Ditto for vf_abort.
-@x
+@x [31] Ditto for vf_abort.
 @d vf_abort(#)==
   begin print_ln(#);
   print_ln('Sorry, but I can''t go on; are you sure this is a VF?');
@@ -260,7 +262,7 @@ free(cur_name);
         print_ln('Check sum in VF file being replaced by TFM check sum');
 @z
 
-@x [42] Remove initialization of now-defunct array.
+@x [43] Remove initialization of now-defunct array.
 @ @<Set init...@>=
 default_directory:=default_directory_name;
 @y
@@ -268,6 +270,14 @@ default_directory:=default_directory_name;
 @z
 
 @x [44] Don't append `.tfm' here, and keep lowercase.
+@ The string |cur_name| is supposed to be set to the external name of the
+\.{TFM} file for the current font. This usually means that we need to
+prepend the name of the default directory, and
+to append the suffix `\.{.TFM}'. Furthermore, we change lower case letters
+to upper case, since |cur_name| is a \PASCAL\ string.
+@^system dependencies@>
+
+@<Move font name into the |cur_name| string@>=
 for k:=1 to name_length do cur_name[k]:=' ';
 if a=0 then
   begin for k:=1 to default_directory_name_length do
@@ -334,8 +344,7 @@ MBL_string:='MBL'; RI_string:='RI '; RCE_string:='RCE';
 MBL_string:=' MBL'; RI_string:=' RI '; RCE_string:=' RCE';
 @z
 
-% [60] How we output the character code depends on |charcode_format|.
-@x
+@x [60] How we output the character code depends on |charcode_format|.
 begin if font_type>vanilla then
   begin tfm[0]:=c; out_octal(0,1)
   end
@@ -359,8 +368,7 @@ else begin tfm[0]:=c; out_octal(0,1);
   end;
 @z
 
-% [61] Don't output the face code as an integer.
-@x
+@x [61] Don't output the face code as an integer.
   out(MBL_string[1+(b mod 3)]);
   out(RI_string[1+s]);
   out(RCE_string[1+(b div 3)]);
@@ -370,8 +378,7 @@ else begin tfm[0]:=c; out_octal(0,1);
   put_byte(RCE_string[1+(b div 3)], vpl_file);
 @z
 
-% [101] No progress reports unless verbose.
-@x
+@x [100] No progress reports unless verbose.
     incr(chars_on_line);
     end;
   print_octal(c); {progress report}
@@ -381,8 +388,7 @@ else begin tfm[0]:=c; out_octal(0,1);
   if verbose then print_octal(c); {progress report}
 @z
 
-% [112] No nonlocal goto's.
-@x
+@x [112] No nonlocal goto's.
   begin print_ln('Sorry, I haven''t room for so many ligature/kern pairs!');
 @.Sorry, I haven't room...@>
   goto final_end;
@@ -482,7 +488,7 @@ begin if o>=set1 then
   end
 @z
 
-@x [132] Eliminate the |final_end| and |exit| labels.
+@x [131] Eliminate the |final_end| and |exit| labels.
 label final_end, exit;
 @y
 @z
@@ -507,7 +513,7 @@ organize:=vf_input;
 end;
 @z
 
-@x [134] Eliminate the |final_end| and |exit| labels.
+@x [133] Eliminate the |final_end| and |exit| labels.
 label final_end,exit;
 @y
 @z
@@ -520,13 +526,13 @@ do_map:=true;
 end;
 @z
 
-@x [135] No final newline unless verbose.
+@x [134] No final newline unless verbose.
 print_ln('.');@/
 @y
 if verbose then print_ln('.');@/
 @z
 
-@x [136] System-dependent changes.
+@x [135] System-dependent changes.
 This section should be replaced, if necessary, by changes to the program
 that are necessary to make \.{VFtoVP} work at a particular installation.
 It is usually best to design your change file so that all changes to
@@ -540,7 +546,7 @@ Parse a Unix-style command line.
 
 @d argument_is (#) == (strcmp (long_options[option_index].name, #) = 0)
 
-@<Define |parse_arguments|@> =
+@<Define \(p)|parse_arguments|@> =
 procedure parse_arguments;
 const n_options = 4; {Pascal won't count array lengths for us.}
 var @!long_options: array[0..n_options] of getopt_struct;
@@ -554,7 +560,8 @@ begin
     getopt_return_val := getopt_long_only (argc, argv, '', long_options,
                                            address_of (option_index));
     if getopt_return_val = -1 then begin
-      {End of arguments; we exit the loop below.} ;
+      do_nothing; {End of arguments; we exit the loop below.}
+
     end else if getopt_return_val = "?" then begin
       usage (my_name);
 
@@ -649,14 +656,12 @@ incr (current_option);
 @<Type...@> =
 @!charcode_format_type = charcode_ascii..charcode_default;
 
-@
-@<Const...@> =
+@ @<Const...@> =
 @!charcode_ascii = 0;
 @!charcode_octal = 1;
 @!charcode_default = 2;
 
-@
-@<Global...@> =
+@ @<Global...@> =
 @!charcode_format: charcode_format_type;
 
 @ It starts off as the default, that is, we output letters and digits as

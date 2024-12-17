@@ -42,11 +42,11 @@ using camp::triple;
 #include <primitives.h>
 #undef PRIMITIVE
 
-typedef double real;
-
 void unused(void *);
 
 namespace run {
+typedef double real;
+
 array *copyArray(array *a);
 array *copyArray2(array *a);
 array *copyArray3(array *a);
@@ -68,7 +68,7 @@ function *realRealFunction();
 #include "array.h"
 
 #ifdef __CYGWIN__
-extern "C" int mkstemp(char *c);
+  extern "C" int mkstemp(char *c);
 #endif
 
 using namespace camp;
@@ -123,31 +123,34 @@ void gen_runfile3(stack *Stack)
   string name=vm::pop<string>(Stack,emptystring);
 #line 45 "runfile.in"
   file *f=NULL;
-  if(mode == "binary") {
+  if(mode == "binary")
     f=new ibfile(name,check);
-  } else if(mode == "xdr") {
-#ifdef HAVE_RPC_RPC_H
-    f=new ixfile(name,check);    
-#else  
-  ostringstream buf;
-  buf << name << ": XDR read support not enabled";
-  error(buf);
+  else if(mode == "xdr" || mode == "xdrgz") {
+#ifdef HAVE_LIBTIRPC
+    if(mode == "xdr")
+      f=new ixfile(name,check);
+    else if(mode == "xdrgz")
+      f=new igzxfile(name,check);
+#else
+    ostringstream buf;
+    buf << name << ": XDR read support not enabled";
+    error(buf);
 #endif
   } else if(mode == "") {
     char c=comment.empty() ? (char) 0 : comment[0];
-    f=new ifile(name,c,check);
+    f=new camp::ifile(name,c,check);
   } else {
     f=NULL;
     ostringstream buf;
     buf << name << ": invalid file mode '" << mode << "'";
     error(buf);
   }
-  
+
   f->open();
   {Stack->push<file*>(f); return;}
 }
 
-#line 71 "runfile.in"
+#line 74 "runfile.in"
 // file* output(string name=emptystring, bool update=false,             string comment=commentchar, string mode=emptystring);
 void gen_runfile4(stack *Stack)
 {
@@ -155,7 +158,7 @@ void gen_runfile4(stack *Stack)
   string comment=vm::pop<string>(Stack,commentchar);
   bool update=vm::pop<bool>(Stack,false);
   string name=vm::pop<string>(Stack,emptystring);
-#line 73 "runfile.in"
+#line 76 "runfile.in"
   file *f=NULL;
   if(mode == "pipe") {
     f=new opipe(name);
@@ -163,11 +166,11 @@ void gen_runfile4(stack *Stack)
     if(update) f=new iobfile(name);
     else f=new obfile(name);
   } else if(mode == "xdr") {
-#ifdef HAVE_RPC_RPC_H
+#ifdef HAVE_LIBTIRPC
     if(update)
       f=new ioxfile(name);
     else f=new oxfile(name);
-#else  
+#else
     ostringstream buf;
     buf << name << ": XDR write support not enabled";
     error(buf);
@@ -183,90 +186,87 @@ void gen_runfile4(stack *Stack)
     buf << name << ": invalid file mode '" << mode << "'";
     error(buf);
   }
-  
+
   f->open();
   if(update) f->seek(0,false);
-  
+
   {Stack->push<file*>(f); return;}
 }
 
-#line 108 "runfile.in"
+#line 111 "runfile.in"
 // bool eof(file *f);
 void gen_runfile5(stack *Stack)
 {
   file * f=vm::pop<file *>(Stack);
-#line 109 "runfile.in"
+#line 112 "runfile.in"
   {Stack->push<bool>(f->eof()); return;}
 }
 
-#line 113 "runfile.in"
+#line 116 "runfile.in"
 // bool eol(file *f);
 void gen_runfile6(stack *Stack)
 {
   file * f=vm::pop<file *>(Stack);
-#line 114 "runfile.in"
+#line 117 "runfile.in"
   {Stack->push<bool>(f->eol()); return;}
 }
 
-#line 118 "runfile.in"
+#line 121 "runfile.in"
 // bool error(file *f);
 void gen_runfile7(stack *Stack)
 {
   file * f=vm::pop<file *>(Stack);
-#line 119 "runfile.in"
+#line 122 "runfile.in"
   {Stack->push<bool>(f->error()); return;}
 }
 
-#line 123 "runfile.in"
+#line 126 "runfile.in"
 // void clear(file *f);
 void gen_runfile8(stack *Stack)
 {
   file * f=vm::pop<file *>(Stack);
-#line 124 "runfile.in"
+#line 127 "runfile.in"
   f->clear();
 }
 
-#line 128 "runfile.in"
+#line 131 "runfile.in"
 // void close(file *f);
 void gen_runfile9(stack *Stack)
 {
   file * f=vm::pop<file *>(Stack);
-#line 129 "runfile.in"
+#line 132 "runfile.in"
   f->close();
 }
 
-#line 133 "runfile.in"
+#line 136 "runfile.in"
 // Int precision(file *f=NULL, Int digits=0);
 void gen_runfile10(stack *Stack)
 {
   Int digits=vm::pop<Int>(Stack,0);
   file * f=vm::pop<file *>(Stack,NULL);
-#line 134 "runfile.in"
+#line 137 "runfile.in"
   if(f == 0) f=&camp::Stdout;
   {Stack->push<Int>(f->precision(digits)); return;}
 }
 
-#line 139 "runfile.in"
+#line 142 "runfile.in"
 // void flush(file *f);
 void gen_runfile11(stack *Stack)
 {
   file * f=vm::pop<file *>(Stack);
-#line 140 "runfile.in"
+#line 143 "runfile.in"
   f->flush();
 }
 
-#line 144 "runfile.in"
+#line 147 "runfile.in"
 // string getc(file *f);
 void gen_runfile12(stack *Stack)
 {
   file * f=vm::pop<file *>(Stack);
-#line 145 "runfile.in"
+#line 148 "runfile.in"
   char c=0;
   if(f->isOpen()) f->read(c);
-  static char str[2];
-  str[0]=c;
-  str[1]=0;
-  {Stack->push<string>(string(str)); return;}
+  {Stack->push<string>(string(1,c)); return;}
 }
 
 #line 154 "runfile.in"
@@ -517,21 +517,21 @@ void readSetHelper(stack *Stack)
 #line 304 "runfile.in"
   switch(i) {
     case 1:
-      f->dimension(-2);
-      break;
-      
+    f->dimension(-2);
+    break;
+
     case 2:
-      f->dimension(-2,-2);
-      break;
-      
+    f->dimension(-2,-2);
+    break;
+
     case 3:
-      f->dimension(-2,-2,-2);
-      break;
-      
+    f->dimension(-2,-2,-2);
+    break;
+
     default:
-      f->dimension();
+    f->dimension();
   }
-  
+
   {Stack->push<file*>(f); return;}
 }
 
@@ -552,7 +552,7 @@ void gen_runfile41(stack *Stack)
 #line 332 "runfile.in"
   s=outpath(s);
   Int rc=unlink(s.c_str());
-  if(rc == 0 && verbose > 0) 
+  if(rc == 0 && verbose > 0)
     cout << "Deleted " << s << endl;
   {Stack->push<Int>(rc); return;}
 }
@@ -568,26 +568,28 @@ void gen_runfile42(stack *Stack)
   from=outpath(from);
   to=outpath(to);
   Int rc=rename(from.c_str(),to.c_str());
-  if(rc == 0 && verbose > 0) 
+  if(rc == 0 && verbose > 0)
     cout << "Renamed " << from << " to " << to << endl;
   {Stack->push<Int>(rc); return;}
 }
 
-// Create a unique temporary file name.
+// Create a uniquely named temporary file.
 #line 352 "runfile.in"
 // string mktemp(string s);
 void gen_runfile43(stack *Stack)
 {
   string s=vm::pop<string>(Stack);
 #line 353 "runfile.in"
-  char *S=Strdup(s+"XXXXXX");
+  char *S=StrdupMalloc(s+"XXXXXX");
   int fd=mkstemp(S);
   if(fd < 0) {
     ostringstream buf;
     buf << "Could not create unique temporary filename based on " << s;
     error(buf);
   }
-  {Stack->push<string>(S); return;}
+  string T(S);
+  free(S);
+  {Stack->push<string>(T); return;}
 }
 
 } // namespace run
@@ -603,25 +605,25 @@ void gen_runfile_venv(venv &ve)
 #line 38 "runfile.in"
   REGISTER_BLTIN(run::nullFile,"nullFile");
 #line 43 "runfile.in"
-  addFunc(ve, run::gen_runfile3, primFile(), SYM(input), formal(primString() , SYM(name), true, false), formal(primBoolean(), SYM(check), true, false), formal(primString() , SYM(comment), true, false), formal(primString() , SYM(mode), true, false));
-#line 71 "runfile.in"
-  addFunc(ve, run::gen_runfile4, primFile(), SYM(output), formal(primString() , SYM(name), true, false), formal(primBoolean(), SYM(update), true, false), formal(primString() , SYM(comment), true, false), formal(primString() , SYM(mode), true, false));
-#line 108 "runfile.in"
+  addFunc(ve, run::gen_runfile3, primFile(), SYM(input), formal(primString(), SYM(name), true, false), formal(primBoolean(), SYM(check), true, false), formal(primString(), SYM(comment), true, false), formal(primString(), SYM(mode), true, false));
+#line 74 "runfile.in"
+  addFunc(ve, run::gen_runfile4, primFile(), SYM(output), formal(primString(), SYM(name), true, false), formal(primBoolean(), SYM(update), true, false), formal(primString(), SYM(comment), true, false), formal(primString(), SYM(mode), true, false));
+#line 111 "runfile.in"
   addFunc(ve, run::gen_runfile5, primBoolean(), SYM(eof), formal(primFile(), SYM(f), false, false));
-#line 113 "runfile.in"
+#line 116 "runfile.in"
   addFunc(ve, run::gen_runfile6, primBoolean(), SYM(eol), formal(primFile(), SYM(f), false, false));
-#line 118 "runfile.in"
+#line 121 "runfile.in"
   addFunc(ve, run::gen_runfile7, primBoolean(), SYM(error), formal(primFile(), SYM(f), false, false));
-#line 123 "runfile.in"
+#line 126 "runfile.in"
   addFunc(ve, run::gen_runfile8, primVoid(), SYM(clear), formal(primFile(), SYM(f), false, false));
-#line 128 "runfile.in"
+#line 131 "runfile.in"
   addFunc(ve, run::gen_runfile9, primVoid(), SYM(close), formal(primFile(), SYM(f), false, false));
-#line 133 "runfile.in"
+#line 136 "runfile.in"
   addFunc(ve, run::gen_runfile10, primInt(), SYM(precision), formal(primFile(), SYM(f), true, false), formal(primInt(), SYM(digits), true, false));
-#line 139 "runfile.in"
+#line 142 "runfile.in"
   addFunc(ve, run::gen_runfile11, primVoid(), SYM(flush), formal(primFile(), SYM(f), false, false));
-#line 144 "runfile.in"
-  addFunc(ve, run::gen_runfile12, primString() , SYM(getc), formal(primFile(), SYM(f), false, false));
+#line 147 "runfile.in"
+  addFunc(ve, run::gen_runfile12, primString(), SYM(getc), formal(primFile(), SYM(f), false, false));
 #line 154 "runfile.in"
   addFunc(ve, run::gen_runfile13, primInt(), SYM(tell), formal(primFile(), SYM(f), false, false));
 #line 159 "runfile.in"
@@ -679,11 +681,11 @@ void gen_runfile_venv(venv &ve)
 #line 325 "runfile.in"
   REGISTER_BLTIN(run::readSet,"readSet");
 #line 330 "runfile.in"
-  addFunc(ve, run::gen_runfile41, primInt(), SYM(delete), formal(primString() , SYM(s), false, false));
+  addFunc(ve, run::gen_runfile41, primInt(), SYM(delete), formal(primString(), SYM(s), false, false));
 #line 340 "runfile.in"
-  addFunc(ve, run::gen_runfile42, primInt(), SYM(rename), formal(primString() , SYM(from), false, false), formal(primString() , SYM(to), false, false));
+  addFunc(ve, run::gen_runfile42, primInt(), SYM(rename), formal(primString(), SYM(from), false, false), formal(primString(), SYM(to), false, false));
 #line 351 "runfile.in"
-  addFunc(ve, run::gen_runfile43, primString() , SYM(mktemp), formal(primString() , SYM(s), false, false));
+  addFunc(ve, run::gen_runfile43, primString(), SYM(mktemp), formal(primString(), SYM(s), false, false));
 }
 
 } // namespace trans

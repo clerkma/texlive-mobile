@@ -2,7 +2,7 @@
 ** InputBuffer.hpp                                                      **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -22,10 +22,12 @@
 #define INPUTBUFFER_HPP
 
 #include <algorithm>
+#include <cstdint>
 #include <cstring>
 #include <istream>
-#include <string>
 #include <ostream>
+#include <string>
+#include <vector>
 
 struct InputBuffer {
 	virtual ~InputBuffer () =default;
@@ -40,31 +42,31 @@ struct InputBuffer {
 class StreamInputBuffer : public InputBuffer {
 	public:
 		explicit StreamInputBuffer (std::istream &is, size_t bufsize=1024);
-		~StreamInputBuffer () override;
+		StreamInputBuffer (const StreamInputBuffer &ib) =delete;
 		int get () override;
 		int peek () const override;
 		int peek (size_t n) const override;
-		bool eof () const override {return pos() == _size1 && _size2 == 0;}
-		void invalidate () override {_bufptr = _buf1+_size1; _size2 = 0;}
+		bool eof () const override {return _pos == _size1 && _size2 == 0;}
+		void invalidate () override {_pos = _size1; _size2 = 0;}
+		void operator = (const StreamInputBuffer &ib) =delete;
 
 	protected:
-		int fillBuffer (uint8_t *buf);
-		size_t pos () const  {return _bufptr-_buf1;}
+		size_t fillBuffer (std::vector<uint8_t> &buf);
 
 	private:
 		std::istream &_is;
-		const size_t _bufsize;  ///< maximal number of bytes each buffer can hold
-		uint8_t *_buf1;         ///< pointer to first buffer
-		uint8_t *_buf2;         ///< pointer to second buffer
-		size_t _size1;          ///< number of bytes in buffer 1
-		size_t _size2;          ///< number of bytes in buffer 2
-		uint8_t *_bufptr;       ///< pointer to next byte to read
+		std::vector<uint8_t> _buf1;  ///< first buffer
+		std::vector<uint8_t> _buf2;  ///< second buffer
+		size_t _size1;  ///< number of bytes in buffer 1
+		size_t _size2;  ///< number of bytes in buffer 2
+		size_t _pos=0;  ///< position of next character to be read from first buffer
 };
 
 
 class StringInputBuffer : public InputBuffer {
 	public:
 		explicit StringInputBuffer (const std::string &str) : _str(&str) {}
+		StringInputBuffer (const StreamInputBuffer &ib) =delete;
 		void assign (const std::string &str) {_str = &str; _pos=0;}
 		int get () override                  {return _pos < _str->length() ? _str->at(_pos++) : -1;}
 		int peek () const override           {return _pos < _str->length() ? _str->at(_pos) : -1;}
@@ -81,6 +83,7 @@ class StringInputBuffer : public InputBuffer {
 class CharInputBuffer : public InputBuffer {
 	public:
 		CharInputBuffer (const char *buf, size_t size) : _pos(buf), _size(buf ? size : 0) {}
+		CharInputBuffer (const CharInputBuffer &ib) =delete;
 
 		int get () override {
 			if (_size == 0)
@@ -112,6 +115,7 @@ class CharInputBuffer : public InputBuffer {
 class SplittedCharInputBuffer : public InputBuffer {
 	public:
 		SplittedCharInputBuffer (const char *buf1, size_t s1, const char *buf2, size_t s2);
+		SplittedCharInputBuffer (const SplittedCharInputBuffer &ib) =delete;
 		int get () override;
 		int peek () const override;
 		int peek (size_t n) const override;

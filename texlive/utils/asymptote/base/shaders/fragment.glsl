@@ -10,24 +10,12 @@ struct Light
   vec3 color;
 };
 
-uniform int nlights;
+uniform uint nlights;
 uniform Light lights[max(Nlights,1)];
 
 uniform MaterialBuffer {
   Material Materials[Nmaterials];
 };
-
-#ifdef NORMAL
-#ifndef ORTHOGRAPHIC
-in vec3 ViewPosition;
-#endif
-in vec3 Normal;
-vec3 normal;
-#endif
-
-#ifdef COLOR
-in vec4 Color; 
-#endif
 
 flat in int materialIndex;
 out vec4 outColor;
@@ -38,41 +26,122 @@ vec3 Specular; // Specular tint for nonmetals
 float Metallic; // Metallic/Nonmetals parameter
 float Fresnel0; // Fresnel at zero for nonmetals
 float Roughness2; // roughness squared, for smoothing
+float Roughness;
 
-#ifdef ENABLE_TEXTURE
-uniform sampler2D environmentMap;
-const float PI=acos(-1.0);
-const float twopi=2*PI;
-const float halfpi=PI/2;
+#ifdef HAVE_SSBO
 
-const int numSamples=7;
+layout(binding=0, std430) buffer offsetBuffer
+{
+  uint maxDepth;
+  uint offset[];
+};
+
+#ifndef GPUINDEXING
+layout(binding=2, std430) buffer countBuffer
+{
+  uint maxSize;
+  uint count[];
+};
+#endif
+
+layout(binding=4, std430) buffer fragmentBuffer
+{
+  vec4 fragment[];
+};
+
+layout(binding=5, std430) buffer depthBuffer
+{
+  float depth[];
+};
+
+layout(binding=6, std430) buffer opaqueBuffer
+{
+  vec4 opaqueColor[];
+};
+
+layout(binding=7, std430) buffer opaqueDepthBuffer
+{
+  float opaqueDepth[];
+};
+
+#ifdef GPUCOMPRESS
+layout(binding=1, std430) buffer indexBuffer
+{
+  uint index[];
+};
+#define INDEX(pixel) index[pixel]
+#else
+#define INDEX(pixel) pixel
+#endif
+
+uniform uint width;
+
+#endif
+
+#ifdef NORMAL
+
+#ifndef ORTHOGRAPHIC
+in vec3 ViewPosition;
+#endif
+in vec3 Normal;
+vec3 normal;
+
+#ifdef USE_IBL
+uniform sampler2D reflBRDFSampler;
+uniform sampler2D diffuseSampler;
+uniform sampler3D reflImgSampler;
+
+const float pi=acos(-1.0);
+const float piInv=1.0/pi;
+const float twopi=2.0*pi;
+const float twopiInv=1.0/twopi;
 
 // (x,y,z) -> (r,theta,phi);
-// theta -> [0,\pi]: colatitude
-// phi -> [0, 2\pi]: longitude
+// theta -> [0,pi]: colatitude
+// phi -> [-pi,pi]: longitude
 vec3 cart2sphere(vec3 cart)
 {
-  float x=cart.z;
-  float y=cart.x;
+  float x=cart.x;
+  float y=cart.z;
   float z=cart.y;
 
   float r=length(cart);
+  float theta=r > 0.0 ? acos(z/r) : 0.0;
   float phi=atan(y,x);
-  float theta=acos(z/r);
 
-  return vec3(r,phi,theta);
+  return vec3(r,theta,phi);
 }
 
 vec2 normalizedAngle(vec3 cartVec)
 {
   vec3 sphericalVec=cart2sphere(cartVec);
-  sphericalVec.y=sphericalVec.y/(2*PI)-0.25;
-  sphericalVec.z=sphericalVec.z/PI;
-  return sphericalVec.yz;
-}
-#endif
+  sphericalVec.y=sphericalVec.y*piInv;
+  sphericalVec.z=0.75-sphericalVec.z*twopiInv;
 
-#ifdef NORMAL
+  return sphericalVec.zy;
+}
+
+vec3 IBLColor(vec3 viewDir)
+{
+  //
+  // based on the split sum formula approximation
+  // L(v)=\int_\Omega L(l)f(l,v) \cos \theta_l
+  // which, by the split sum approiximation (assuming independence+GGX distrubition),
+  // roughly equals (within a margin of error)
+  // [\int_\Omega L(l)] * [\int_\Omega f(l,v) \cos \theta_l].
+  // the first term is the reflectance irradiance integral
+
+  vec3 IBLDiffuse=Diffuse*texture(diffuseSampler,normalizedAngle(normal)).rgb;
+  vec3 reflectVec=normalize(reflect(-viewDir,normal));
+  vec2 reflCoord=normalizedAngle(reflectVec);
+  vec3 IBLRefl=texture(reflImgSampler,vec3(reflCoord,Roughness)).rgb;
+  vec2 IBLbrdf=texture(reflBRDFSampler,vec2(dot(normal,viewDir),Roughness)).rg;
+  float specularMultiplier=Fresnel0*IBLbrdf.x+IBLbrdf.y;
+  vec3 dielectric=IBLDiffuse+specularMultiplier*IBLRefl;
+  vec3 metal=Diffuse*IBLRefl;
+  return mix(dielectric,metal,Metallic);
+}
+#else
 // h is the halfway vector between normal and light direction
 // GGX Trowbridge-Reitz Approximation
 float NDF_TRG(vec3 h)
@@ -122,9 +191,15 @@ vec3 BRDF(vec3 viewDirection, vec3 lightDirection)
 
   vec3 dielectric=mix(lambertian,rawReflectance*Specular,F);
   vec3 metal=rawReflectance*Diffuse;
-  
+
   return mix(dielectric,metal,Metallic);
 }
+#endif
+
+#endif
+
+#ifdef COLOR
+in vec4 Color;
 #endif
 
 void main()
@@ -133,7 +208,7 @@ void main()
   vec4 emissive;
 
   Material m;
-#ifdef TRANSPARENT
+#ifdef GENERAL
   m=Materials[abs(materialIndex)-1];
   emissive=m.emissive;
   if(materialIndex >= 0)
@@ -145,23 +220,23 @@ void main()
 #endif
   }
 #else
-  m=Materials[int(materialIndex)];
+  m=Materials[materialIndex];
   emissive=m.emissive;
 #ifdef COLOR
   diffuse=Color;
 #if Nlights == 0
-   emissive += Color;
+  emissive += Color;
 #endif
-#else  
-  diffuse=m.diffuse; 
+#else
+  diffuse=m.diffuse;
 #endif
 #endif
-  
+
 #if defined(NORMAL) && Nlights > 0
   Specular=m.specular.rgb;
   vec4 parameters=m.parameters;
-  Roughness2=1.0-parameters[0];
-  Roughness2=Roughness2*Roughness2;
+  Roughness=1.0-parameters[0];
+  Roughness2=Roughness*Roughness;
   Metallic=parameters[1];
   Fresnel0=parameters[2];
   Diffuse=diffuse.rgb;
@@ -178,50 +253,51 @@ void main()
 #else
   vec3 viewDir=-normalize(ViewPosition);
 #endif
+  vec3 color;
+#ifdef USE_IBL
+  color=IBLColor(viewDir);
+#else
   // For a finite point light, the rendering equation simplifies.
-  vec3 color=emissive.rgb;
-  for(int i=0; i < nlights; ++i) {
+  color=emissive.rgb;
+  for(uint i=0u; i < nlights; ++i) {
     Light Li=lights[i];
     vec3 L=Li.direction;
     float cosTheta=max(dot(normal,L),0.0); // $\omega_i \cdot n$ term
     vec3 radiance=cosTheta*Li.color;
     color += BRDF(viewDir,L)*radiance;
   }
-
-#if defined(ENABLE_TEXTURE) && !defined(COLOR)
-  // Experimental environment radiance using Riemann sums;
-  // can also do importance sampling.
-  vec3 envRadiance=vec3(0.0,0.0,0.0);
-
-  vec3 normalPerp=vec3(-normal.y,normal.x,0.0);
-  if(length(normalPerp) == 0.0)
-    normalPerp=vec3(1.0,0.0,0.0);
-
-  // we now have a normal basis;
-  normalPerp=normalize(normalPerp);
-  vec3 normalPerp2=normalize(cross(normal,normalPerp));
-
-  const float step=1.0/numSamples;
-  const float phistep=twopi*step;
-  const float thetastep=halfpi*step;
-  for (int iphi=0; iphi < numSamples; ++iphi) {
-    float phi=iphi*phistep;
-    for (int itheta=0; itheta < numSamples; ++itheta) {
-      float theta=itheta*thetastep;
-
-      vec3 azimuth=cos(phi)*normalPerp+sin(phi)*normalPerp2;
-      vec3 L=sin(theta)*azimuth+cos(theta)*normal;
-
-      vec3 rawRadiance=texture(environmentMap,normalizedAngle(L)).rgb;
-      vec3 surfRefl=BRDF(Z,L);
-      envRadiance += surfRefl*rawRadiance*sin(2.0*theta);
-    }
-  }
-  envRadiance *= halfpi*step*step;
-  color += envRadiance.rgb;
 #endif
   outColor=vec4(color,diffuse.a);
-#else    
+#else
   outColor=emissive;
-#endif      
+#endif
+
+#ifndef WIDTH
+#ifdef HAVE_SSBO
+  uint pixel=uint(gl_FragCoord.y)*width+uint(gl_FragCoord.x);
+#if defined(TRANSPARENT) || (!defined(HAVE_INTERLOCK) && !defined(OPAQUE))
+  uint element=INDEX(pixel);
+#ifdef GPUINDEXING
+  uint listIndex=atomicAdd(offset[element],-1u)-1u;
+#else
+  uint listIndex=offset[element]-atomicAdd(count[element],1u)-1u;
+#endif
+  fragment[listIndex]=outColor;
+  depth[listIndex]=gl_FragCoord.z;
+#ifndef WIREFRAME
+  discard;
+#endif
+#else
+#if defined(HAVE_INTERLOCK) && !defined(OPAQUE)
+  beginInvocationInterlockARB();
+  if(opaqueDepth[pixel] == 0.0 || gl_FragCoord.z < opaqueDepth[pixel])
+    {
+    opaqueDepth[pixel]=gl_FragCoord.z;
+    opaqueColor[pixel]=outColor;
+  }
+  endInvocationInterlockARB();
+#endif
+#endif
+#endif
+#endif
 }

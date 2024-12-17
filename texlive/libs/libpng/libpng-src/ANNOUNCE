@@ -1,5 +1,5 @@
-libpng 1.6.37 - April 14, 2019
-==============================
+libpng 1.6.44 - September 12, 2024
+==================================
 
 This is a public release of libpng, intended for use in production code.
 
@@ -9,13 +9,13 @@ Files available for download
 
 Source files with LF line endings (for Unix/Linux):
 
- * libpng-1.6.37.tar.xz (LZMA-compressed, recommended)
- * libpng-1.6.37.tar.gz
+ * libpng-1.6.44.tar.xz (LZMA-compressed, recommended)
+ * libpng-1.6.44.tar.gz (deflate-compressed)
 
 Source files with CRLF line endings (for Windows):
 
- * lp1637.7z (LZMA-compressed, recommended)
- * lp1637.zip
+ * lpng1644.7z (LZMA-compressed, recommended)
+ * lpng1644.zip (deflate-compressed)
 
 Other information:
 
@@ -25,20 +25,29 @@ Other information:
  * TRADEMARK.md
 
 
-Changes since the previous public release (version 1.6.36)
-----------------------------------------------------------
+Changes from version 1.6.43 to version 1.6.44
+---------------------------------------------
 
- * Fixed a use-after-free vulnerability (CVE-2019-7317) in png_image_free.
- * Fixed a memory leak in the ARM NEON implementation of png_do_expand_palette.
- * Fixed a memory leak in pngtest.c.
- * Fixed two vulnerabilities (CVE-2018-14048, CVE-2018-14550) in
-   contrib/pngminus; refactor.
- * Changed the license of contrib/pngminus to MIT; refresh makefile and docs.
-   (Contributed by Willem van Schaik)
- * Fixed a typo in the libpng license v2.
-   (Contributed by Miguel Ojeda)
- * Added makefiles for AddressSanitizer-enabled builds.
- * Cleaned up various makefiles.
+ * Hardened calculations in chroma handling to prevent overflows, and
+   relaxed a constraint in cHRM validation to accomodate the standard
+   ACES AP1 set of color primaries.
+   (Contributed by John Bowler)
+ * Removed the ASM implementation of ARM Neon optimizations and updated
+   the build accordingly. Only the remaining C implementation shall be
+   used from now on, thus ensuring the support of the PAC/BTI security
+   features on ARM64.
+   (Contributed by Ross Burton and John Bowler)
+ * Fixed the pickup of the PNG_HARDWARE_OPTIMIZATIONS option in the
+   CMake build on FreeBSD/amd64. This is an important performance fix
+   on this platform.
+ * Applied various fixes and improvements to the CMake build.
+   (Contributed by Eric Riff, Benjamin Buch and Erik Scholz)
+ * Added fuzzing targets for the simplified read API.
+   (Contributed by Mikhail Khachayants)
+ * Fixed a build error involving pngtest.c under a custom config.
+   This was a regression introduced in a code cleanup in libpng-1.6.43.
+   (Contributed by Ben Wagner)
+ * Fixed and improved the config files for AppVeyor CI and Travis CI.
 
 
 Send comments/corrections/commendations to png-mng-implement at lists.sf.net.

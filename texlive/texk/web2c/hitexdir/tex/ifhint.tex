@@ -1,0 +1,9 @@
+% Public domain. Originally written by Martin Ruckert.
+
+\newif\ifhint
+% How to test for the HiTeX engine
+\expandafter\ifx\csname HINTversion\endcsname\relax
+  \hintfalse
+\else
+  \hinttrue
+\fi

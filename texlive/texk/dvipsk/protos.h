@@ -1,5 +1,7 @@
 #ifndef _PROTOS_H_
 
+/* see dvips.h for copyright notice */
+
 #define _PROTOS_H_
 
 /* some types need declaration before being used */
@@ -258,6 +260,7 @@ extern int pagecounter;
 #endif
 
 /* global variables from dvips.c */
+extern int found_problems;
 extern char *downloadedpsnames[];
 extern int unused_top_of_psnames;
 extern fontdesctype *fonthead;
@@ -265,6 +268,7 @@ extern fontdesctype *curfnt;
 extern sectiontype *sections;
 extern Boolean partialdownload;
 extern Boolean manualfeed;
+extern Boolean landscaperotate;
 extern Boolean compressed;
 extern Boolean downloadpspk;
 extern Boolean safetyenclose;
@@ -291,6 +295,7 @@ extern integer maxsecsize;
 extern integer firstboploc;
 extern Boolean sepfiles;
 extern int numcopies;
+extern char *titlename;
 extern const char *oname;
 extern char *iname;
 extern char *fulliname;

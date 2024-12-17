@@ -1,4 +1,4 @@
-This is PMX, Version 2.94 , 17 Mar 20
+This is PMX, Version 3.00 , 7 Feb 23 
 Opening barsant.pmx                                    
  Starting first PMX pass
 
@@ -21,4 +21,3 @@ Writing ./barsant.tex
 Writing barsant.mid
 MIDI instrument  0 is  74
 MIDI instrument  1 is   6
-  Bytes used:  2126   807    15

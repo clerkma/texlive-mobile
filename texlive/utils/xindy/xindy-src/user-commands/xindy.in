@@ -260,14 +260,8 @@ behaviour.
 
 For more complex usage, when C<bbb> is not an identifier, no such
 compatibility definitions exist and may also not been created with
-current B<xindy>. In particular, this means that by default the LaTeX
-package C<hyperref> will create raw index files that cannot be
-processed with B<xindy>. This is not a bug, this is the unfortunate
-result of an intented incompatibility. It is currently not possible to
-get both hyperref's index links and use B<xindy>.
-
-A similar situation is reported to exist for the C<memoir> LaTeX
-class.
+current B<xindy>. Such a situation is reported to exist for the
+C<memoir> LaTeX class.
 
 Programmers who know Common Lisp and Lex and want to work on a remedy
 should please contact the author.
@@ -325,7 +319,7 @@ Joachim Schrod
 
 =head1 LEGALESE
 
-Copyright (c) 2004-2014 by Joachim Schrod.
+Copyright (c) 2004-2021 by Joachim Schrod.
 
 B<xindy> is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
@@ -346,7 +340,14 @@ GNU General Public License for more details.
 use strict;
 use English qw(-no_match_vars);
 
-our $VERSION = sprintf "%d.%02d", q$Revision: 1.18 $ =~ /: (\d+)\.(\d+)/ ;
+our $is_TL = ( '@is_TL@' eq 'yes' );
+
+our $VERSION = sprintf "%d.%02d", q$xRevision: 1.18 $ =~ /: (\d+)\.(\d+)/ ;
+if ($is_TL) {
+    # Until xindy is actively maintained upstream, let's make
+    # changes in TL be reflected in different version numbers.
+    $VERSION .= sprintf ".TL%d", q$Revision: 59893 $ =~ /: (\d+)/ ; # TL rev
+}
 
 
 # Used modules.
@@ -359,10 +360,17 @@ use File::Temp qw(tempfile tmpnam);
 use Getopt::Long qw(:config bundling);
 use POSIX qw(uname);
 
+# Forward declarations for prototypes.
+
+sub call_xindy ($$);
+sub create_raw_index ();
+sub filter_index ($$);
+sub handle_signals ();
+sub parse_options ();
+sub xindy_expression ();
 
 # Determine environment. Where is our library directory, and our modules?
 
-our $is_TL = ( '@is_TL@' eq 'yes' );
 our $is_w32 = ( $OSNAME =~ /^MSWin/i ) ;
 our $path_sep = ( $is_w32 ? ';' : ':' ) ;
 our $is_windows = ( $is_w32 || $OSNAME eq 'cygwin' ) ;
@@ -507,20 +515,25 @@ our ($quiet, $verbose, %debug,
 $input_markup = 'latex';
 $mem_file = "$lib_dir/xindy.mem";
 
-my @orig_argv = @ARGV;
-parse_options();
-
-
 # Support universal binary on Mac OS X.
 
 if ( $OSNAME eq 'darwin'  &&  ! -e $mem_file ) {
     my @uname = POSIX::uname();
     if ( $uname[4] eq 'Power Macintosh' ) {
 	$mem_file = "$lib_dir/xindy-ppc.mem";
+    } elsif ( $uname[4] eq 'x86_64' ) {
+	$mem_file = "$lib_dir/xindy-x86_64.mem";
+    } elsif ( $uname[4] eq 'arm64' ) {
+	$mem_file = "$lib_dir/xindy-arm64.mem";
     } else {
 	$mem_file = "$lib_dir/xindy-i386.mem";
     }
 }
+
+my @orig_argv = @ARGV;
+parse_options();
+
+# might get overridden
 die "$cmd: Cannot locate $mem_file"  unless -e $mem_file;
 
 
@@ -930,6 +943,8 @@ sub quotify ( $ ) {
 
 
 #======================================================================
+# (modified several times for TeX Live; see
+#  Build/source/utils/xindy/ChangeLog)
 #
 # $Log: xindy.pl,v $
 # Revision 1.18  2011/01/18 22:18:29  jschrod

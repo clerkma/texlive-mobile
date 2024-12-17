@@ -1,0 +1,38 @@
+#! /bin/sh -vx
+# $Id: bibtexu-sort.test 67881 2023-08-11 11:46:28Z takuji $
+# Copyright 2022-2023 TANAKA Takuji <ttk@t-lab.opal.ne.jp>
+# You may freely use, modify and/or distribute this file.
+
+BinDir=${BinDir:-.}
+ExeExt=${ExeExt:-}
+_bibtexu=$BinDir/bibtexu$ExeExt
+
+test -d tests || mkdir tests
+test -d tests || exit 1
+
+LC_ALL=C; export LC_ALL; LANGUAGE=C; export LANGUAGE
+#
+TEXMFCNF=$srcdir/../kpathsea; export TEXMFCNF
+BSTINPUTS=$srcdir/tests; export BSTINPUTS
+BIBINPUTS=$srcdir/tests; export BIBINPUTS
+
+rm -f tests/xsortu-*.bbl tests/xcaseu.bbl
+
+rc=0
+
+for loc in en az da fi tr; do
+
+## test for sorting and change.case$
+cp $srcdir/tests/sortu.aux tests/xsortu-$loc.aux
+$_bibtexu -o $loc tests/xsortu-$loc || rc=1
+diff $srcdir/tests/sortu-$loc.bbl tests/xsortu-$loc.bbl || rc=2
+
+done
+
+
+## test for change.case$
+cp $srcdir/tests/caseu.aux tests/xcaseu.aux
+max_print_line=99 $_bibtexu tests/xcaseu || rc=3
+diff $srcdir/tests/caseu.bbl tests/xcaseu.bbl || rc=4
+
+exit $rc

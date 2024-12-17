@@ -22,7 +22,7 @@ with LuaTeX; if not, see <http://www.gnu.org/licenses/>.
 #include "ptexlib.h"
 
 const char *pdf_obj_typenames[PDF_OBJ_TYPE_MAX + 1] = {
-    "font", "outline", "dest", "obj", "xform", "ximage", "thread",
+    "font", "outline", "dest", "struct dest", "obj", "xform", "ximage", "thread",
     "pagestream", "page", "pages", "catalog", "info", "link", "annot", "annots",
     "bead", "beads", "objstm", "others"
 };
@@ -221,23 +221,58 @@ void check_obj_type(PDF pdf, int t, int objnum)
     }
 }
 
-void set_rect_dimens(PDF pdf, halfword p, halfword parent_box, scaledpos cur, scaled_whd alt_rule, scaled margin)
+/* 
+    The next helper is needed for multiline TRT links. Several variants were tried but in the end 
+    this one is the most reliable: we calculate the width till we meet an endlink or the end of 
+    the line. When we have an inline one, for now we just use the old method and keep the running
+    property (that way we're compatible). For practical purposes this calculation resides in the 
+    file that handles the list. By moving the code here instead of dealing with it in lists we 
+    handle all rectangles but we'll see where that fails in which case we will have a parameter 
+    passed to |set_rect_dimens| and have control per feature, maybe even under parameter control.
+*/
+
+halfword calculate_width_to_endlink(halfword p, halfword this_box, halfword *leftskip, halfword *rightskip);
+
+void set_rect_dimens(PDF pdf, halfword p, halfword parent_box, scaledpos cur, scaled_whd alt_rule)
 {
-    /*tex The positions relative to cur: */
-    scaledpos ll, ur;
-    scaledpos pos_ll, pos_ur, tmp;
+    /*tex 
+        The positions relative to cur: |pdf| contains current point on page):
+    */
+    scaledpos ll, ur, pos_ll, pos_ur;
     posstructure localpos;
     localpos.dir = pdf->posstruct->dir;
-    /*tex |pdf| contains current point on page: */
-    ll.h = 0;
+
+    halfword lcrap = 0;
+    halfword rcrap = 0;
+    halfword lskip = 0;
+    halfword rskip = 0;
+
+    if (pdf_linking) {
+        /* begin of experiment */
+        if (subtype(p) == pdf_link_data_node) { 
+            alt_rule.wd = calculate_width_to_endlink(list_ptr(parent_box), parent_box, &lskip, &rskip);
+            if (pdf->link_stack[pdf->link_stack_ptr].direction == dir_TRT) {
+                alt_rule.wd = -alt_rule.wd;
+                localpos.dir = dir_TRT;
+                lcrap = lskip;
+            } else { 
+                lcrap = -lskip;
+            }
+        } else if (subtype(p) == pdf_start_link_node) { 
+            alt_rule.wd = calculate_width_to_endlink(p, parent_box, &lskip, &rskip);
+        }
+        /* end of experiment */
+    }
+
+    ll.h = - lcrap - rcrap;
+    if (is_running(alt_rule.wd))
+        ur.h = width(parent_box) - cur.h;
+    else
+        ur.h = alt_rule.wd - lcrap - rcrap;
     if (is_running(alt_rule.dp))
         ll.v = depth(parent_box) - cur.v;
     else
         ll.v = alt_rule.dp;
-    if (is_running(alt_rule.wd))
-        ur.h = width(parent_box) - cur.h;
-    else
-        ur.h = alt_rule.wd;
     if (is_running(alt_rule.ht))
         ur.v = -height(parent_box) - cur.v;
     else
@@ -246,16 +281,11 @@ void set_rect_dimens(PDF pdf, halfword p, halfword parent_box, scaledpos cur, sc
     pos_ll = localpos.pos;
     synch_pos_with_cur(&localpos, pdf->posstruct, ur);
     pos_ur = localpos.pos;
-    if (pos_ll.h > pos_ur.h) {
-        tmp.h = pos_ll.h;
-        pos_ll.h = pos_ur.h;
-        pos_ur.h = tmp.h;
-    }
-    if (pos_ll.v > pos_ur.v) {
-        tmp.v = pos_ll.v;
-        pos_ll.v = pos_ur.v;
-        pos_ur.v = tmp.v;
-    }
+    /*
+        The test for swapping has been moved to the moment we write the rectangle. This has to
+        do with the fact that we have code dealing with directions and that the |pdf_ann_*|
+        horizontal edges get recalculated in some places.
+    */
     if (global_shipping_mode == SHIPPING_PAGE && matrixused()) {
         matrixtransformrect(pos_ll.h, pos_ll.v, pos_ur.h, pos_ur.v);
         pos_ll.h = getllx();
@@ -263,10 +293,10 @@ void set_rect_dimens(PDF pdf, halfword p, halfword parent_box, scaledpos cur, sc
         pos_ur.h = geturx();
         pos_ur.v = getury();
     }
-    pdf_ann_left(p) = pos_ll.h - margin;
-    pdf_ann_bottom(p) = pos_ll.v - margin;
-    pdf_ann_right(p) = pos_ur.h + margin;
-    pdf_ann_top(p) = pos_ur.v + margin;
+    pdf_ann_left(p) = pos_ll.h;
+    pdf_ann_bottom(p) = pos_ll.v;
+    pdf_ann_right(p) = pos_ur.h;
+    pdf_ann_top(p) = pos_ur.v;
 }
 
 void libpdffinish(PDF pdf)

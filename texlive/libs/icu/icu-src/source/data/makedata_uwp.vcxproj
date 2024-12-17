@@ -47,10 +47,6 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
-  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
@@ -71,14 +67,8 @@
     </BuildLog>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="brkitr\brkfiles.mk" />
-    <None Include="coll\colfiles.mk" />
     <None Include="makedata.mak" />
-    <None Include="misc\miscfiles.mk" />
-    <None Include="rbnf\rbnffiles.mk" />
-    <None Include="locales\resfiles.mk" />
     <None Include="..\test\testdata\testdata.mak" />
-    <None Include="translit\trnsfiles.mk" />
     <None Include="mappings\ucmcore.mk" />
     <None Include="mappings\ucmebcdic.mk" />
     <None Include="mappings\ucmfiles.mk" />

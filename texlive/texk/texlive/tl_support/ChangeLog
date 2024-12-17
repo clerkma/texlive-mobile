@@ -1,3 +1,29 @@
+2022-03-08  Karl Berry  <karl@freefriends.org>
+
+	* 
+	* e2pall.1,
+	* fmtutil.cnf.5,
+	* fontinst.1,
+	* kpsetool.1,
+	* pslatex.1,
+	* rubibtex.1,
+	* rumakeindex.1,
+	* texlinks.1: update contact info.
+	Report from G\"unter Essers,
+	https://tug.org/pipermail/tex-k/2022-March/003776.html
+
+2020-05-28  Karl Berry  <karl@freefriends.org>
+
+	* Makefile.am (run-texlinks): do nothing if the texlinks script
+	or the needed fmtutil.cnf do not exist or are empty files. This
+	can happen with, e.g., --disable-texlive.
+	(texlinks_fmtutil): new variable for fmtutil.cnf location.
+	($(DESTDIR)$(bindir)/texlinks,
+ 	 $(DESTDIR)$(web2cdir)/fmtutil.cnf): remove targets, since we check
+ 	explicitly for the files now. make install must be run first.
+ 	Report from Andreas Scherer,
+	https://tug.org/pipermail/tlbuild/2020q1/004614.html.
+
 2020-01-31  Karl Berry  <karl@freefriends.org>
 
 	* mktexlsr.1,

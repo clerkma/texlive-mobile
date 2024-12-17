@@ -23,7 +23,8 @@
 
 class ScientificNumberFormatterTest : public IntlTest {
 public:
-    void runIndexedTest(int32_t index, UBool exec, const char *&name, char *par=0);
+  void runIndexedTest(int32_t index, UBool exec, const char*& name, char* par = nullptr) override;
+
 private:
     void TestBasic();
     void TestFarsi();
@@ -117,7 +118,7 @@ void ScientificNumberFormatterTest::TestFarsi() {
 
 void ScientificNumberFormatterTest::TestPlusSignInExponentMarkup() {
     UErrorCode status = U_ZERO_ERROR;
-    LocalPointer<DecimalFormat> decfmt((DecimalFormat *) NumberFormat::createScientificInstance("en", status));
+    LocalPointer<DecimalFormat> decfmt(dynamic_cast<DecimalFormat*>(NumberFormat::createScientificInstance("en", status)));
     if (U_FAILURE(status)) {
         dataerrln("Failed call NumberFormat::createScientificInstance(\"en\", status) - %s", u_errorName(status));
         return;
@@ -144,7 +145,7 @@ void ScientificNumberFormatterTest::TestPlusSignInExponentMarkup() {
 
 void ScientificNumberFormatterTest::TestPlusSignInExponentSuperscript() {
     UErrorCode status = U_ZERO_ERROR;
-    LocalPointer<DecimalFormat> decfmt((DecimalFormat *) NumberFormat::createScientificInstance("en", status));
+    LocalPointer<DecimalFormat> decfmt(dynamic_cast<DecimalFormat*>(NumberFormat::createScientificInstance("en", status)));
     if (U_FAILURE(status)) {
         dataerrln("Failed call NumberFormat::createScientificInstance(\"en\", status) - %s", u_errorName(status));
         return;
@@ -171,8 +172,8 @@ void ScientificNumberFormatterTest::TestPlusSignInExponentSuperscript() {
 
 void ScientificNumberFormatterTest::TestFixedDecimalMarkup() {
     UErrorCode status = U_ZERO_ERROR;
-    LocalPointer<DecimalFormat> decfmt((DecimalFormat *) NumberFormat::createInstance("en", status));
-    if (assertSuccess("NumberFormat::createInstance", status, TRUE) == FALSE) {
+    LocalPointer<DecimalFormat> decfmt(dynamic_cast<DecimalFormat*>(NumberFormat::createInstance("en", status)));
+    if (assertSuccess("NumberFormat::createInstance", status, true) == false) {
         return;
     }
     LocalPointer<ScientificNumberFormatter> fmt(
@@ -193,8 +194,8 @@ void ScientificNumberFormatterTest::TestFixedDecimalMarkup() {
 
 void ScientificNumberFormatterTest::TestFixedDecimalSuperscript() {
     UErrorCode status = U_ZERO_ERROR;
-    LocalPointer<DecimalFormat> decfmt((DecimalFormat *) NumberFormat::createInstance("en", status));
-    if (assertSuccess("NumberFormat::createInstance", status, TRUE) == FALSE) {
+    LocalPointer<DecimalFormat> decfmt(dynamic_cast<DecimalFormat*>(NumberFormat::createInstance("en", status)));
+    if (assertSuccess("NumberFormat::createInstance", status, true) == false) {
         return;
     }
     LocalPointer<ScientificNumberFormatter> fmt(

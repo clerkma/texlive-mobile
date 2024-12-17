@@ -67,11 +67,6 @@ char	*stpcpy(char *, const char *);
 #define MAXFILE 128
 #define MAXEXT  128
 #define O_BINARY 0
-#define PATH_SEP '/'
-#define DELIMITER   ':'
-#else
-#define PATH_SEP '\\'
-#define DELIMITER   ';'
 #endif
 
 #ifndef	max
@@ -707,6 +702,7 @@ extern FILE *fopenf(char*, char*);
 #define FNT1            235
 #define XXX1            239
 #define FNT_DEF_1       243
+#define FNT_DEF_4       246
 #define PRE             247
 #define POST            248
 #define POST_POST       249

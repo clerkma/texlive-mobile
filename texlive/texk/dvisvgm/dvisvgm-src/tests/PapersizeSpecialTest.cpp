@@ -2,7 +2,7 @@
 ** PapersizeSpecialTest.cpp                                             **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -53,7 +53,7 @@ class PapersizeSpecialTest : public ::testing::Test {
 		}
 
 		string bboxString () {
-			return actions.bbox().toSVGViewBox();
+			return actions.bbox().svgViewBoxString();
 		}
 
 		void preprocess (const string &str) {

@@ -1,4 +1,4 @@
-## $Id: Makefile.am 53103 2019-12-12 18:25:29Z karl $
+## $Id: Makefile.am 72806 2024-11-09 10:39:33Z takuji $
 ## Makefile.am for the TeX Live subdirectory texk/upmendex/
 ##
 ## Copyright 2015-2019 Karl Berry <tex-live@tug.org>
@@ -19,9 +19,9 @@ upmendex_SOURCES = \
 	kana.h \
 	kp.c \
 	kp.h \
-	ktable.h \
 	main.c \
 	mendex.h \
+	version.h \
 	pageread.c \
 	qsort.c \
 	qsort.h \
@@ -52,10 +52,39 @@ EXTRA_DIST += \
 
 ## Tests
 ##
-TESTS = tests/upmendex.test
+TESTS = tests/upmendex.test \
+	tests/pprec.test \
+	tests/nest.test \
+	tests/icu.test
 EXTRA_DIST += $(TESTS)
 
 ## tests/upmendex.test
 EXTRA_DIST += tests/foo.idx tests/foo.ind \
-	tests/uni.idx tests/uni.dict tests/uni.ist tests/uni.ind
+	tests/uni.idx tests/uni.dict tests/uni.ist \
+	tests/uni1.ist tests/uni2.ist tests/uni.ind \
+	tests/tort.idx tests/tortW.idx tests/ok-tort.ind
 DISTCLEANFILES = foo.* uni.*
+## tests/pprec.test
+EXTRA_DIST += tests/range.idx \
+	tests/range1.ist tests/range2.ist tests/range3.ist \
+	tests/range1.ind tests/range2.ind tests/range3.ind \
+	tests/pprec0.ist tests/pprec1.ist tests/pprec2.ist tests/pprec3.ist \
+	tests/pprec4.ist tests/pprec5.ist tests/pprec6.ist tests/pprec7.ist \
+	tests/pprecA.idx tests/pprecA-0.ind tests/pprecA-1.ind tests/pprecA-2.ind \
+	tests/pprecB.idx tests/pprecB-0.ind tests/pprecB-3.ind tests/pprecB-4.ind \
+	tests/romalpA.idx tests/romalpA-5.ind tests/romalpA-6.ind \
+	tests/romalpB.idx tests/romalpB-5.ind tests/romalpB-6.ind tests/romalpB-7.ind \
+	tests/romalpC.idx tests/romalpC-5.ind \
+	tests/romalpD.idx tests/romalpD-5.ind tests/romalpD-6.ind tests/romalpD-7.ind
+DISTCLEANFILES += range*.* pprec*.* romalp*.*
+## tests/nest.test
+EXTRA_DIST += tests/nested3.ist tests/nested3.ind \
+	tests/nested.ist tests/nested.ind \
+	tests/toodeep.idx
+DISTCLEANFILES += nested*.* toodeep*.*
+## tests/icu.test
+EXTRA_DIST += tests/locale1.ist tests/locale2.ist tests/locale3.ist tests/rule.idx \
+	tests/attr1.ist tests/attr1.ind tests/locale1.ind \
+	tests/locale2-rule.ind tests/locale3-rule.ind \
+	tests/rule1.ist tests/rule2.ist tests/rule3.ist tests/rule4.ist rule.ind
+DISTCLEANFILES += locale*.* attr*.* rule*.*

@@ -114,6 +114,19 @@ recorder_start(void)
     recorder_file = xfopen(recorder_name, FOPEN_W_MODE);
     
     cwd = xgetcwd();
+#if defined(_WIN32)
+    {
+      wchar_t *wpwd;
+      if (file_system_codepage != 0 &&
+          file_system_codepage != win32_codepage) {
+        wpwd = get_wstring_from_mbstring(win32_codepage, cwd, wpwd=NULL);
+        free (cwd);
+        cwd = get_mbstring_from_wstring(file_system_codepage, wpwd, cwd=NULL);
+        free (wpwd);
+      }
+    }
+#endif /* _WIN32 */
+
     fprintf(recorder_file, "PWD %s\n", cwd);
     free(cwd);
 }
@@ -281,6 +294,13 @@ open_input (FILE **f_ptr, int filefmt, const_string fopen_mode)
                                     must_exist);
             if (fname) {
                 fullnameoffile = xstrdup(fname);
+#if defined(PTEX) && !defined(WIN32)
+                fname0 = ptenc_from_utf8_string_to_internal_enc(fullnameoffile);
+                if (fname0) {
+                    free (fullnameoffile);
+                    fullnameoffile = fname0;
+                }
+#endif
                 /* If we found the file in the current directory, don't leave
                    the `./' at the beginning of `nameoffile', since it looks
                    dumb when `tex foo' says `(./foo.tex ... )'.  On the other

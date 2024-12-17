@@ -115,6 +115,7 @@ typedef enum {
     ignore_spaces_cmd,                    /* gobble |spacer| tokens ( \.{\\ignorespaces} ) */
     after_assignment_cmd,                 /* save till assignment is done ( \.{\\afterassignment} ) */
     after_group_cmd,                      /* save till group is done ( \.{\\aftergroup} ) */
+    partoken_name_cmd,                    /* something pdftex, not sure if this is the right order */
     break_penalty_cmd,                    /* additional badness ( \.{\\penalty} ) */
     start_par_cmd,                        /* begin paragraph ( \.{\\indent}, \.{\\noindent} ) */
     ital_corr_cmd,                        /* italic correction ( \.{\\/} ) */
@@ -351,7 +352,8 @@ typedef enum {
     gp_code_base = 7
 } font_codes ;
 
-#  define immediate_code 4      /* command modifier for \.{\\immediate} */
+#  define immediate_code 4   /* reserved_immediate_code */  /* command modifier for \.{\\immediate} */
+#  define deferred_code  5   /* reserved_deferred_code  */  /* command modifier for \.{\\deferred} */
 
 extern void initialize_commands(void);
 extern void initialize_etex_commands(void);

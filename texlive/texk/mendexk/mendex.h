@@ -11,15 +11,17 @@
 #define nkf_close(fp) {clear_infile_enc(fp); fclose(fp);}
 #endif
 
+#define PAGE_COMPOSIT_DEPTH 10
+
 struct page {
 	char *page;
 	char *enc;
-	char attr[3];
+	int attr[PAGE_COMPOSIT_DEPTH];
 };
 
 struct index {
 	int num;
-	char words;
+	unsigned char words;
 	char *org[3];
 	char *dic[3];
 	char *idx[3];
@@ -39,9 +41,9 @@ int lastpage(const char *filename);
 /* sort.c */
 void wsort(struct index *ind, int num);
 void pagesort(struct index *ind, int num);
-int alphanumeric(char c);
-int alphabet(char c);
-int numeric(char c);
+int alphanumeric(char *c);
+int alphabet(char *c);
+int numeric(char *c);
 int japanese(char *buff);
 int chkcontinue(struct page *p, int num);
 

@@ -3,7 +3,7 @@
 # latexdiff-vc  - wrapper script for applying latexdiff to rcs managed files
 #                 and for automatised creation of postscript or pdf from difference file
 #
-#   Copyright (C) 2005-16  F J Tilmann (tilmann@gfz-potsdam.de)
+#   Copyright (C) 2005-20  F J Tilmann (tilmann@gfz-potsdam.de)
 #
 # Repository:         https://github.com/ftilmann/latexdiff
 # CTAN page:          http://www.ctan.org/pkg/latexdiff
@@ -26,18 +26,30 @@
 # Detailed usage information at the end of the file
 #
 # TODO/IDEAS: - option to call external pre-processing codes
-#             - choose type of latex processor / bibtex (luatex, xelatex etc)
+#
+# version 1.3.4:
+#    - Enhancement: if --flatten option is used, and no bbl file is included in the version management, then latexdiff-vc will try to run bibtex to generate the bbl file. Implements the suggestion of PR #127 (contributed by github user cousteaulecommandant )
+#    - Efficiency boost: use -draftmode for non-interactive preliminary runs of latex (idea from #
+#    - bug fix: minor fix for --only-changed that makes detection of changed pages more reliable [ PR #297 contributed by user nelijuc ]
+#
+# version 1.3.2:
+#    - bug fix: when setting config variables with the command lines it is now possible to use quotes to includes spaces in the value, e.g. -c LATEX="pdflatex --shell-escape"
+#    - bug fix: --only-changes is not compatible with graphics markup. --graphics-markup=none is now set automatically
+#    - when --pdf or --postscript is select, then replace tildes in version names with underscores in output file (e.g. diffHEAD_1 instead of diff HEAD~1. This is necessary because pdflatex strips ~n strings at the end of the filename, when generating output file names
+
+# version 1.3.1:
+#    - bug fix, import File::Path explicitly as otherwise mkpath is not found
 # version 1.3.0 ((7 October 2018)
 #    - option --only-changes with hyperref will suppress hyperrefs (pull request jprotze)_
 #    - option --only-changes now moves (rather than copies) file with only changes 
 # version 1.2.1 (22 June 2017):
-#    - update: use qpdf (instead of pdftk) to select particular pages of output (pull request #102 submited by Tom Scogland via github). This was necessary because pdftk is being deprecated. pdftk is still used as a fall-back
+#    - update: use qpdf (instead of pdftk) to select particular pages of output (pull request #102 submitted by Tom Scogland via github). This was necessary because pdftk is being deprecated. pdftk is still used as a fall-back
 #    - bug fix: --hg option was not recognised (partially fixes github issue #93 )
 #    - wrap passed-through options to latexdiff in quotation marks (fix github issue #58 )
 #    - program names for latexdiff, latex, dvips, bibtex configurable (fixes issue #40)
 #
 # version 1.2.0:
-#    - depracation fix: left brace in RegEx now needs to be escaped
+#    - deprecation fix: left brace in RegEx now needs to be escaped
 #
 # version 1.1.1:
 #    - better detection of RCS system 
@@ -65,15 +77,16 @@
 use Getopt::Long ;
 use Pod::Usage qw/pod2usage/ ;
 use File::Temp qw/tempdir/ ;
-use File::Basename qw/dirname/;
+use File::Basename qw/dirname fileparse/;
 use File::Copy;
+use File::Path;
 
 use strict ;
 use warnings ;
 
 my $versionstring=<<EOF ;
-This is LATEXDIFF-VC 1.3.0
-  (c) 2005-2018 F J Tilmann
+This is LATEXDIFF-VC 1.3.4
+  (c) 2005-2024 F J Tilmann
 EOF
 
 # output debug and intermediate files, set to 0 in final distribution
@@ -91,6 +104,8 @@ my ($configlatexdiff,@config,$config,$assign);
 #my $latexcmd="latex"; # latex compiler if not further identified
 my $vc="";
 my $tempdir=tempdir(CLEANUP => 1);   # generate a temp dir, which will automatically be deleted at program exit
+#printf STDERR "DEBUG: tempdir $tempdir\n";
+
 # Variables
 my ($file1,$file2,$diff,$diffbase,$rootdir,$answer,$options,$infile,$append,$dirname,$cwd);
 my (@files,@ldoptions,@tmpfiles,@ptmpfiles,@difffiles,$extracomp); # ,
@@ -140,7 +155,8 @@ if ( $help ) {
 }
 
 if ( $version ) {
-  die $versionstring ; 
+  print STDERR $versionstring ;  
+  exit 0; 
 }
 
 if ( $so ) {
@@ -206,7 +222,8 @@ foreach $config ( @configlist ) {
 
 $configlatexdiff="";
 foreach $assign ( @config ) {
-  $assign=~ m/\s*(\w*)\s*=\s*(\S*)\s*$/ or die "Illegal assignment $assign in configuration list (must be variable=value)";  
+    $assign=~ m/\s*(\w*)\s*=\s*(.*?)\s*$/ 
+      or die "Illegal assignment |$assign| in configuration list (must be variable=value)";  
   if ( defined($CFG{$1})) {
     # known latexdiff-vc option
     $CFG{$1}=$2;
@@ -316,11 +333,11 @@ if ( scalar(@revs)>0 ) {
 
 # make file list (last arguments), initial arguments have to be passed to latexdiff
 # We assume an argument is a valid file rather than a latexdiff argument
-# if it has extension .tex, .bbl or .flt (output of flatex)
+# if it has extension .tex, .bbl or .flt (output of flatex), and does not start with a - or --
 
 @files=($file2);
 while( $file1=pop @ARGV ) {
-  if ( $file1 =~ /\.(tex|bbl|flt)$/ ) {
+  if ( $file1 =~ /\.(tex|bbl|flt)$/ && $file1 !~ /^-/) {
     # $file1 looks like a valid file name and is prepended to file list
     unshift @files, $file1 ;
   } else {
@@ -343,7 +360,7 @@ if ( defined($debug) && $debug ) {
 
 # impose ZLABEL subtype if --only-changes option
 if ( $onlychanges ) {
-  push @ldoptions, "-s", "ZLABEL","-f","IDENTICAL","--no-links" ;
+  push @ldoptions, "-s", "ZLABEL","-f","IDENTICAL","--no-links", "--graphics-markup=none" ;
 }
 
 if ( scalar(@revs) == 0 ) {
@@ -379,6 +396,12 @@ if ( scalar(@revs) == 2 ) {
   $append = "-diff";
 }
 
+if ( defined($pdf) or defined($postscript) ) {
+  # when using options such as -r HEAD~1  the ~1 is ignored by pdflatex in generating output file names; this could
+  # be confusing and actually causes error to only-changes mode
+  $append =~ s/~/_/g ;
+}
+
 if ( defined ($dir) && ! $dir ) {
   # bare -d option => choose directory name
   ($dir=$append) =~ s/^-//;
@@ -404,30 +427,39 @@ while ( $infile=$file2=shift @files ) {
   print STDERR "Working on  $infile \n";
   if ( scalar(@revs) == 1 ) {
     if ( defined($flatten) ) {
-       my $olddir=$tempdir . "/latexdiff-vc-$revs[0]";
-       print STDERR "Checking out old dir into: $olddir (rev: $revs[0])\n";
-       checkout_dir($revs[0],$olddir);
-       $file1=$olddir ."/".$infile;
-     } else {
-       ($file1=$infile) =~ s/\.(tex|bbl|flt)/-oldtmp-$$.$1/ ;
-       push @tmpfiles,$file1;
-       # compare file with previous version ($revs[0]="") or specified version
-       ### system("$diffcmd$revs[0] $infile| $patchcmd -o$file1") ;
-       if (system("$diffcmd$revs[0] \"$infile\" | $patchcmd -o\"$file1\"")==0  and -z $file1 ) {
-	 # no differences detected, i.e. file is equal to current version
-	 copy($infile,$file1) || die "copy($infile,$file1) failed: $!";
-       }
-     }
+      my $olddir=$tempdir . "/latexdiff-vc-$revs[0]";
+      print STDERR "Checking out old dir into: $olddir (rev: $revs[0])\n";
+      checkout_dir($revs[0],$olddir,$infile);
+      $file1=$olddir ."/".$infile;
+
+      # generate bibliography for new file if 
+      if ( greptex('^[^%]*\\\\bibliography\\{',$infile) == 0)  {
+	my ($filebase,$filedir)=fileparse($infile,".tex");
+	if ( ! -e "$filedir$filebase.bbl" ) {
+	  system("$CFG{LATEX} -draftmode -interaction=batchmode '$infile'; $CFG{BIBTEX} '$filedir$filebase'")
+	      or die  "Something went wrong in executing:  $CFG{LATEX} -draftmode -interaction=batchmode '$infile'; $CFG{BIBTEX} '$filedir$filebase'" ;
+	}
+      }
+    } else {
+      ($file1=$infile) =~ s/\.(tex|bbl|flt)/-oldtmp-$$.$1/ ;
+      push @tmpfiles,$file1;
+      # compare file with previous version ($revs[0]="") or specified version
+      ### system("$diffcmd$revs[0] $infile| $patchcmd -o$file1") ;
+      if (system("$diffcmd$revs[0] \"$infile\" | $patchcmd -o\"$file1\"")==0  and -z $file1 ) {
+        # no differences detected, i.e. file is equal to current version
+	copy($infile,$file1) || die "copy($infile,$file1) failed: $!";
+      }
+    }
   } elsif ( scalar(@revs) == 2 ) {
     if ( defined($flatten) ) {
       my $olddir=$tempdir . "/latexdiff-vc-$revs[0]";
       print STDERR "Checking out old dir into: $olddir (rev: $revs[0])\n";
-      checkout_dir($revs[0],$olddir);
+      checkout_dir($revs[0],$olddir,$infile);
       $file1=$olddir ."/".$infile;
 
       my $newdir=$tempdir . "/latexdiff-vc-$revs[1]";
       print STDERR "Checking out new dir into: $newdir\n";
-      checkout_dir($revs[1],$newdir);
+      checkout_dir($revs[1],$newdir,$infile);
       $file2=$newdir ."/".$infile;
     } else {
       ($file1=$infile) =~ s/\.(tex|bbl|flt)/-oldtmp-$$.$1/ ;
@@ -453,7 +485,7 @@ while ( $infile=$file2=shift @files ) {
   } else {
     ($diff=$infile) =~ s/\.(tex|bbl|flt)$/$append.$1/ ;
   }
-   
+
   # make directories if needed
   $dirname=dirname($diff) ;
   system("mkdir -p $dirname") unless ( -e $dirname );
@@ -473,13 +505,14 @@ while ( $infile=$file2=shift @files ) {
       die "Abort ... " ;
     }
   }
+  
   print STDERR "Running: $CFG{LATEXDIFF}  $options \"$file1\" \"$file2\" > \"$diff\"\n";
   unless ( system("$CFG{LATEXDIFF} $options \"$file1\" \"$file2\" > \"$diff\"") == 0 ) { 
     print STDERR  "Something went wrong in $CFG{LATEXDIFF}. Deleting $diff and abort\n" ; unlink $diff ; exit(5) 
   };
   print "Generated difference file $diff\n";
    
-  if ( $run and !( scalar(@revs) && greptex( qr/\\document(?:class|style)/ , $diff ) ) ) {
+  if ( $run and !( scalar(@revs) && greptex( qr/\\document(?:class|style)/ , $diff,25) ) ) {
     # save filename for later processing if postscript or pdf conversion is requested and either two-file mode was used (scalar(@revs)==0) or the diff file contains documentclass statement (ie. is a root document)
     push @difffiles, $diff ;
   }
@@ -504,19 +537,20 @@ foreach $diff ( @difffiles ) {
   if ( $run ) {
     print STDERR "PDF: $pdf Postscript: $postscript cwd $cwd\n" if $debug;
 
-    if ( system("grep -q \'^[^%]*\\\\bibliography{\' \"$diff\"") == 0 ) { 
-      system("$CFG{LATEX} --interaction=batchmode \"$diff\"; $CFG{BIBTEX} \"$diffbase\";");
+#    if ( system("grep -q \'^[^%]*\\\\bibliography{\' \"$diff\"") == 0 ) { 
+    if ( greptex('^[^%]*\\\\bibliography{',$diff ) == 0 ) { 
+      system("$CFG{LATEX} -draftmode -interaction=batchmode \"$diff\"; $CFG{BIBTEX} \"$diffbase\";");
       push @ptmpfiles, "$diffbase.bbl","$diffbase.bbl" ; 
     }
 
     # if special needs, as CHANGEBAR
     if ( $extracomp ) {
       # print "Extracomp\n";
-      system("$CFG{LATEX} --interaction=batchmode \"$diff\";");
+      system("$CFG{LATEX} -draftmode -interaction=batchmode \"$diff\";");
     }
 
     # final compilation
-    system("$CFG{LATEX} --interaction=batchmode \"$diff\";"); # needed if cross-refs
+    system("$CFG{LATEX} -draftmode -interaction=batchmode \"$diff\";"); # needed if cross-refs
     system("$CFG{LATEX} \"$diff\";"); # final, with possible error messages
 
     if ( $rundvi2 ) {
@@ -533,7 +567,7 @@ foreach $diff ( @difffiles ) {
       #print STDERR "Generated postscript file $ps\n";
     } elsif ( $run ) {
       if ( $onlychanges ) {
-	my @pages=findchangedpages("$diffbase.aux");
+	my @pages=compresspages(findchangedpages("$diffbase.aux"));
         my $gs = `which gs`;
         $gs =~ s/^\s+|\s+$//g;
         my $qpdf = `which qpdf`;
@@ -541,7 +575,7 @@ foreach $diff ( @difffiles ) {
         my $pdftk = `which pdftk`;
         $pdftk =~ s/^\s+|\s+$//g;
         my $command;
-        if (-x $gs && `gs --version` >= 9.20) {
+        if (-x $gs && `$gs --version` >= 9.20) {
           $command="gs -sDEVICE=pdfwrite -dNOPAUSE -dBATCH -dSAFER -sPageList=" . join(",", @pages) . " -sOutputFile=\"$diffbase-changedpage.pdf\" \"$diffbase.pdf\"";
         } elsif (-x $pdftk) {
           $command="pdftk \"$diffbase.pdf\" cat " . join(" ",@pages) . " output \"$diffbase-changedpage.pdf\"";
@@ -571,10 +605,10 @@ sub findchangedpages {
   my %start;
   open(AUX,$auxfile) or die ("Could open aux file $auxfile . System error: $!");
   while (<AUX>) {
-    if (m/\\zref\@newlabel\{DIFchgb(\d*)\}\{.*\\abspage\{(\d*)\}\}/ ) { 
+    if (m/\\zref\@newlabel\{DIFchgb(\d*)\}\{.*\\abspage\{(\d*)\}.*\}/ ) { 
       $start{$1}=$2; $pages{$2}=1;
     }
-    if (m/\\zref\@newlabel\{DIFchge(\d*)\}\{.*\\abspage\{(\d*)\}\}/) { 
+    if (m/\\zref\@newlabel\{DIFchge(\d*)\}\{.*\\abspage\{(\d*)\}.*\}/) { 
       if (defined($start{$1})) {
 	for ($j=$start{$1}; $j<=$2; $j++) {
 	  $pages{$j}=1;
@@ -589,13 +623,54 @@ sub findchangedpages {
   return(sort {$a <=> $b} keys(%pages));
 }
 
-# checkout_dir(rev,dirname)
-# checks out revision rev and stores it in dirname
-# uses global variables: $vc, $rootdir
-sub checkout_dir {
-  my ($rev,$dirname)=@_;
+# inspired by a python version posted at https://stackoverflow.com/a/54714846/8136338
+# compresspages(@pages)
+# @pages: sorted array of unique integers (pages)
+# return a list of pages and page ranges. 3 or more consecutive numbers are merged into a "begin-end" string
+#
+# example: join(",", compresspages([1,3,4,5,7,8])) -> join(",", [1,"3-5",7,8]) -> "1,3-5,7,8"
+sub compresspages {
+  my (@pages) = @_;
+  my @res;
+  my $begin=$pages[0];
+  my $end =$pages[0];
+  my $page;
+  foreach $page ( @pages ) {
+    next if ($page == $begin);
+    if ($page == $end+1) { # handle continuous pages
+      $end = $page;
+      next;
+    } elsif ($begin == $end) { # push single continuous page
+      push @res, $begin;
+      $begin = $end = $page;
+    } elsif ($begin + 1 == $end) { # push two continuous pages
+      push @res, $begin, $end;
+      $begin = $end = $page;
+    } else { # push multiple continuous pages
+      push @res, "$begin-$end";
+      $begin = $end = $page;
+    }
+  }
+  # Finally just check in the same manner for the end element
+  if ($begin == $end) {
+    push @res, $begin;
+  } elsif ($begin + 1 == $end) {
+    push @res, $begin, $end;
+  } else {
+    push @res, "$begin-$end";
+  }
+  return @res;
+}
 
-  unless (-e $dirname) { mkdir $dirname or die "Cannot mkdir $dirname ." ;}
+# checkout_dir(rev,dirname, <file>)
+# checks out revision rev and stores it in dirname
+# If argument <file> is provided, check if this file imports a bibliography and generate it if necessary 
+# uses global variables: $vc, $rootdir, $CFG
+sub checkout_dir {
+  my ($rev,$dirname,$file)=@_;
+
+  my ($filebase,$filedir);
+  unless (-e $dirname) { mkpath([ $dirname ]) or die "Cannot mkdir $dirname ." ;}
   if ( $vc eq "SVN" ) {
     system("svn checkout -r $rev $rootdir $dirname")==0 or die "Something went wrong in executing:  svn checkout -r $rev $rootdir $dirname";
   } elsif ( $vc eq "GIT" ) {
@@ -606,13 +681,25 @@ sub checkout_dir {
   } else {
     die "checkout_dir: only works with SVN, HG and GIT VCS system (selected: $vc)";
   }
+  # Check if the main file needs a bbl generated
+  if ( defined($file) and greptex('^[^%]*\\\\bibliography\\{',$file) == 0)  {
+      ($filebase,$filedir)=fileparse($file,".tex");
+      if ( ! -e "$filedir$filebase.bbl" ){
+ 	  printf STDERR "Running $CFG{BIBTEX} to generate $filedir$filebase.bbl.\n";
+	  system("cd '$dirname'; $CFG{LATEX} -draftmode -interaction=batchmode '$file'; $CFG{BIBTEX} '$filedir$filebase'")==0
+	      or die  "Something went wrong in executing:  cd '$dirname'; $CFG{LATEX} -draftmode -interaction=batchmode '$file'; $CFG{BIBTEX} '$filedir$filebase'" ;
+      }
+#      else { # DEBUG
+#	  printf STDERR "DEBUG: Skipping bbl file generation as $filedir$filebase.bbl already exists.\n"
+#      } #DEBUG
+  }
 }
 
-# greptex returns 1 if regex is not matched in filename
-# only the 25 first non-comment lines are scanned
+# greptex($regex,$filename, <lines>) returns 1 if regex is not matched in filename
+# only the first <lines> non-comment lines are scanned; by default everythin is scanned
 # 0 if there is a match
 sub greptex {
-  my ($regex,$filename)=@_;
+  my ($regex,$filename,$nlines)=@_;
   my ($i)=0;
   open (FH, $filename) or die("Couldn't open $filename: $!");
   while (<FH>) {
@@ -621,9 +708,9 @@ sub greptex {
       close(FH);
       return(0);
     }
-    # only scan 25 lines
+    # only scan <nlines> lines, if optional parameter proviede
     $i++;    
-    last if $i>25 ;
+    last if defined($nlines) and $i>$nlines ;
   }
   close(FH);
   return(1);
@@ -674,7 +761,7 @@ specified, and they result in different behaviour:
 
 =item B<latexdiff-vc> -r F<file.tex> ...
 
-compares F<file.tex> with the most recent version checked into RCS.
+compares F<file.tex> with the most recently checked-in version checked.
 
 =item B<latexdiff-vc> -r F<rev1> F<file.tex> ...
 
@@ -685,7 +772,7 @@ compares F<file.tex> with revision F<rev1>.
 compares revisions F<rev1> and F<rev2> of F<file.tex>.
 
 Multiple files can be specified for all of the above options. All files must have the
-extension C<.tex>, though.
+extensions C<.tex>, C<.bbl>, or C<.flt>, though.
 
 =item B<latexdiff-vc>  F<old.tex> F<new.tex>
 
@@ -701,27 +788,25 @@ reported to stdout.
 Rather than appending the string C<diff> and optionally the version
 numbers given to the output-file, this will prepend a directory name C<diff> 
 to the
-original filename, creating the directory and subdirectories should they not exist already.  This is particularly useful in order to clone a
+original filename, creating the directory and sub-directories should they not exist already.  This is particularly useful in order to clone a
 complete directory hierarchy.  Optionally, a pathname F<path> can be specified, which is prepended instead of C<diff>.
 
 =item B<--flatten,--flatten=keep-intermediate>
 
 If combined with C<--git>, C<--svn> or C<--hg> option or the corresponding modes, check out the revisions to compare in a separate temporary directory, and then pass on option C<--flatten> to latexdiff. The directory in which C<latexdiff-vc> is invoked defines the subtree which will be checked out.
-Note that if additional files are needed which are not included in the flatten procedure (package files, included graphics), they need to be accessible in the current directory. If you use bibtex, it is recommended to include the C<.bbl> file in the version management.
+Note that if additional files are needed which are not included in the flatten procedure (package files, included graphics), they need to be accessible in the current directory. If you use bibtex, it is recommended to include the C<.bbl> file in the version management. From latexdiff-vc >=1.3.4  there is an attempt to create the C<.bbl> file by running bibtex in the retrieved subdirectories; note that the bibtex is run in the temporary subdirectories so any .bib or .bst files either need to be under version management, or in the global search paths for bibtex (shell environment variables C<BIBINPUTS> and C<BSTINPUTS>). 
 
 The generic usage of this function is : C<latexdiff-vc --flatten -r rev1 [-r rev2] master.tex> where master.tex is the project file containing the highest level of includes etc.
 
 With C<--flatten=keep-intermediate>, the intermediate revision snapshots are kept in the current directory (Default is to store them in a temporary directory and delete them after generating the diff file.)
-
-=item B<--config var1=val1,var2=val2,...> or B<-c var1=val1,..>
-
 
 
 =item B<--only-changes>
 
 Post-process the output such that only pages with changes on them are displayed. This requires the use of subtype ZLABEL 
 in latexdiff, which will be set automatically, but any manually set -s option will be overruled (also requires zref package to 
-be installed). (note that this option must be combined with --ps or --pdf to make sense)
+be installed). This option also disables internal links (as implemented by hyperref package) and graphics markup.
+(note that this option must be combined with --ps or --pdf to make sense)
 
 =item B<--force>
 
@@ -738,6 +823,7 @@ run latex command on diff file after generation of diff file.
 run latex and dvixxx commands after generation of diff file.
 
 =item B<-c configfile>
+=item B<--config var1=val1,var2=val2,...> or B<-c var1=val1,..>
 
 Set configuration variables for latexdiff and latexdiff-vc.  The option can be repeated to set different
 variables (as an alternative to the comma-separated list).
@@ -745,7 +831,7 @@ Available variables for latexdiff-vc:
 
 =over 8
 
-=item C<LATEXDIFF> latexdiff command (e.g. latexdiff-fast, latexdiff-so). This command should support the option C<--interaction=batchmode>
+=item C<LATEXDIFF> latexdiff command (e.g. latexdiff-fast, latexdiff-so). This command should support the options C<-draftmode> and C<-interaction=batchmode>
 
 =item C<LATEX> latex command (e.g. pdflatex, lualatex)
 
@@ -755,7 +841,7 @@ Available variables for latexdiff-vc:
 
 =back
 
-All other config variables are passed to latexdiff. Explicity set configuration changes always override implicit
+All other config variables are passed to latexdiff. Explicitly set configuration changes always override implicit
 changes by the following shortcut options B<--fast>, B<--so>, B<--ps> and B<--pdf>. 
 
 =item B<--fast> or B<--so>
@@ -794,7 +880,7 @@ Show version number
 
 =back
 
-All other options are passed on to C<latexdiff>.
+All other options are passed on to C<latexdiff>.  Note that it is not always easy for latexdiff to correctly assign arguments to options when short form (single letter) options are used so it is recommended to use long-form options. 
 
 =head1 SEE ALSO
 
@@ -803,7 +889,7 @@ L<latexdiff>
 =head1 PORTABILITY
 
 I<latexdiff-vc> uses external commands and is therefore dependent on the system architecture; it has been
-tested mainly on Unix-like systems. It also requires the a version control
+tested mainly on Unix-like systems. It also requires a version control
 system and latex to be installed on the system to make use of all features.  Modules from Perl 5.8
 or higher are required.
 
@@ -815,7 +901,7 @@ or send them to I<tilmann -- AT -- gfz-potsdam.de>.  Include the version number 
 
 =head1 AUTHOR
 
-Version 1.2.1
+Version 1.3.4a
 Copyright (C) 2005-2017 Frederik Tilmann
 
 This program is free software; you can redistribute it and/or modify

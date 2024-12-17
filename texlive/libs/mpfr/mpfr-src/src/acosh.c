@@ -1,6 +1,6 @@
 /* mpfr_acosh -- inverse hyperbolic cosine
 
-Copyright 2001-2019 Free Software Foundation, Inc.
+Copyright 2001-2023 Free Software Foundation, Inc.
 Contributed by the AriC and Caramba projects, INRIA.
 
 This file is part of the GNU MPFR Library.
@@ -27,15 +27,15 @@ https://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
  *  acosh= ln(x + sqrt(x^2-1))           */
 
 int
-mpfr_acosh (mpfr_ptr y, mpfr_srcptr x , mpfr_rnd_t rnd_mode)
+mpfr_acosh (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
 {
   MPFR_SAVE_EXPO_DECL (expo);
   int inexact;
   int comp;
 
   MPFR_LOG_FUNC (
-    ("x[%Pu]=%.*Rg rnd=%d", mpfr_get_prec (x), mpfr_log_prec, x, rnd_mode),
-    ("y[%Pu]=%.*Rg inexact=%d", mpfr_get_prec (y), mpfr_log_prec, y,
+    ("x[%Pd]=%.*Rg rnd=%d", mpfr_get_prec (x), mpfr_log_prec, x, rnd_mode),
+    ("y[%Pd]=%.*Rg inexact=%d", mpfr_get_prec (y), mpfr_log_prec, y,
      inexact));
 
   /* Deal with special cases */
@@ -92,7 +92,7 @@ mpfr_acosh (mpfr_ptr y, mpfr_srcptr x , mpfr_rnd_t rnd_mode)
         MPFR_BLOCK_DECL (flags);
 
         /* compute acosh */
-        MPFR_BLOCK (flags, mpfr_mul (t, x, x, MPFR_RNDD));  /* x^2 */
+        MPFR_BLOCK (flags, mpfr_sqr (t, x, MPFR_RNDD));  /* x^2 */
         if (MPFR_OVERFLOW (flags))
           {
             mpfr_t ln2;

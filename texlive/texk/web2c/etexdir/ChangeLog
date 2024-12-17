@@ -1,3 +1,67 @@
+2024-04-14  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* etriptest.test:
+	Filter Web2C year/dev in banner.
+
+2024-03-10  Karl Berry  <karl@tug.org>
+
+	* TL'24 release.
+
+2024-03-06  Karl Berry  <karl@tug.org>
+
+	* etex_man.tex: copyright attributions, tweak penalty array texts.
+
+2024-03-04 David Carlisle  <David.Carlisle@latex-project.org>
+
+	* etex_man.tex: add hyperref
+	* etex_man.tex: Use Knuth license per legal.html.
+
+2024-03-03  Karl Berry  <karl@tug.org>
+
+	* etex_man.tex, legal.html: editorial changes.
+
+2024-02-29 David Carlisle  <David.Carlisle@latex-project.org>
+
+	* legal.html: Use ctan.org/pkg/etex url for e-tex reference site
+	(rhbnc.ac.uk domain no longer functional).
+	* etex_man.tex: Adjust introductory notes re NTS, mention pdftex
+	manual, document \interlinepenalties reset at \par.
+
+2023-11-24  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* etriptest.test, etrip/etrip.{fot,log,typ}, etrip/etripin.log:
+	Check diffs of trip.{fot,typ} with ignoring trivial changes
+	in trip tests.
+
+2023-09-17  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* {etriptest,wprob}.test:
+	Make easier to test on Windows.
+
+2023-03-09  Karl Berry  <karl@tug.org>
+
+	* TL'23 release.
+
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2022-01-10  Karl Berry  <karl@freefriends.org>
+
+	* am/etex.am: do not silence tangle-sh.
+
+2021-03-23  Karl Berry  <karl@tug.org>
+
+	* TL'21.
+
+2021-02-22  Phelype Oleinik  <phe.h.o1@gmail.com>
+
+	* etex.ch: avoid "expansion depth" overflow with \numexpr.
+
+2021-02-13  Karl Berry  <karl@freefriends.org>
+
+	* am/etex.am (etex_ch_srcs): adjust for split enctex changes.
+
 2019-12-10  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
 
 	* am/etex.am (etex_CPPFLAGS): append $(ZLIB_INCLUDES).

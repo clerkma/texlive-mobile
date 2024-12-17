@@ -1,6 +1,6 @@
 /* mpfr_atanh -- Inverse Hyperbolic Tangente
 
-Copyright 2001-2019 Free Software Foundation, Inc.
+Copyright 2001-2023 Free Software Foundation, Inc.
 Contributed by the AriC and Caramba projects, INRIA.
 
 This file is part of the GNU MPFR Library.
@@ -44,9 +44,9 @@ mpfr_atanh_small (mpfr_ptr y, mpfr_srcptr x)
   mpfr_init2 (t, p);
   mpfr_init2 (u, p);
   mpfr_init2 (x2, p);
-  mpfr_set (t, x, MPFR_RNDF); /* t = x * (1 + theta) */
-  mpfr_set (y, t, MPFR_RNDF); /* exact */
-  mpfr_mul (x2, x, x, MPFR_RNDF); /* x2 = x^2 * (1 + theta) */
+  mpfr_set (t, x, MPFR_RNDF);  /* t = x * (1 + theta) */
+  mpfr_set (y, t, MPFR_RNDF);  /* exact */
+  mpfr_sqr (x2, x, MPFR_RNDF); /* x2 = x^2 * (1 + theta) */
   for (i = 3; ; i += 2)
     {
       mpfr_mul (t, t, x2, MPFR_RNDF);    /* t = x^i * (1 + theta)^i */
@@ -110,8 +110,8 @@ mpfr_atanh (mpfr_ptr y, mpfr_srcptr xt, mpfr_rnd_t rnd_mode)
   MPFR_SAVE_EXPO_DECL (expo);
 
   MPFR_LOG_FUNC
-    (("x[%Pu]=%.*Rg rnd=%d", mpfr_get_prec (xt), mpfr_log_prec, xt, rnd_mode),
-    ("y[%Pu]=%.*Rg inexact=%d",
+    (("x[%Pd]=%.*Rg rnd=%d", mpfr_get_prec (xt), mpfr_log_prec, xt, rnd_mode),
+    ("y[%Pd]=%.*Rg inexact=%d",
      mpfr_get_prec (y), mpfr_log_prec, y, inexact));
 
   /* Special cases */

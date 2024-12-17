@@ -1,7 +1,7 @@
-## $Id: Makefile.am 53601 2020-01-30 19:18:37Z karl $
+## $Id: Makefile.am 72602 2024-10-20 06:53:40Z takuji $
 ## Makefile.am for the TeX Live subdirectory texk/dvipsk/
 ##
-## Copyright 2017-2020 Karl Berry <tex-live@tug.org>
+## Copyright 2017-2021 Karl Berry <tex-live@tug.org>
 ## Copyright 2009-2015 Peter Breitenlohner <tex-live@tug.org>
 ## You may freely use, modify and/or distribute this file.
 ##
@@ -111,16 +111,19 @@ EXTRA_DIST = $(dist_prologues) texc.script
 
 CLEANFILES = $(prologues) texc.lpro
 
-## dvips tests
+## dvips/afm2tfm tests
 TEST_EXTENSIONS = .pl .test
-TESTS = afm2tfm-test.pl
-afm2tfm-test.log: afm2tfm$(EXEEXT)
+TESTS = test-afm2tfm.test
+test-afm2tfm-test.log: afm2tfm$(EXEEXT)
 TESTS += beginfontk1.test eepic-nan.test pfbincl.test \
 	quotecmd-test.pl same-name.test test-dvips.test \
-	test-overflow-buffers.test
+	test-missing-image.test test-overflow-buffers.test \
+	uptex-vf.test uptex-upjf2.test ofm-lmr.test
 beginfontk1.log eepic-nan.log pfbincl.log \
 	quotecmd-test.log same-name.log test-dvips.log \
-	test-overflow-buffers.log: dvips$(EXEEXT)
+	test-missing-image.log test-overflow-buffers.log \
+	uptex-vf.log uptex-upjf2.log ofm-lmr.log \
+	: dvips$(EXEEXT)
 
 AM_TESTS_ENVIRONMENT  = TEXMFCNF=$(srcdir)/../kpathsea; export TEXMFCNF;
 AM_TESTS_ENVIRONMENT += TEXCONFIG=$(srcdir)/testdata; export TEXCONFIG;
@@ -158,8 +161,6 @@ EXTRA_DIST += \
 	testdata/texc.pro \
 	testdata/texps.pro
 
-## afm2tfm-test.pl
-DISTCLEANFILES += afmtest.tfm
 ## beginfontk1.test
 EXTRA_DIST += testdata/beginfontk1.dvi testdata/beginfontk1.eps testdata/beginfontk1.tex
 DISTCLEANFILES += beginfontk1.ps
@@ -167,21 +168,52 @@ DISTCLEANFILES += beginfontk1.ps
 EXTRA_DIST += testdata/eepic-nan.dvi testdata/eepic-nan.tex
 DISTCLEANFILES += eepic-nan.ps
 ## pfbincl.test
-EXTRA_DIST += testdata/pfbincl.eps testdata/pfbincl.tex testdata/pfbincl.xdv testdata/pfbincl.xps 
+EXTRA_DIST += testdata/pfbincl.eps testdata/pfbincl.tex testdata/pfbincl.xdv testdata/pfbincl.xps
 DISTCLEANFILES += pfbincl.ps
 ## quotecmd-test.pl
-EXTRA_DIST += testdata/quotecmd.dvi testdata/quotecmd.tex 
+EXTRA_DIST += testdata/quotecmd.dvi testdata/quotecmd.tex
 DISTCLEANFILES += *badnews*
 ## same-name.test
 DISTCLEANFILES += same-name.out
-## test-dvips
+## test-afm2tfm.test
+DISTCLEANFILES += afmtest.tfm
+## test-dvips.test
 EXTRA_DIST += testdata/dvipstst.tex testdata/dvipstst.xdv testdata/dvipstst.xps
 DISTCLEANFILES += dvipstst.ps missfont.log mtest.ps
-## test-overflow-buffers
+## test-missing-image.test
+EXTRA_DIST += testdata/missing-image.tex testdata/missing-image.dvi
+DISTCLEANFILES += missing-image.ps
+## test-overflow-buffers.test
 EXTRA_DIST += overflow-color-push.dvi overflow-color-push.tex \
               overflow-epsfile.dvi overflow-epsfile.tex \
               overflow-psbox.dvi overflow-psbox.tex
 DISTCLEANFILES += overflow-color-push.ps overflow-epsfile.ps overflow-psbox.ps
+## uptex-vf.test
+EXTRA_DIST += testdata/Makefile_upjf testdata/upjf.tex testdata/upjf.dvi testdata/upjf.map \
+              testdata/upjf.tfm testdata/upjf-g.tfm testdata/upjf-r.tfm \
+              testdata/upjf_full.vf testdata/upjf_omit.vf \
+              testdata/upjv.tfm testdata/upjv-g.tfm testdata/upjv-r.tfm \
+              testdata/upjv_full.vf testdata/upjv_omit.vf \
+              testdata/upjf-g00.opl testdata/upjf-g00.ofm \
+              testdata/upjv-g00.opl testdata/upjv-g00.ofm \
+              testdata/upjf-r00.opl testdata/upjf-r00.ofm \
+              testdata/upjv-r00.opl testdata/upjv-r00.ofm \
+              testdata/upjf1-r.pl testdata/upjf1-r.tfm \
+              testdata/upjf1_full.zvp0 testdata/upjf1_full.vf \
+              testdata/upjf1_omit.zvp0 testdata/upjf1_omit.vf \
+              testdata/upjf_full.cnf testdata/upjf_omit.cnf
+DISTCLEANFILES += upjf.vf upjv.vf upjf-*.ofm upjv-*.ofm upjf-*.tfm upjv-*.tfm \
+              upjf*_full.ps upjf*_omit*.ps
+## uptex-upjf2.test
+EXTRA_DIST += testdata/upjf2.tex testdata/upjf2.dvi \
+              testdata/upjf-c.pl testdata/upjf-c.tfm \
+              testdata/upjv-c.pl testdata/upjv-c.tfm \
+              testdata/upjf2_full.zvp0 testdata/upjf2_full.vf \
+              testdata/upjv2_full.zvp0 testdata/upjv2_full.vf
+## ofm-lmr.test
+EXTRA_DIST += testdata/lmr0.tex testdata/lmr0-al.dvi testdata/lmr0-up.dvi \
+              testdata/lm.map testdata/upjf_ucs2.map
+DISTCLEANFILES += lmr0*.ps
 
 EXTRA_DIST += \
 	NEWS \

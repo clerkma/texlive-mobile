@@ -74,6 +74,12 @@ public:
     NumberingSystem(const NumberingSystem& other);
 
     /**
+     * Copy assignment.
+     * @stable ICU 4.2
+     */
+    NumberingSystem& operator=(const NumberingSystem& other) = default;
+
+    /**
      * Destructor.
      * @stable ICU 4.2
      */
@@ -96,7 +102,7 @@ public:
     /**
      * Create a numbering system using the specified radix, type, and description. 
      * @param radix         The radix (base) for this numbering system.
-     * @param isAlgorithmic TRUE if the numbering system is algorithmic rather than numeric.
+     * @param isAlgorithmic true if the numbering system is algorithmic rather than numeric.
      * @param description   The string representing the set of digits used in a numeric system, or the name of the RBNF
      *                      ruleset to be used in an algorithmic system.
      * @param status ICU status
@@ -142,7 +148,7 @@ public:
 
     /**
      * Returns the name of this numbering system if it was created using one of the predefined names
-     * known to ICU.  Otherwise, returns NULL.
+     * known to ICU.  Otherwise, returns nullptr.
      * The predefined names are identical to the numbering system names as defined by
      * the BCP47 definition in Unicode CLDR.
      * See also, http://www.unicode.org/repos/cldr/tags/latest/common/bcp47/number.xml
@@ -165,10 +171,10 @@ public:
 
 
     /**
-     * Returns TRUE if the given numbering system is algorithmic
+     * Returns true if the given numbering system is algorithmic
      *
-     * @return         TRUE if the numbering system is algorithmic.
-     *                 Otherwise, return FALSE.
+     * @return         true if the numbering system is algorithmic.
+     *                 Otherwise, return false.
      * @stable ICU 4.2
      */
     UBool isAlgorithmic() const;
@@ -179,14 +185,14 @@ public:
      * @stable ICU 4.2
      *
     */
-    static UClassID U_EXPORT2 getStaticClassID(void);
+    static UClassID U_EXPORT2 getStaticClassID();
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      *
      * @stable ICU 4.2
      */
-    virtual UClassID getDynamicClassID() const;
+    virtual UClassID getDynamicClassID() const override;
 
 
 private:
@@ -202,10 +208,6 @@ private:
     void setDesc(const UnicodeString &desc);
 
     void setName(const char* name);
-
-    static UBool isValidDigitString(const UnicodeString &str);
-
-    UBool hasContiguousDecimalDigits() const;
 };
 
 U_NAMESPACE_END

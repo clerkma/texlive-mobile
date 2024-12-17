@@ -2,7 +2,7 @@
 ** DVIToSVG.cpp                                                         **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -54,13 +54,8 @@
 #include "HtmlSpecialHandler.hpp"
 #include "PapersizeSpecialHandler.hpp"
 #include "PdfSpecialHandler.hpp"
+#include "PsSpecialHandlerProxy.hpp"
 #include "TpicSpecialHandler.hpp"
-#ifndef HAVE_LIBGS
-	#include "NoPsSpecialHandler.hpp"
-#endif
-#ifndef DISABLE_GS
-	#include "PsSpecialHandler.hpp"
-#endif
 
 ///////////////////////////////////
 
@@ -74,13 +69,10 @@ bool DVIToSVG::COMPUTE_PROGRESS = false;
 DVIToSVG::HashSettings DVIToSVG::PAGE_HASH_SETTINGS;
 
 
-DVIToSVG::DVIToSVG (istream &is, SVGOutputBase &out) : DVIReader(is), _out(out)
+DVIToSVG::DVIToSVG (istream &is, SVGOutputBase &out)
+	: DVIReader(is), _out(out), _prevWritingMode(WritingMode::LR)
 {
-	_pageHeight = _pageWidth = 0;
-	_tx = _ty = 0;    // no cursor translation
-	_pageByte = 0;
 	_prevXPos = _prevYPos = numeric_limits<double>::min();
-	_prevWritingMode = WritingMode::LR;
 	_actions = util::make_unique<DVIToSVGActions>(*this, _svg);
 }
 
@@ -123,13 +115,21 @@ void DVIToSVG::convert (unsigned first, unsigned last, HashFunction *hashFunc) {
 			SVGOptimizer(_svg).execute();
 			embedFonts(_svg.rootNode());
 			bool success = _svg.write(_out.getPageStream(currentPageNumber(), numberOfPages(), hashTriple));
+			_out.finish();
 			string fname = path.shorterAbsoluteOrRelative();
 			if (fname.empty())
 				fname = "<stdout>";
-			if (success)
-				Message::mstream(false, Message::MC_PAGE_WRITTEN) << "\noutput written to " << fname << '\n';
-			else
+			if (!success)
 				Message::wstream(true) << "failed to write output to " << fname << '\n';
+			else {
+				Message::mstream(false, Message::MC_PAGE_WRITTEN) << "\noutput written to " << fname << '\n';
+				if (!_userMessage.empty()) {
+					if (auto specialActions = dynamic_cast<SpecialActions*>(_actions.get())) {
+						string msg = specialActions->expandText(_userMessage);
+						Message::ustream(true) << msg << "\n";
+					}
+				}
+			}
 			_svg.reset();
 			_actions->reset();
 		}
@@ -169,6 +169,7 @@ void DVIToSVG::convert (const string &rangestr, pair<int,int> *pageinfo) {
 		prescan.executeAllPages();
 		actions->setDVIReader(*this);
 		SpecialManager::instance().notifyPreprocessingFinished();
+		executeFontDefs();
 	}
 
 	unique_ptr<HashFunction> hashFunc;
@@ -352,16 +353,14 @@ void DVIToSVG::embedFonts (XMLElement *svgElement) {
 	if (!svgElement || !_actions) // no dvi actions => no chars written => no fonts to embed
 		return;
 
-	const DVIToSVGActions *svgActions = static_cast<DVIToSVGActions*>(_actions.get());
-	auto &usedCharsMap = svgActions->getUsedChars();
-
+	auto &usedCharsMap = FontManager::instance().getUsedChars();
 	collect_chars(usedCharsMap);
 
 	GlyphTracerMessages messages;
 	unordered_set<const Font*> tracedFonts;  // collect unique fonts already traced
 	for (const auto &fontchar : usedCharsMap) {
 		const Font *font = fontchar.first;
-		if (auto ph_font = dynamic_cast<const PhysicalFont*>(font)) {
+		if (auto ph_font = font_cast<const PhysicalFont*>(font)) {
 			// Check if glyphs should be traced. Only trace the glyphs of unique fonts, i.e.
 			// avoid retracing the same glyphs again if they are referenced in various sizes.
 			if (TRACE_MODE != 0 && tracedFonts.find(ph_font->uniqueFont()) == tracedFonts.end()) {
@@ -376,7 +375,26 @@ void DVIToSVG::embedFonts (XMLElement *svgElement) {
 		else
 			Message::wstream(true) << "can't embed font '" << font->name() << "'\n";
 	}
-	_svg.appendFontStyles(svgActions->getUsedFonts());
+	_svg.appendFontStyles(FontManager::instance().getUsedFonts());
+}
+
+
+static vector<string> extract_prefixes (const char *ignorelist) {
+	vector<string> prefixes;
+	if (ignorelist) {
+		const char *left = ignorelist;
+		while (*left) {
+			while (*left && !isalnum(*left))
+				left++;
+			const char *right = left;
+			while (*right && isalnum(*right))
+				right++;
+			if (*left)
+				prefixes.emplace_back(left, right-left);
+			left = right;
+		}
+	}
+	return prefixes;
 }
 
 
@@ -385,43 +403,24 @@ void DVIToSVG::embedFonts (XMLElement *svgElement) {
  *  the corresponding prefixes can be given separated by non alpha-numeric characters,
  *  e.g. "color, ps, em" or "color: ps em" etc.
  *  A single "*" in the ignore list disables all specials.
- *  @param[in] ignorelist list of special prefixes to ignore
+ *  @param[in] ignorelist list of hanlder names to ignore
  *  @param[in] pswarning if true, shows warning about disabled PS support
  *  @return the SpecialManager that handles special statements */
 void DVIToSVG::setProcessSpecials (const char *ignorelist, bool pswarning) {
 	if (ignorelist && strcmp(ignorelist, "*") == 0)  // ignore all specials?
 		SpecialManager::instance().unregisterHandlers();
 	else {
+		auto ignoredHandlerName = extract_prefixes(ignorelist);
 		// add special handlers
-		vector<unique_ptr<SpecialHandler>> handlers;
-		handlers.emplace_back(util::make_unique<BgColorSpecialHandler>());   // handles background color special
-		handlers.emplace_back(util::make_unique<ColorSpecialHandler>());     // handles color specials
-		handlers.emplace_back(util::make_unique<DvisvgmSpecialHandler>());   // handles raw SVG embeddings
-		handlers.emplace_back(util::make_unique<EmSpecialHandler>());        // handles emTeX specials
-		handlers.emplace_back(util::make_unique<HtmlSpecialHandler>());      // handles hyperref specials
-		handlers.emplace_back(util::make_unique<PapersizeSpecialHandler>()); // handles papersize special
-		handlers.emplace_back(util::make_unique<PdfSpecialHandler>());       // handles pdf specials
-		handlers.emplace_back(util::make_unique<TpicSpecialHandler>());      // handles tpic specials
-#ifndef DISABLE_GS
-		if (Ghostscript().available())
-			handlers.emplace_back(util::make_unique<PsSpecialHandler>());     // handles PostScript specials
-		else
-#endif
-		{
-#ifndef HAVE_LIBGS
-			// dummy PS special handler that only prints warning messages
-			handlers.emplace_back(util::make_unique<NoPsSpecialHandler>());
-			if (pswarning) {
-#ifdef DISABLE_GS
-				Message::wstream() << "processing of PostScript specials has been disabled permanently\n";
-#else
-				Message::wstream() << "processing of PostScript specials is disabled (Ghostscript not found)\n";
-#endif
-			}
-#endif
-		}
-		SpecialManager::instance().unregisterHandlers();
-		SpecialManager::instance().registerHandlers(handlers, ignorelist);
+		SpecialManager::registerHandler<BgColorSpecialHandler>(ignoredHandlerName);    // handles background color special
+		SpecialManager::registerHandler<ColorSpecialHandler>(ignoredHandlerName);      // handles color specials
+		SpecialManager::registerHandler<DvisvgmSpecialHandler>(ignoredHandlerName);    // handles raw SVG embeddings
+		SpecialManager::registerHandler<EmSpecialHandler>(ignoredHandlerName);         // handles emTeX specials
+		SpecialManager::registerHandler<HtmlSpecialHandler>(ignoredHandlerName);       // handles hyperref specials
+		SpecialManager::registerHandler<PapersizeSpecialHandler>(ignoredHandlerName);  // handles papersize special
+		SpecialManager::registerHandler<PdfSpecialHandler>(ignoredHandlerName);
+		SpecialManager::registerHandler<TpicSpecialHandler>(ignoredHandlerName);       // handles tpic specials
+		SpecialManager::registerHandler(util::make_unique<PsSpecialHandlerProxy>(pswarning), ignoredHandlerName);
 	}
 }
 
@@ -480,7 +479,7 @@ void DVIToSVG::dviEop () {
 
 
 void DVIToSVG::dviSetChar0 (uint32_t c, const Font *font) {
-	if (_actions && !dynamic_cast<const VirtualFont*>(font))
+	if (_actions && !font_cast<const VirtualFont*>(font))
 		_actions->setChar(dviState().h+_tx, dviState().v+_ty, c, dviState().d != WritingMode::LR, *font);
 }
 
@@ -519,7 +518,7 @@ void DVIToSVG::dviPop () {
 
 
 void DVIToSVG::dviFontNum (uint32_t fontnum, SetFontMode, const Font *font) {
-	if (_actions && font && !dynamic_cast<const VirtualFont*>(font))
+	if (_actions && font && !font_cast<const VirtualFont*>(font))
 		_actions->setFont(FontManager::instance().fontID(fontnum), *font);  // all fonts get a recomputed ID
 }
 
@@ -571,16 +570,18 @@ void DVIToSVG::HashSettings::setParameters (const string &paramstr) {
 		auto it = paramMap.find(name);
 		if (it != paramMap.end())
 			_params.insert(it->second);
-		else if (_algo.empty() && HashFunction::isSupportedAlgorithm(name))
-			_algo = name;
-		else if (!name.empty()) {
-			string msg = "invalid hash parameter '"+name+"' (supported algorithms: ";
-			for (string str : HashFunction::supportedAlgorithms())
-				msg += str + ", ";
-			msg.pop_back();
-			msg.pop_back();
-			msg += ')';
-			throw MessageException(msg);
+		else if (_algo.empty()) {
+			if (HashFunction::isSupportedAlgorithm(name))
+				_algo = name;
+			else if (!name.empty()) {
+				string msg = "invalid hash parameter '" + name + "' (supported algorithms: ";
+				for (string str: HashFunction::supportedAlgorithms())
+					msg += str + ", ";
+				msg.pop_back();
+				msg.pop_back();
+				msg += ')';
+				throw MessageException(msg);
+			}
 		}
 	}
 	// set default hash algorithm if none is given

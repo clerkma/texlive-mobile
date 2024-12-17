@@ -1,7 +1,8 @@
 /****************************************************************************\
+ $Id: xetex.ch 71288 2024-05-18 11:06:21Z takuji $
  Part of the XeTeX typesetting system
  Copyright (c) 1994-2008 by SIL International
- Copyright (c) 2009-2012 by Jonathan Kew
+ Copyright (c) 2009-2021 by Jonathan Kew
  Copyright (c) 2012 by Khaled Hosny
 
  SIL Author(s): Jonathan Kew
@@ -108,6 +109,14 @@ if translate_filename then read_tcx_file;
 @!term_in:unicode_file;
 @#
 @!bound_default:integer; {temporary for setup}
+@z
+
+@x [5.??] type of trick_buf[]
+@!trick_buf:array[0..ssup_error_line] of ASCII_code; {circular buffer for
+  pseudoprinting}
+@y
+@!trick_buf:array[0..ssup_error_line] of UnicodeScalar; {circular buffer for
+  pseudoprinting}
 @z
 
 @x [5.61] l.1556 - Print rest of banner, eliminate misleading `(no format preloaded)'.
@@ -326,7 +335,15 @@ if #<>0 then
       quote_char:="""" + "'" - quote_char;
       print(quote_char);
     end;
-    print(str_pool[j]);
+    if (so(str_pool[j])>=@"D800) and (so(str_pool[j])<=@"DBFF)
+      and (j+1<str_start_macro(#+1))
+      and (so(str_pool[j+1])>=@"DC00) and (so(str_pool[j+1])<=@"DFFF) then
+      begin print_char(@"10000 + (so(str_pool[j])-@"D800) * @"400
+                     + so(str_pool[j+1])-@"DC00);
+      incr(j);
+      end
+    else
+      print(str_pool[j]);
   end
 @z
 
@@ -370,10 +387,27 @@ if quote_char<>0 then print_char(quote_char);
       else if (c < @"800) then begin
         name_of_file[k]:=@"C0 + c div @"40; incr(k);
         name_of_file[k]:=@"80 + c mod @"40;
-      end else begin
+      end else if (c < @"D800) then begin
 		name_of_file[k]:=@"E0 + c div @"1000; incr(k);
 		name_of_file[k]:=@"80 + (c mod @"1000) div @"40; incr(k);
-		name_of_file[k]:=@"80 + (c mod @"1000) mod @"40;
+		name_of_file[k]:=@"80 + c mod @"40;
+      end else if (c < @"DC00) and (k+3<file_name_size) then begin
+		name_of_file[k]:=@"F0 + (c - @"D7C0) div @"1000; incr(k);
+		name_of_file[k]:=@"80 + ((c - @"D7C0) mod @"1000) div @"4; incr(k);
+		name_of_file[k]:=@"80 + (c - @"D7C0) mod @"4 * @"10; incr(k);
+		name_of_file[k]:=@"80;
+      end else if (c < @"E000) and (k>4) then begin
+		decr(k);
+		name_of_file[k-1]:=name_of_file[k-1] + (c - @"DC00) div @"40;
+		name_of_file[k]  :=name_of_file[k]   + (c - @"DC00) mod @"40;
+      end else if (c < @"10000) then begin
+		name_of_file[k]:=@"E0 + c div @"1000; incr(k);
+		name_of_file[k]:=@"80 + (c mod @"1000) div @"40; incr(k);
+		name_of_file[k]:=@"80 + c mod @"40;
+      end else begin { replacement character U+FFFD }
+		name_of_file[k]:=@"EF; incr(k);
+		name_of_file[k]:=@"BF; incr(k);
+		name_of_file[k]:=@"BD;
       end
     end
   end
@@ -415,18 +449,6 @@ for j:=1 to n do append_to_name(TEX_format_default[j]);
 @y
 @z
 
-@x [29.526] - scan a bgroup/egroup-delimited file name
-  stop_at_space := false; {set |stop_at_space| to false to allow spaces in file names}
-  begin_name;
-  for i:=str_start[s] to str_start[s+1]-1 do
-    dummy := more_name(str_pool[i]); {add each read character to the current file name}
-@y
-  stop_at_space := false; {set |stop_at_space| to false to allow spaces in file names}
-  begin_name;
-  for i:=str_start_macro(s) to str_start_macro(s+1)-1 do
-    dummy := more_name(str_pool[i]); {add each read character to the current file name}
-@z
-
 @x [29.536] l.10331
   wlog(' (');
   fputs(translate_filename, log_file);
@@ -439,9 +461,11 @@ for j:=1 to n do append_to_name(TEX_format_default[j]);
 
 @x [29.537] l.10338 - start_input
 var temp_str: str_number;
+v: pointer;
 begin scan_file_name; {set |cur_name| to desired file name}
 @y
 var temp_str: str_number;
+v: pointer;
 @!k:0..file_name_size; {index into |name_of_file16|}
 begin scan_file_name; {set |cur_name| to desired file name}
 @z
@@ -684,8 +708,8 @@ undump_checked_things(0, pool_ptr, str_start_macro(too_big_char), str_ptr+1-too_
   if is_native_font(k) or (font_mapping[k]<>0) then
     begin print_file_name(font_name[k],"","");
     print_err("Can't \dump a format with native fonts or font-mappings");
-    help3("You really, really don't want to do this.")
-    ("It won't work, and only confuses me.")
+    help3("You really, really don't want to do this.")@/
+    ("It won't work, and only confuses me.")@/
     ("(Load them at runtime, not as part of the format file.)");
     error;
     end
@@ -901,6 +925,18 @@ end;
   while s>255 do  {first 256 strings depend on implementation!!}
 @y
   while s>65535 do  {first 64K strings don't really exist in the pool!}
+@z
+
+@x [54/web2c.1407] - scan a bgroup/egroup-delimited file name
+  stop_at_space := false; {set |stop_at_space| to false to allow spaces in file names}
+  begin_name;
+  for i:=str_start[s] to str_start[s+1]-1 do
+    dummy := more_name(str_pool[i]); {add each read character to the current file name}
+@y
+  stop_at_space := false; {set |stop_at_space| to false to allow spaces in file names}
+  begin_name;
+  for i:=str_start_macro(s) to str_start_macro(s+1)-1 do
+    dummy := more_name(str_pool[i]); {add each read character to the current file name}
 @z
 
 @x

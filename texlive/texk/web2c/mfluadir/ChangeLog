@@ -1,3 +1,39 @@
+2024-03-10  Karl Berry  <karl@tug.org>
+
+	* TL'24 release.
+
+2023-03-09  Karl Berry  <karl@tug.org>
+
+	* TL'23 release.
+
+2022-08-22 Luigi Scarso <luigi.scarso@gmail.com>
+
+	* Move potrace under source/libs
+
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2022-02-27 Luigi Scarso <luigi.scarso@gmail.com>
+	
+	* MFLua 1.0.1-alpha.
+
+2022-01-18 Luigi Scarso <luigi.scarso@gmail.com>
+	
+	* Embedding of  potrace and lpeg.
+
+2021-03-15 Luigi Scarso <luigi.scarso@gmail.com>
+	
+	* Code clean up (thanks to  A. Kakuto)
+
+2021-02-07 Luigi Scarso <luigi.scarso@gmail.com>
+	
+	* DEK tuneup2021
+
+2021-01-05 Luigi Scarso <luigi.scarso@gmail.com>
+	
+	* MFLua 1.0.0-alpha: embedding of  otfcc (see https://github.com/caryll/otfcc)
+
 2020-02-16 Luigi Scarso <luigi.scarso@gmail.com>
 
 	Small clean up.

@@ -1,6 +1,6 @@
 /* This is dvipdfmx, an eXtended version of dvipdfm by Mark A. Wicks.
 
-    Copyright (C) 2002-2016 by Jin-Hwan Cho and Shunsaku Hirata,
+    Copyright (C) 2002-2020 by Jin-Hwan Cho and Shunsaku Hirata,
     the dvipdfmx project team.
     
     This program is free software; you can redistribute it and/or modify
@@ -91,6 +91,8 @@ typedef struct
 #define sfnt_get_short(s)  ((SHORT)  get_signed_pair  ((s)->stream))
 #define sfnt_get_ulong(s)  ((ULONG)  get_unsigned_quad((s)->stream))
 #define sfnt_get_long(s)   ((LONG)   get_signed_quad  ((s)->stream))
+
+#define sfnt_get_uint24(s) ((ULONG)  get_unsigned_triple((s)->stream))
 
 #define sfnt_seek_set(s,o)   seek_absolute((s)->stream, (o))
 #define sfnt_read(b,l,s)     fread((b), 1, (l), (s)->stream)

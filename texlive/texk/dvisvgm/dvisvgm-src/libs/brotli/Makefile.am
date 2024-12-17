@@ -1,11 +1,15 @@
 if !HAVE_BROTLI
 noinst_LIBRARIES = libbrotli.a
 libbrotli_a_SOURCES = \
+	common/constants.c \
 	common/constants.h \
+	common/context.c \
 	common/context.h \
 	common/dictionary.c \
 	common/dictionary.h \
+	common/platform.c \
 	common/platform.h \
+	common/shared_dictionary_internal.h \
 	common/transform.c \
 	common/transform.h \
 	common/version.h \
@@ -26,7 +30,10 @@ libbrotli_a_SOURCES = \
 	enc/cluster.c \
 	enc/cluster.h \
 	enc/cluster_inc.h \
+	enc/command.c \
 	enc/command.h \
+	enc/compound_dictionary.c \
+	enc/compound_dictionary.h \
 	enc/compress_fragment.c \
 	enc/compress_fragment.h \
 	enc/compress_fragment_two_pass.c \
@@ -39,6 +46,7 @@ libbrotli_a_SOURCES = \
 	enc/entropy_encode.c \
 	enc/entropy_encode.h \
 	enc/entropy_encode_static.h \
+	enc/fast_log.c \
 	enc/fast_log.h \
 	enc/find_match_length.h \
 	enc/hash_composite_inc.h \
@@ -63,6 +71,7 @@ libbrotli_a_SOURCES = \
 	enc/prefix.h \
 	enc/quality.h \
 	enc/ringbuffer.h \
+	enc/state.h \
 	enc/static_dict.c \
 	enc/static_dict.h \
 	enc/static_dict_lut.h \
@@ -72,11 +81,11 @@ libbrotli_a_SOURCES = \
 	include/brotli/decode.h \
 	include/brotli/encode.h \
 	include/brotli/port.h \
+	include/brotli/shared_dictionary.h \
 	include/brotli/types.h
 
 AM_CFLAGS = -Wall -I$(srcdir)/include
 
-@CODE_COVERAGE_RULES@
 endif
 
 EXTRA_DIST = LICENSE

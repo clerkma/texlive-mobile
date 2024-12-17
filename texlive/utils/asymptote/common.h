@@ -10,13 +10,39 @@
 #undef NDEBUG
 
 #include <iostream>
+#include <memory>
 #include <climits>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#if !defined(FOR_SHARED) && \
+#if __cplusplus < 201703L
+
+#ifdef HAVE_LSP
+#include <boost/optional.hpp>
+#include <boost/none.hpp>
+using boost::optional;
+#define nullopt boost::none
+using boost::make_optional;
+#else
+#include "optional.hpp"
+#define boost nonstd
+using nonstd::optional;
+using nonstd::nullopt;
+using nonstd::make_optional;
+#endif
+
+#else
+#include <optional>
+using std::optional;
+using std::nullopt;
+using std::make_optional;
+#endif
+
+using std::make_pair;
+
+#if !defined(FOR_SHARED) &&                                             \
   ((defined(HAVE_LIBGL) && defined(HAVE_LIBGLUT) && defined(HAVE_LIBGLM)) || \
    defined(HAVE_LIBOSMESA))
 #define HAVE_GL
@@ -88,4 +114,17 @@ using mem::istringstream;
 using mem::ostringstream;
 using mem::stringbuf;
 
-#endif 
+using std::shared_ptr;
+using std::unique_ptr;
+using std::make_shared;
+
+static const struct ws_t {} ws={};
+
+// Portable way of skipping whitespace
+inline std::istream &operator >> (std::istream & s, const ws_t &ws) {
+  if(!s.eof())
+    s >> std::ws;
+  return s;
+}
+
+#endif

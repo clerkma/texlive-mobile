@@ -2,7 +2,7 @@
 ** DVIReader.cpp                                                        **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -19,36 +19,26 @@
 *************************************************************************/
 
 #include <algorithm>
-#include <cstdarg>
-#include <fstream>
 #include <sstream>
+#include <vectorstream.hpp>
 #include "Color.hpp"
 #include "DVIActions.hpp"
 #include "DVIReader.hpp"
 #include "Font.hpp"
 #include "FontManager.hpp"
 #include "HashFunction.hpp"
-#include "VectorStream.hpp"
+#include "utility.hpp"
 
 using namespace std;
 
 DVIReader::DVIReader (istream &is) : BasicDVIReader(is)
 {
-	_inPage = false;
-	_dvi2bp = 0.0;
-	_inPostamble = false;
-	_currFontNum = 0;
-	_currPageNum = 0;
-	_mag = 1;
 	executePreamble();
-	collectBopOffsets();
-	executePostamble();
-}
-
-
-int DVIReader::executeCommand () {
-	int opcode = BasicDVIReader::executeCommand();
-	return opcode;
+	_bopOffsets = collectBopOffsets();
+	// read data from postamble but don't process font definitions
+	goToPostamble();
+	executeCommand();
+	executePostPost();
 }
 
 
@@ -59,7 +49,7 @@ void DVIReader::executeAll () {
 		try {
 			opcode = executeCommand();
 		}
-		catch (const InvalidDVIFileException &e) {
+		catch (const DVIPrematureEOFException &e) {
 			// end of stream reached
 			opcode = -1;
 		}
@@ -74,77 +64,14 @@ void DVIReader::executeAll () {
 bool DVIReader::executePage (unsigned n) {
 	clearStream();    // reset all status bits
 	if (!isStreamValid())
-		throw DVIException("invalid DVI file");
+		throw DVIException("invalid DVI file (page "+to_string(n)+" not found");
 	if (n < 1 || n > numberOfPages())
 		return false;
 
 	seek(_bopOffsets[n-1]); // goto bop of n-th page
-	_inPostamble = false;   // not in postamble
 	_currPageNum = n;
 	while (executeCommand() != OP_EOP);
 	return true;
-}
-
-
-void DVIReader::executePreamble () {
-	clearStream();
-	if (isStreamValid()) {
-		seek(0);
-		if (readByte() == OP_PRE) {
-			cmdPre(0);
-			return;
-		}
-	}
-	throw DVIException("invalid DVI file");
-}
-
-
-/** Moves stream pointer to begin of postamble */
-void DVIReader::goToPostamble () {
-	clearStream();
-	if (!isStreamValid())
-		throw DVIException("invalid DVI file");
-
-	seek(-1, ios::end);  // stream pointer to last byte
-	int count=0;
-	while (peek() == DVI_FILL) {   // skip fill bytes
-		seek(-1, ios::cur);
-		count++;
-	}
-	if (count < 4)  // the standard requires at least 4 trailing fill bytes
-		throw DVIException("missing fill bytes at end of file");
-
-	seek(-4, ios::cur);            // now at first byte of q (pointer to begin of postamble)
-	uint32_t q = readUnsigned(4);  // pointer to begin of postamble
-	seek(q);                       // now at begin of postamble
-}
-
-
-/** Reads and executes the commands of the postamble. */
-void DVIReader::executePostamble () {
-	goToPostamble();
-	while (executeCommand() != OP_POSTPOST);  // executes all commands until post_post (= 249) is reached
-}
-
-
-/** Collects and records the file offsets of all bop commands. */
-void DVIReader::collectBopOffsets () {
-	goToPostamble();
-	_bopOffsets.push_back(tell());      // also add offset of postamble
-	readByte();                         // skip post command
-	uint32_t offset = readUnsigned(4);  // offset of final bop
-	while (int32_t(offset) != -1) {     // not yet on first bop?
-		_bopOffsets.push_back(offset);   // record offset
-		seek(offset);                    // now on previous bop
-		if (readByte() != OP_BOP)
-			throw DVIException("bop offset at "+to_string(offset)+" doesn't point to bop command" );
-		seek(40, ios::cur);              // skip the 10 \count values => now on offset of previous bop
-		uint32_t prevOffset = readUnsigned(4);
-		if ((prevOffset >= offset && int32_t(prevOffset) != -1))
-			throw DVIException("invalid bop offset at "+to_string(tell()-static_cast<streamoff>(4)));
-		offset = prevOffset;
-	}
-	reverse(_bopOffsets.begin(), _bopOffsets.end());
 }
 
 
@@ -213,7 +140,6 @@ void DVIReader::cmdPost (int) {
 	// 1 dviunit * num/den == multiples of 0.0000001m
 	// 1 dviunit * _dvi2bp: length of 1 dviunit in PS points * _mag/1000
 	_dvi2bp = numer/254000.0*72.0/denom*_mag/1000.0;
-	_inPostamble = true;
 	dviPost(stackDepth, numPages, pageWidth*_dvi2bp, pageHeight*_dvi2bp, _mag, numer, denom, prevBopOffset);
 }
 
@@ -221,7 +147,6 @@ void DVIReader::cmdPost (int) {
 /** Reads and executes DVI post_post command.
  *  Format: post_post q[4] i[1] 223[>=4] */
 void DVIReader::cmdPostPost (int) {
-	_inPostamble = false;
 	uint32_t postOffset = readUnsigned(4);   // pointer to begin of postamble
 	uint8_t id = readUnsigned(1);
 	setDVIVersion(DVIVersion(id));   // identification byte
@@ -277,31 +202,40 @@ void DVIReader::cmdPop (int) {
  *  @param[in] font current font (corresponding to _currFontNum)
  *  @param[in] c character to typeset */
 void DVIReader::putVFChar (Font *font, uint32_t c) {
-	if (auto vf = dynamic_cast<VirtualFont*>(font)) { // is current font a virtual font?
-		if (const vector<uint8_t> *dvi = vf->getDVI(c)) { // try to get DVI snippet that represents character c
-			FontManager &fm = FontManager::instance();
+	if (auto vf = font_cast<VirtualFont*>(font)) { // is current font a virtual font?
+		FontManager &fm = FontManager::instance();
+		const auto *dvi = vf->getDVI(c);    // try to get DVI snippet that represents character c
+		Font *firstFont = fm.vfFirstFont(vf);
+		if (!dvi) {
+			const FontMetrics *ffm = firstFont ? firstFont->getMetrics() : nullptr;
+			if (!ffm || (!ffm->isJFM() && !ffm->isOFM()))
+				return;
+		}
+		fm.enterVF(vf);                              // enter VF font number context
+		int savedFontNum = _currFontNum;             // save current font number
+		setFont(fm.vfFirstFontNum(vf), SetFontMode::VF_ENTER);
+		if (!dvi)                                    // no definition present for current (Japanese) char?
+			dviPutChar(c, firstFont);                 // fallback for JFM-based virtual fonts
+		else {
+			// DVI units in virtual fonts are multiples of 1^(-20) times the scaled size of the VF
+			double savedScale = _dvi2bp;
+			_dvi2bp = vf->scaledSize()/(1 << 20);
 			DVIState savedState = _dviState;  // save current cursor position
 			_dviState.x = _dviState.y = _dviState.w = _dviState.z = 0;
-			int savedFontNum = _currFontNum; // save current font number
-			fm.enterVF(vf);                  // enter VF font number context
-			setFont(fm.vfFirstFontNum(vf), SetFontMode::VF_ENTER);
-			double savedScale = _dvi2bp;
-			// DVI units in virtual fonts are multiples of 1^(-20) times the scaled size of the VF
-			_dvi2bp = vf->scaledSize()/(1 << 20);
-			VectorInputStream<uint8_t> vis(*dvi);
-			istream &is = replaceStream(vis);
+			ivectorstream<vector<char>> vis(*dvi);
+			auto &is = replaceStream(vis);
 			try {
 				executeAll();  // execute DVI fragment
 			}
 			catch (const DVIException &e) {
 				// Message::estream(true) << "invalid dvi in vf: " << e.getMessage() << endl; // @@
 			}
-			replaceStream(is);     // restore previous input stream
-			_dvi2bp = savedScale;  // restore previous scale factor
-			fm.leaveVF();          // restore previous font number context
-			setFont(savedFontNum, SetFontMode::VF_LEAVE);  // restore previous font number
+			replaceStream(is);       // restore previous input stream
 			_dviState = savedState;  // restore previous cursor position
+			_dvi2bp = savedScale;    // restore previous scale factor
 		}
+		fm.leaveVF();          // restore previous font number context
+		setFont(savedFontNum, SetFontMode::VF_LEAVE);  // restore previous font number
 	}
 }
 
@@ -504,26 +438,64 @@ void DVIReader::cmdFontNum (int len) {
 }
 
 
+/** Parses a sequence of font attributes given as key1=val1;key2=val2;...;keyn=valn */
+static map<string,string> parse_font_attribs (const string &str) {
+	map<string,string> attribs;
+	if (!str.empty()) {
+		for (const string &attr : util::split(str, ";")) {
+			vector<string> keyval = util::split(attr, "=");
+			if (keyval.size() == 2)
+				attribs[keyval[0]] = keyval[1];
+		}
+	}
+	return attribs;
+}
+
+
 /** Helper function to handle a font definition.
  *  @param[in] fontnum local font number
- *  @param[in] name font name
+ *  @param[in] name font name (or file path if enclosed in square brackets)
  *  @param[in] cs checksum to be compared with TFM checksum
- *  @param[in] ds design size in PS point units
- *  @param[in] ss scaled size in PS point units */
-const Font* DVIReader::defineFont (uint32_t fontnum, const string &name, uint32_t cs, double ds, double ss) {
+ *  @param[in] dsize design size of font in PS point units
+ *  @param[in] ssize scaled size of font in PS point units */
+const Font* DVIReader::defineFont (uint32_t fontnum, const string &name, uint32_t cs, double dsize, double ssize) {
 	FontManager &fm = FontManager::instance();
 	Font *font = fm.getFont(fontnum);
-	if (!font) {
-		int id = fm.registerFont(fontnum, name, cs, ds, ss);
-		font = fm.getFontById(id);
-		if (auto vf = dynamic_cast<VirtualFont*>(font)) {
-			// read vf file, register its font and character definitions
-			fm.enterVF(vf);
-			ifstream ifs(vf->path(), ios::binary);
-			VFReader vfReader(ifs);
-			vfReader.replaceActions(this);
-			vfReader.executeAll();
-			fm.leaveVF();
+	if (!font && !name.empty()) {  // font not registered yet?
+		if (name[0] == '[') {       // LuaTeX native font reference?
+			auto last = name.rfind(']');
+			if (last != string::npos) {
+				string path = name.substr(1, last-1);
+				FontStyle style;
+				int fontIndex=0;
+				if (name.size() > last && name[last+1] == ':') {  // look for font attributes?
+					auto attribs = parse_font_attribs(name.substr(last+2));
+					auto it = attribs.begin();
+					if ((it = attribs.find("index")) != attribs.end())
+						fontIndex = stoi(it->second);
+					if ((it = attribs.find("embolden")) != attribs.end())
+						style.bold = stoi(it->second)/65536.0;
+					if ((it = attribs.find("extend")) != attribs.end())
+						style.extend = stoi(it->second)/65536.0;
+					if ((it = attribs.find("slant")) != attribs.end())
+						style.slant = stoi(it->second)/65536.0;
+				}
+				int id = fm.registerFont(fontnum, path, fontIndex, ssize, style, Color::BLACK);
+				font = fm.getFontById(id);
+			}
+		}
+		else {  // TFM-based font specified by name
+			int id = fm.registerFont(fontnum, name, cs, dsize, ssize);
+			font = fm.getFontById(id);
+			if (auto vf = font_cast<VirtualFont*>(font)) {
+				// read vf file, register its font and character definitions
+				fm.enterVF(vf);
+				ifstream ifs(vf->path(), ios::binary);
+				VFReader vfReader(ifs);
+				vfReader.replaceActions(this);
+				vfReader.executeAll();
+				fm.leaveVF();
+			}
 		}
 	}
 	return font;
@@ -562,7 +534,7 @@ void DVIReader::defineVFFont (uint32_t fontnum, const string &path, const string
 /** This template method is called by the VFReader after reading a character definition from a VF file.
  *  @param[in] c character number
  *  @param[in] dvi DVI fragment describing the character */
-void DVIReader::defineVFChar (uint32_t c, vector<uint8_t> &&dvi) {
+void DVIReader::defineVFChar (uint32_t c, vector<char> &&dvi) {
 	FontManager::instance().assignVFChar(c, std::move(dvi));
 }
 
@@ -622,7 +594,21 @@ void DVIReader::cmdXFontDef (int) {
 		FontManager::instance().registerFont(fontnum, fontname, fontIndex, ptsize, style, color);
 		font = FontManager::instance().getFont(fontnum);
 	}
-	dviXFontDef(fontnum, dynamic_cast<const NativeFont*>(font));
+	dviXFontDef(fontnum, font_cast<const NativeFont*>(font));
+}
+
+
+/** Returns the width of a string typed with a given font.
+ *  @param[in] glyphs glyphs of the string
+ *  @param[in] font assigned font
+ *  @return width in bp units */
+static double string_width (const vector<uint16_t> &glyphs, const Font *font) {
+	double width=0;
+	if (auto nfont = font_cast<const NativeFont*>(font)) {
+		for (auto glyph: glyphs)
+			width += nfont->hAdvance(Character(Character::INDEX, glyph));
+	}
+	return width;
 }
 
 
@@ -633,11 +619,14 @@ void DVIReader::cmdXGlyphArray (int) {
 	vector<double> dx, dy;
 	vector<uint16_t> glyphs;
 	double width = putGlyphArray(false, dx, dy, glyphs);
-	if (Font *font = FontManager::instance().getFont(_currFontNum))
-		dviXGlyphArray(dx, dy, glyphs, *font);
-	else
+	Font *font = FontManager::instance().getFont(_currFontNum);
+	if (!font)
 		throw DVIException("missing setfont prior to xglypharray");
-	moveRight(width, MoveMode::SETCHAR);
+	dviXGlyphArray(dx, dy, glyphs, *font);
+	double diff = abs(string_width(glyphs, font) - width);
+	// if the given width differs from the actual width of the string,
+	// we must force a position change to prevent misalignments
+	moveRight(width, diff < 0.2 ? MoveMode::SETCHAR : MoveMode::CHANGEPOS);
 }
 
 
@@ -648,11 +637,14 @@ void DVIReader::cmdXGlyphString (int) {
 	vector<double> dx, dy;
 	vector<uint16_t> glyphs;
 	double width = putGlyphArray(true, dx, dy, glyphs);
-	if (Font *font = FontManager::instance().getFont(_currFontNum))
-		dviXGlyphString(dx, glyphs, *font);
-	else
+	Font *font = FontManager::instance().getFont(_currFontNum);
+	if (!font)
 		throw DVIException("missing setfont prior to xglyphstring");
-	moveRight(width, MoveMode::SETCHAR);
+	dviXGlyphString(dx, glyphs, *font);
+	double diff = abs(string_width(glyphs, font) - width);
+	// if the given width differs from the actual width of the string,
+	// we must force a position change to prevent misalignments
+	moveRight(width, diff < 0.2 ? MoveMode::SETCHAR : MoveMode::CHANGEPOS);
 }
 
 
@@ -670,11 +662,14 @@ void DVIReader::cmdXTextAndGlyphs (int) {
 	vector<double> x, y;
 	vector<uint16_t> glyphs;
 	double width = putGlyphArray(false, x, y, glyphs);
-	if (Font *font = FontManager::instance().getFont(_currFontNum))
-		dviXTextAndGlyphs(x, y, chars, glyphs, *font);
-	else
+	Font *font = FontManager::instance().getFont(_currFontNum);
+	if (!font)
 		throw DVIException("missing setfont prior to xtextandglyphs");
-	moveRight(width, MoveMode::SETCHAR);
+	dviXTextAndGlyphs(x, y, chars, glyphs, *font);
+	double diff = abs(string_width(glyphs, font) - width);
+	// if the given width differs from the actual width of the string,
+	// we must force a position change to prevent misalignments
+	moveRight(width, diff < 0.2 ? MoveMode::SETCHAR : MoveMode::CHANGEPOS);
 }
 
 

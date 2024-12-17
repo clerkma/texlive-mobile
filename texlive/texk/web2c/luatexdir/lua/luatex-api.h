@@ -123,6 +123,7 @@ extern int luaopen_profiler(lua_State * L);
 extern int luaopen_socket_core(lua_State * L);
 extern int luaopen_mime_core(lua_State * L);
 extern void luatex_socketlua_open(lua_State * L);
+extern void luatex_socketlua_safe_open(lua_State * L);
 
 extern int luaopen_img(lua_State * L);
 extern int l_new_image(lua_State * L);
@@ -158,11 +159,13 @@ extern int font_parameters_to_lua(lua_State * L, int f);
 extern int font_to_lua(lua_State * L, int f, int usecache);
 extern int font_from_lua(lua_State * L, int f); /* return is boolean */
 extern int characters_from_lua(lua_State * L, int f); /* return is boolean */
+extern void glyph_unicode_new(void); /* ensures that glyph_unicode_tree is not null */
 
 extern int luaopen_token(lua_State * L);
 extern void tokenlist_to_lua(lua_State * L, int p);
 extern void tokenlist_to_luastring(lua_State * L, int p);
-extern int tokenlist_from_lua(lua_State * L);
+extern int tokenlist_from_lua(lua_State * L, int i);
+extern int token_from_lua(lua_State * L);
 
 extern void lua_nodelib_push(lua_State * L);
 extern int nodelib_getdir(lua_State * L, int n);
@@ -238,7 +241,9 @@ extern char *startup_filename;
 extern int safer_option;
 extern int nosocket_option;
 extern int utc_option;
+extern int luadebug_option;
 
+extern char *output_directory;
 extern char *last_source_name;
 extern int last_lineno;
 
@@ -565,6 +570,7 @@ make_lua_key(advance);\
 make_lua_key(after_assignment);\
 make_lua_key(after_display);\
 make_lua_key(after_group);\
+make_lua_key(partoken_name);\
 make_lua_key(after_output);\
 make_lua_key(afterdisplaypenalty);\
 make_lua_key(align);\
@@ -610,6 +616,8 @@ make_lua_key(best_size);\
 make_lua_key(bin);\
 make_lua_key(bleed);\
 make_lua_key(bot);\
+make_lua_key(bottom);\
+make_lua_key(splitbottom);\
 make_lua_key(bot_accent);\
 make_lua_key(bothflexible);\
 make_lua_key(bottom_left);\
@@ -761,6 +769,7 @@ make_lua_key(fin_row);\
 make_lua_key(finalhyphendemerits);\
 make_lua_key(finalpenalty);\
 make_lua_key(first);\
+make_lua_key(splitfirst);\
 make_lua_key(fit);\
 make_lua_key(fitb);\
 make_lua_key(fitbh);\
@@ -1011,7 +1020,9 @@ make_lua_key(pdf_destination);\
 make_lua_key(pdf_end_link);\
 make_lua_key(pdf_end_thread);\
 make_lua_key(pdf_link_data);\
+make_lua_key(pdf_link_state);\
 make_lua_key(pdf_literal);\
+make_lua_key(pdf_late_literal);\
 make_lua_key(pdf_refobj);\
 make_lua_key(pdf_restore);\
 make_lua_key(pdf_save);\
@@ -1120,6 +1131,7 @@ make_lua_key(spaceskip);\
 make_lua_key(span);\
 make_lua_key(spec);\
 make_lua_key(special);\
+make_lua_key(late_special);\
 make_lua_key(split_discards_head);\
 make_lua_key(split_insert);\
 make_lua_key(split_keep);\
@@ -1137,6 +1149,7 @@ make_lua_key(streamprovider);\
 make_lua_key(stretch);\
 make_lua_key(stretch_order);\
 make_lua_key(string);\
+make_lua_key(struct_id);\
 make_lua_key(style);\
 make_lua_key(sub);\
 make_lua_key(subfont);\
@@ -1272,6 +1285,7 @@ init_lua_key(advance);\
 init_lua_key(after_assignment);\
 init_lua_key(after_display);\
 init_lua_key(after_group);\
+init_lua_key(partoken_name);\
 init_lua_key(after_output);\
 init_lua_key(afterdisplaypenalty);\
 init_lua_key(align);\
@@ -1317,6 +1331,8 @@ init_lua_key(best_size);\
 init_lua_key(bin);\
 init_lua_key(bleed);\
 init_lua_key(bot);\
+init_lua_key(bottom);\
+init_lua_key(splitbottom);\
 init_lua_key(bot_accent);\
 init_lua_key(bothflexible);\
 init_lua_key(bottom_left);\
@@ -1467,6 +1483,7 @@ init_lua_key(fin_row);\
 init_lua_key(finalhyphendemerits);\
 init_lua_key(finalpenalty);\
 init_lua_key(first);\
+init_lua_key(splitfirst);\
 init_lua_key(fit);\
 init_lua_key(fitb);\
 init_lua_key(fitbh);\
@@ -1709,7 +1726,9 @@ init_lua_key(pdf_destination);\
 init_lua_key(pdf_end_link);\
 init_lua_key(pdf_end_thread);\
 init_lua_key(pdf_link_data);\
+init_lua_key(pdf_link_state);\
 init_lua_key(pdf_literal);\
+init_lua_key(pdf_late_literal);\
 init_lua_key(pdf_refobj);\
 init_lua_key(pdf_restore);\
 init_lua_key(pdf_save);\
@@ -1814,6 +1833,7 @@ init_lua_key(spaceskip);\
 init_lua_key(span);\
 init_lua_key(spec);\
 init_lua_key(special);\
+init_lua_key(late_special);\
 init_lua_key(split_discards_head);\
 init_lua_key(split_insert);\
 init_lua_key(split_keep);\
@@ -1831,6 +1851,7 @@ init_lua_key(streamprovider);\
 init_lua_key(stretch);\
 init_lua_key(stretch_order);\
 init_lua_key(string);\
+init_lua_key(struct_id);\
 init_lua_key(style);\
 init_lua_key(sub);\
 init_lua_key(subfont);\
@@ -2028,6 +2049,7 @@ use_lua_key(advance);
 use_lua_key(after_assignment);
 use_lua_key(after_display);
 use_lua_key(after_group);
+use_lua_key(partoken_name);
 use_lua_key(after_output);
 use_lua_key(afterdisplaypenalty);
 use_lua_key(align);
@@ -2073,6 +2095,8 @@ use_lua_key(best_size);
 use_lua_key(bin);
 use_lua_key(bleed);
 use_lua_key(bot);
+use_lua_key(bottom);
+use_lua_key(splitbottom);
 use_lua_key(bot_accent);
 use_lua_key(bothflexible);
 use_lua_key(bottom_left);
@@ -2224,6 +2248,7 @@ use_lua_key(fin_row);
 use_lua_key(finalhyphendemerits);
 use_lua_key(finalpenalty);
 use_lua_key(first);
+use_lua_key(splitfirst);
 use_lua_key(fit);
 use_lua_key(fitb);
 use_lua_key(fitbh);
@@ -2474,7 +2499,9 @@ use_lua_key(pdf_destination);
 use_lua_key(pdf_end_link);
 use_lua_key(pdf_end_thread);
 use_lua_key(pdf_link_data);
+use_lua_key(pdf_link_state);
 use_lua_key(pdf_literal);
+use_lua_key(pdf_late_literal);
 use_lua_key(pdf_refobj);
 use_lua_key(pdf_restore);
 use_lua_key(pdf_save);
@@ -2583,6 +2610,7 @@ use_lua_key(spaceskip);
 use_lua_key(span);
 use_lua_key(spec);
 use_lua_key(special);
+use_lua_key(late_special);
 use_lua_key(split_discards_head);
 use_lua_key(split_insert);
 use_lua_key(split_keep);
@@ -2600,6 +2628,7 @@ use_lua_key(streamprovider);
 use_lua_key(stretch);
 use_lua_key(stretch_order);
 use_lua_key(string);
+use_lua_key(struct_id);
 use_lua_key(style);
 use_lua_key(sub);
 use_lua_key(subfont);

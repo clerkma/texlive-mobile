@@ -1,9 +1,9 @@
 % standard macros for CWEB listings (in addition to plain.tex)
-% Version 3.6 --- May 2000
+% Version 4.9 --- June 2023
 % modified for pages produced by CTWILL
 % further modified for page size of the MMIXware book
-\ifx\documentstyle\undefined\else\endinput\fi % LaTeX will use other macros
-\xdef\fmtversion{\fmtversion+CTWILL3.6+LNCS}
+\ifx\renewenvironment\undefined\else\endinput\fi % LaTeX will use other macros
+\xdef\fmtversion{\fmtversion+CTWILL4.9+LNCS}
 
 \let\:=\. % preserve a way to get the dot accent
  % (all other accents will still work as usual)
@@ -17,8 +17,8 @@
 \newwrite\reffile
 \ifx\norefs\def\else
   \openin\sreffile=\jobname.sref
-  \ifeof\sreffile \immediate\openout\reffile=\jobname.ref \sortedfalse
-    \message{This is the first pass!}
+  \ifeof\sreffile \immediate\openout\reffile=\jobname.ref
+       \sortedfalse \message{This is the first pass!}
   \else \sortedtrue \message{This is the second pass!} \fi
 \fi
 
@@ -29,7 +29,10 @@
 \def\TEX/{\TeX}
 \def\CPLUSPLUS/{{\mc C\PP\spacefactor1000}}
 \def\Cee{\CEE/} % for backward compatibility
+\def\Cpp{\CPLUSPLUS/} % for backward compatibility
 \def\9#1{}
+ % with this definition of \9 you can say @:sort key}{TeX code@>
+ % to alphabetize an index entry by the sort key but format with the TeX code
 \font\eightrm=cmr8
 \font\sixrm=cmr6
 \font\ninei=cmmi9
@@ -211,13 +214,14 @@
 \def\6{\ifmmode\else\par % forced break
   \hangindent\ind\em\noindent\kern\ind\em\copy\bakk\ignorespaces\fi}
 \def\7{\Y\6} % forced break and a little extra space
-\def\8{\hskip-\ind em\hskip 2\em} % no indentation
+\def\8{\hskip-\ind\em\hskip 2\em} % no indentation
 
 \newcount\gdepth % depth of current major group, plus one
 \newtoks\gtitle % title of current major group
 \newskip\intersecskip \intersecskip=12pt minus 3pt % space between sections
 \let\yskip=\smallskip
 \def\?{\mathrel?}
+\def\,{\relax\ifmmode\mskip\thinmuskip\else\thinspace\fi}
 \def\note#1#2.{\par\penalty5000
   \Y\noindent{\hangindent2\em\baselineskip10pt\eightrm#1~#2.\par}}
 \def\lapstar{\rlap{*}}
@@ -227,7 +231,7 @@
 \def\startsection{\titletrue
   \line{\smash{\titlefont\title}\quad\hrulefill}\bigskip
   \let\startsection=\stsec\stsec}
-\def\defin#1{\global\advance\ind by 2 \1\&{#1 } } % begin `define' or `format'
+\def\defin#1{\global\advance\ind by 2 \1\&{#1 }} % begin `define' or `format'
 \def\A{\note{See also section}} % xref for doubly defined section name
 \def\As{\note{See also sections}} % xref for multiply defined section name
 \def\B{\iftenpoint\ninepoint\fi
@@ -241,7 +245,7 @@
 \let\SHC\C % "// short comments" treated like "/* ordinary comments */"
 %\def\C#1{\5\5\quad$\triangleright\,${\cmntfont#1}$\,\triangleleft$}
 %\def\SHC#1{\5\5\quad$\diamond\,${\cmntfont#1}}
-\def\D{\defin{\#define}} % macro definition
+\def\D{\defin{{\rm\#}define}} % macro definition
 \let\E=\equiv % equivalence sign
 \def\ET{ and~} % conjunction between two section numbers
 \def\ETs{, and~} % conjunction between the last two of several section numbers
@@ -249,7 +253,7 @@
 \let\G=\ge % greater than or equal sign
 % \H is long Hungarian umlaut accent
 \let\I=\ne % unequal sign
-\def\J{\.{@\&}} % TANGLE's join operation
+\def\J{\.{@\&}} % CTANGLE's join operation
 \let\K== % assignment operator
 %\let\K=\leftarrow % "honest" alternative to standard assignment operator
 % \L is Polish letter suppressed-L
@@ -258,7 +262,8 @@
   \else\ifdim\ht\partialpage<\pageht \leftfalse\else\lefttrue\fi\fi\NNN}
 \outer\def\NN{\ifvoid\partialpage\leftfalse
   \else\ifdim\ht\partialpage<\pageht \lefttrue\else\leftfalse\fi\fi\NNN}
-\outer\def\NNN#1#2#3.{\gdepth=#1\gtitle={#3}\def\secno{#2}% starred section
+\outer\def\NNN#1#2#3.{% beginning of starred section
+  \gdepth=#1\gtitle={#3}\def\secno{#2}
   \ifleft \flushout
     \gdef\rlhead{\let\i=I\uppercase{\ignorespaces#3}} % running left headline
     \global\let\rrhead=\rlhead % running right headline
@@ -275,15 +280,16 @@
 \let\R=\lnot % logical not
 % \S is section sign
 \def\T#1{\leavevmode % octal, hex or decimal constant
-  \hbox{$\def\?{\kern.2em}%
-    \def\$##1{\egroup_{\,\rm##1}\bgroup}% suffix to constant
+  \hbox{$\def\?{\kern.2em}%$%
+    \let\ \, % C++ digit separator becomes a little white space
+    \def\$##1{\egroup_{\rm##1}\bgroup}% suffix to constant
     \def\_{\cdot 10^{\aftergroup}}% power of ten (via dirty trick)
-    \let\~=\oct \let\^=\hex {#1}$}}
+    \let\~=\oct \let\^=\hex \let\\=\bin {#1}$}}%$%
 \def\U{\note{This code is used in section}} % xref for use of a section
 \def\Us{\note{This code is used in sections}} % xref for uses of a section
 \let\V=\lor % logical or
 \let\W=\land % logical and
-\def\X#1:#2\X{\ifmmode\gdef\XX{\null$\null}\else\gdef\XX{}\fi % section name
+\def\X#1:#2\X{\ifmmode\gdef\XX{\null$\null}\else\gdef\XX{}\fi %$% section name
   \XX$\langle\,${\let\I=\ne#2\sevenrm\kern.5em#1}$\,\rangle$\XX}
 \def\Y{\par\yskip}
 \let\Z=\le
@@ -292,15 +298,13 @@
 
 %\def\oct{\hbox{\rm\char'23\kern-.2em\it\aftergroup\?\aftergroup}} % WEB style
 %\def\hex{\hbox{\rm\char"7D\tt\aftergroup}} % WEB style
-\def\oct{\hbox{$^\circ$\kern-.1em\it\aftergroup\?\aftergroup}}% CWEB style
+\def\oct{\hbox{$^\circ$\kern-.1em\it\aftergroup\?\aftergroup}} % CWEB style
 \def\hex{\hbox{$^{\scriptscriptstyle\#}$\tt\aftergroup}} % CWEB style
+\def\bin{\hbox{$^{\scriptscriptstyle b}$\tt\aftergroup}} % new in CWEB 4.3
 \def\vb#1{\leavevmode\hbox{\kern2pt\vrule\vtop{\vbox{\hrule
         \hbox{\strut\kern2pt\.{#1}\kern2pt}}
       \hrule}\vrule\kern2pt}} % verbatim string
-
-\def\TeX{{\ifmmode\it\fi
-   \leavevmode\hbox{T\kern-.1667em\lower.424ex\hbox{E}\hskip-.125em X}}}
-\def\,{\relax\ifmmode\mskip\thinmuskip\else\thinspace\fi}
+\def\p#1{\cdot 2^{#1}} % power of two (hex exponent)
 
 % now here's the mini-index formatting control
 \newcount\nrefs % total number of references in partial page
@@ -457,8 +461,8 @@
   \def\Us{\note{Used in sections}} % crossref for uses of a section
   \def\I{\par\hangindent 2em}\let\*=*
   \readsections}
-\def\readsections{\input \jobname.sscn}
-\def\datethis{}
+\def\readsections{\input \jobname.scn}
+\def\datethis{} \def\datecontentspage{}
 
 % To produce only a subset of pages, put the page numbers on separate
 % lines in a file called pages.tex

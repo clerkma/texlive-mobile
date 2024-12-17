@@ -2,7 +2,7 @@
 ** DVIToSVGActions.hpp                                                  **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -37,8 +37,6 @@ class Font;
 class XMLNode;
 
 class DVIToSVGActions : public DVIActions, public SpecialActions {
-	using CharMap = std::unordered_map<const Font*, std::set<int>>;
-	using FontSet = std::unordered_set<const Font*>;
 	using BoxMap = std::unordered_map<std::string,BoundingBox>;
 
 	public:
@@ -49,6 +47,8 @@ class DVIToSVGActions : public DVIActions, public SpecialActions {
 		void setBgColor (const Color &color) override;
 		void setColor (const Color &color) override             {_svg.setColor(color);}
 		void setMatrix (const Matrix &m) override               {_svg.setMatrix(m);}
+		void setOpacity (const Opacity &opacity) override       {_svg.setOpacity(opacity);}
+		const Opacity& getOpacity () const override             {return _svg.getOpacity();}
 		const Matrix& getMatrix () const override               {return _svg.getMatrix();}
 		Matrix getPageTransformation () const override          {return _dvireader->getPageTransformation();}
 		Color getColor () const override                        {return _svg.getColor();}
@@ -78,8 +78,6 @@ class DVIToSVGActions : public DVIActions, public SpecialActions {
 		void embed (const DPair &p, double r=0) override;
 		FilePath getSVGFilePath (unsigned pageno) const override;
 		std::string getBBoxFormatString () const override;
-		CharMap& getUsedChars () const        {return _usedChars;}
-		const FontSet& getUsedFonts () const  {return _usedFonts;}
 		void setDVIReader (BasicDVIReader &r) {_dvireader = &r;}
 
 	private:
@@ -88,8 +86,6 @@ class DVIToSVGActions : public DVIActions, public SpecialActions {
 		BoundingBox _bbox;
 		int _pageCount=0;
 		int _currentFontNum=-1;
-		mutable CharMap _usedChars;
-		FontSet _usedFonts;
 		Color _bgcolor=Color::TRANSPARENT;
 		BoxMap _boxes;
 		bool _outputLocked=false;

@@ -32,21 +32,23 @@ void breakpoint(vm::stack *Stack, absyntax::runnable *r);
 
 namespace vm {
 
+const char *dereferenceNullPointer="dereference of null pointer";
+
 mem::list<bpinfo> bplist;
-  
+
 namespace {
 position curPos = nullPos;
 const program::label nulllabel;
 }
 
 inline stack::vars_t base_frame(
-    size_t size,
-    size_t parentIndex,
-    stack::vars_t closure
+  size_t size,
+  size_t parentIndex,
+  stack::vars_t closure
 #ifdef DEBUG_FRAME
-    , string name
+  , string name
 #endif
-    )
+  )
 {
   stack::vars_t vars;
 #ifdef SIMPLE_FRAME
@@ -149,7 +151,7 @@ void stack::marshall(size_t args, stack::vars_t vars)
 #if SIMPLE_FRAME
     vars[i-1] = pop();
 #else
-    (*vars)[i-1] = pop();
+  (*vars)[i-1] = pop();
 #endif
 }
 
@@ -211,7 +213,7 @@ void stack::run(func *f)
 #endif
 }
 
-void stack::breakpoint(absyntax::runnable *r) 
+void stack::breakpoint(absyntax::runnable *r)
 {
   lastPos=curPos;
   indebugger=true;
@@ -220,12 +222,12 @@ void stack::breakpoint(absyntax::runnable *r)
   debugOp=(s.length() > 0) ? s[0] : (char) 0;
   indebugger=false;
 }
-  
-void stack::debug() 
+
+void stack::debug()
 {
   if(!curPos) return;
   if(indebugger) {em.clear(); return;}
-  
+
   switch(debugOp) {
     case 'i': // inst
       breakpoint();
@@ -248,7 +250,7 @@ void stack::debug()
       break;
     case 'c': // continue
     default:
-      for(mem::list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
+      for(auto p=bplist.begin(); p != bplist.end(); ++p) {
         if(curPos.match(p->f.name()) && curPos.match(p->f.line()) &&
            (newline || !curPos.match(breakPos.filename()) ||
             !curPos.match(breakPos.Line()))) {
@@ -257,7 +259,7 @@ void stack::debug()
           newline=false;
           break;
         }
-        if(!newline && 
+        if(!newline &&
            (curPos.match(lastPos.filename()) && !curPos.match(lastPos.Line())))
           newline=true;
       }
@@ -291,60 +293,62 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 
   // Set up the closure, if necessary.
   if (vars == 0)
-  {
-#ifndef SIMPLE_FRAME
-    assessClosure(l);
-    if (l->closureReq == lambda::NEEDS_CLOSURE)
-#endif
     {
-      /* make new activation record */
-      vars = vm::make_frame(l, parent);
-      assert(vars);
-    }
 #ifndef SIMPLE_FRAME
-    else 
-    {
-      assert(l->closureReq == lambda::DOESNT_NEED_CLOSURE);
-
-      // Use the stack to store variables.
-      varlink = &theStack;
-
-      // Record where the parameters start on the stack.
-      frameStart = theStack.size() - frameSize;
-
-      // Add the parent's closure to the frame.
-      push(parent);
-      ++frameSize;
-
-      size_t newFrameSize = (size_t)l->framesize;
-
-      if (newFrameSize > frameSize) {
-        theStack.resize(frameStart + newFrameSize);
-        frameSize = newFrameSize;
-      }
-    }
+      assessClosure(l);
+      if (l->closureReq == lambda::NEEDS_CLOSURE)
 #endif
-  }
+        {
+          /* make new activation record */
+          vars = vm::make_frame(l, parent);
+          assert(vars);
+        }
+#ifndef SIMPLE_FRAME
+      else
+        {
+          assert(l->closureReq == lambda::DOESNT_NEED_CLOSURE);
+
+          // Use the stack to store variables.
+          varlink = &theStack;
+
+          // Record where the parameters start on the stack.
+          frameStart = theStack.size() - frameSize;
+
+          // Add the parent's closure to the frame.
+          push(parent);
+          ++frameSize;
+
+          size_t newFrameSize = (size_t)l->framesize;
+
+          if (newFrameSize > frameSize) {
+            theStack.resize(frameStart + newFrameSize);
+            frameSize = newFrameSize;
+          }
+        }
+#endif
+    }
 
   if (vars) {
-      marshall(l->parentIndex, vars);
+    marshall(l->parentIndex, vars);
 
-      SET_VARLINK;
+    SET_VARLINK;
   }
 
   /* start the new function */
   program::label ip = l->code->begin();
-  position& topPos=processData().topPos;
-  string& fileName=processData().fileName;
+  processDataStruct& P=processData();
+  position& topPos=P.topPos;
+  string& fileName=P.fileName;
+  unsigned int offset=P.xmapCount;
 
   try {
     for (;;) {
       const inst &i = *ip;
       curPos = i.pos;
-      
-  if(curPos.filename() == fileName)
-    topPos=curPos;
-  
+
+      if(curPos.filename() == fileName)
+        topPos=curPos.shift(offset);
+
 #ifdef PROFILE
       prof.recordInstruction();
 #endif
@@ -352,16 +356,16 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 #ifdef DEBUG_STACK
       printInst(cout, ip, l->code->begin());
       cout << "    (";
-			i.pos.printTerse(cout);
-			cout << ")\n";
+      i.pos.printTerse(cout);
+      cout << ")\n";
 #endif
 
       if(settings::verbose > 4) em.trace(curPos);
-      
+
       if(!bplist.empty()) debug();
-      
+
       if(errorstream::interrupt) throw interrupted();
-      
+
       switch (i.op)
         {
           case inst::varpush:
@@ -371,7 +375,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
           case inst::varsave:
             VAR(get<Int>(i)) = top();
             break;
-        
+
 #ifdef COMBO
           case inst::varpop:
             VAR(get<Int>(i)) = pop();
@@ -411,7 +415,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
           case inst::pushclosure:
             assert(vars);
             push(vars);
-            break; 
+            break;
 
           case inst::nop:
             break;
@@ -419,24 +423,24 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
           case inst::pop:
             pop();
             break;
-        
+
           case inst::intpush:
           case inst::constpush:
             push(i.ref);
             break;
-        
+
           case inst::fieldpush: {
             vars_t frame = pop<vars_t>();
             if (!frame)
-              error("dereference of null pointer");
+              error(dereferenceNullPointer);
             push(FRAMEVAR(frame, get<Int>(i)));
             break;
           }
-        
+
           case inst::fieldsave: {
             vars_t frame = pop<vars_t>();
             if (!frame)
-              error("dereference of null pointer");
+              error(dereferenceNullPointer);
             FRAMEVAR(frame, get<Int>(i)) = top();
             break;
           }
@@ -446,13 +450,13 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 #error NOT REIMPLEMENTED
             vars_t frame = pop<vars_t>();
             if (!frame)
-              error("dereference of null pointer");
+              error(dereferenceNullPointer);
             FRAMEVAR(get<Int>(i)) = pop();
             break;
           }
 #endif
-        
-        
+
+
           case inst::builtin: {
             bltin func = get<bltin>(i);
 #ifdef PROFILE
@@ -528,7 +532,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
             push((callable*)f);
             break;
           }
-        
+
           default:
             error("Internal VM error: Bad stack operand");
         }
@@ -538,7 +542,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
       vm::draw(cerr,vars);
       cerr << "\n";
 #endif
-            
+
       ++ip;
     }
   } catch (bad_item_value&) {
@@ -550,17 +554,18 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 #undef FRAMEVAR
 }
 
-void stack::load(string index) {
-  frame *inst=instMap[index];
+void stack::load(string filename, string sigHandle) {
+  importIndex_t Index(filename,sigHandle);
+  frame *inst=instMap[Index];
   if (inst)
     push(inst);
   else {
     func f;
     assert(initMap);
-    f.body=(*initMap)[index];
+    f.body=(*initMap)[Index];
     assert(f.body);
     run(&f);
-    instMap[index]=get<frame *>(top());
+    instMap[Index]=get<frame *>(top());
   }
 }
 
@@ -581,7 +586,7 @@ void stack::draw(ostream& out)
   }
   else
     out << " ";
-  
+
   while (left != theStack.end())
     {
       if (left != theStack.begin())
@@ -595,7 +600,7 @@ void stack::draw(ostream& out)
 void draw(ostream& out, frame* v)
 {
   out << "vars:" << endl;
-  
+
   while (!!v) {
     item link=(*v)[v->getParentIndex()];
 
@@ -645,13 +650,13 @@ void errornothrow(const char* message)
   em << message;
   em.sync();
 }
-  
+
 void error(const char* message)
 {
   errornothrow(message);
   throw handled_error();
 }
-  
+
 void error(const ostringstream& message)
 {
   const string& s=message.str();

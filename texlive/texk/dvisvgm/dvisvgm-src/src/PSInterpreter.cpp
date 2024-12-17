@@ -2,7 +2,7 @@
 ** PSInterpreter.cpp                                                    **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -27,7 +27,6 @@
 #include "FileSystem.hpp"
 #include "InputReader.hpp"
 #include "Message.hpp"
-#include "PSFilter.hpp"
 #include "PSInterpreter.hpp"
 #include "SignalHandler.hpp"
 #include "utility.hpp"
@@ -59,8 +58,17 @@ void PSInterpreter::init () {
 			// in conjunction with -dDELAYBIND and -dWRITESYSTEMDICT.
 			// Thus, -dDELAYSAFER (or -dNOSAFER) must be added.
 			// https://www.ghostscript.com/doc/9.50/Use.htm#Safer
-			if (gsrev >= 950)
+			if (gsrev >= 950) {
 				gsargs.emplace_back("-dDELAYSAFER");
+				gsargs.emplace_back("-dALLOWPSTRANSPARENCY");
+			}
+			// GS 9.55.0 introduced a new, C-based PDF interpreter which is enabled by default
+			// as of GS 9.56.0. Since dvisvgm relies on the old PS-based interpreter for its
+			// PDF support, we try to disable the new one.
+			// https://www.ghostscript.com/doc/9.56.0/Use.htm#PDF_switches
+			// As of GS 10.02.0, option NEWPDF has been deprecated and has no effect any longer.
+			if (gsrev >= 9560 && gsrev < 10020)
+				gsargs.emplace_back("-dNEWPDF=false");
 		}
 		_gs.init(gsargs.size(), gsargs.data(), this);
 		_gs.set_stdio(input, output, error);
@@ -118,19 +126,10 @@ bool PSInterpreter::execute (const char *str, size_t len, bool flush) {
 		complete = true;
 	}
 
-	if (_filter && _filter->active()) {
-		PSFilter *filter = _filter;
-		_filter = nullptr;       // prevent recursion when filter calls execute()
-		filter->execute(str, len);
-		if (filter->active())    // filter still active after execution?
-			_filter = filter;
-		return complete;
-	}
-
 	// feed Ghostscript with code chunks that are not larger than 64KB
 	// => see documentation of gsapi_run_string_foo()
 	const char *p=str;
-	while (PS_RUNNING && len > 0) {
+	while (_mode == PS_RUNNING && len > 0) {
 		SignalHandler::instance().check();
 		size_t chunksize = min(len, (size_t)0xffff);
 		_gs.run_string_continue(p, chunksize, 0, &status);
@@ -256,49 +255,50 @@ void PSInterpreter::callActions (InputReader &in) {
 		void (PSActions::*handler)(vector<double> &p);  // operation handler
 	};
 	static const unordered_map<string, Operator> operators {
-		{"applyscalevals", { 3, &PSActions::applyscalevals}},
-		{"clip",           { 0, &PSActions::clip}},
-		{"clippath",       { 0, &PSActions::clippath}},
-		{"closepath",      { 0, &PSActions::closepath}},
-		{"curveto",        { 6, &PSActions::curveto}},
-		{"eoclip",         { 0, &PSActions::eoclip}},
-		{"eofill",         { 0, &PSActions::eofill}},
-		{"fill",           { 0, &PSActions::fill}},
-		{"grestore",       { 0, &PSActions::grestore}},
-		{"grestoreall",    { 0, &PSActions::grestoreall}},
-		{"gsave",          { 0, &PSActions::gsave}},
-		{"image",          { 3, &PSActions::image}},
-		{"initclip",       { 0, &PSActions::initclip}},
-		{"lineto",         { 2, &PSActions::lineto}},
-		{"makepattern",    {-1, &PSActions::makepattern}},
-		{"moveto",         { 2, &PSActions::moveto}},
-		{"newpath",        { 1, &PSActions::newpath}},
-		{"querypos",       { 2, &PSActions::querypos}},
-		{"raw",            {-1, nullptr}},
-		{"restore",        { 1, &PSActions::restore}},
-		{"rotate",         { 1, &PSActions::rotate}},
-		{"save",           { 1, &PSActions::save}},
-		{"scale",          { 2, &PSActions::scale}},
-		{"setblendmode",   { 1, &PSActions::setblendmode}},
-		{"setcolorspace",  { 1, &PSActions::setcolorspace}},
-		{"setcmykcolor",   { 4, &PSActions::setcmykcolor}},
-		{"setdash",        {-1, &PSActions::setdash}},
-		{"setgray",        { 1, &PSActions::setgray}},
-		{"sethsbcolor",    { 3, &PSActions::sethsbcolor}},
-		{"setlinecap",     { 1, &PSActions::setlinecap}},
-		{"setlinejoin",    { 1, &PSActions::setlinejoin}},
-		{"setlinewidth",   { 1, &PSActions::setlinewidth}},
-		{"setmatrix",      { 6, &PSActions::setmatrix}},
-		{"setmiterlimit",  { 1, &PSActions::setmiterlimit}},
-		{"setnulldevice",  { 1, &PSActions::setnulldevice}},
-		{"setopacityalpha",{ 1, &PSActions::setopacityalpha}},
-		{"setshapealpha",  { 1, &PSActions::setshapealpha}},
-		{"setpagedevice",  { 0, &PSActions::setpagedevice}},
-		{"setpattern",     {-1, &PSActions::setpattern}},
-		{"setrgbcolor",    { 3, &PSActions::setrgbcolor}},
-		{"shfill",         {-1, &PSActions::shfill}},
-		{"stroke",         { 0, &PSActions::stroke}},
-		{"translate",      { 2, &PSActions::translate}},
+		{"applyscalevals",         { 3, &PSActions::applyscalevals}},
+		{"clip",                   { 0, &PSActions::clip}},
+		{"clippath",               { 0, &PSActions::clippath}},
+		{"closepath",              { 0, &PSActions::closepath}},
+		{"curveto",                { 6, &PSActions::curveto}},
+		{"eoclip",                 { 0, &PSActions::eoclip}},
+		{"eofill",                 { 0, &PSActions::eofill}},
+		{"fill",                   { 0, &PSActions::fill}},
+		{"grestore",               { 0, &PSActions::grestore}},
+		{"grestoreall",            { 0, &PSActions::grestoreall}},
+		{"gsave",                  { 0, &PSActions::gsave}},
+		{"image",                  { 3, &PSActions::image}},
+		{"initclip",               { 0, &PSActions::initclip}},
+		{"lineto",                 { 2, &PSActions::lineto}},
+		{"makepattern",            {-1, &PSActions::makepattern}},
+		{"moveto",                 { 2, &PSActions::moveto}},
+		{"newpath",                { 1, &PSActions::newpath}},
+		{"querypos",               { 2, &PSActions::querypos}},
+		{"raw",                    {-1, nullptr}},
+		{"restore",                { 1, &PSActions::restore}},
+		{"rotate",                 { 1, &PSActions::rotate}},
+		{"save",                   { 1, &PSActions::save}},
+		{"scale",                  { 2, &PSActions::scale}},
+		{"setalphaisshape",        { 1, &PSActions::setalphaisshape}},
+		{"setblendmode",           { 1, &PSActions::setblendmode}},
+		{"setcolorspace",          { 1, &PSActions::setcolorspace}},
+		{"setcmykcolor",           { 4, &PSActions::setcmykcolor}},
+		{"setdash",                {-1, &PSActions::setdash}},
+		{"setfillconstantalpha",   { 1, &PSActions::setfillconstantalpha}},
+		{"setgray",                { 1, &PSActions::setgray}},
+		{"sethsbcolor",            { 3, &PSActions::sethsbcolor}},
+		{"setlinecap",             { 1, &PSActions::setlinecap}},
+		{"setlinejoin",            { 1, &PSActions::setlinejoin}},
+		{"setlinewidth",           { 1, &PSActions::setlinewidth}},
+		{"setmatrix",              { 6, &PSActions::setmatrix}},
+		{"setmiterlimit",          { 1, &PSActions::setmiterlimit}},
+		{"setnulldevice",          { 1, &PSActions::setnulldevice}},
+		{"setpagedevice",          { 0, &PSActions::setpagedevice}},
+		{"setpattern",             {-1, &PSActions::setpattern}},
+		{"setrgbcolor",            { 3, &PSActions::setrgbcolor}},
+		{"setstrokeconstantalpha", { 1, &PSActions::setstrokeconstantalpha}},
+		{"shfill",                 {-1, &PSActions::shfill}},
+		{"stroke",                 { 0, &PSActions::stroke}},
+		{"translate",              { 2, &PSActions::translate}},
 	};
 	if (_actions) {
 		in.skipSpace();
@@ -308,7 +308,7 @@ void PSInterpreter::callActions (InputReader &in) {
 				_rawData.clear();
 				in.skipSpace();
 				while (!in.eof()) {
-					_rawData.emplace_back(in.getString());
+					_rawData.push_back(in.getString());
 					in.skipSpace();
 				}
 			}
@@ -319,14 +319,14 @@ void PSInterpreter::callActions (InputReader &in) {
 				if (pcount < 0) {       // variable number of parameters?
 					in.skipSpace();
 					while (!in.eof()) {  // read all available parameters
-						params.emplace_back(in.getString());
+						params.push_back(in.getString());
 						in.skipSpace();
 					}
 				}
 				else {   // fix number of parameters
 					for (int i=0; i < pcount; i++) {
 						in.skipSpace();
-						params.emplace_back(in.getString());
+						params.push_back(in.getString());
 					}
 				}
 				// convert parameter strings to doubles
@@ -414,7 +414,7 @@ bool PSInterpreter::imageDeviceKnown (string deviceStr) {
 		return false;
 	deviceStr = deviceStr.substr(0, deviceStr.find(':'));  // strip optional argument
 	auto infos = getImageDeviceInfos();
-	auto it = find_if(infos.begin(), infos.end(), [&](PSDeviceInfo &info) {
+	auto it = find_if(infos.begin(), infos.end(), [&](const PSDeviceInfo &info) {
 		return info.name == deviceStr;
 	});
 	return it != infos.end();

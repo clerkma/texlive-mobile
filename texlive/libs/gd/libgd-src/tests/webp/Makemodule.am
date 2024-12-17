@@ -1,8 +1,12 @@
 if HAVE_LIBWEBP
 libgd_test_programs += \
 	webp/bug00111 \
-	webp/bug_double_free \
-	webp/gdImageWebpEx
+	webp/gdImageWebpEx \
+	webp/webp_ll_im2im
+if HAVE_LIBJPEG
+libgd_test_programs += \
+	webp/bug_double_free
+endif
 endif
 
 EXTRA_DIST += \

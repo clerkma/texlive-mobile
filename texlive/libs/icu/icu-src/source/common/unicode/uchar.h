@@ -25,6 +25,7 @@
 #ifndef UCHAR_H
 #define UCHAR_H
 
+#include <stdbool.h>
 #include "unicode/utypes.h"
 #include "unicode/stringoptions.h"
 #include "unicode/ucpmap.h"
@@ -53,14 +54,14 @@ U_CDECL_BEGIN
 /*==========================================================================*/
 /**
  * Unicode version number, default for the current ICU version.
- * The actual Unicode Character Database (UCD) data is stored in uprops.dat
+ * The actual Unicode Character Database (UCD) data is stored in uprops.icu
  * and may be generated from UCD files from a different Unicode version.
  * Call u_getUnicodeVersion to get the actual Unicode version of the data.
  *
  * @see u_getUnicodeVersion
  * @stable ICU 2.0
  */
-#define U_UNICODE_VERSION "12.1"
+#define U_UNICODE_VERSION "16.0"
 
 /**
  * \file
@@ -77,10 +78,10 @@ U_CDECL_BEGIN
  *
  * For more information see
  * "About the Unicode Character Database" (http://www.unicode.org/ucd/)
- * and the ICU User Guide chapter on Properties (http://icu-project.org/userguide/properties.html).
+ * and the ICU User Guide chapter on Properties (https://unicode-org.github.io/icu/userguide/strings/properties).
  *
  * Many properties are accessible via generic functions that take a UProperty selector.
- * - u_hasBinaryProperty() returns a binary value (TRUE/FALSE) per property and code point.
+ * - u_hasBinaryProperty() returns a binary value (true/false) per property and code point.
  * - u_getIntPropertyValue() returns an integer value per property and code point.
  *   For each supported enumerated or catalog property, there is
  *   an enum type for all of the property's values, and
@@ -483,12 +484,88 @@ typedef enum UProperty {
      * @stable ICU 62
      */
     UCHAR_EXTENDED_PICTOGRAPHIC=64,
+    /**
+     * Binary property of strings Basic_Emoji.
+     * See https://www.unicode.org/reports/tr51/#Emoji_Sets
+     *
+     * @stable ICU 70
+     */
+    UCHAR_BASIC_EMOJI=65,
+    /**
+     * Binary property of strings Emoji_Keycap_Sequence.
+     * See https://www.unicode.org/reports/tr51/#Emoji_Sets
+     *
+     * @stable ICU 70
+     */
+    UCHAR_EMOJI_KEYCAP_SEQUENCE=66,
+    /**
+     * Binary property of strings RGI_Emoji_Modifier_Sequence.
+     * See https://www.unicode.org/reports/tr51/#Emoji_Sets
+     *
+     * @stable ICU 70
+     */
+    UCHAR_RGI_EMOJI_MODIFIER_SEQUENCE=67,
+    /**
+     * Binary property of strings RGI_Emoji_Flag_Sequence.
+     * See https://www.unicode.org/reports/tr51/#Emoji_Sets
+     *
+     * @stable ICU 70
+     */
+    UCHAR_RGI_EMOJI_FLAG_SEQUENCE=68,
+    /**
+     * Binary property of strings RGI_Emoji_Tag_Sequence.
+     * See https://www.unicode.org/reports/tr51/#Emoji_Sets
+     *
+     * @stable ICU 70
+     */
+    UCHAR_RGI_EMOJI_TAG_SEQUENCE=69,
+    /**
+     * Binary property of strings RGI_Emoji_ZWJ_Sequence.
+     * See https://www.unicode.org/reports/tr51/#Emoji_Sets
+     *
+     * @stable ICU 70
+     */
+    UCHAR_RGI_EMOJI_ZWJ_SEQUENCE=70,
+    /**
+     * Binary property of strings RGI_Emoji.
+     * See https://www.unicode.org/reports/tr51/#Emoji_Sets
+     *
+     * @stable ICU 70
+     */
+    UCHAR_RGI_EMOJI=71,
+    /**
+     * Binary property IDS_Unary_Operator.
+     * For programmatic determination of Ideographic Description Sequences.
+     *
+     * @stable ICU 74
+     */
+    UCHAR_IDS_UNARY_OPERATOR=72,
+    /**
+     * Binary property ID_Compat_Math_Start.
+     * Used in mathematical identifier profile in UAX #31.
+     * @stable ICU 74
+     */
+    UCHAR_ID_COMPAT_MATH_START=73,
+    /**
+     * Binary property ID_Compat_Math_Continue.
+     * Used in mathematical identifier profile in UAX #31.
+     * @stable ICU 74
+     */
+    UCHAR_ID_COMPAT_MATH_CONTINUE=74,
+#ifndef U_HIDE_DRAFT_API
+    /**
+     * Binary property Modifier_Combining_Mark.
+     * Used by the AMTRA algorithm in UAX #53.
+     * @draft ICU 76
+     */
+    UCHAR_MODIFIER_COMBINING_MARK=75,
+#endif  // U_HIDE_DRAFT_API
 #ifndef U_HIDE_DEPRECATED_API
     /**
      * One more than the last constant for binary Unicode properties.
      * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
      */
-    UCHAR_BINARY_LIMIT,
+    UCHAR_BINARY_LIMIT=76,
 #endif  // U_HIDE_DEPRECATED_API
 
     /** Enumerated property Bidi_Class.
@@ -598,12 +675,27 @@ typedef enum UProperty {
      * @stable ICU 63
      */
     UCHAR_VERTICAL_ORIENTATION=0x1018,
+#ifndef U_HIDE_DRAFT_API
+    /**
+     * Enumerated property Identifier_Status.
+     * Used for UTS #39 General Security Profile for Identifiers
+     * (https://www.unicode.org/reports/tr39/#General_Security_Profile).
+     * @draft ICU 75
+     */
+    UCHAR_IDENTIFIER_STATUS=0x1019,
+    /**
+     * Enumerated property Indic_Conjunct_Break.
+     * Used in the grapheme cluster break algorithm in UAX #29.
+     * @draft ICU 76
+     */
+    UCHAR_INDIC_CONJUNCT_BREAK=0x101A,
+#endif  // U_HIDE_DRAFT_API
 #ifndef U_HIDE_DEPRECATED_API
     /**
      * One more than the last constant for enumerated/integer Unicode properties.
      * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
      */
-    UCHAR_INT_LIMIT=0x1019,
+    UCHAR_INT_LIMIT=0x101B,
 #endif  // U_HIDE_DEPRECATED_API
 
     /** Bitmask property General_Category_Mask.
@@ -704,12 +796,28 @@ typedef enum UProperty {
     UCHAR_SCRIPT_EXTENSIONS=0x7000,
     /** First constant for Unicode properties with unusual value types. @stable ICU 4.6 */
     UCHAR_OTHER_PROPERTY_START=UCHAR_SCRIPT_EXTENSIONS,
+#ifndef U_HIDE_DRAFT_API
+    /**
+     * Miscellaneous property Identifier_Type.
+     * Used for UTS #39 General Security Profile for Identifiers
+     * (https://www.unicode.org/reports/tr39/#General_Security_Profile).
+     *
+     * Corresponds to u_hasIDType() and u_getIDTypes().
+     *
+     * Each code point maps to a <i>set</i> of UIdentifierType values.
+     *
+     * @see u_hasIDType
+     * @see u_getIDTypes
+     * @draft ICU 75
+     */
+    UCHAR_IDENTIFIER_TYPE=0x7001,
+#endif  // U_HIDE_DRAFT_API
 #ifndef U_HIDE_DEPRECATED_API
     /**
      * One more than the last constant for Unicode properties with unusual value types.
      * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
      */
-    UCHAR_OTHER_PROPERTY_LIMIT=0x7001,
+    UCHAR_OTHER_PROPERTY_LIMIT=0x7002,
 #endif  // U_HIDE_DEPRECATED_API
 
     /** Represents a nonexistent or invalid property or property value. @stable ICU 2.4 */
@@ -1788,6 +1896,97 @@ enum UBlockCode {
     /** @stable ICU 64 */
     UBLOCK_WANCHO = 300, /*[1E2C0]*/
 
+    // New blocks in Unicode 13.0
+
+    /** @stable ICU 66 */
+    UBLOCK_CHORASMIAN = 301, /*[10FB0]*/
+    /** @stable ICU 66 */
+    UBLOCK_CJK_UNIFIED_IDEOGRAPHS_EXTENSION_G = 302, /*[30000]*/
+    /** @stable ICU 66 */
+    UBLOCK_DIVES_AKURU = 303, /*[11900]*/
+    /** @stable ICU 66 */
+    UBLOCK_KHITAN_SMALL_SCRIPT = 304, /*[18B00]*/
+    /** @stable ICU 66 */
+    UBLOCK_LISU_SUPPLEMENT = 305, /*[11FB0]*/
+    /** @stable ICU 66 */
+    UBLOCK_SYMBOLS_FOR_LEGACY_COMPUTING = 306, /*[1FB00]*/
+    /** @stable ICU 66 */
+    UBLOCK_TANGUT_SUPPLEMENT = 307, /*[18D00]*/
+    /** @stable ICU 66 */
+    UBLOCK_YEZIDI = 308, /*[10E80]*/
+
+    // New blocks in Unicode 14.0
+
+    /** @stable ICU 70 */
+    UBLOCK_ARABIC_EXTENDED_B = 309, /*[0870]*/
+    /** @stable ICU 70 */
+    UBLOCK_CYPRO_MINOAN = 310, /*[12F90]*/
+    /** @stable ICU 70 */
+    UBLOCK_ETHIOPIC_EXTENDED_B = 311, /*[1E7E0]*/
+    /** @stable ICU 70 */
+    UBLOCK_KANA_EXTENDED_B = 312, /*[1AFF0]*/
+    /** @stable ICU 70 */
+    UBLOCK_LATIN_EXTENDED_F = 313, /*[10780]*/
+    /** @stable ICU 70 */
+    UBLOCK_LATIN_EXTENDED_G = 314, /*[1DF00]*/
+    /** @stable ICU 70 */
+    UBLOCK_OLD_UYGHUR = 315, /*[10F70]*/
+    /** @stable ICU 70 */
+    UBLOCK_TANGSA = 316, /*[16A70]*/
+    /** @stable ICU 70 */
+    UBLOCK_TOTO = 317, /*[1E290]*/
+    /** @stable ICU 70 */
+    UBLOCK_UNIFIED_CANADIAN_ABORIGINAL_SYLLABICS_EXTENDED_A = 318, /*[11AB0]*/
+    /** @stable ICU 70 */
+    UBLOCK_VITHKUQI = 319, /*[10570]*/
+    /** @stable ICU 70 */
+    UBLOCK_ZNAMENNY_MUSICAL_NOTATION = 320, /*[1CF00]*/
+
+    // New blocks in Unicode 15.0
+
+    /** @stable ICU 72 */
+    UBLOCK_ARABIC_EXTENDED_C = 321, /*[10EC0]*/
+    /** @stable ICU 72 */
+    UBLOCK_CJK_UNIFIED_IDEOGRAPHS_EXTENSION_H = 322, /*[31350]*/
+    /** @stable ICU 72 */
+    UBLOCK_CYRILLIC_EXTENDED_D = 323, /*[1E030]*/
+    /** @stable ICU 72 */
+    UBLOCK_DEVANAGARI_EXTENDED_A = 324, /*[11B00]*/
+    /** @stable ICU 72 */
+    UBLOCK_KAKTOVIK_NUMERALS = 325, /*[1D2C0]*/
+    /** @stable ICU 72 */
+    UBLOCK_KAWI = 326, /*[11F00]*/
+    /** @stable ICU 72 */
+    UBLOCK_NAG_MUNDARI = 327, /*[1E4D0]*/
+
+    // New block in Unicode 15.1
+
+    /** @stable ICU 74 */
+    UBLOCK_CJK_UNIFIED_IDEOGRAPHS_EXTENSION_I = 328, /*[2EBF0]*/
+
+    // New blocks in Unicode 16.0
+
+    /** @stable ICU 76 */
+    UBLOCK_EGYPTIAN_HIEROGLYPHS_EXTENDED_A = 329, /*[13460]*/
+    /** @stable ICU 76 */
+    UBLOCK_GARAY = 330, /*[10D40]*/
+    /** @stable ICU 76 */
+    UBLOCK_GURUNG_KHEMA = 331, /*[16100]*/
+    /** @stable ICU 76 */
+    UBLOCK_KIRAT_RAI = 332, /*[16D40]*/
+    /** @stable ICU 76 */
+    UBLOCK_MYANMAR_EXTENDED_C = 333, /*[116D0]*/
+    /** @stable ICU 76 */
+    UBLOCK_OL_ONAL = 334, /*[1E5D0]*/
+    /** @stable ICU 76 */
+    UBLOCK_SUNUWAR = 335, /*[11BC0]*/
+    /** @stable ICU 76 */
+    UBLOCK_SYMBOLS_FOR_LEGACY_COMPUTING_SUPPLEMENT = 336, /*[1CC00]*/
+    /** @stable ICU 76 */
+    UBLOCK_TODHRI = 337, /*[105C0]*/
+    /** @stable ICU 76 */
+    UBLOCK_TULU_TIGALARI = 338, /*[11380]*/
+
 #ifndef U_HIDE_DEPRECATED_API
     /**
      * One more than the highest normal UBlockCode value.
@@ -1795,7 +1994,7 @@ enum UBlockCode {
      *
      * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
      */
-    UBLOCK_COUNT = 301,
+    UBLOCK_COUNT = 339,
 #endif  // U_HIDE_DEPRECATED_API
 
     /** @stable ICU 2.0 */
@@ -2087,6 +2286,11 @@ typedef enum UJoiningGroup {
     U_JG_HANIFI_ROHINGYA_KINNA_YA,  /**< @stable ICU 62 */
     U_JG_HANIFI_ROHINGYA_PA,  /**< @stable ICU 62 */
 
+    U_JG_THIN_YEH,  /**< @stable ICU 70 */
+    U_JG_VERTICAL_TAIL,  /**< @stable ICU 70 */
+
+    U_JG_KASHMIRI_YEH,  /**< @stable ICU 76 */
+
 #ifndef U_HIDE_DEPRECATED_API
     /**
      * One more than the highest normal UJoiningGroup value.
@@ -2324,6 +2528,16 @@ typedef enum ULineBreak {
     U_LB_E_MODIFIER = 41,        /*[EM]*/
     /** @stable ICU 58 */
     U_LB_ZWJ = 42,               /*[ZWJ]*/
+    /** @stable ICU 74 */
+    U_LB_AKSARA = 43,            /*[AK]*/
+    /** @stable ICU 74 */
+    U_LB_AKSARA_PREBASE = 44,    /*[AP]*/
+    /** @stable ICU 74 */
+    U_LB_AKSARA_START = 45,      /*[AS]*/
+    /** @stable ICU 74 */
+    U_LB_VIRAMA_FINAL = 46,      /*[VF]*/
+    /** @stable ICU 74 */
+    U_LB_VIRAMA = 47,            /*[VI]*/
 #ifndef U_HIDE_DEPRECATED_API
     /**
      * One more than the highest normal ULineBreak value.
@@ -2331,7 +2545,7 @@ typedef enum ULineBreak {
      *
      * @deprecated ICU 58 The numeric value may change over time, see ICU ticket #12420.
      */
-    U_LB_COUNT = 43
+    U_LB_COUNT = 48
 #endif  // U_HIDE_DEPRECATED_API
 } ULineBreak;
 
@@ -2436,6 +2650,8 @@ typedef enum UIndicPositionalCategory {
     U_INPC_TOP_AND_RIGHT,
     /** @stable ICU 63 */
     U_INPC_VISUAL_ORDER_LEFT,
+    /** @stable ICU 66 */
+    U_INPC_TOP_AND_BOTTOM_AND_LEFT,
 } UIndicPositionalCategory;
 
 /**
@@ -2523,7 +2739,34 @@ typedef enum UIndicSyllabicCategory {
     U_INSC_VOWEL_DEPENDENT,
     /** @stable ICU 63 */
     U_INSC_VOWEL_INDEPENDENT,
+    /** @stable ICU 76 */
+    U_INSC_REORDERING_KILLER,
 } UIndicSyllabicCategory;
+
+#ifndef U_HIDE_DRAFT_API
+/**
+ * Indic Conjunct Break constants.
+ *
+ * @see UCHAR_INDIC_CONJUNCT_BREAK
+ * @draft ICU 76
+ */
+typedef enum UIndicConjunctBreak {
+    /*
+    * Note: UIndicConjunctBreak constants are parsed by preparseucd.py.
+    * It matches lines like
+    *     U_INCB_<Unicode Indic_Conjunct_Break value name>
+    */
+
+    /** @draft ICU 76 */
+    U_INCB_NONE,
+    /** @draft ICU 76 */
+    U_INCB_CONSONANT,
+    /** @draft ICU 76 */
+    U_INCB_EXTEND,
+    /** @draft ICU 76 */
+    U_INCB_LINKER,
+} UIndicConjunctBreak;
+#endif  // U_HIDE_DRAFT_API
 
 /**
  * Vertical Orientation constants.
@@ -2548,6 +2791,68 @@ typedef enum UVerticalOrientation {
     U_VO_UPRIGHT,
 } UVerticalOrientation;
 
+#ifndef U_HIDE_DRAFT_API
+/**
+ * Identifier Status constants.
+ * See https://www.unicode.org/reports/tr39/#Identifier_Status_and_Type.
+ *
+ * @see UCHAR_IDENTIFIER_STATUS
+ * @draft ICU 75
+ */
+typedef enum UIdentifierStatus {
+    /*
+     * Note: UIdentifierStatus constants are parsed by preparseucd.py.
+     * It matches lines like
+     *     U_ID_STATUS_<Unicode Identifier_Status value name>
+     */
+
+    /** @draft ICU 75 */
+    U_ID_STATUS_RESTRICTED,
+    /** @draft ICU 75 */
+    U_ID_STATUS_ALLOWED,
+} UIdentifierStatus;
+
+/**
+ * Identifier Type constants.
+ * See https://www.unicode.org/reports/tr39/#Identifier_Status_and_Type.
+ *
+ * @see UCHAR_IDENTIFIER_TYPE
+ * @draft ICU 75
+ */
+typedef enum UIdentifierType {
+    /*
+     * Note: UIdentifierType constants are parsed by preparseucd.py.
+     * It matches lines like
+     *     U_ID_TYPE_<Unicode Identifier_Type value name>
+     */
+
+    /** @draft ICU 75 */
+    U_ID_TYPE_NOT_CHARACTER,
+    /** @draft ICU 75 */
+    U_ID_TYPE_DEPRECATED,
+    /** @draft ICU 75 */
+    U_ID_TYPE_DEFAULT_IGNORABLE,
+    /** @draft ICU 75 */
+    U_ID_TYPE_NOT_NFKC,
+    /** @draft ICU 75 */
+    U_ID_TYPE_NOT_XID,
+    /** @draft ICU 75 */
+    U_ID_TYPE_EXCLUSION,
+    /** @draft ICU 75 */
+    U_ID_TYPE_OBSOLETE,
+    /** @draft ICU 75 */
+    U_ID_TYPE_TECHNICAL,
+    /** @draft ICU 75 */
+    U_ID_TYPE_UNCOMMON_USE,
+    /** @draft ICU 75 */
+    U_ID_TYPE_LIMITED_USE,
+    /** @draft ICU 75 */
+    U_ID_TYPE_INCLUSION,
+    /** @draft ICU 75 */
+    U_ID_TYPE_RECOMMENDED,
+} UIdentifierType;
+#endif  // U_HIDE_DRAFT_API
+
 /**
  * Check a binary Unicode property for a code point.
  *
@@ -2564,10 +2869,10 @@ typedef enum UVerticalOrientation {
  *
  * @param c Code point to test.
  * @param which UProperty selector constant, identifies which binary property to check.
- *        Must be UCHAR_BINARY_START<=which<UCHAR_BINARY_LIMIT.
- * @return TRUE or FALSE according to the binary Unicode property value for c.
- *         Also FALSE if 'which' is out of bounds or if the Unicode version
- *         does not have data for the property at all, or not for this code point.
+ *        Must be UCHAR_BINARY_START&lt;=which&lt;UCHAR_BINARY_LIMIT.
+ * @return true or false according to the binary Unicode property value for c.
+ *         Also false if 'which' is out of bounds or if the Unicode version
+ *         does not have data for the property at all.
  *
  * @see UProperty
  * @see u_getBinaryPropertySet
@@ -2575,8 +2880,35 @@ typedef enum UVerticalOrientation {
  * @see u_getUnicodeVersion
  * @stable ICU 2.1
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_hasBinaryProperty(UChar32 c, UProperty which);
+
+/**
+ * Returns true if the property is true for the string.
+ * Same as u_hasBinaryProperty(single code point, which)
+ * if the string contains exactly one code point.
+ *
+ * Most properties apply only to single code points.
+ * <a href="https://www.unicode.org/reports/tr51/#Emoji_Sets">UTS #51 Unicode Emoji</a>
+ * defines several properties of strings.
+ *
+ * @param s String to test.
+ * @param length Length of the string, or negative if NUL-terminated.
+ * @param which UProperty selector constant, identifies which binary property to check.
+ *        Must be UCHAR_BINARY_START&lt;=which&lt;UCHAR_BINARY_LIMIT.
+ * @return true or false according to the binary Unicode property value for the string.
+ *         Also false if 'which' is out of bounds or if the Unicode version
+ *         does not have data for the property at all.
+ *
+ * @see UProperty
+ * @see u_hasBinaryProperty
+ * @see u_getBinaryPropertySet
+ * @see u_getIntPropertyValue
+ * @see u_getUnicodeVersion
+ * @stable ICU 70
+ */
+U_CAPI UBool U_EXPORT2
+u_stringHasBinaryProperty(const UChar *s, int32_t length, UProperty which);
 
 /**
  * Returns a frozen USet for a binary property.
@@ -2608,7 +2940,7 @@ u_getBinaryPropertySet(UProperty property, UErrorCode *pErrorCode);
  * @see u_hasBinaryProperty
  * @stable ICU 2.1
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isUAlphabetic(UChar32 c);
 
 /**
@@ -2623,7 +2955,7 @@ u_isUAlphabetic(UChar32 c);
  * @see u_hasBinaryProperty
  * @stable ICU 2.1
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isULowercase(UChar32 c);
 
 /**
@@ -2638,7 +2970,7 @@ u_isULowercase(UChar32 c);
  * @see u_hasBinaryProperty
  * @stable ICU 2.1
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isUUppercase(UChar32 c);
 
 /**
@@ -2659,7 +2991,7 @@ u_isUUppercase(UChar32 c);
  * @see u_hasBinaryProperty
  * @stable ICU 2.1
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isUWhiteSpace(UChar32 c);
 
 /**
@@ -2687,7 +3019,7 @@ u_isUWhiteSpace(UChar32 c);
  *         for enumerated properties, corresponds to the numeric value of the enumerated
  *         constant of the respective property value enumeration type
  *         (cast to enum type if necessary).
- *         Returns 0 or 1 (for FALSE/TRUE) for binary Unicode properties.
+ *         Returns 0 or 1 (for false/true) for binary Unicode properties.
  *         Returns a bit-mask for mask properties.
  *         Returns 0 if 'which' is out of bounds or if the Unicode version
  *         does not have data for the property at all, or not for this code point.
@@ -2700,7 +3032,7 @@ u_isUWhiteSpace(UChar32 c);
  * @see u_getUnicodeVersion
  * @stable ICU 2.2
  */
-U_STABLE int32_t U_EXPORT2
+U_CAPI int32_t U_EXPORT2
 u_getIntPropertyValue(UChar32 c, UProperty which);
 
 /**
@@ -2721,7 +3053,7 @@ u_getIntPropertyValue(UChar32 c, UProperty which);
  * @see u_getIntPropertyValue
  * @stable ICU 2.2
  */
-U_STABLE int32_t U_EXPORT2
+U_CAPI int32_t U_EXPORT2
 u_getIntPropertyMinValue(UProperty which);
 
 /**
@@ -2733,7 +3065,7 @@ u_getIntPropertyMinValue(UProperty which);
  *
  * - UCHAR_BIDI_CLASS:    0/18 (U_LEFT_TO_RIGHT/U_BOUNDARY_NEUTRAL)
  * - UCHAR_SCRIPT:        0/45 (USCRIPT_COMMON/USCRIPT_TAGBANWA)
- * - UCHAR_IDEOGRAPHIC:   0/1  (FALSE/TRUE)
+ * - UCHAR_IDEOGRAPHIC:   0/1  (false/true)
  *
  * For undefined UProperty constant values, min/max values will be 0/-1.
  *
@@ -2750,7 +3082,7 @@ u_getIntPropertyMinValue(UProperty which);
  * @see u_getIntPropertyValue
  * @stable ICU 2.2
  */
-U_STABLE int32_t U_EXPORT2
+U_CAPI int32_t U_EXPORT2
 u_getIntPropertyMaxValue(UProperty which);
 
 /**
@@ -2793,7 +3125,7 @@ u_getIntPropertyMap(UProperty property, UErrorCode *pErrorCode);
  * @see U_NO_NUMERIC_VALUE
  * @stable ICU 2.2
  */
-U_STABLE double U_EXPORT2
+U_CAPI double U_EXPORT2
 u_getNumericValue(UChar32 c);
 
 /**
@@ -2821,14 +3153,14 @@ u_getNumericValue(UChar32 c);
  * documentation at the top of this header file.
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is an Ll lowercase letter
+ * @return true if the code point is an Ll lowercase letter
  *
  * @see UCHAR_LOWERCASE
  * @see u_isupper
  * @see u_istitle
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_islower(UChar32 c);
 
 /**
@@ -2847,7 +3179,7 @@ u_islower(UChar32 c);
  * documentation at the top of this header file.
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is an Lu uppercase letter
+ * @return true if the code point is an Lu uppercase letter
  *
  * @see UCHAR_UPPERCASE
  * @see u_islower
@@ -2855,7 +3187,7 @@ u_islower(UChar32 c);
  * @see u_tolower
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isupper(UChar32 c);
 
 /**
@@ -2865,14 +3197,14 @@ u_isupper(UChar32 c);
  * Same as java.lang.Character.isTitleCase().
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is an Lt titlecase letter
+ * @return true if the code point is an Lt titlecase letter
  *
  * @see u_isupper
  * @see u_islower
  * @see u_totitle
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_istitle(UChar32 c);
 
 /**
@@ -2889,11 +3221,11 @@ u_istitle(UChar32 c);
  * documentation at the top of this header file.
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is a digit character according to Character.isDigit()
+ * @return true if the code point is a digit character according to Character.isDigit()
  *
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isdigit(UChar32 c);
 
 /**
@@ -2908,13 +3240,13 @@ u_isdigit(UChar32 c);
  * documentation at the top of this header file.
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is a letter character
+ * @return true if the code point is a letter character
  *
  * @see u_isdigit
  * @see u_isalnum
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isalpha(UChar32 c);
 
 /**
@@ -2931,11 +3263,11 @@ u_isalpha(UChar32 c);
  * documentation at the top of this header file.
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is an alphanumeric character according to Character.isLetterOrDigit()
+ * @return true if the code point is an alphanumeric character according to Character.isLetterOrDigit()
  *
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isalnum(UChar32 c);
 
 /**
@@ -2954,11 +3286,11 @@ u_isalnum(UChar32 c);
  * documentation at the top of this header file.
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is a hexadecimal digit
+ * @return true if the code point is a hexadecimal digit
  *
  * @stable ICU 2.6
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isxdigit(UChar32 c);
 
 /**
@@ -2970,17 +3302,17 @@ u_isxdigit(UChar32 c);
  * documentation at the top of this header file.
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is a punctuation character
+ * @return true if the code point is a punctuation character
  *
  * @stable ICU 2.6
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_ispunct(UChar32 c);
 
 /**
  * Determines whether the specified code point is a "graphic" character
  * (printable, excluding spaces).
- * TRUE for all characters except those with general categories
+ * true for all characters except those with general categories
  * "Cc" (control codes), "Cf" (format controls), "Cs" (surrogates),
  * "Cn" (unassigned), and "Z" (separators).
  *
@@ -2989,11 +3321,11 @@ u_ispunct(UChar32 c);
  * documentation at the top of this header file.
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is a "graphic" character
+ * @return true if the code point is a "graphic" character
  *
  * @stable ICU 2.6
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isgraph(UChar32 c);
 
 /**
@@ -3001,13 +3333,13 @@ u_isgraph(UChar32 c);
  * a character that visibly separates words on a line.
  * The following are equivalent definitions:
  *
- * TRUE for Unicode White_Space characters except for "vertical space controls"
+ * true for Unicode White_Space characters except for "vertical space controls"
  * where "vertical space controls" are the following characters:
  * U+000A (LF) U+000B (VT) U+000C (FF) U+000D (CR) U+0085 (NEL) U+2028 (LS) U+2029 (PS)
  *
  * same as
  *
- * TRUE for U+0009 (TAB) and characters with general category "Zs" (space separators).
+ * true for U+0009 (TAB) and characters with general category "Zs" (space separators).
  *
  * Note: There are several ICU whitespace functions; please see the uchar.h
  * file documentation for a detailed comparison.
@@ -3017,11 +3349,11 @@ u_isgraph(UChar32 c);
  * documentation at the top of this header file.
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is a "blank"
+ * @return true if the code point is a "blank"
  *
  * @stable ICU 2.6
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isblank(UChar32 c);
 
 /**
@@ -3036,7 +3368,7 @@ u_isblank(UChar32 c);
  * Same as java.lang.Character.isDefined().
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is assigned a character
+ * @return true if the code point is assigned a character
  *
  * @see u_isdigit
  * @see u_isalpha
@@ -3046,7 +3378,7 @@ u_isblank(UChar32 c);
  * @see u_istitle
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isdefined(UChar32 c);
 
 /**
@@ -3067,7 +3399,7 @@ u_isdefined(UChar32 c);
  * @see u_isUWhiteSpace
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isspace(UChar32 c);
 
 /**
@@ -3081,14 +3413,14 @@ u_isspace(UChar32 c);
  * file documentation for a detailed comparison.
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is a space character according to Character.isSpaceChar()
+ * @return true if the code point is a space character according to Character.isSpaceChar()
  *
  * @see u_isspace
  * @see u_isWhitespace
  * @see u_isUWhiteSpace
  * @stable ICU 2.6
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isJavaSpaceChar(UChar32 c);
 
 /**
@@ -3121,14 +3453,14 @@ u_isJavaSpaceChar(UChar32 c);
  * file documentation for a detailed comparison.
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is a whitespace character according to Java/ICU
+ * @return true if the code point is a whitespace character according to Java/ICU
  *
  * @see u_isspace
  * @see u_isJavaSpaceChar
  * @see u_isUWhiteSpace
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isWhitespace(UChar32 c);
 
 /**
@@ -3146,13 +3478,13 @@ u_isWhitespace(UChar32 c);
  * documentation at the top of this header file.
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is a control character
+ * @return true if the code point is a control character
  *
  * @see UCHAR_DEFAULT_IGNORABLE_CODE_POINT
  * @see u_isprint
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_iscntrl(UChar32 c);
 
 /**
@@ -3162,12 +3494,12 @@ u_iscntrl(UChar32 c);
  * Same as java.lang.Character.isISOControl().
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is an ISO control code
+ * @return true if the code point is an ISO control code
  *
  * @see u_iscntrl
  * @stable ICU 2.6
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isISOControl(UChar32 c);
 
 /**
@@ -3179,13 +3511,13 @@ u_isISOControl(UChar32 c);
  * documentation at the top of this header file.
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is a printable character
+ * @return true if the code point is a printable character
  *
  * @see UCHAR_DEFAULT_IGNORABLE_CODE_POINT
  * @see u_iscntrl
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isprint(UChar32 c);
 
 /**
@@ -3199,13 +3531,13 @@ u_isprint(UChar32 c);
  * Letter (L), Number (N), Punctuation (P), Symbol (S), or Space Separator (Zs).
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is a base character according to this function
+ * @return true if the code point is a base character according to this function
  *
  * @see u_isalpha
  * @see u_isdigit
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isbase(UChar32 c);
 
 /**
@@ -3224,7 +3556,7 @@ u_isbase(UChar32 c);
  * @see UCharDirection
  * @stable ICU 2.0
  */
-U_STABLE UCharDirection U_EXPORT2
+U_CAPI UCharDirection U_EXPORT2
 u_charDirection(UChar32 c);
 
 /**
@@ -3237,12 +3569,12 @@ u_charDirection(UChar32 c);
  * Same as UCHAR_BIDI_MIRRORED
  *
  * @param c the code point to be tested
- * @return TRUE if the character has the Bidi_Mirrored property
+ * @return true if the character has the Bidi_Mirrored property
  *
  * @see UCHAR_BIDI_MIRRORED
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isMirrored(UChar32 c);
 
 /**
@@ -3264,7 +3596,7 @@ u_isMirrored(UChar32 c);
  * @see u_isMirrored
  * @stable ICU 2.0
  */
-U_STABLE UChar32 U_EXPORT2
+U_CAPI UChar32 U_EXPORT2
 u_charMirror(UChar32 c);
 
 /**
@@ -3283,7 +3615,7 @@ u_charMirror(UChar32 c);
  * @see u_charMirror
  * @stable ICU 52
  */
-U_STABLE UChar32 U_EXPORT2
+U_CAPI UChar32 U_EXPORT2
 u_getBidiPairedBracket(UChar32 c);
 
 /**
@@ -3297,7 +3629,7 @@ u_getBidiPairedBracket(UChar32 c);
  * @see UCharCategory
  * @stable ICU 2.0
  */
-U_STABLE int8_t U_EXPORT2
+U_CAPI int8_t U_EXPORT2
 u_charType(UChar32 c);
 
 /**
@@ -3320,13 +3652,13 @@ u_charType(UChar32 c);
  * of code points c (where start<=c<limit)
  * with the same Unicode general category ("character type").
  *
- * The callback function can stop the enumeration by returning FALSE.
+ * The callback function can stop the enumeration by returning false.
  *
  * @param context an opaque pointer, as passed into utrie_enum()
  * @param start the first code point in a contiguous range with value
  * @param limit one past the last code point in a contiguous range with value
  * @param type the general category for all code points in [start..limit[
- * @return FALSE to stop the enumeration
+ * @return false to stop the enumeration
  *
  * @stable ICU 2.1
  * @see UCharCategory
@@ -3354,7 +3686,7 @@ UCharEnumTypeRange(const void *context, UChar32 start, UChar32 limit, UCharCateg
  * @see UCharCategory
  * @see UCharEnumTypeRange
  */
-U_STABLE void U_EXPORT2
+U_CAPI void U_EXPORT2
 u_enumCharTypes(UCharEnumTypeRange *enumRange, const void *context);
 
 #if !UCONFIG_NO_NORMALIZATION
@@ -3366,7 +3698,7 @@ u_enumCharTypes(UCharEnumTypeRange *enumRange, const void *context);
  * @return the combining class of the character
  * @stable ICU 2.0
  */
-U_STABLE uint8_t U_EXPORT2
+U_CAPI uint8_t U_EXPORT2
 u_getCombiningClass(UChar32 c);
 
 #endif
@@ -3394,7 +3726,7 @@ u_getCombiningClass(UChar32 c);
  * @see u_getNumericValue
  * @stable ICU 2.0
  */
-U_STABLE int32_t U_EXPORT2
+U_CAPI int32_t U_EXPORT2
 u_charDigitValue(UChar32 c);
 
 /**
@@ -3406,7 +3738,7 @@ u_charDigitValue(UChar32 c);
  * @see UBlockCode
  * @stable ICU 2.0
  */
-U_STABLE UBlockCode U_EXPORT2
+U_CAPI UBlockCode U_EXPORT2
 ublock_getCode(UChar32 c);
 
 /**
@@ -3441,7 +3773,7 @@ ublock_getCode(UChar32 c);
  * @see u_enumCharNames
  * @stable ICU 2.0
  */
-U_STABLE int32_t U_EXPORT2
+U_CAPI int32_t U_EXPORT2
 u_charName(UChar32 code, UCharNameChoice nameChoice,
            char *buffer, int32_t bufferLength,
            UErrorCode *pErrorCode);
@@ -3491,7 +3823,7 @@ u_getISOComment(UChar32 c,
  * @see u_enumCharNames
  * @stable ICU 1.7
  */
-U_STABLE UChar32 U_EXPORT2
+U_CAPI UChar32 U_EXPORT2
 u_charFromName(UCharNameChoice nameChoice,
                const char *name,
                UErrorCode *pErrorCode);
@@ -3500,14 +3832,14 @@ u_charFromName(UCharNameChoice nameChoice,
  * Type of a callback function for u_enumCharNames() that gets called
  * for each Unicode character with the code point value and
  * the character name.
- * If such a function returns FALSE, then the enumeration is stopped.
+ * If such a function returns false, then the enumeration is stopped.
  *
  * @param context The context pointer that was passed to u_enumCharNames().
  * @param code The Unicode code point for the character with this name.
  * @param nameChoice Selector for which kind of names is enumerated.
  * @param name The character's name, zero-terminated.
  * @param length The length of the name.
- * @return TRUE if the enumeration should continue, FALSE to stop it.
+ * @return true if the enumeration should continue, false to stop it.
  *
  * @see UCharNameChoice
  * @see u_enumCharNames
@@ -3540,7 +3872,7 @@ typedef UBool U_CALLCONV UEnumCharNamesFn(void *context,
  * @see u_charFromName
  * @stable ICU 1.7
  */
-U_STABLE void U_EXPORT2
+U_CAPI void U_EXPORT2
 u_enumCharNames(UChar32 start, UChar32 limit,
                 UEnumCharNamesFn *fn,
                 void *context,
@@ -3578,7 +3910,7 @@ u_enumCharNames(UChar32 start, UChar32 limit,
  * @see UPropertyNameChoice
  * @stable ICU 2.4
  */
-U_STABLE const char* U_EXPORT2
+U_CAPI const char* U_EXPORT2
 u_getPropertyName(UProperty property,
                   UPropertyNameChoice nameChoice);
 
@@ -3601,7 +3933,7 @@ u_getPropertyName(UProperty property,
  * @see UProperty
  * @stable ICU 2.4
  */
-U_STABLE UProperty U_EXPORT2
+U_CAPI UProperty U_EXPORT2
 u_getPropertyEnum(const char* alias);
 
 /**
@@ -3651,7 +3983,7 @@ u_getPropertyEnum(const char* alias);
  * @see UPropertyNameChoice
  * @stable ICU 2.4
  */
-U_STABLE const char* U_EXPORT2
+U_CAPI const char* U_EXPORT2
 u_getPropertyValueName(UProperty property,
                        int32_t value,
                        UPropertyNameChoice nameChoice);
@@ -3687,53 +4019,96 @@ u_getPropertyValueName(UProperty property,
  * @see UProperty
  * @stable ICU 2.4
  */
-U_STABLE int32_t U_EXPORT2
+U_CAPI int32_t U_EXPORT2
 u_getPropertyValueEnum(UProperty property,
                        const char* alias);
 
 /**
- * Determines if the specified character is permissible as the
- * first character in an identifier according to Unicode
- * (The Unicode Standard, Version 3.0, chapter 5.16 Identifiers).
- * True for characters with general categories "L" (letters) and "Nl" (letter numbers).
+ * Determines if the specified character is permissible as the first character in an identifier
+ * according to UAX #31 Unicode Identifier and Pattern Syntax.
  *
- * Same as java.lang.Character.isUnicodeIdentifierStart().
- * Same as UCHAR_ID_START
+ * Same as Unicode ID_Start (UCHAR_ID_START).
  *
  * @param c the code point to be tested
- * @return TRUE if the code point may start an identifier
+ * @return true if the code point may start an identifier
  *
  * @see UCHAR_ID_START
  * @see u_isalpha
  * @see u_isIDPart
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isIDStart(UChar32 c);
 
 /**
- * Determines if the specified character is permissible
- * in an identifier according to Java.
- * True for characters with general categories "L" (letters),
- * "Nl" (letter numbers), "Nd" (decimal digits),
- * "Mc" and "Mn" (combining marks), "Pc" (connecting punctuation), and
- * u_isIDIgnorable(c).
+ * Determines if the specified character is permissible as a non-initial character of an identifier
+ * according to UAX #31 Unicode Identifier and Pattern Syntax.
  *
- * Same as java.lang.Character.isUnicodeIdentifierPart().
- * Almost the same as Unicode's ID_Continue (UCHAR_ID_CONTINUE)
- * except that Unicode recommends to ignore Cf which is less than
- * u_isIDIgnorable(c).
+ * Same as Unicode ID_Continue (UCHAR_ID_CONTINUE).
  *
  * @param c the code point to be tested
- * @return TRUE if the code point may occur in an identifier according to Java
+ * @return true if the code point may occur as a non-initial character of an identifier
  *
  * @see UCHAR_ID_CONTINUE
  * @see u_isIDStart
  * @see u_isIDIgnorable
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isIDPart(UChar32 c);
+
+#ifndef U_HIDE_DRAFT_API
+/**
+ * Does the set of Identifier_Type values code point c contain the given type?
+ *
+ * Used for UTS #39 General Security Profile for Identifiers
+ * (https://www.unicode.org/reports/tr39/#General_Security_Profile).
+ *
+ * Each code point maps to a <i>set</i> of UIdentifierType values.
+ *
+ * @param c code point
+ * @param type Identifier_Type to check
+ * @return true if type is in Identifier_Type(c)
+ * @draft ICU 75
+ */
+U_CAPI bool U_EXPORT2
+u_hasIDType(UChar32 c, UIdentifierType type);
+
+/**
+ * Writes code point c's Identifier_Type as a list of UIdentifierType values
+ * to the output types array and returns the number of types.
+ *
+ * Used for UTS #39 General Security Profile for Identifiers
+ * (https://www.unicode.org/reports/tr39/#General_Security_Profile).
+ *
+ * Each code point maps to a <i>set</i> of UIdentifierType values.
+ * There is always at least one type.
+ * The order of output values is undefined.
+ * Each type is output at most once;
+ * there cannot be more output values than UIdentifierType constants.
+ * In addition, only some of the types can be combined with others,
+ * and usually only a small number of types occur together.
+ * Future versions might add additional types.
+ * See UTS #39 and its data files for details.
+ *
+ * If there are more than capacity types to be written, then
+ * U_BUFFER_OVERFLOW_ERROR is set and the number of types is returned.
+ * (Usual ICU buffer handling behavior.)
+ *
+ * @param c code point
+ * @param types output array
+ * @param capacity capacity of the array
+ * @param pErrorCode Standard ICU error code. Its input value must
+ *                   pass the U_SUCCESS() test, or else the function returns
+ *                   immediately. Check for U_FAILURE() on output or use with
+ *                   function chaining. (See User Guide for details.)
+ * @return number of values in c's Identifier_Type,
+ *         written to types unless U_BUFFER_OVERFLOW_ERROR indicates insufficient capacity
+ * @draft ICU 75
+ */
+U_CAPI int32_t U_EXPORT2
+u_getIDTypes(UChar32 c, UIdentifierType *types, int32_t capacity, UErrorCode *pErrorCode);
+#endif  // U_HIDE_DRAFT_API
 
 /**
  * Determines if the specified character should be regarded
@@ -3748,14 +4123,14 @@ u_isIDPart(UChar32 c);
  * Note that Unicode just recommends to ignore Cf (format controls).
  *
  * @param c the code point to be tested
- * @return TRUE if the code point is ignorable in identifiers according to Java
+ * @return true if the code point is ignorable in identifiers according to Java
  *
  * @see UCHAR_DEFAULT_IGNORABLE_CODE_POINT
  * @see u_isIDStart
  * @see u_isIDPart
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isIDIgnorable(UChar32 c);
 
 /**
@@ -3767,14 +4142,14 @@ u_isIDIgnorable(UChar32 c);
  * Same as java.lang.Character.isJavaIdentifierStart().
  *
  * @param c the code point to be tested
- * @return TRUE if the code point may start a Java identifier
+ * @return true if the code point may start a Java identifier
  *
  * @see     u_isJavaIDPart
  * @see     u_isalpha
  * @see     u_isIDStart
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isJavaIDStart(UChar32 c);
 
 /**
@@ -3786,7 +4161,7 @@ u_isJavaIDStart(UChar32 c);
  * Same as java.lang.Character.isJavaIdentifierPart().
  *
  * @param c the code point to be tested
- * @return TRUE if the code point may occur in a Java identifier
+ * @return true if the code point may occur in a Java identifier
  *
  * @see     u_isIDIgnorable
  * @see     u_isJavaIDStart
@@ -3795,7 +4170,7 @@ u_isJavaIDStart(UChar32 c);
  * @see     u_isIDPart
  * @stable ICU 2.0
  */
-U_STABLE UBool U_EXPORT2
+U_CAPI UBool U_EXPORT2
 u_isJavaIDPart(UChar32 c);
 
 /**
@@ -3813,14 +4188,14 @@ u_isJavaIDPart(UChar32 c);
  * Full case mappings are applied by the string case mapping functions,
  * see ustring.h and the UnicodeString class.
  * See also the User Guide chapter on C/POSIX migration:
- * http://icu-project.org/userguide/posix.html#case_mappings
+ * https://unicode-org.github.io/icu/userguide/icu/posix#case-mappings
  *
  * @param c the code point to be mapped
  * @return the Simple_Lowercase_Mapping of the code point, if any;
  *         otherwise the code point itself.
  * @stable ICU 2.0
  */
-U_STABLE UChar32 U_EXPORT2
+U_CAPI UChar32 U_EXPORT2
 u_tolower(UChar32 c);
 
 /**
@@ -3838,14 +4213,14 @@ u_tolower(UChar32 c);
  * Full case mappings are applied by the string case mapping functions,
  * see ustring.h and the UnicodeString class.
  * See also the User Guide chapter on C/POSIX migration:
- * http://icu-project.org/userguide/posix.html#case_mappings
+ * https://unicode-org.github.io/icu/userguide/icu/posix#case-mappings
  *
  * @param c the code point to be mapped
  * @return the Simple_Uppercase_Mapping of the code point, if any;
  *         otherwise the code point itself.
  * @stable ICU 2.0
  */
-U_STABLE UChar32 U_EXPORT2
+U_CAPI UChar32 U_EXPORT2
 u_toupper(UChar32 c);
 
 /**
@@ -3863,14 +4238,14 @@ u_toupper(UChar32 c);
  * Full case mappings are applied by the string case mapping functions,
  * see ustring.h and the UnicodeString class.
  * See also the User Guide chapter on C/POSIX migration:
- * http://icu-project.org/userguide/posix.html#case_mappings
+ * https://unicode-org.github.io/icu/userguide/icu/posix#case-mappings
  *
  * @param c the code point to be mapped
  * @return the Simple_Titlecase_Mapping of the code point, if any;
  *         otherwise the code point itself.
  * @stable ICU 2.0
  */
-U_STABLE UChar32 U_EXPORT2
+U_CAPI UChar32 U_EXPORT2
 u_totitle(UChar32 c);
 
 /**
@@ -3887,7 +4262,7 @@ u_totitle(UChar32 c);
  * Full case mappings are applied by the string case mapping functions,
  * see ustring.h and the UnicodeString class.
  * See also the User Guide chapter on C/POSIX migration:
- * http://icu-project.org/userguide/posix.html#case_mappings
+ * https://unicode-org.github.io/icu/userguide/icu/posix#case-mappings
  *
  * @param c the code point to be mapped
  * @param options Either U_FOLD_CASE_DEFAULT or U_FOLD_CASE_EXCLUDE_SPECIAL_I
@@ -3895,7 +4270,7 @@ u_totitle(UChar32 c);
  *         otherwise the code point itself.
  * @stable ICU 2.0
  */
-U_STABLE UChar32 U_EXPORT2
+U_CAPI UChar32 U_EXPORT2
 u_foldCase(UChar32 c, uint32_t options);
 
 /**
@@ -3936,7 +4311,7 @@ u_foldCase(UChar32 c, uint32_t options);
  * @see     u_isdigit
  * @stable ICU 2.0
  */
-U_STABLE int32_t U_EXPORT2
+U_CAPI int32_t U_EXPORT2
 u_digit(UChar32 ch, int8_t radix);
 
 /**
@@ -3967,7 +4342,7 @@ u_digit(UChar32 ch, int8_t radix);
  * @see     u_isdigit
  * @stable ICU 2.0
  */
-U_STABLE UChar32 U_EXPORT2
+U_CAPI UChar32 U_EXPORT2
 u_forDigit(int32_t digit, int8_t radix);
 
 /**
@@ -3984,7 +4359,7 @@ u_forDigit(int32_t digit, int8_t radix);
  *
  * @stable ICU 2.1
  */
-U_STABLE void U_EXPORT2
+U_CAPI void U_EXPORT2
 u_charAge(UChar32 c, UVersionInfo versionArray);
 
 /**
@@ -3998,7 +4373,7 @@ u_charAge(UChar32 c, UVersionInfo versionArray);
  *                     the Unicode version number
  * @stable ICU 2.0
  */
-U_STABLE void U_EXPORT2
+U_CAPI void U_EXPORT2
 u_getUnicodeVersion(UVersionInfo versionArray);
 
 #if !UCONFIG_NO_NORMALIZATION
@@ -4023,7 +4398,7 @@ u_getUnicodeVersion(UVersionInfo versionArray);
  *
  * @stable ICU 2.2
  */
-U_STABLE int32_t U_EXPORT2
+U_CAPI int32_t U_EXPORT2
 u_getFC_NFKC_Closure(UChar32 c, UChar *dest, int32_t destCapacity, UErrorCode *pErrorCode);
 
 #endif

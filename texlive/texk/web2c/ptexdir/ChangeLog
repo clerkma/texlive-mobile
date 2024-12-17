@@ -1,3 +1,363 @@
+2024-09-22  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* ptex-base.ch, ptex_version.h: Version p4.1.2.
+
+2024-09-21  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* ptex-base.ch:
+	Fix a bug in initialization of inhibit_xsp/kinsoku tables
+	(Bug introduced on commit 2022-12-12 r65248).
+	* ptex-ctrlsym.test, tests/{ptexlineendmode,ucs}.tex,
+	(chartoken,ucs-{e,s}}.log, p-lineenda.typ:
+	Add more regression tests.
+	* tests/{free_{ixsp,pena},inhibitglue,kinsoku_{search,table},
+	postpena}.tex: Move to ../euptexdir/tests .
+	* am/ptex.am: Adjust.
+
+2024-09-16  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* ptex-base.ch: Use constants enc_jis and enc_ucs.
+	* ptex-{ctrlsym,prntknj,ucs}.test,
+	tests/{control-symbol,ctrlsym,endlinechar,printkanji,ucs}.tex,
+	tests/{ctrlsym,endline,jctrlsym,pknj-{e,s},ucs-{e,s}).log,
+	tests/p-{endline,jctrlsym,pknj-{e,s}}a.typ:
+	Add regression tests by using Kitagawa-san's sample files.
+	* am/ptex.am: Adjust.
+
+2024-05-18  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* ptex-base.ch: Enable to get character codes
+	from control symbols by using backquote "`".
+	https://github.com/texjporg/tex-jp-build/issues/167
+
+2024-04-14  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* ptriptest.test:
+	Filter Web2C year/dev in banner.
+
+2024-03-10  Karl Berry  <karl@tug.org>
+
+	* TL'24 release.
+
+2023-12-24  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* wcfname.test:
+	Avoid errors on parallel test processing.
+
+2023-11-25  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* wcfname.test: Add tests for --recorder and *.fls.
+	https://github.com/texjporg/tex-jp-build/issues/45
+
+2023-11-24  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* ptriptest.test:
+	Check diffs of trip.{fot,typ} with ignoring trivial changes
+	in trip tests.
+
+2023-09-17  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* ptex-base.ch: Support more than 256 different glue/kern.
+	* ptex_version.h: Version p4.1.1.
+
+2023-09-03  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* {ptriptest,pver}.test:
+	Update tests for Windows.
+
+2023-08-22  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* ptex-base.ch: Clean up unnecessary lines.
+
+2023-08-20  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* {ptriptest,pver,wcfname,zfmtcompress}.test:
+	Make easier to test on Windows.
+
+2023-04-15  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* ptex-base.ch: Update last_jchr in unpackage.
+	https://github.com/texjporg/tex-jp-build/issues/156
+
+2023-03-29  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* wcfname.test:
+	Skip tests for Shift_JIS & EUC-JP if conversion failed.
+	Report from Ken Moffat.
+	https://tug.org/pipermail/tex-k/2023-March/003911.html
+
+2023-03-09  Karl Berry  <karl@tug.org>
+
+	* TL'23 release.
+
+2023-02-14  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* wcfname.test:
+	Avoid errors on parallel test processing.
+	Report from Ken Brown.
+
+2023-01-28  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* am/ptex.am:
+	Revert options --enable-ptex(-synctex) for configure.
+	By default, we do not build binary of pTeX (ptex)
+	and we use alias of e-pTeX (eptex) for it.
+	https://github.com/texjporg/tex-jp-build/issues/32
+
+2023-01-15  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* ptexextra.h:
+	Make AUTHOR "Japanese TeX Development Community".
+	* {nissya,pbibtex{,-mem},pdvitype,sample}.test,
+	{ppltotf,ptftopl,skipjfmp,yokotate}.test,
+	pbibtex-{longline,openout}-test.pl:
+	Remove unused tests.
+	* {pbibtex,pdvitype,ppltotf,ptftopl}.ch:
+	Remove unused change files.
+	* am/ptex.am:
+	Remove binaries of pTeX (ptex).
+	Now we use alias of e-pTeX (eptex) for pTeX (ptex).
+	https://github.com/texjporg/tex-jp-build/issues/32
+	* COPYRIGHT: copyright year.
+
+2022-12-28  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* wcfname.test, am/ptex.am:
+	Add tests for file names with JIS X 0208 characters
+	in `ptex --kanji-internal={euc,sjis}`.
+	https://github.com/texjporg/tex-jp-build/issues/136
+
+2022-12-22  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* ptex-base.ch, ptex.defines, kanji.h, am/ptex.am:
+	Accept file names with JIS X 0208 characters
+	in `ptex --kanji-internal={euc,sjis}`.
+	https://github.com/texjporg/tex-jp-build/issues/136
+
+2022-12-12  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* ptex-base.ch: Increase INHIBIT/KINSOKU table size to 1024.
+
+2022-12-03  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	am/ptex.am:
+	Merge change files/binaries for pTeX tools into upTeX tools.
+	Now pTeX tools (pbibtex, pdvitype, ppltotf, ptftopl) run
+	as the compatible mode.
+	https://github.com/texjporg/tex-jp-build/issues/32
+	https://github.com/texjporg/tex-jp-build/issues/154
+
+2022-11-27  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* {nissya,pdvitype,yokotate}.test, tests/nissya_bib.bbl,
+	tests/chcode.pl, tests/chcode-{jis,utf8,euc,sjis}.pl, tests/chcode.tfm,
+	tests/ptex[34].{tex,dvi}, tests/ptex[34]a-{jis,utf8}.typ, am/ptex.am:
+	Add tests for pTeX compatible mode of tools for upTeX.
+	https://github.com/texjporg/tex-jp-build/issues/32
+
+2022-11-03  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* ptex-base.ch: Increase max_quarterword to 0xFFFF on pTeX.
+	This is safe (and also necessary) as texmfmem.h already has
+	similar memory structure as upTeX, epTeX and eupTeX.
+	(Bug introduced on commit 2022-01-22)
+	https://github.com/texjporg/tex-jp-build/issues/152
+
+2022-10-24  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* ptex-base.ch: Add a new syntax \font [in jis/ucs].
+	New primitives: \tojis, \ptextracingfonts and \ptexfontname.
+	* ptex.defines: Add toJIS.
+	* ptex_version.h: Version p4.1.0.
+
+2022-10-23  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* ptex-base.ch: initialize k in adjust_hlist.
+	https://github.com/texjporg/tex-jp-build/issues/151
+
+2022-09-03  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* pbibtex.ch:
+	Check options before initialization of kpathsearch parameters.
+	This change prevents unwanted looking for texmf.cnf.
+	https://github.com/texjporg/tex-jp-build/issues/145
+	* pbibtex.test, am/ptex.am:
+	Update tests for pBibTeX.
+
+2022-09-01  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* kanji.c: Initialization of infile_enc_auto is moved to ptexenc.
+	This change prevents unwanted looking for texmf.cnf.
+	https://github.com/texjporg/tex-jp-build/pull/144
+
+2022-06-12  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* kanji.[ch], pbibtex.ch:
+	Support guessing input file encodings.
+	https://github.com/texjporg/tex-jp-build/issues/142
+	* pbibtex.test, am/ptex.am:
+	Add tests for guess encodings & pBibTeX.
+
+2022-05-15  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* pbibtex.ch, ptex.defines:
+	Accept multibyte characters by int.to.chr$ and chr.to.int$, i.e.
+	chr is corresponding to one single character multibyte string.
+	Bump version to j0.35.
+
+2022-05-06  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* pbibtex.test: Update a test.
+
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2022-02-20  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* pbibtex.ch: Improve substring$ to truncate at least one
+	  character when trying to start counting from the middle
+	  byte of the first or last Japanese character.
+	  Still version j0.34.
+	  https://github.com/texjporg/tex-jp-build/issues/133
+
+2022-02-15  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* ptex-base.ch: Revised state after a control word which ends
+	  with a Japanese character. Starting from pTeX version p4.0.0,
+	  newline char after "a control word ending with a Japanese
+	  character + {}" is ignored. To emulate older behavior, a new
+	  primitive \ptexlineendmode is added.
+	  The new primitive is an internal integer which means:
+	   - When the least significant bit is set,
+	     a blank is generated when the line ends with
+	     "a control word ending with a Japanese character + {}".
+	   - When the second least significant bit is set,
+	     a blank is generated when the line ends with
+	     "a Japanese control symbol".
+	   - When the third least significant bit is set,
+	     a blank is generated when the line ends with
+	     "a Japanese character (which is not part of a CS) + {}".
+	  By setting \ptexlineendmode to the following values,
+	  old versions of pTeX can be restored:
+	   - p4.0.0 or later : default 0.
+	   - p3.8.2-3.10.0   : similar to 1.
+	   - p3.8.1 or older : similar to 3.
+	  More info: https://github.com/texjporg/tex-jp-build/issues/87
+
+2022-02-13  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* ptex-base.ch: \write18 in '^^' format. (Thanks Yukimasa Morimi)
+	* pbibtex.ch: Do not break at white_space after Japanese
+	  characters. Version j0.34.
+	  https://github.com/texjporg/pbibtex-manual/issues/1
+
+2022-02-05  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* ptex-base.ch: Fix for \write18 with quotation.
+	  Convert non-Japanese non-ASCII bytes in name_of_file to
+	  "^^" format. (Thanks Yukimasa Morimi)
+	* ptex.defines: Add isinternalUPTEX and isterminalUTF8.
+
+2022-01-29  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* ptex-base.ch: Fix \chardef code 256 in math.
+	  Fix \mathcode for 128--255 not working.
+	  https://github.com/texjporg/tex-jp-build/issues/129
+
+2022-01-27  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* ptex-base.ch: Fix a mistake and avoid compiler warnings.
+
+2022-01-22  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* ptex-base.ch: Change type of str_pool to unsigned short.
+	  We use only 0--511, and use flag 0x100 for Japanese char.
+	  More details in TUGboat 41(2):329--334, 2020.
+	* kanji.h: Adapt to arguments of input_line2() in ptexenc-1.4.0
+	  (for pBibTeX).
+	* ptex.defines: Add multistrlen{short,filename}, fromBUFFshort.
+	* ptex_version.h: Version p4.0.0.
+	* tests/filename_test.sh, tests/printkanji.tex: Added.
+	  https://github.com/texjporg/tex-jp-build/issues/81
+
+2022-01-10  Karl Berry  <karl@freefriends.org>
+
+	* am/ptex.am: do not silence tangle-sh.
+
+2021-07-01  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* ptex-base.ch: Set subtype=0 for adjust_node.
+
+2021-06-29  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+	and Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* ptex-base.ch:
+	  - Bug fix: Wrap print_hex for negative value.
+	  - Change: Code conversion primitives return -1 for invalid.
+	  - Added: New primitives \ucs (from upTeX) and \toucs.
+	* ptex.defines: Add fromUCS() and toUCS().
+	* ptex_version.h: pTeX version p3.10.0.
+	https://github.com/texjporg/tex-jp-build/pull/121
+
+2021-06-25  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+	and Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* ptex-base.ch (end_graf, @<Go into display math mode@>):
+	Ignore disp_node-only paragraphs.
+	* ptex-base.ch (line_break): consider when link(temp_head)=tail
+	and it is a disp_node.
+	https://github.com/texjporg/tex-jp-build/issues/123
+	* ptex-base.ch: Partially revert the commit on 2019-05-06;
+	no re-eval kcatcode of \let-copied Japanese character token in
+	\if and \ifcat, because the behavior was inconsistent against \ifx.
+	https://github.com/texjporg/ptex-manual/issues/4
+	* ptex-base.ch: Fix searching in inhibit/kinsoku tables, because
+	the fix on 2018-04-14 was still incomplete. More information for
+	\tracingrestores and \tracingassigns.
+	https://github.com/texjporg/tex-jp-build/issues/113
+	* tests/kinsoku_search.tex: New test file.
+	* tests/kinsoku_table.tex: Update.
+	* ptex-base.ch, ptex_version.h: Version p3.9.1.
+
+2021-03-23  Karl Berry  <karl@tug.org>
+
+	* TL'21.
+
+2021-02-18  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* ptex-base.ch, ptex_version.h: pTeX version p3.9.0 for TL21.
+	(Forgot to update version number on 2020-02-05.)
+
+2021-02-15  Andreas Scherer  <https://ascherer.github.io>
+
+	* ptexdir/ptex-base.ch: Fix Pascal variable in comment.
+
+2020-11-29  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* ptex-base.ch: Fix syntax error of "not equal".
+	Correct error recovery value of illegal catcode for upTeX.
+
+2020-10-30  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* pdvitype.ch: Strict check for DVI ID was wrong for
+	output-level <= 3; needs reconsider.
+
+2020-08-29  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* pdvitype.ch: Support dtou direction. Strict check for DVI ID
+	with command 255. Version p0.5.
+
+2020-05-17  Hironobu Yamashita  <h.y.acetaminophen@gmail.com>
+
+	* ppltotf.ch: Avoid compiler warnings: equality comparison with
+	extraneous parentheses.
+
+2020-05-05  Hironori Kitagawa  <h_kitagawa2001@yahoo.co.jp>
+
+	* ptex-base.ch: Improved resetting inhibit_glue_flag in extensions.
+	https://github.com/texjporg/tex-jp-build/pull/102
+
 2020-02-09  Phelype Oleinik  <phe.h.o1@gmail.com>
 
 	* ptexdir/ptex-base.ch: extra end; needed for the scan_file_name

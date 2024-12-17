@@ -125,7 +125,7 @@ TimeZoneBoundaryTest::findDaylightBoundaryUsingTimeZone(UDate d, UBool startsInD
         dataerrln("FAIL: " + tz->getID(str) + " inDaylightTime(" + dateToString(d) + ") != " + (startsInDST ? "true" : "false"));
         startsInDST = !startsInDST;
     }
-    if (failure(status, "TimeZone::inDaylightTime", TRUE)) return;
+    if (failure(status, "TimeZone::inDaylightTime", true)) return;
     if (tz->inDaylightTime(max, status) == startsInDST) {
         dataerrln("FAIL: " + tz->getID(str) + " inDaylightTime(" + dateToString(max) + ") != " + (startsInDST ? "false" : "true"));
         return;
@@ -197,7 +197,7 @@ TimeZoneBoundaryTest::verifyDST(UDate d, TimeZone* time_zone, UBool expUseDaylig
         logln(UnicodeString("PASS: inDaylightTime = ") + (time_zone->inDaylightTime(d, status)?"true":"false"));
     else 
         dataerrln(UnicodeString("FAIL: inDaylightTime = ") + (time_zone->inDaylightTime(d, status)?"true":"false"));
-    if (failure(status, "TimeZone::inDaylightTime", TRUE)) 
+    if (failure(status, "TimeZone::inDaylightTime", true)) 
         return;
     if (time_zone->useDaylightTime() == expUseDaylightTime)
         logln(UnicodeString("PASS: useDaylightTime = ") + (time_zone->useDaylightTime()?"true":"false"));
@@ -211,9 +211,9 @@ TimeZoneBoundaryTest::verifyDST(UDate d, TimeZone* time_zone, UBool expUseDaylig
     GregorianCalendar *gc = new GregorianCalendar(time_zone->clone(), status);
     gc->setTime(d, status);
     if (failure(status, "GregorianCalendar::setTime")) return;
-    int32_t offset = time_zone->getOffset((uint8_t)gc->get(UCAL_ERA, status),
+    int32_t offset = time_zone->getOffset(static_cast<uint8_t>(gc->get(UCAL_ERA, status)),
         gc->get(UCAL_YEAR, status), gc->get(UCAL_MONTH, status),
-        gc->get(UCAL_DATE, status), (uint8_t)gc->get(UCAL_DAY_OF_WEEK, status),
+        gc->get(UCAL_DATE, status), static_cast<uint8_t>(gc->get(UCAL_DAY_OF_WEEK, status)),
         ((gc->get(UCAL_HOUR_OF_DAY, status) * 60 + gc->get(UCAL_MINUTE, status)) * 60 + gc->get(UCAL_SECOND, status)) * 1000 + gc->get(UCAL_MILLISECOND, status),
         status);
     if (failure(status, "GregorianCalendar::get")) return;
@@ -300,7 +300,7 @@ TimeZoneBoundaryTest::TestBoundaries()
     TimeZone* save = TimeZone::createDefault();
     TimeZone::setDefault(*pst);
    
-    if (tempcal != NULL) { 
+    if (tempcal != nullptr) { 
         // DST changeover for PST is 4/6/1997 at 2 hours past midnight
         // at 238978.0 epoch hours.
         tempcal->clear();
@@ -312,7 +312,7 @@ TimeZoneBoundaryTest::TestBoundaries()
         {
             UBool inDST = (i >= 120);
             tempcal->setTime(d + i*60*1000, status);
-            verifyDST(tempcal->getTime(status),pst, TRUE, inDST, -8*ONE_HOUR,inDST ? -7*ONE_HOUR : -8*ONE_HOUR);
+            verifyDST(tempcal->getTime(status),pst, true, inDST, -8*ONE_HOUR,inDST ? -7*ONE_HOUR : -8*ONE_HOUR);
         }
     }
     TimeZone::setDefault(*save);
@@ -328,7 +328,7 @@ TimeZoneBoundaryTest::TestBoundaries()
         for (int32_t i = 60; i <= 180; i += 15) {
             UBool inDST = (i >= 120);
             UDate e = d + i * 60 * 1000;
-            verifyDST(e, z, TRUE, inDST, - 8 * ONE_HOUR, inDST ? - 7 * ONE_HOUR: - 8 * ONE_HOUR);
+            verifyDST(e, z, true, inDST, - 8 * ONE_HOUR, inDST ? - 7 * ONE_HOUR: - 8 * ONE_HOUR);
         }
         delete z;
     }
@@ -350,9 +350,9 @@ TimeZoneBoundaryTest::TestBoundaries()
         logln("--- Test c ---");
         logln("========================================");
         TimeZone* z = TimeZone::createTimeZone("Australia/Adelaide");
-        findDaylightBoundaryUsingTimeZone(date(97, 0, 1), TRUE, 859653000000.0, z);
+        findDaylightBoundaryUsingTimeZone(date(97, 0, 1), true, 859653000000.0, z);
         logln("========================================");
-        findDaylightBoundaryUsingTimeZone(date(97, 6, 1), FALSE, 877797000000.0, z);
+        findDaylightBoundaryUsingTimeZone(date(97, 6, 1), false, 877797000000.0, z);
         delete z;
     }
 #endif
@@ -360,9 +360,9 @@ TimeZoneBoundaryTest::TestBoundaries()
     {
         logln("--- Test d ---");
         logln("========================================");
-        findDaylightBoundaryUsingTimeZone(date(97, 0, 1), FALSE, PST_1997_BEG);
+        findDaylightBoundaryUsingTimeZone(date(97, 0, 1), false, PST_1997_BEG);
         logln("========================================");
-        findDaylightBoundaryUsingTimeZone(date(97, 6, 1), TRUE, PST_1997_END);
+        findDaylightBoundaryUsingTimeZone(date(97, 6, 1), true, PST_1997_END);
     }
 #endif
 #if 0
@@ -387,7 +387,7 @@ TimeZoneBoundaryTest::testUsingBinarySearch(SimpleTimeZone* tz, UDate d, UDate e
     UDate min = d;
     UDate max = min + SIX_MONTHS;
     UBool startsInDST = tz->inDaylightTime(d, status);
-    if (failure(status, "SimpleTimeZone::inDaylightTime", TRUE)) return;
+    if (failure(status, "SimpleTimeZone::inDaylightTime", true)) return;
     if (tz->inDaylightTime(max, status) == startsInDST) {
         errln("Error: inDaylightTime(" + dateToString(max) + ") != " + ((!startsInDST)?"true":"false"));
     }
@@ -427,7 +427,7 @@ TimeZoneBoundaryTest::TestNewRules()
         SimpleTimeZone *tz;
         logln("-----------------------------------------------------------------");
         logln("Aug 2ndTues .. Mar 15");
-        tz = new SimpleTimeZone(- 8 * (int32_t)ONE_HOUR, "Test_1", UCAL_AUGUST, 2, UCAL_TUESDAY, 2 * (int32_t)ONE_HOUR, UCAL_MARCH, 15, 0, 2 * (int32_t)ONE_HOUR, status);
+        tz = new SimpleTimeZone(-8 * static_cast<int32_t>(ONE_HOUR), "Test_1", UCAL_AUGUST, 2, UCAL_TUESDAY, 2 * static_cast<int32_t>(ONE_HOUR), UCAL_MARCH, 15, 0, 2 * static_cast<int32_t>(ONE_HOUR), status);
         logln("========================================");
         testUsingBinarySearch(tz, date(97, 0, 1), 858416400000.0);
         logln("========================================");
@@ -435,7 +435,7 @@ TimeZoneBoundaryTest::TestNewRules()
         delete tz;
         logln("-----------------------------------------------------------------");
         logln("Apr Wed>=14 .. Sep Sun<=20");
-        tz = new SimpleTimeZone(- 8 * (int32_t)ONE_HOUR, "Test_2", UCAL_APRIL, 14, - UCAL_WEDNESDAY, 2 *(int32_t)ONE_HOUR, UCAL_SEPTEMBER, - 20, - UCAL_SUNDAY, 2 * (int32_t)ONE_HOUR, status);
+        tz = new SimpleTimeZone(-8 * static_cast<int32_t>(ONE_HOUR), "Test_2", UCAL_APRIL, 14, -UCAL_WEDNESDAY, 2 * static_cast<int32_t>(ONE_HOUR), UCAL_SEPTEMBER, -20, -UCAL_SUNDAY, 2 * static_cast<int32_t>(ONE_HOUR), status);
         logln("========================================");
         testUsingBinarySearch(tz, date(97, 0, 1), 861184800000.0);
         logln("========================================");
@@ -456,7 +456,7 @@ TimeZoneBoundaryTest::findBoundariesStepwise(int32_t year, UDate interval, TimeZ
     UDate time = d;
     UDate limit = time + ONE_YEAR + ONE_DAY;
     UBool lastState = z->inDaylightTime(d, status);
-    if (failure(status, "TimeZone::inDaylightTime", TRUE)) return;
+    if (failure(status, "TimeZone::inDaylightTime", true)) return;
     int32_t changes = 0;
     logln(UnicodeString("-- Zone ") + z->getID(str) + " starts in " + year + " with DST = " + (lastState?"true":"false"));
     logln(UnicodeString("useDaylightTime = ") + (z->useDaylightTime()?"true":"false"));

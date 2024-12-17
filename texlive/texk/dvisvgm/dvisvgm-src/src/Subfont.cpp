@@ -2,7 +2,7 @@
 ** Subfont.cpp                                                          **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -53,7 +53,7 @@ SubfontDefinition::SubfontDefinition (string name, const char *fpath) : _sfname(
 			while (is && !isspace(is.peek()))
 				id += char(is.get());
 			if (!id.empty()) {
-				auto state = _subfonts.emplace(pair<string,unique_ptr<Subfont>>(id, unique_ptr<Subfont>()));
+				auto state = _subfonts.emplace(id, unique_ptr<Subfont>());
 				if (state.second) // id was not present in map already
 					state.first->second = unique_ptr<Subfont>(new Subfont(*this, state.first->first));
 				skip_mapping_data(is);
@@ -97,10 +97,11 @@ Subfont* SubfontDefinition::subfont (const string &id) const {
 
 
 /** Returns all subfonts defined in this SFD. */
-int SubfontDefinition::subfonts (vector<Subfont*> &sfs) const {
+vector<Subfont*> SubfontDefinition::subfonts () const {
+	vector<Subfont*> subfonts;
 	for (const auto &strsfpair : _subfonts)
-		sfs.push_back(strsfpair.second.get());
-	return int(sfs.size());
+		subfonts.push_back(strsfpair.second.get());
+	return subfonts;
 }
 
 //////////////////////////////////////////////////////////////////////

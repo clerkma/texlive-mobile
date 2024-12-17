@@ -1,3 +1,50 @@
+2024-10-19  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* tests/inbmp.opl, tests/overbmp.{opl,ovp}:
+	Sync with omegafonts.
+
+2023-08-26  Karl Berry  <karl@freefriends.org>
+
+	* ligkern.test: protect against $rc being defined in the environment.
+
+2023-08-19  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* {odvicopy,odvitype,ofonts,overbmp}.test:
+	Update.
+
+2023-08-13  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* {bad,charwd,check,help,level1,ligkern,odvicopy,odvitype,
+	ofonts,omfonts,otangle,overbmp,realnum,repeat,selectfont,
+	shorten,specialhex,version,vrepeat,yannis}.test:
+	Make easier to test on Windows.
+
+2023-03-09  Karl Berry  <karl@tug.org>
+
+	* TL'23 release.
+
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2022-01-10  Karl Berry  <karl@freefriends.org>
+
+	* am/omegaware.am: do not silence tangle-sh.
+
+2021-03-23  Karl Berry  <karl@tug.org>
+
+	* TL'21.
+
+2021-01-30  Karl Berry  <karl@freefriends.org>
+
+	* odvicopy.web,
+	* odvitype.web,
+	* ofm2opl.web,
+	* opl2ofm.web,
+	* ovf2ovp.web,
+	* ovp2ovf.web: \titlefalse rather than the obsolete \titlepage{F}.
+	Found by Andreas Scherer.
+
 2018-09-09  Karl Berry  <karl@tug.org>
 
 	* ligkern.test,

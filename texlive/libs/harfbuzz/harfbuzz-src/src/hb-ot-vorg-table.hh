@@ -48,7 +48,7 @@ struct VertOriginMetric
   }
 
   public:
-  HBGlyphID	glyph;
+  HBGlyphID16	glyph;
   FWORD		vertOriginY;
 
   public:
@@ -84,13 +84,13 @@ struct VORG
     this->defaultVertOriginY = defaultVertOriginY;
     this->vertYOrigins.len = it.len ();
 
-    for (const auto _ : it) c->copy (_);
+    c->copy_all (it);
   }
 
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    VORG *vorg_prime = c->serializer->start_embed<VORG> ();
+    auto *vorg_prime = c->serializer->start_embed<VORG> ();
     if (unlikely (!c->serializer->check_success (vorg_prime))) return_trace (false);
 
     auto it =
@@ -117,15 +117,17 @@ struct VORG
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
+		  hb_barrier () &&
 		  version.major == 1 &&
 		  vertYOrigins.sanitize (c));
   }
 
   protected:
-  FixedVersion<>	version;		/* Version of VORG table. Set to 0x00010000u. */
-  FWORD			defaultVertOriginY;	/* The default vertical origin. */
-  SortedArrayOf<VertOriginMetric>
-			vertYOrigins;		/* The array of vertical origins. */
+  FixedVersion<>version;	/* Version of VORG table. Set to 0x00010000u. */
+  FWORD		defaultVertOriginY;
+				/* The default vertical origin. */
+  SortedArray16Of<VertOriginMetric>
+		vertYOrigins;	/* The array of vertical origins. */
 
   public:
   DEFINE_SIZE_ARRAY(8, vertYOrigins);

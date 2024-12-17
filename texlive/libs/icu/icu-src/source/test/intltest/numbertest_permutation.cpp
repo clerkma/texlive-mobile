@@ -71,7 +71,11 @@ static const double kNumbersToTest[]{0, 91827.3645, -0.22222};
  * Test permutations of 3 orthogonal skeleton parts from the list above.
  * Compare the results against the golden data file:
  *     numberpermutationtest.txt
- * To regenerate that file, run intltest with the -G option.
+ * To regenerate that file, run intltest with the -e and -G options.
+ * On Linux, from icu4c/source:
+ *     make -j -l2.5 tests && (cd test/intltest && LD_LIBRARY_PATH=../../lib:../../tools/ctestfw ./intltest -e -G format/NumberTest/NumberPermutationTest)
+ * After re-generating the file, copy it into icu4j:
+ *     cp test/testdata/numberpermutationtest.txt ../../icu4j/main/core/src/test/resources/com/ibm/icu/dev/data/numberpermutationtest.txt
  */
 void NumberPermutationTest::testPermutations() {
     IcuTestErrorCode status(*this, "testPermutations");
@@ -100,9 +104,9 @@ void NumberPermutationTest::testPermutations() {
 
     // Build up the golden data string as we evaluate all permutations
     std::vector<UnicodeString> resultLines;
-    resultLines.push_back(u"# © 2019 and later: Unicode, Inc. and others.");
-    resultLines.push_back(u"# License & terms of use: http://www.unicode.org/copyright.html");
-    resultLines.push_back(UnicodeString());
+    resultLines.emplace_back(u"# © 2019 and later: Unicode, Inc. and others.");
+    resultLines.emplace_back(u"# License & terms of use: http://www.unicode.org/copyright.html");
+    resultLines.emplace_back();
 
     // Take combinations of 3 orthogonal options
     for (size_t i = 0; i < skeletonParts.size() - 2; i++) {
@@ -137,7 +141,7 @@ void NumberPermutationTest::testPermutations() {
                                 }
                             }
 
-                            resultLines.push_back(UnicodeString());
+                            resultLines.emplace_back();
                         }
                     }
                 }
@@ -159,7 +163,7 @@ outerEnd:
 
     // Compare it to the golden file
     const char* codePage = "UTF-8";
-    LocalUCHARBUFPointer f(ucbuf_open(goldenFilePath.data(), &codePage, TRUE, FALSE, status));
+    LocalUCHARBUFPointer f(ucbuf_open(goldenFilePath.data(), &codePage, true, false, status));
     if (!assertSuccess("Can't open data file", status)) {
         return;
     }
@@ -167,7 +171,7 @@ outerEnd:
     int32_t lineNumber = 1;
     int32_t lineLength;
     for (const auto& actualLine : resultLines) {
-        const UChar* lineBuf = ucbuf_readline(f.getAlias(), &lineLength, status);
+        const char16_t* lineBuf = ucbuf_readline(f.getAlias(), &lineLength, status);
         if (lineBuf == nullptr) {
             errln("More lines generated than are in the data file!");
             break;

@@ -1,6 +1,6 @@
 /* mpfr_pow_z -- power function x^z with z a MPZ
 
-Copyright 2005-2019 Free Software Foundation, Inc.
+Copyright 2005-2023 Free Software Foundation, Inc.
 Contributed by the AriC and Caramba projects, INRIA.
 
 This file is part of the GNU MPFR Library.
@@ -41,9 +41,9 @@ mpfr_pow_pos_z (mpfr_ptr y, mpfr_srcptr x, mpz_srcptr z, mpfr_rnd_t rnd, int cr)
   MPFR_BLOCK_DECL (flags);
 
   MPFR_LOG_FUNC
-    (("x[%Pu]=%.*Rg z=%Zd rnd=%d cr=%d",
+    (("x[%Pd]=%.*Rg z=%Zd rnd=%d cr=%d",
       mpfr_get_prec (x), mpfr_log_prec, x, z, rnd, cr),
-     ("y[%Pu]=%.*Rg inexact=%d",
+     ("y[%Pd]=%.*Rg inexact=%d",
       mpfr_get_prec (y), mpfr_log_prec, y, inexact));
 
   MPFR_ASSERTD (mpz_sgn (z) != 0);
@@ -82,13 +82,13 @@ mpfr_pow_pos_z (mpfr_ptr y, mpfr_srcptr x, mpz_srcptr z, mpfr_rnd_t rnd, int cr)
       err = prec - 1 - (mpfr_prec_t) i;
 
       MPFR_BLOCK (flags,
-                  inexmul = mpfr_mul (res, x, x, rnd2);
+                  inexmul = mpfr_sqr (res, x, rnd2);
                   MPFR_ASSERTD (i >= 2);
                   if (mpz_tstbit (absz, i - 2))
                     inexmul |= mpfr_mul (res, res, x, rnd1);
                   for (i -= 3; i >= 0 && !MPFR_BLOCK_EXCEP; i--)
                     {
-                      inexmul |= mpfr_mul (res, res, res, rnd2);
+                      inexmul |= mpfr_sqr (res, res, rnd2);
                       if (mpz_tstbit (absz, i))
                         inexmul |= mpfr_mul (res, res, x, rnd1);
                     });
@@ -171,9 +171,9 @@ mpfr_pow_z (mpfr_ptr y, mpfr_srcptr x, mpz_srcptr z, mpfr_rnd_t rnd)
   MPFR_SAVE_EXPO_DECL (expo);
 
   MPFR_LOG_FUNC
-    (("x[%Pu]=%.*Rg z=%Zd rnd=%d",
+    (("x[%Pd]=%.*Rg z=%Zd rnd=%d",
       mpfr_get_prec (x), mpfr_log_prec, x, z, rnd),
-     ("y[%Pu]=%.*Rg inexact=%d",
+     ("y[%Pd]=%.*Rg inexact=%d",
       mpfr_get_prec (y), mpfr_log_prec, y, inexact));
 
   /* x^0 = 1 for any x, even a NaN */

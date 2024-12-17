@@ -32,9 +32,9 @@
     stick to "0" upto "9" so users can expect a number represented as string.
 */
 
-int luatex_version = 112;
-int luatex_revision = '0';
-const char *luatex_version_string = "1.12.0";
+int luatex_version = 119;
+int luatex_revision = '9';
+const char *luatex_version_string = "1.19.0";
 const char *engine_name = my_name;
 
 #include <kpathsea/c-ctype.h>
@@ -329,7 +329,7 @@ int shell_cmd_is_allowed(const char *cmd, char **safecmd, char **cmdname)
     free(buf);
 
     /*
-        Is *cmdname listed in a texmf.cnf vriable as shell_escape_commands =
+        Is *cmdname listed in a texmf.cnf variable as shell_escape_commands =
         foo,bar,... ?
     */
     p = cmdlist;

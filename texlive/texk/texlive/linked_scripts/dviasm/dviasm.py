@@ -5,8 +5,8 @@
 #
 # Copyright (C) 2007-2008 by Jin-Hwan Cho <chofchof@ktug.or.kr>
 # Copyright (C) 2011-2017 by Khaled Hosny <khaledhosny@eglug.org>
-# Copyright (C) 2019 by Arthur Reutenauer <arthur@reutenauer.eu>
-# Copyright (C) 2019 by Hironobu Yamashita <h.y.acetaminophen@gmail.com>
+# Copyright (C) 2019      by Arthur Reutenauer <arthur@reutenauer.eu>
+# Copyright (C) 2019-2024 by Hironobu Yamashita <h.y.acetaminophen@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import sys, os.path
 from optparse import OptionParser
@@ -72,7 +72,7 @@ DVI_ID = 2; DVIV_ID = 3; XDVI_ID = 6; XDV_ID = 7;
 DVI_IDS = (DVI_ID, DVIV_ID, XDVI_ID, XDV_ID)
 
 def warning(msg):
-  sys.stderr.write('%s\n' % msg)
+  sys.stderr.write('warning: %s\n' % msg)
 
 def ValidID(dvi_id):
     if dvi_id not in DVI_IDS:
@@ -180,55 +180,101 @@ def GetInt(s):
   except: return -1
 
 def GetStrASCII(s): # used in Parse()
-  if len(s) > 1 and ((s[0] == "'" and s[-1] == "'") or (s[0] == '"' and s[-1] == '"')): return [ord(c) for c in s[1:-1].decode('unicode_escape')]
+  if len(s) > 1 and ((s[0] == "'" and s[-1] == "'") or (s[0] == '"' and s[-1] == '"')):
+    return [ord(c) for c in s[1:-1].decode('unicode_escape')]
   else: return ''
 
 def UCS2toJIS(c):
-  s = c.encode('iso2022-jp')
+  try:
+    s = c.encode('iso2022-jp')
+  except UnicodeEncodeError:
+    s = c.encode('raw_unicode_escape')
   if len(s) == 1: return ord(s)
   else:           return (s[3] << 8) + s[4]
 
+def XUnicodeDecode(s): # dirty hack to handle >= 0x110000
+  t = []
+  i = 1
+  while i < len(s)-1:
+    c = -1
+    if s[i] == '\\':
+      if s[i+1] == 'x':
+        try:
+          c = int(s[i+2:i+4],16)
+          i += 4
+        except ValueError:
+          warning('Invalid escape sequence \\x ignored!')
+          i += 2
+      elif s[i+1] == 'u':
+        try:
+          c = int(s[i+2:i+6],16)
+          i += 6
+        except ValueError:
+          warning('Invalid escape sequence \\u ignored!')
+          i += 2
+      elif s[i+1] == 'U':
+        try:
+          c = int(s[i+2:i+10],16)
+          i += 10
+        except ValueError:
+          warning('Invalid escape sequence \\U ignored!')
+          i += 2
+      else:
+        if i+1 < len(s)-1:
+          c = ord(s[i+1])
+          i += 2
+        else:
+          warning('Invalid escape character \\ ignored!')
+          i += 1
+    else:
+          c = ord(s[i])
+          i += 1
+    if is_ptex: c = UCS2toJIS(chr(c))
+    if c >= 0: t.append(c)
+  return t
+
 def GetStrUTF8(s): # used in Parse()
   if len(s) > 1 and ((s[0] == "'" and s[-1] == "'") or (s[0] == '"' and s[-1] == '"')):
-    t = s[1:-1]
-    if is_ptex: return [UCS2toJIS(c) for c in t]
-    else:       return [ord(c)       for c in t]
-  else:         return ''
+    try: # This should work for valid Unicode
+      t = s[1:-1].encode('raw_unicode_escape').decode('unicode_escape')
+      if is_ptex: return [UCS2toJIS(c) for c in t]
+      else:       return [ord(c)       for c in t]
+    except UnicodeDecodeError: # e.g. for upTeX >= 0x110000
+                  return XUnicodeDecode(s)
+  else:           return ''
 
-def PutStrASCII(t): # unsed in Dump()
+def PutStrASCII(t): # used in Dump()
   s = ''
   for o in t:
     if o == 92:         s += '\\\\'
     elif 32 <= o < 127: s += chr(o)
     elif o < 256:       s += ('\\x%02x' % o)
     elif o < 65536:     s += ('\\u%04x' % o)
-    else:
-      warning('Not support characters > 65535; may skip %d.\n' % o)
+    else:               s += ('\\U%08x' % o)
   return "'%s'" % s
 
-def PutStrLatin1(t): # unsed in Dump()
+def PutStrLatin1(t): # used in Dump()
   s = ''
   for o in t:
     if o == 92:                           s += '\\\\'
     elif 32 <= o < 127 or 161 <= o < 256: s += chr(o)
     elif o < 256:                         s += ('\\x%02x' % o)
     elif o < 65536:                       s += ('\\u%04x' % o)
-    else:
-      warning('Not support characters > 65535; may skip %d.\n' % o)
+    else:                                 s += ('\\U%08x' % o)
   return "'%s'" % s
 
 def DecodeISO2022JP(c):
   try:
     s = bytes.fromhex("1b 24 42 %02x %02x" % (c//256, c%256)).decode('iso2022-jp')
   except UnicodeDecodeError:
-    s = ''
+    s = chr(c)
   return s
 
-def PutStrUTF8(t): # unsed in Dump()
+def PutStrUTF8(t): # used in Dump()
   s = ''
   if is_subfont:
     for o in t:
-      s += chr((subfont_idx << 8) + o).encode('utf8')
+      s += chr((subfont_idx << 8) + o)
   else: # not the case of subfont
     for o in t:
       if o == 92:         s += '\\\\'
@@ -236,17 +282,12 @@ def PutStrUTF8(t): # unsed in Dump()
       elif o < 128:       s += ('\\x%02x' % o)
       elif is_ptex:
         s += DecodeISO2022JP(o)
-      else:               s += chr(o)
-  return "'%s'" % s
-
-def PutStrSJIS(t): # unsed in Dump()
-  s = ''
-  for o in t:
-    if o == 92:         s += '\\\\'
-    elif 32 <= o < 127: s += chr(o)
-    elif o < 128:       s += ('\\x%02x' % o)
-    else:
-      s += DecodeISO2022JP(o).encode('sjis')
+      else:
+        try:              s += chr(o)
+        except ValueError: # upTeX may have >= 0x110000
+          if o < 256:         s += '\\x%02x' % o
+          elif o < 65536:     s += '\\u%04x' % o
+          else:               s += '\\U%08x' % o
   return "'%s'" % s
 
 def IsFontChanged(f, z):
@@ -321,8 +362,7 @@ class DVI(object):
     id = GetByte(fp)
     if not ValidID(id):
       warning("ID byte is %d; use the default %d!" % (id, DVI_ID))
-    else:
-      self.id = id
+    self.id = id
     numerator = SignedQuad(fp)
     if numerator <= 0:
       warning('numerator is %d; use the default 25400000!' % numerator)
@@ -461,7 +501,7 @@ class DVI(object):
       if o == SET_RULE:
         s.append([SET_RULE, [p, SignedQuad(fp)]])
       elif o in (PUT1, PUT2, PUT3, PUT4):
-        s.append([PUT1, p])
+        s.append([PUT1, [p]])
       elif o == PUT_RULE:
         s.append([PUT_RULE, [p, SignedQuad(fp)]])
       elif o == NOP:
@@ -498,7 +538,7 @@ class DVI(object):
       elif o < FNT_NUM_0 + 64 or o in (FNT1, FNT2, FNT3, FNT4):
         s.append([FNT1, p])
       elif o in (XXX1, XXX2, XXX3, XXX4):
-        q = fp.read(p).decode('utf8')
+        q = fp.read(p)
         s.append([XXX1, q])
       elif o in (FNT_DEF1, FNT_DEF2, FNT_DEF3, FNT_DEF4):
         self.DefineFont(p, fp)
@@ -612,6 +652,12 @@ class DVI(object):
     # WriteFontDefinitions
     self.WriteFontDefinitions(fp)
     # WritePages
+    if not self.pages:
+      # dvistd0.pdf, Section A.1:
+      # > A DVI file consists of a ``preamble,'' followed by a sequence of
+      # > one or more "pages," followed by a ``postamble.''
+      warning('one or more pages required!')
+      self.pages.append({'count':[1,0,0,0,0,0,0,0,0,0], 'content':[]})
     stackdepth = 0; loc = -1
     for page in self.pages:
       w = x = y = z = 0; stack = []
@@ -622,11 +668,11 @@ class DVI(object):
         if cmd[0] == SET1:
           for o in cmd[1]:
             if o < 128: s.append(bytes.fromhex('%02x' % (SET_CHAR_0 + o)))
-            else:       s.append(self.CmdPair([SET1, o]))
+            else:       s.append(self.CmdPairU([SET1, o]))
         elif cmd[0] in (SET_RULE, PUT_RULE):
           s.append(bytes.fromhex('%02x' % cmd[0]) + PutSignedQuad(cmd[1][0]) + PutSignedQuad(cmd[1][1]))
         elif cmd[0] == PUT1:
-          s.append(self.CmdPair([PUT1, cmd[1][0]]))
+          s.append(self.CmdPairU([PUT1, cmd[1][0]]))
         elif cmd[0] in (RIGHT1, DOWN1):
           s.append(self.CmdPair(cmd))
         elif cmd[0] in (W0, X0, Y0, Z0):
@@ -648,12 +694,22 @@ class DVI(object):
           z = cmd[1]; s.append(self.CmdPair(cmd))
         elif cmd[0] == FNT1:
           if cmd[1] < 64: s.append(bytes.fromhex('%02x' % (FNT_NUM_0 + cmd[1])))
-          else:           s.append(self.CmdPair(cmd))
+          else:           s.append(self.CmdPairU(cmd))
         elif cmd[0] == XXX1:
-          cmd1 = cmd[1].encode('utf8')
-          l = len(cmd[1])
-          if l < 256: s.append(bytes.fromhex('%02x' % XXX1) + bytes.fromhex('%02x' % l) + cmd1)
-          else:       s.append(bytes.fromhex('%02x' % XXX4) + PutSignedQuad(l) + cmd1)
+          if options.xxx_encoding == "none":
+            l = len(cmd[1]) # leave encoding untouched
+          else:
+            cmd1 = cmd[1].encode(options.xxx_encoding)
+            l = len(cmd1)
+          if l < 256:
+            s.append(bytes.fromhex('%02x' % XXX1) + bytes.fromhex('%02x' % l))
+          else:
+            s.append(bytes.fromhex('%02x' % XXX4) + PutSignedQuad(l))
+          if options.xxx_encoding == "none":
+            for o in cmd[1]:
+              s.append(bytes.fromhex('%02x' % ord(o)))
+          else:
+              s.append(cmd1)
         elif cmd[0] == DIR:
           s.append(bytes.fromhex('%02x' % DIR) + bytes.fromhex('%02x' % cmd[1]))
         elif cmd[0] == BEGIN_REFLECT:
@@ -673,7 +729,7 @@ class DVI(object):
       fp.write(b''.join(s))
     # WritePostamble
     post_loc = fp.tell()
-    fp.write(b''.join([bytes.fromhex('%02x' % POST), PutSignedQuad(loc), PutSignedQuad(self.numerator), PutSignedQuad(self.denominator), PutSignedQuad(self.mag), PutSignedQuad(self.max_v), PutSignedQuad(self.max_h), Put2Bytes(stackdepth+1), Put2Bytes(len(self.pages))]))
+    fp.write(b''.join([bytes.fromhex('%02x' % POST), PutSignedQuad(loc), PutSignedQuad(self.numerator), PutSignedQuad(self.denominator), PutSignedQuad(self.mag), PutSignedQuad(self.max_v), PutSignedQuad(self.max_h), Put2Bytes(stackdepth), Put2Bytes(len(self.pages))]))
     # WriteFontDefinitions
     self.WriteFontDefinitions(fp)
     # WritePostPostamble
@@ -685,7 +741,8 @@ class DVI(object):
   def WriteFontDefinitions(self, fp):
     s = []
     for e in sorted(self.font_def.keys()):
-      if self.font_def[e]['native']:
+      try:
+        self.font_def[e]['native']
         flags = self.font_def[e]['flags']
         s.append(PutByte(NATIVE_FONT_DEF))
         s.append(PutSignedQuad(e))
@@ -698,7 +755,7 @@ class DVI(object):
         if flags & XDV_FLAG_EXTEND: s.append(PutSignedQuad(self.font_def[e]['extend']))
         if flags & XDV_FLAG_SLANT: s.append(PutSignedQuad(self.font_def[e]['slant']))
         if flags & XDV_FLAG_EMBOLDEN: s.append(PutSignedQuad(self.font_def[e]['embolden']))
-      else:
+      except KeyError:
         l, q = PutUnsigned(e)
         s.append(PutByte(FNT_DEF1 + l))
         s.append(q)
@@ -710,6 +767,10 @@ class DVI(object):
         s.append(self.font_def[e]['name'].encode('utf8'))
     fp.write(b''.join(s))
 
+  def CmdPairU(self, cmd):
+    l, q = PutUnsigned(cmd[1])
+    return bytes.fromhex('%02x' % (cmd[0] + l)) + q
+
   def CmdPair(self, cmd):
     l, q = PutSigned(cmd[1])
     return bytes.fromhex('%02x' % (cmd[0] + l)) + q
@@ -718,7 +779,7 @@ class DVI(object):
   # Parse: Text -> Internal Format
   ##########################################################
   def Parse(self, fn, encoding=''):
-    fp = open(fn, 'r')
+    fp = open(fn, 'r', encoding=encoding)
     s = fp.read()
     fp.close()
     self.ParseFromString(s, encoding=encoding)
@@ -807,7 +868,10 @@ class DVI(object):
         else:
           self.cur_page.append([SET1, ol])
       elif key == 'put':
-        self.cur_page.append([PUT1, GetStr(val)])
+        ol = GetStr(val)
+        if len(ol) != 1:
+          warning('only one character is allowed for put!')
+        self.cur_page.append([PUT1, ol])
       elif key == 'setrule':
         v = val.split(' ')
         if len(v) != 2:
@@ -895,7 +959,7 @@ class DVI(object):
   # Dump: Internal Format -> Text
   ##########################################################
   def Dump(self, fn, tabsize=2, encoding=''):
-    fp = open(fn, 'w')
+    fp = open(fn, 'w', encoding=encoding)
     self.DumpToFile(fp, tabsize=tabsize, encoding=encoding)
     fp.close()
 
@@ -903,7 +967,6 @@ class DVI(object):
     global PutStr
     if   encoding == 'ascii':  PutStr = PutStrASCII
     elif encoding == 'latin1': PutStr = PutStrLatin1
-    elif encoding == 'sjis':   PutStr = PutStrSJIS
     else:                      PutStr = PutStrUTF8
     # DumpPreamble
     fp.write("[preamble]\n")
@@ -921,11 +984,17 @@ class DVI(object):
     # DumpFontDefinitions
     fp.write("\n[font definitions]\n")
     for e in sorted(self.font_def.keys()):
-      fp.write("fntdef: %s" % self.font_def[e]['name'])
+      fp.write("fntdef: %s " % self.font_def[e]['name'])
       if self.font_def[e]['design_size'] != self.font_def[e]['scaled_size']:
-        fp.write(" (%s) " % self.byconv(self.font_def[e]['design_size']))
-      fp.write(" at %s\n" % self.byconv(self.font_def[e]['scaled_size']))
+        fp.write("(%s) " % self.byconv(self.font_def[e]['design_size']))
+      fp.write("at %s\n" % self.byconv(self.font_def[e]['scaled_size']))
     # DumpPages
+    if not self.pages:
+      # dvistd0.pdf, Section A.1:
+      # > A DVI file consists of a ``preamble,'' followed by a sequence of
+      # > one or more "pages," followed by a ``postamble.''
+      warning('one or more pages required!')
+      self.pages.append({'count':[1,0,0,0,0,0,0,0,0,0], 'content':[]})
     for page in self.pages:
       fp.write("\n[page" + (" %d"*10 % tuple(page['count'])) + "]\n")
       indent = 0
@@ -939,7 +1008,10 @@ class DVI(object):
           fp.write("push:\n")
           indent += tabsize
         elif cmd[0] == XXX1:
-          fp.write("xxx: %s\n" % repr(cmd[1]))
+          if options.xxx_encoding == "none":
+            fp.write("xxx: %s\n" % PutStrASCII(cmd[1])) # leave encoding untouched
+          else:
+            fp.write("xxx: '%s'\n" % cmd[1].decode(options.xxx_encoding))
         elif cmd[0] == DIR:
           fp.write("dir: %d\n" % cmd[1])
         elif cmd[0] == BEGIN_REFLECT:
@@ -1092,7 +1164,6 @@ class DVI(object):
       f['slant'] = slant
       f['embolden'] = embolden
     else:
-      f['native'] = False
       f['name'] = n
 
     if q[:2] == "at": q = q[2:]
@@ -1144,16 +1215,18 @@ def ProcessOptions():
 DVIasm is a Python script to support changing or creating DVI files
 via disassembling into text, editing, and then reassembling into
 binary format. It is fully documented at
+  https://tug.org/TUGboat/Articles/tb28-2/tb89cho.pdf
+  http://ajt.ktug.kr/assets/2008/5/1/0201cho.pdf
 
-http://tug.org/TUGboat/Articles/tb28-2/tb89cho.pdf 
-http://ajt.ktug.kr/assets/2008/5/1/0201cho.pdf"""
+Please report bugs to
+  https://github.com/aminophen/dviasm"""
 
-  version = """This is %prog-20191126
-  
+  version = """This is %prog-20240725
+
 Copyright (C) 2007-2008 by Jin-Hwan Cho <chofchof@ktug.or.kr>
 Copyright (C) 2011-2017 by Khaled Hosny <khaledhosny@eglug.org>
-Copyright (C) 2019 by Arthur Reutenauer <arthur@reutenauer.eu>
-Copyright (C) 2019 by Hironobu Yamashita <h.y.acetaminophen@gmail.com>
+Copyright (C) 2019      by Arthur Reutenauer <arthur@reutenauer.eu>
+Copyright (C) 2019-2024 by Hironobu Yamashita <h.y.acetaminophen@gmail.com>
 
 This is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -1173,6 +1246,10 @@ the Free Software Foundation, either version 3 of the License, or
                     action="store", type="string", dest="encoding",
                     metavar="STR",
                     help="encoding for input/output [default=%default]")
+  parser.add_option("-x", "--xxx-encoding",
+                    action="store", type="string", dest="xxx_encoding",
+                    metavar="STR",
+                    help="encoding for interpreting xxx strings [default=%default]")
   parser.add_option("-t", "--tabsize",
                     action="store", type="int", dest="tabsize",
                     metavar="INT",
@@ -1184,18 +1261,20 @@ the Free Software Foundation, either version 3 of the License, or
                     action="append", type="string", dest="subfont",
                     metavar="STR",
                     help="the list of fonts with UCS2 subfont scheme (comma separated); disable internal subfont list if STR is empty")
-  parser.set_defaults(unit='pt', encoding='utf8', tabsize=2)
+  parser.set_defaults(unit='pt', encoding='utf8', xxx_encoding='none', tabsize=2)
   (options, args) = parser.parse_args()
   if not options.unit in ['sp', 'pt', 'bp', 'mm', 'cm', 'in']:
     parser.error("invalid unit name '%s'!" % options.unit)
-  if options.tabsize < 0: 
+  if options.tabsize < 0:
     parser.error("negative tabsize!")
-  if not options.encoding in ['ascii', 'latin1', 'utf8', 'sjis']:
+  if not options.xxx_encoding in ['none', 'utf8', 'sjis', 'eucjp']:
+    parser.error("invalid xxx-encoding '%s'!" % options.xxx_encoding)
+  if not options.encoding in ['ascii', 'latin1', 'utf8', 'sjis', 'eucjp']:
     parser.error("invalid encoding '%s'!" % options.encoding)
   if options.ptex:
     global is_ptex
     is_ptex = True
-    if not options.encoding in ['utf8', 'sjis']:
+    if not options.encoding in ['utf8', 'sjis', 'eucjp']:
       parser.error("invalid encoding '%s' for Japanese pTeX!" % options.encoding)
   if options.subfont:
     global subfont_list
@@ -1228,11 +1307,17 @@ def IsDVI(fname):
 if __name__ == '__main__':
   (options, args) = ProcessOptions()
   aDVI = DVI(unit=options.unit)
-  if IsDVI(args[0]): # dvi -> dump
-    aDVI.Load(args[0])
+  if os.path.isfile(args[0]): fname = args[0]
+  elif os.path.isfile(args[0] + '.xdv'): fname = args[0] + '.xdv'
+  elif os.path.isfile(args[0] + '.dvi'): fname = args[0] + '.dvi'
+  else:
+    sys.stderr.write('File %s not found\n' % args[0])
+    sys.exit(1)
+  if IsDVI(fname): # dvi -> dump
+    aDVI.Load(fname)
     if options.output: aDVI.Dump(options.output, tabsize=options.tabsize, encoding=options.encoding)
     else:              aDVI.DumpToFile(sys.stdout, tabsize=options.tabsize, encoding=options.encoding)
   else: # dump -> dvi
-    aDVI.Parse(args[0], encoding=options.encoding)
+    aDVI.Parse(fname, encoding=options.encoding)
     if options.output: aDVI.Save(options.output)
-    else:              aDVI.SaveToFile(sys.stdout)
+    else:              aDVI.SaveToFile(sys.stdout.buffer)

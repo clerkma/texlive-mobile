@@ -1,3 +1,13 @@
+2023-08-23  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* afm2pl.c: Open files with binary mode (Windows only).
+	* afm2pl.test: Make easier to test on Windows.
+
+2022-08-30  Karl Berry  <karl@freefriends.org>
+
+	* afm2pl.1: typo fixes from Hilmar Preu\ss{}e,
+	https://tug.org/pipermail/tex-live/2022-June/048227.html
+
 2015-07-07  Peter Breitenlohner  <peb@mppmu.mpg.de>
 
 	* Makefile.am: Better dependencies for 'make check'.

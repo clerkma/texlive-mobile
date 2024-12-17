@@ -1,3 +1,56 @@
+2024-01-06  Karl Berry  <karl@tug.org>
+
+	* Makefile.am (%.pl): @ not \@ in sed command.
+	Report from Peter Dyballa,
+	https://tug.org/pipermail/tlbuild/2024q1/005351.html
+
+2021-07-10  Karl Berry  <karl@freefriends.org>
+
+	* xindy-src/user-commands/xindy.in: append TL svn revision to
+	xindy.pl version number (1.18), and move $is_TL assignment to
+	before $VERSION computation. Expand $Revision$ keyword in TL repo.
+	
+	Move Mac .mem cases to above parse_options, so --version 
+	and --internal-version work.
+	
+	(call_xindy, ..., xindy_expression): forward decls of functions
+	to avoid prototype warnings.
+
+2021-07-06  Karl Berry  <karl@tug.org>
+
+	* xindy-src/user-commands/xindy.in: for the Mac,
+	xindy.run (aka clisp) is now built as a universal binary (x86_64+arm),
+	so have to find arch-specific mem file. as we did in the past
+	for PowerPC vs. x86_64.
+	* TLpatches/patch-12-xindy-mac: new file.
+	The patches to xindy.in from original upstream
+
+2020-06-07  Karl Berry  <karl@freefriends.org>
+
+	* ac/withenable.ac: omit $Id$ from generated output.
+
+2020-05-28  J\"urgen Spitzm\"uller  <spitz@lyx.org>
+
+	These patches from:
+	https://tug.org/pipermail/tex-live/2020-May/045760.html
+
+	* xindy-src/src/markup.lsp: support giving attributes to the
+	markup of separator with :attr.
+	* doc/manual-3.html: document this.
+	https://sourceforge.net/p/xindy/bugs/1/
+	
+	* xindy-src/modules/base/makeindex.xdy
+	(define-crossref-class, markup-crossref-list): handle
+	\see and \seealso added by hyperref.
+	* xindy-src/user-commands/texindy.in,
+	* xindy-src/user-commands/xindy.in: corresponding doc updates.
+	https://sourceforge.net/p/xindy/bugs/62/
+
+	* xindy-src/doc/faq-4.html,
+	* xindy-src/doc/manual-3.html: document workaround for
+	:min-range-length none being broken.
+	https://github.com/jschrod/xindy.ctan/issues/3
+
 2020-03-08  Karl Berry  <karl@tug.org>
 
 	* xindy-src/make-rules/alphabets/Makefile.am (alphabets-inc.tex):

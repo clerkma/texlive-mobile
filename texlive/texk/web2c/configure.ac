@@ -1,7 +1,7 @@
-dnl $Id: configure.ac 51470 2019-06-26 16:09:52Z karl $
+dnl $Id: configure.ac 71105 2024-04-28 16:42:00Z karl $
 dnl Process this file with Autoconf to produce a configure script for Web2c.
 dnl
-dnl   Copyright 2018-2019 Karl Berry <tex-live@tug.org>
+dnl   Copyright 2015-2024 Karl Berry <tex-live@tug.org>
 dnl   Copyright 2009-2015 Peter Breitenlohner <tex-live@tug.org>
 dnl
 dnl   This file is free software; the copyright holder
@@ -33,6 +33,17 @@ AC_CONFIG_MACRO_DIRS([../../m4 m4])
 WEB2CVERSION=tex_live_version()
 AC_SUBST([WEB2CVERSION])
 
+# LuaTeX requires system extensions for socket support.
+# Must be at the very beginning or warnings about compiler tests.
+# SyncTeX and plenty of others unconditionally define GNU_SOURCE,
+# so it's probably more consistent to always use it.
+
+# Also, we can't easily make it conditional on LuaTeX only because then
+# OBJEXT ends up defined as the empty string (error: no way to make
+# "basechsuffix."), which seems odd, but whatever.
+AC_MSG_NOTICE([using system extensions])
+AC_USE_SYSTEM_EXTENSIONS
+
 KPSE_COMMON([web2c programs])
 
 AM_CONDITIONAL([cross], [test "x$cross_compiling" = xyes])
@@ -46,10 +57,9 @@ KPSE_LT_HACK
 KPSE_WEB2C_PREPARE
 m4_include([ac/web2c.ac])
 
-# XeTeX now requires C++11 because poppler does :(.
-# XeTeX also requires C+11 because of ICU.
+# XeTeX requires C++11 because ICU does :(.
 if test "x$enable_xetex" = xyes; then
-  AC_MSG_NOTICE([checking for C++11, since XeTeX enabled])
+  AC_MSG_NOTICE([checking for C++11, since XeTeX is enabled])
   AX_CXX_COMPILE_STDCXX([11])
 fi
 
@@ -106,6 +116,9 @@ kpse_save_LIBS=$LIBS
 KPSE_LUA53_DEFINES
 KPSE_LUA52_DEFINES
 KPSE_LUAJIT_DEFINES
+KPSE_LARGEFILE([LUA53_DEFINES], [_LARGEFILE64_SOURCE])
+KPSE_LARGEFILE([LUA52_DEFINES], [_LARGEFILE64_SOURCE])
+KPSE_LARGEFILE([LUAJIT_DEFINES], [_LARGEFILE64_SOURCE])
 LIBS=$kpse_save_LIBS
 if test "x$kpse_cv_have_win32" = xno; then
   AC_SEARCH_LIBS([gethostbyname], [nsl])
@@ -207,12 +220,12 @@ m4_foreach([Kpse_Win], [kpse_mf_win],
 
 AM_CONDITIONAL([WEB], [test "x$enable_web_progs" != xno])
 
-AS_IF([test "x$enable_ptex:$enable_eptex" = xno:no],
+AS_IF([test "x$enable_eptex" = xno:no],
       [enable_pweb_progs=no],
       [enable_pweb_progs=$enable_web_progs])
 AM_CONDITIONAL([PWEB], [test "x$enable_pweb_progs" != xno])
 
-AS_IF([test "x$enable_uptex:$enable_euptex" = xno:no],
+AS_IF([test "x$enable_euptex" = xno:no],
       [enable_upweb_progs=no],
       [enable_upweb_progs=$enable_web_progs])
 AM_CONDITIONAL([UPWEB], [test "x$enable_upweb_progs" != xno])
@@ -249,6 +262,7 @@ AC_TYPE_SIGNAL
 
 KPSE_KPATHSEA_FLAGS
 KPSE_PTEXENC_FLAGS
+KPSE_PPLIB_FLAGS
 KPSE_ZLIB_FLAGS
 KPSE_LUA53_FLAGS
 KPSE_LUA52_FLAGS
@@ -257,9 +271,10 @@ KPSE_LIBPNG_FLAGS
 KPSE_FREETYPE2_FLAGS
 KPSE_PIXMAN_FLAGS
 KPSE_CAIRO_FLAGS
+KPSE_POTRACE_FLAGS
 KPSE_GMP_FLAGS
 KPSE_MPFR_FLAGS
-KPSE_POPPLER_FLAGS
+KPSE_MPFI_FLAGS
 KPSE_XPDF_FLAGS
 KPSE_ZZIPLIB_FLAGS
 KPSE_TECKIT_FLAGS
@@ -282,7 +297,7 @@ AC_CHECK_SIZEOF([off_t], , AC_INCLUDES_DEFAULT
 [#include <kpathsea/config.h>])
 
 if test "x$with_system_kpathsea" = xyes; then
-dnl Although quite unusual, it is possible to build Web2C (TeX & Co)
+dnl It is possible to build Web2C (TeX & Co)
 dnl using installed (system) kpathsea headers and library.
 dnl In that case we need the location of <kpathsea/paths.h>.
   list="/usr/include /usr/local/include `echo $KPATHSEA_INCLUDES | sed 's/-I//g'`"
@@ -304,7 +319,6 @@ fi
 AC_SUBST([KPATHSEA_PATHS_H])
 
 dnl Check for Object::initCmd(const char *) etc
-KPSE_ADD_FLAGS([poppler])
 AC_LANG_PUSH([C++])
 AC_MSG_CHECKING([for Object::[initCmd(const char*)] etc])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <Object.h>]],
@@ -328,7 +342,7 @@ AC_CONFIG_HEADERS([w2c/c-auto.h:c-auto.in],
 
 AH_TOP([/* w2c/c-auto.h: defines for web2c, as determined by configure.
 
-   Copyright 1994-97, 2008-2012 Karl Berry.
+   Copyright 1994-97, 2008-2021 Karl Berry.
    Copyright 1997-99, 2002, 2005 Olaf Weber.
 
    This program is free software: you can redistribute it and/or modify

@@ -1,7 +1,7 @@
-## $Id: Makefile.am 51577 2019-07-08 06:07:11Z lscarso $
+## $Id: Makefile.am 72216 2024-09-07 16:42:07Z karl $
 ## Makefile.am for the TeX Live subdirectory texk/web2c/.
 ##
-## Copyright 2017      Karl Berry <tex-live@tug.org>
+## Copyright 2017-2024 Karl Berry <tex-live@tug.org>
 ## Copyright 2009-2015 Peter Breitenlohner <tex-live@tug.org>
 ## You may freely use, modify and/or distribute this file.
 ##
@@ -78,8 +78,32 @@ web2c/stamp-web2c: $(web2c_common) ${srcdir}/web2c/*.[chly]
 web2c/stamp-makecpool: $(web2c_common) ${srcdir}/web2c/makecpool.c
 	cd web2c && $(MAKE) $(AM_MAKEFLAGS) stamp-makecpool
 
-# Rebuild $(proglib)
-$(proglib): ${srcdir}/lib/*.c
+# Rebuild $(proglib). We have to list all the sources,
+# not use *.c, because texmfmp.c is not part of lib.a.
+# Otherwise make will think that lib.a will need to be remade when
+# texmfmp.c is changed, even though it doesn't. The result is that we
+# will see the ctangle calls for every cweb program, since ctangleboot
+# depends on lib.a, but isn't getting remade. So this ad hoc variable is
+# a copy of lib_a_SOURCES in lib/Makefile.am, with "${srcdir}/lib/" prepended.
+proglib_sources = \
+	${srcdir}/lib/basechsuffix.c \
+	${srcdir}/lib/chartostring.c \
+	${srcdir}/lib/coredump.c \
+	${srcdir}/lib/eofeoln.c \
+	${srcdir}/lib/fprintreal.c \
+	${srcdir}/lib/inputint.c \
+	${srcdir}/lib/input2int.c \
+	${srcdir}/lib/lib.h \
+	${srcdir}/lib/main.c \
+	${srcdir}/lib/openclose.c \
+	${srcdir}/lib/printversion.c \
+	${srcdir}/lib/setupvar.c \
+	${srcdir}/lib/uexit.c \
+	${srcdir}/lib/usage.c \
+	${srcdir}/lib/version.c \
+	${srcdir}/lib/zround.c
+
+$(proglib): $(proglib_sources)
 	cd lib && $(MAKE) $(AM_MAKEFLAGS) lib.a
 ## Rebuild libkpathsea
 @KPATHSEA_RULE@
@@ -101,14 +125,18 @@ $(proglib): ${srcdir}/lib/*.c
 @PIXMAN_RULE@
 ## Rebuild libcairo
 @CAIRO_RULE@
+## Rebuild libpotrace
+@POTRACE_RULE@
 ## Rebuild libgmp
 @GMP_RULE@
 ## Rebuild libmpfr
 @MPFR_RULE@
+## Rebuild libmpfi
+@MPFI_RULE@
 ## Rebuild libxpdf
 @XPDF_RULE@
-## Rebuild poppler
-@POPPLER_RULE@
+## Rebuild pplib
+@PPLIB_RULE@
 ## Rebuild libzzip
 @ZZIPLIB_RULE@
 ## Rebuild libTEXkit
@@ -157,6 +185,31 @@ AM_TESTS_ENVIRONMENT += DIFFFLAGS='$(DIFFFLAGS)'; export DIFFFLAGS;
 AM_TESTS_ENVIRONMENT += LN_S='$(LN_S)'; export LN_S;
 AM_TESTS_ENVIRONMENT += KPSEWHICH='$(KPSEWHICH)'; export KPSEWHICH;
 
+# To run, e.g., just the original trip test, in the build directory:
+#   make -C $ww TRIPTRAP=trip.diffs triptrap
+# where $ww is the web2c build directory.   
+# 
+# This will run the triptrap-sh script
+#   which then runs make TEST=triptest.test check-am,
+#   which then runs the (srcdir file) triptest.test script;
+#   its output will be in (builddir file) trip.diffs,
+#   and triptest.out if the test failed,   
+#   plus various created files in the tripdir/ subdirectory.
+# The triptest.diffs file will have the actual abs_srcdir value replaced
+#  with the constant string "SRCDIR" to minimize differences, and "../"
+#  replaced with "./" to match the canonical output. Confusing. For the
+#  real output, see triptest.log.
+# 
+# To build only tex, make -C $ww tex (i.e., in builddir) should do it.
+# Unfortunately the check-am target depends on all-am, so all engines
+# are built before any tests are run. If this is a problem, just have to
+# edit the generated Makefile in builddir to remove the dependency.
+# 
+# Other per-engine invocations (see triptrap-sh for complete list):
+#   make -C $ww mf && make -C $ww TRIPTRAP=mftrap.diffs triptrap
+#   make -C $ww etex && make -C $ww TRIPTRAP=etrip.diffs triptrap   
+#   make -C $ww ptex && make -C $ww TRIPTRAP=ptrip.diffs triptrap   
+#   
 triptrap_diffs = $(AM_V_GEN)srcdir=$(srcdir) abs_srcdir=$(abs_srcdir) MAKE=$(MAKE) $(SHELL) $(srcdir)/triptrap-sh
 
 .PHONY: triptrap
@@ -195,9 +248,13 @@ include $(srcdir)/am/texmf.am
 
 ## MFLua
 include $(srcdir)/mfluadir/am/mflua.am
+include $(srcdir)/mfluadir/am/mfluaotfcc.am
+include $(srcdir)/mfluadir/am/mfluapotrace.am
+include $(srcdir)/mfluadir/am/mflualpeg.am
 
 ## MFLuaJIT
 include $(srcdir)/mfluajitdir/am/mfluajit.am
+include $(srcdir)/mfluajitdir/am/mfluajitlpeg.am
 
 ## MetaPost
 include $(srcdir)/mplibdir/am/mplib.am
@@ -215,14 +272,14 @@ include $(srcdir)/etexdir/am/etex.am
 ## pTeX
 include $(srcdir)/ptexdir/am/ptex.am
 
-## e-pTeX
-include $(srcdir)/eptexdir/am/eptex.am
-
 ## upTeX
 include $(srcdir)/uptexdir/am/uptex.am
 
 ## e-upTeX
 include $(srcdir)/euptexdir/am/euptex.am
+
+## hiTeX
+include $(srcdir)/hitexdir/am/hitex.am
 
 ## pdfTeX
 include $(srcdir)/pdftexdir/am/libpdftex.am
@@ -237,14 +294,13 @@ include $(srcdir)/luatexdir/am/libunilib.am
 include $(srcdir)/luatexdir/am/luafontforge.am
 include $(srcdir)/luatexdir/am/libluatex.am
 include $(srcdir)/luatexdir/am/luaffi.am
-include $(srcdir)/luatexdir/am/luapplib.am 
 include $(srcdir)/luatexdir/am/luatex.am
-
 
 ## luahbTeX
 include $(srcdir)/luatexdir/am/luaharfbuzz.am
 
-
+## texprof
+include $(srcdir)/texprofdir/am/texprof.am
 
 ## XeTeX
 include $(srcdir)/xetexdir/am/xetex.am

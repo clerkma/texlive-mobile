@@ -1,6 +1,6 @@
 /* This is dvipdfmx, an eXtended version of dvipdfm by Mark A. Wicks.
 
-    Copyright (C) 2002-2016 by Jin-Hwan Cho and Shunsaku Hirata,
+    Copyright (C) 2002-2020 by Jin-Hwan Cho and Shunsaku Hirata,
     the dvipdfmx project team.
 
     Copyright (C) 1998, 1999 by Mark A. Wicks <mwicks@kettering.edu>
@@ -31,5 +31,7 @@ extern size_t  UC_UTF16BE_encode_char (int32_t ucv, unsigned char **dstpp, unsig
 extern int32_t UC_UTF16BE_decode_char (const unsigned char **pp, const unsigned char *endptr);
 extern int32_t UC_UTF8_decode_char (const unsigned char **pp, const unsigned char *endptr);
 extern size_t  UC_UTF8_encode_char (int32_t ucv, unsigned char **dstpp, unsigned char *endptr);
+
+extern int32_t UC_Combine_CJK_compatibility_ideograph(int32_t ucv, int32_t uvs);
 
 #endif /* _UNICODE_H_ */

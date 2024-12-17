@@ -2,7 +2,7 @@
 ** PSInterpreter.hpp                                                    **
 **                                                                      **
 ** This file is part of dvisvgm -- a fast DVI to SVG converter          **
-** Copyright (C) 2005-2020 Martin Gieseking <martin.gieseking@uos.de>   **
+** Copyright (C) 2005-2024 Martin Gieseking <martin.gieseking@uos.de>   **
 **                                                                      **
 ** This program is free software; you can redistribute it and/or        **
 ** modify it under the terms of the GNU General Public License as       **
@@ -62,10 +62,12 @@ struct PSActions {
 	virtual void rotate (std::vector<double> &p) =0;
 	virtual void save (std::vector<double> &p) =0;
 	virtual void scale (std::vector<double> &p) =0;
+	virtual void setalphaisshape (std::vector<double> &p) =0;
 	virtual void setblendmode (std::vector<double> &p) =0;
 	virtual void setcolorspace (std::vector<double> &p) =0;
 	virtual void setcmykcolor (std::vector<double> &cmyk) =0;
 	virtual void setdash (std::vector<double> &p) =0;
+	virtual void setfillconstantalpha (std::vector<double> &p) =0;
 	virtual void setgray (std::vector<double> &p) =0;
 	virtual void sethsbcolor (std::vector<double> &hsb) =0;
 	virtual void setlinecap (std::vector<double> &p) =0;
@@ -74,11 +76,10 @@ struct PSActions {
 	virtual void setmatrix (std::vector<double> &p) =0;
 	virtual void setmiterlimit (std::vector<double> &p) =0;
 	virtual void setnulldevice (std::vector<double> &p) =0;
-	virtual void setopacityalpha (std::vector<double> &p) =0;
-	virtual void setshapealpha (std::vector<double> &p) =0;
 	virtual void setpagedevice (std::vector<double> &p) =0;
 	virtual void setpattern (std::vector<double> &p) =0;
 	virtual void setrgbcolor (std::vector<double> &rgb) =0;
+	virtual void setstrokeconstantalpha (std::vector<double> &p) =0;
 	virtual void shfill (std::vector<double> &p) =0;
 	virtual void stroke (std::vector<double> &p) =0;
 	virtual void translate (std::vector<double> &p) =0;
@@ -107,12 +108,13 @@ class PSInterpreter {
 		bool executeRaw (const std::string &str, int n);
 		bool active () const                   {return _mode != PS_QUIT;}
 		void limit (size_t max_bytes)          {_bytesToRead = max_bytes;}
-		void setFilter (PSFilter *filter)      {_filter = filter;}
 		PSActions* setActions (PSActions *actions);
 		int pdfPageCount (const std::string &fname);
 		BoundingBox pdfPageBox (const std::string &fname, int pageno);
 		const std::vector<std::string>& rawData () const {return _rawData;}
 		bool setImageDevice (const std::string &deviceStr);
+		bool hasFullOpacitySupport () const {return _gs.revision() >= 952;}
+		bool supportsPDF () const           {return _gs.revision() > 0 && _gs.revision() < 10010;}
 		static std::vector<PSDeviceInfo> getImageDeviceInfos ();
 		static void listImageDeviceInfos (std::ostream &os);
 		static bool imageDeviceKnown (std::string deviceStr);
@@ -131,7 +133,6 @@ class PSInterpreter {
 		Ghostscript _gs;
 		Mode _mode;                        ///< current execution mode
 		PSActions *_actions=nullptr;       ///< actions to be performed
-		PSFilter *_filter=nullptr;         ///< active filter used to process PS code
 		size_t _bytesToRead=0;             ///< if > 0, maximal number of bytes to be processed by following calls of execute()
 		std::vector<char> _linebuf;
 		std::string _errorMessage;         ///< text of error message

@@ -19,6 +19,8 @@ LuaTeX; if not, see <http://www.gnu.org/licenses/>.
 
 #include "ptexlib.h"
 
+static int nesting = 0;
+# define max_nesting 1000
 static void scan_expr(void);
 
 /*tex
@@ -536,9 +538,7 @@ static boolean short_scan_something_internal(int cmd, int chr, int level, boolea
                     /*tex assumes identical values */
                     cur_val_level = cur_chr;
                 }
-                if ((cur_list.tail_field != contrib_head) &&
-                    !is_char_node(cur_list.tail_field) &&
-                    (cur_list.mode_field != 0)) {
+                if ((cur_list.tail_field != contrib_head) && (cur_list.mode_field != 0)) {
                     switch (cur_chr) {
                         case lastpenalty_code:
                             if (type(cur_list.tail_field) == penalty_node)
@@ -1818,9 +1818,10 @@ void set_font_dimen(void)
             font_param_error(f);
         } else {
             /*tex Increase the number of parameters in the font. */
-            do {
-                set_font_param(f, (font_params(f) + 1), 0);
-            } while (n != font_params(f));
+         // do {
+         //     set_font_param(f, (font_params(f) + 1), 0);
+         // } while (n != font_params(f));
+            set_font_params(f, n);
         }
     }
     scan_optional_equals();
@@ -1848,9 +1849,10 @@ void get_font_dimen(void)
             goto EXIT;
         } else {
             /*tex Increase the number of parameters in the font. */
-            do {
-                set_font_param(f, (font_params(f) + 1), 0);
-            } while (n != font_params(f));
+         // do {
+         //     set_font_param(f, (font_params(f) + 1), 0);
+         // } while (n != font_params(f));
+            set_font_params(f, n);
         }
     }
     cur_val = font_param(f, n);
@@ -2095,7 +2097,8 @@ halfword scan_toks(boolean macro_def, boolean xpand)
                 */
                 s = match_token + cur_chr;
                 get_token();
-                if (cur_cmd == left_brace_cmd) {
+             /* if (cur_cmd == left_brace_cmd) { */
+                if (cur_tok < left_brace_limit) {
                     hash_brace = cur_tok;
                     store_new_token(cur_tok);
                     store_new_token(end_match_token);
@@ -2103,7 +2106,10 @@ halfword scan_toks(boolean macro_def, boolean xpand)
                 }
                 if (t == nine_token) {
                     print_err("You already have nine parameters");
-                    help1("I'm going to ignore the # sign you just used.");
+                    help2(
+                        "I'm going to ignore the # sign you just used,",
+                        "as well as the token that followed it."
+                    );
                     error();
                 } else {
                     incr(t);
@@ -2517,7 +2523,17 @@ static void scan_expr(void)
     a = arith_error;
     b = false;
     p = null;
-    /*tex Scan and evaluate an expression |e| of type |l|. */
+    /*tex
+
+         Scan and evaluate an expression |e| of type |l|.
+         To avoid an infinite recursion we set|max_nesting| as upper limit.
+         This limit is unrelated to the expansion limit |expand_depth| and it cannot be modify at compile time.
+
+     */
+    nesting++;
+    if (nesting > max_nesting) {
+        formatted_error("tex", "\\*expr can only be nested %d deep",max_nesting);
+    }
   RESTART:
     r = expr_none;
     e = 0;
@@ -2746,4 +2762,5 @@ static void scan_expr(void)
     arith_error = a;
     cur_val = e;
     cur_val_level = l;
+    nesting--;
 }

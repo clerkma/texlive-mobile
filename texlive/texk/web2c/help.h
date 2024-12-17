@@ -10,7 +10,7 @@
    thing, the messages have a lot in common, so it's nice to have them
    in one place.)
 
-Copyright 1995, 1996, 2009, 2011-2019 Karl Berry.
+Copyright 1995, 1996, 2009, 2011-2022 Karl Berry.
 Copyright 2008 Taco Hoekwater.
 Copyright 2001, 2003, 2004 Olaf Weber.
 
@@ -61,8 +61,11 @@ const_string CTANGLEHELP[] = {
     "+p          print progress report messages",
     "+/-q        shortcut for '-bhp'; also '--quiet' (default)",
     "+/-v        shortcut for '+bhp'; also '--verbose'",
+    "+c          check temporary output for changes",
+    "-dN         set 'kpathsea_debug' to N (0..127)",
+    "+k          keep separators in numeric literals in the output",
     "+s          print usage statistics",
-    "-t          ignore temporary output irrespective of changes",
+    "+u          transliterate UTF-8 characters in C code",
     "--help      display this help and exit",
     "--version   output version information and exit",
     NULL
@@ -81,14 +84,17 @@ const_string CWEAVEHELP[] = {
     "+p          print progress report messages",
     "+/-q        shortcut for '-bhp'; also '--quiet' (default)",
     "+/-v        shortcut for '+bhp'; also '--verbose'",
+    "+c          check temporary output for changes",
+    "-dN         set 'kpathsea_debug' to N (0..127)",
     "-e          do not enclose C material in \\PB{...}",
     "-f          do not force a newline after every C statement in output",
+    "-F          do not force a compound statement to start on a new line",
     "-i          suppress indentation of parameter declarations",
     "-o          suppress separation of declarations and statements",
     "-x          omit indices, section names, table of contents",
     "+lX         use macros for language X as of Xcwebmac.tex",
     "+s          print usage statistics",
-    "-t          ignore temporary output irrespective of changes",
+    "+t          treat 'typename' in a template like 'typedef'",
     "--help      display this help and exit",
     "--version   output version information and exit",
     NULL
@@ -107,15 +113,18 @@ const_string CTWILLHELP[] = {
     "+p          print progress report messages",
     "+/-q        shortcut for '-bhp'; also '--quiet' (default)",
     "+/-v        shortcut for '+bhp'; also '--verbose'",
+    "+c          check temporary output for changes",
+    "-dN         set 'kpathsea_debug' to N (0..127)",
     "-e          do not enclose C material in \\PB{...}",
     "-f          do not force a newline after every C statement in output",
+    "-F          do not force a compound statement to start on a new line",
     "-i          suppress indentation of parameter declarations",
     "-o          suppress separation of declarations and statements",
     "-x          omit indices, section names, table of contents",
     "+P          \\input ctproofmac.tex instead of ctwimac.tex",
     "+/-lX       use macros for language X as of Xct{wi|proof}mac.tex",
     "+s          print usage statistics",
-    "-t          ignore temporary output irrespective of changes",
+    "+t          treat 'typename' in a template like 'typedef'",
     "--help      display this help and exit",
     "--version   output version information and exit",
     NULL
@@ -198,13 +207,13 @@ const_string GFTYPEHELP[] = {
 
 #ifdef MFT
 const_string MFTHELP[] = {
-    "Usage: mft [OPTION]... NAME[.mf|.mp]",
-    "  Translate MFNAME to TeX for printing, using the mftmac.tex (or",
-    "  mptmac.tex) macros.  Output goes to basename of NAME extended",
-    "  with `.tex'.",
+    "Usage: mft [OPTION]... FILENAME[.mf|.mp]",
+    "  Translate FILENAME to TeX for printing, using the mftmac.tex",
+    "  (for mf) or mptmac.tex (for mpost) TeX macro file.",
+    "  Output goes to basename of FILENAME extended with `.tex'.",
     "",
     "-change=CHFILE  apply the change file CHFILE as with tangle and weave",
-    "-metapost       assume NAME is a METAPOST source file",
+    "-metapost       assume FILENAME is a MetaPost source file",
     "-style=MFTNAME  use MFTNAME instead of plain.mft (or mplain.mft)",
     "                 (this option can be given more than once)",
     "-help           display this help and exit",
@@ -341,6 +350,9 @@ const_string OVP2OVFHELP[] = {
     "  Default OVFFILE is basename of OVPFILE extended with `.ovf'.",
     "  Default OFMFILE is basename of OVFFILE extended with `.ofm'.",
     "",
+#ifdef OMFONTS
+    "-omit-ofm              do not output OFMFILE",
+#endif
     "-help                  display this help and exit",
     "-verbose               display progress reports",
     "-version               output version information and exit",
@@ -367,6 +379,7 @@ const_string PBIBTEXHELP[] = {
     "  Write bibliography for entries in AUXFILE to AUXFILE.bbl,",
     "  along with a log file AUXFILE.blg."
     "",
+    "[-no]-guess-input-enc  disable/enable to guess input file encoding",
     "-kanji=STRING          set Japanese encoding (STRING=euc|jis|sjis|utf8)",
     "-min-crossrefs=NUMBER  include item after NUMBER cross-refs; default 2",
     "-terse                 do not print progress reports",
@@ -480,11 +493,13 @@ const_string PTFTOPLHELP[] = {
 
 #if defined (TANGLE) || defined (TANGLEBOOT)
 const_string TANGLEHELP[] = {
-    "Usage: tangle [OPTION]... WEBFILE[.web] [CHANGEFILE[.ch]]",
+    "Usage: tangle [OPTION] WEBFILE[.web] [{CHANGEFILE[.ch]|-} [OUTFILE[.p]]]",
     "  Tangle WEBFILE with CHANGEFILE into a Pascal program.",
     "  Default CHANGEFILE is " DEV_NULL ";",
     "  Pascal output goes to the basename of WEBFILE extended with `.p',",
-    "  and a string pool file, if necessary, to the same extended with `.pool'.",
+    "  unless otherwise specified by OUTFILE,",
+    "  and a string pool file, if necessary, to the same extended with `.pool';",
+    "  in this case, '-' specifies a null CHANGEFILE.",
     "",
     "-length=NUMBER the first NUMBER characters of an identifier have to be",
     "                unique (default 32)",
@@ -492,9 +507,9 @@ const_string TANGLEHELP[] = {
     "                comparing identifiers (default)",
     "-lowercase     make all identifiers lowercase",
     "-mixedcase     retain the case of identifiers unchanged (default)",
-    "-strict        always smash case and remove underlines when comparing",
-    "                identifiers",
-    "-underline     do not remove underline characters from indentifiers",
+    "-strict        when comparing identifiers, remove underlines and",
+    "                convert all identifiers to uppercase first",
+    "-underline     do not remove underline characters from identifiers",
     "-uppercase     make all identifiers uppercase",
     "-help          display this help and exit",
     "-version       output version information and exit",
@@ -525,6 +540,7 @@ const_string UPBIBTEXHELP[] = {
     "  Write bibliography for entries in AUXFILE to AUXFILE.bbl,",
     "  along with a log file AUXFILE.blg."
     "",
+    "[-no]-guess-input-enc  disable/enable to guess input file encoding",
     "-kanji=STRING          set Japanese encoding (STRING=euc|jis|sjis|utf8|uptex)",
     "-kanji-internal=STRING set Japanese internal encoding (STRING=euc|uptex)",
     "-min-crossrefs=NUMBER  include item after NUMBER cross-refs; default 2",
@@ -621,16 +637,35 @@ const_string VPTOVFHELP[] = {
 
 #ifdef WEAVE
 const_string WEAVEHELP[] = {
-    "Usage: weave [OPTION]... WEBFILE[.web] [CHANGEFILE[.ch]]",
+    "Usage: weave [OPTION] WEBFILE[.web] [{CHANGEFILE[.ch]|-} [OUTFILE[.tex]]]",
     "  Weave WEBFILE with CHANGEFILE into a TeX document.",
     "  Default CHANGEFILE is " DEV_NULL ";",
-    "  TeX output goes to the basename of WEBFILE extended with `.tex'.",
+    "  TeX output goes to the basename of WEBFILE extended with `.tex',",
+    "  unless otherwise specified by OUTFILE;",
+    "  in this case, '-' specifies a null CHANGEFILE.",
     "",
+    "-p          use alternative macros for PDF output",
     "-x          omit cross-reference information",
     "-help       display this help and exit",
     "-version    output version information and exit",
     NULL
 };
 #endif /* WEAVE */
+
+#ifdef TWILL
+const_string TWILLHELP[] = {
+    "Usage: twill [OPTION] WEBFILE[.web] [{CHANGEFILE[.ch]|-} [OUTFILE[.tex]]]",
+    "  Weave WEBFILE with CHANGEFILE into a TeX document with mini-indexes.",
+    "  Default CHANGEFILE is " DEV_NULL ";",
+    "  TeX output goes to the basename of WEBFILE extended with `.tex',",
+    "  unless otherwise specified by OUTFILE;",
+    "  in this case, '-' specifies a null CHANGEFILE.",
+    "",
+    "-x          omit cross-reference information",
+    "-help       display this help and exit",
+    "-version    output version information and exit",
+    NULL
+};
+#endif /* TWILL */
 
 #endif /* not HELP_H */

@@ -108,7 +108,7 @@ extern void check_obj_exists(PDF pdf, int objnum);
 extern void check_obj_type(PDF pdf, int t, int objnum);
 extern int pdf_get_obj(PDF pdf, int t, int i, boolean byname);
 extern int pdf_create_obj(PDF pdf, int t, int i);
-extern void set_rect_dimens(PDF pdf, halfword p, halfword parent_box, scaledpos cur, scaled_whd alt_rule, scaled margin);
+extern void set_rect_dimens(PDF pdf, halfword p, halfword parent_box, scaledpos cur, scaled_whd alt_rule);
 extern void libpdffinish(PDF);
 
 #  define set_width(A,B)  width(A)=(B)
@@ -141,6 +141,11 @@ typedef enum {
     c_pdf_omit_cidset,
     c_pdf_recompress,
     c_pdf_omit_charset,
+    c_pdf_omit_infodict,
+    c_pdf_omit_mediabox,
+    c_pdf_linking,
+    c_pdf_omit_procset,
+    c_pdf_ptex_prefix,
 } pdf_backend_counters ;
 
 typedef enum {
@@ -190,7 +195,12 @@ extern int pdf_cur_form;
 #  define pdf_suppress_optional_info    get_tex_extension_count_register(c_pdf_suppress_optional_info)
 #  define pdf_omit_cidset               get_tex_extension_count_register(c_pdf_omit_cidset)
 #  define pdf_omit_charset              get_tex_extension_count_register(c_pdf_omit_charset)
+#  define pdf_omit_infodict             get_tex_extension_count_register(c_pdf_omit_infodict)
+#  define pdf_omit_mediabox             get_tex_extension_count_register(c_pdf_omit_mediabox)
 #  define pdf_recompress                get_tex_extension_count_register(c_pdf_recompress)
+#  define pdf_linking                   get_tex_extension_count_register(c_pdf_linking)
+#  define pdf_omit_procset              get_tex_extension_count_register(c_pdf_omit_procset)
+#  define pdf_ptex_prefix               get_tex_extension_count_register(c_pdf_ptex_prefix)
 
 #  define pdf_h_origin                  get_tex_extension_dimen_register(d_pdf_h_origin)
 #  define pdf_v_origin                  get_tex_extension_dimen_register(d_pdf_v_origin)
@@ -213,8 +223,13 @@ extern int pdf_cur_form;
 #  define set_pdf_obj_compress_level(i) set_tex_extension_count_register(c_pdf_obj_compress_level,i)
 #  define set_pdf_omit_cidset(i)        set_tex_extension_count_register(c_pdf_omit_cidset,i)
 #  define set_pdf_omit_charset(i)       set_tex_extension_count_register(c_pdf_omit_charset,i)
+#  define set_pdf_omit_infodict(i)      set_tex_extension_count_register(c_pdf_omit_infodict,i)
+#  define set_pdf_omit_mediabox(i)      set_tex_extension_count_register(c_pdf_omit_mediabox,i)
 #  define set_pdf_gen_tounicode(i)      set_tex_extension_count_register(c_pdf_gen_tounicode,i)
 #  define set_pdf_recompress(i)         set_tex_extension_count_register(c_pdf_recompress,i)
+#  define set_pdf_linking(i)            set_tex_extension_count_register(c_pdf_linking,i)
+#  define set_pdf_omit_procset(i)       set_tex_extension_count_register(c_pdf_omit_procset,i)
+#  define set_pdf_ptex_prefix(i)        set_tex_extension_count_register(c_pdf_ptex_prefix,i)
 
 #  define set_pdf_decimal_digits(i)     set_tex_extension_count_register(c_pdf_decimal_digits,i)
 #  define set_pdf_pk_resolution(i)      set_tex_extension_count_register(c_pdf_pk_resolution,i)

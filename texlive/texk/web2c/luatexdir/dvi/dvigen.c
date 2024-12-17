@@ -1324,11 +1324,21 @@ void dvi_special(PDF pdf, halfword p)
     int old_setting;
     /*tex index into |cur_string| */
     unsigned k;
+    halfword h; 
     synch_dvi_with_pos(pdf->posstruct->pos);
     old_setting = selector;
+    if (subtype(p) == late_special_node ) {
+        expand_macros_in_tokenlist(special_tokens(p));
+        h = token_link(def_ref); 
+    } else { 
+        h = token_link(special_tokens(p));
+    }
     selector = new_string;
-    show_token_list(token_link(write_tokens(p)), null, -1);
+    show_token_list(h, null, -1);
     selector = old_setting;
+    if (subtype(p) == late_special_node ) {
+        flush_list(def_ref);
+    }
     if (cur_length < 256) {
         dvi_out(xxx1);
         dvi_out(cur_length);
@@ -1415,6 +1425,10 @@ void dvi_begin_page(PDF pdf)
 void dvi_end_page(PDF pdf)
 {
     (void) pdf;
+    if (check_dvi_total_pages && total_pages>=65536){
+      print_err(" ==> Fatal error occurred: total_pages>=65536, bad output DVI file produced!");
+      jump_out();
+    }
     dvi_out(eop);
 }
 
@@ -1422,7 +1436,8 @@ void dvi_end_page(PDF pdf)
 
 At the end of the program, we must finish things off by writing the post\-amble.
 If |total_pages=0|, the \.{DVI} file was never opened. If |total_pages>=65536|,
-the \.{DVI} file will lie. And if |max_push>=65536|, the user deserves whatever
+the \.{DVI} file will lie, and if the  option |check_dvi_total_pages| is true, the program abort.
+And if |max_push>=65536|, the user deserves whatever
 chaos might ensue.
 
 */

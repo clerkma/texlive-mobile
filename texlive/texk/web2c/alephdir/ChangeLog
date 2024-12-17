@@ -1,3 +1,68 @@
+2024-10-20  TANAKA Takuji  <ttk@t-lab.opal.ne.jp>
+
+	* aleph-{ofm,lmr}.test, tests/lmr1.tex,
+	tests/al-ofm.tex, tests/al-lmr1.log, tests/al-ofm.log,
+	tests/inutf8.ocp, am/aleph.am: Add tests for OFM.
+
+2024-03-10  Karl Berry  <karl@tug.org>
+
+	* TL'24 release.
+
+2023-08-18  Hironobu Yamashita <h.y.acetaminophen@gmail.com>
+
+	* com16bit.ch: Sync with tex.ch changes:
+	  - 2008-01-02 r6024 introduce expand_depth.
+	* eobase.ch: Sync with etex.ch changes:
+	  - 2021-02-22 r57850 avoid "expansion depth" overflow.
+
+2023-03-09  Karl Berry  <karl@tug.org>
+
+	* TL'23 release.
+
+2023-02-21  Phelype Oleinik  <phelype.oleinik@latex-project.org>
+
+	* latespecial.ch: reduce memory usage, a la HH/luatex.
+
+2023-02-15  Phelype Oleinik  <phelype.oleinik@latex-project.org>
+
+	* latespecial.ch: new change file for "\special shipout".
+	* am/aleph.am (aleph_web_srcs): add latespecial.ch.
+
+2022-10-22  Hironobu Yamashita <h.y.acetaminophen@gmail.com>
+
+	* com16bit.ch: Sync with tex.ch changes:
+	  - 2022-07-16 r63916 to disallow \noexpand\endwrite.
+	  - 2021-07-22 r60013 explicit fmt loading error.
+	  - 2022-09-28 r64547 protect against recursive --halt-on-error.
+	* comsrcspec.ch: Sync with tex.ch changes:
+	  - 2022-09-28 r64547 protect against recursive --halt-on-error.
+
+2022-03-21  Karl Berry  <karl@tug.org>
+
+	* TL'22 release.
+
+2022-01-10  Karl Berry  <karl@freefriends.org>
+
+	* am/aleph.am: do not silence tangle-sh.
+
+2021-07-19  Hironobu Yamashita <h.y.acetaminophen@gmail.com>
+
+	* com16bit.ch: Sync with tex.ch to initialize limit.
+	https://tug.org/pipermail/tex-k/2021-July/003630.html
+
+2021-05-08  Akira Kakuto  <kakuto@w32tex.org>
+
+	* com16bit.ch: Sync sup_param_size and sup_save_size with tex.ch.
+
+2021-03-23  Karl Berry  <karl@tug.org>
+
+	* TL'21.
+
+2020-07-07  Akira Kakuto  <kakuto@w32tex.org>
+
+	* com16bit.ch: Sync with tex.ch (avoid seg fault in unusual
+	interaction sequence).
+
 2020-02-10  Akira Kakuto  <kakuto@w32tex.org>
 
 	* com16bit.ch: Sync with tex.ch for changes by Phelype Oleinik
